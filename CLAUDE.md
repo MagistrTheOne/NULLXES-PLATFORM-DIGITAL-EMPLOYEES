@@ -316,3 +316,62 @@ Tagline:
 Build, deploy and manage digital employees at enterprise scale.
 
 The product should feel like the control center of a digital civilization.
+
+
+
+
+# Anti-Neural-Slop Rules
+
+Do not build future architecture today.
+
+Do not create tables for hypothetical features.
+
+Do not create:
+
+analytics
+
+notifications
+
+billing
+
+subscriptions
+
+knowledge
+
+memory
+
+chat
+
+conversations
+
+audit logs
+
+API keys
+
+unless explicitly requested in the current iteration.
+
+One iteration = one domain.
+
+Complete the current domain before creating the next one.
+
+Never create more than:
+
+* one business entity
+* one migration
+* one verification path
+
+per iteration.
+
+Prefer:
+
+small migrations
+
+small commits
+
+small files
+
+Stop immediately after success criteria are met.
+
+Do not continue "because it might be useful later".
+
+Future requirements are not current requirements.

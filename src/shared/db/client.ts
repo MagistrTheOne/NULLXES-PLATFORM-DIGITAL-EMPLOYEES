@@ -1,8 +1,29 @@
 import { neon } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-http";
 import { getDatabaseUrl } from "@/shared/config/env";
-import * as schema from "./schema";
+import * as membershipRelations from "@/entities/membership/relations";
+import * as membershipSchema from "@/entities/membership/schema";
+import * as organizationRelations from "@/entities/organization/relations";
+import * as organizationSchema from "@/entities/organization/schema";
+import * as userRelations from "@/entities/user/relations";
+import * as userSchema from "@/entities/user/schema";
+import * as authRelations from "@/features/auth/relations";
+import * as authSchema from "@/features/auth/schema";
+import * as sharedSchema from "./schema";
 
 const sql = neon(getDatabaseUrl());
 
-export const db = drizzle({ client: sql, schema });
+export const db = drizzle({
+  client: sql,
+  schema: {
+    ...sharedSchema,
+    ...authSchema,
+    ...authRelations,
+    ...userSchema,
+    ...userRelations,
+    ...organizationSchema,
+    ...organizationRelations,
+    ...membershipSchema,
+    ...membershipRelations,
+  },
+});
