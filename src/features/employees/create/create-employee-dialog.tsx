@@ -50,11 +50,12 @@ export function CreateEmployeeDialog({
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onComplete?: (draft: CreateEmployeeDraftPayload) => void;
+  onComplete?: (draft: CreateEmployeeDraftPayload) => Promise<void>;
 }) {
   const [step, setStep] = useState<CreateEmployeeStep>("identity");
   const [form, setForm] = useState<CreateEmployeeFormState>(createInitialFormState);
   const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [avatarPreviewUrl, setAvatarPreviewUrl] = useState<string | null>(null);
   const avatarPreviewUrlRef = useRef<string | null>(null);
 
@@ -138,17 +139,24 @@ export function CreateEmployeeDialog({
     }
   }
 
-  function handleCreate(): void {
+  async function handleCreate(): Promise<void> {
+    setIsSubmitting(true);
+    setError(null);
+
     try {
       const draft = assembleCreateEmployeeDraft(form);
-      onComplete?.(draft);
+      if (onComplete) {
+        await onComplete(draft);
+      }
       handleOpenChange(false);
     } catch (submitError: unknown) {
       const message =
         submitError instanceof Error
           ? submitError.message
-          : "Unable to assemble employee draft";
+          : "Unable to create digital employee";
       setError(message);
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
@@ -418,9 +426,10 @@ export function CreateEmployeeDialog({
             <Button
               type="button"
               onClick={handleCreate}
+              disabled={isSubmitting}
               className="bg-white text-black hover:bg-white/90"
             >
-              Create Employee
+              {isSubmitting ? "Creating..." : "Create Employee"}
             </Button>
           ) : (
             <Button

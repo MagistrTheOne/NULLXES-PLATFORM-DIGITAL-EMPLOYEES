@@ -1,7 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import type { EmployeeStatus } from "@/entities/digital-employee";
+import { persistDigitalEmployeeFromDraft } from "@/features/employees/actions/persist-digital-employee-from-draft";
 import {
   CreateEmployeeDialog,
   type CreateEmployeeDraftPayload,
@@ -29,6 +31,7 @@ export function EmployeesScreen({
 }: {
   employees: EmployeeListItem[];
 }) {
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | EmployeeStatus>("all");
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -43,8 +46,11 @@ export function EmployeesScreen({
 
   const hasEmployees = employees.length > 0;
 
-  function handleCreateComplete(draft: CreateEmployeeDraftPayload): void {
-    console.info("[mock] create employee draft", draft);
+  async function handleCreateComplete(
+    draft: CreateEmployeeDraftPayload,
+  ): Promise<void> {
+    await persistDigitalEmployeeFromDraft(draft);
+    router.refresh();
   }
 
   return (

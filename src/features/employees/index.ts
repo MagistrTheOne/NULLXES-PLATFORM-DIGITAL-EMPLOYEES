@@ -1,3 +1,4 @@
+export { persistDigitalEmployeeFromDraft } from "./actions/persist-digital-employee-from-draft";
 export { CreateEmployeeDialog, assembleCreateEmployeeDraft } from "./create";
 export type { CreateEmployeeDraftPayload } from "./create";
 export { EmployeesScreen } from "./components/employees-screen";

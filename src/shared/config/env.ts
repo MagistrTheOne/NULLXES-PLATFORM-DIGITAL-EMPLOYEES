@@ -40,3 +40,31 @@ export function getPublicBetterAuthUrl(): string {
 
   throw new Error("NEXT_PUBLIC_BETTER_AUTH_URL or BETTER_AUTH_URL is not set");
 }
+
+function readOptionalEnv(name: string): string | undefined {
+  const value = process.env[name]?.trim();
+  return value && value.length > 0 ? value : undefined;
+}
+
+/** OpenAI — https://developers.openai.com/api/docs/ */
+export function getOpenAiApiKey(): string | undefined {
+  return readOptionalEnv("OPENAI_API_KEY");
+}
+
+/** Anam personas — https://anam.ai/docs/personas/overview */
+export function getAnamApiKey(): string | undefined {
+  return readOptionalEnv("ANAM_API_KEY");
+}
+
+/** ElevenLabs agents — https://elevenlabs.io/docs/eleven-agents/overview */
+export function getElevenLabsApiKey(): string | undefined {
+  return readOptionalEnv("ELEVENLABS_API_KEY");
+}
+
+export function getStreamApiKey(): string | undefined {
+  return readOptionalEnv("STREAM_API_KEY");
+}
+
+export function getStreamSecretKey(): string | undefined {
+  return readOptionalEnv("STREAM_SECRET_KEY");
+}

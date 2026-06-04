@@ -28,7 +28,8 @@
     "workspace:verify": "node --env-file=.env --import tsx src/features/workspace/verify-workspace.ts",
     "dashboard-shell:verify": "node --env-file=.env --import tsx src/features/dashboard/verify-dashboard-shell.ts",
     "employees-ui:verify": "node --env-file=.env --import tsx src/features/employees/verify-employees-ui.ts",
-    "employees-create:verify": "node --import tsx src/features/employees/verify-create-employee.ts"
+    "employees-create:verify": "node --import tsx src/features/employees/verify-create-employee.ts",
+    "employees-persist:verify": "node --env-file=.env --import tsx src/features/employees/verify-persist-create-employee.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",
