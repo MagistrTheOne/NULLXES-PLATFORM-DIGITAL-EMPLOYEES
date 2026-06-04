@@ -164,7 +164,10 @@ async function verifyEmployeesUi(): Promise<void> {
     "Draft",
     "Avatar",
     "Brain",
-    "knowledge source",
+    "Search employees",
+    "Create Employee",
+    "Employees",
+    "Active",
   ];
   const renderedCount = renderedMarkers.filter((marker) =>
     html.includes(marker),

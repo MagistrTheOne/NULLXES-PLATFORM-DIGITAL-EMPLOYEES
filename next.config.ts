@@ -1,4 +1,7 @@
 import type { NextConfig } from "next";
+import { loadEnvFiles } from "./src/shared/config/load-env-files";
+
+loadEnvFiles();
 
 const betterAuthUrl =
   process.env.NEXT_PUBLIC_BETTER_AUTH_URL ??

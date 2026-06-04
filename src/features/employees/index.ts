@@ -1,7 +1,10 @@
-export { EmployeeList } from "./components/employee-list";
+export { EmployeesScreen } from "./components/employees-screen";
+export { EmployeeGrid } from "./components/employee-grid";
 export { EmployeeCard } from "./components/employee-card";
 export { EmployeeStatusBadge } from "./components/employee-status-badge";
-export { EmployeeProviderBadges } from "./components/employee-provider-badges";
-export { EmployeesEmptyState } from "./components/empty-state";
+export { EmployeeProviderBadge } from "./components/employee-provider-badge";
+export { EmployeeMetrics } from "./components/employee-metrics";
+export { EmployeeToolbar } from "./components/employee-toolbar";
+export { EmployeeEmptyState } from "./components/employee-empty-state";
 export { listOrganizationEmployees } from "./services/list-organization-employees";
 export type { EmployeeListItem } from "./types";
