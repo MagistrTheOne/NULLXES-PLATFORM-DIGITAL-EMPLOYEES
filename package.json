@@ -11,7 +11,8 @@
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
     "db:verify": "node --env-file=.env --import tsx src/shared/db/verify-connection.ts",
-    "identity:verify": "node --env-file=.env --import tsx src/features/auth/verify-identity.ts"
+    "identity:verify": "node --env-file=.env --import tsx src/features/auth/verify-identity.ts",
+    "employee:verify": "node --env-file=.env --import tsx src/entities/digital-employee/verify-digital-employee.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",

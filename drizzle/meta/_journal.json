@@ -15,6 +15,13 @@
       "when": 1780587998198,
       "tag": "0001_hesitant_thor",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1780588842456,
+      "tag": "0002_colorful_ghost_rider",
+      "breakpoints": true
     }
   ]
 }
