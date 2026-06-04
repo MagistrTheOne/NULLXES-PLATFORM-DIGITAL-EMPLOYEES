@@ -16,6 +16,7 @@ export const knowledgeSourceTypeEnum = pgEnum("knowledge_source_type", [
 
 export const knowledgeSourceStatusEnum = pgEnum("knowledge_source_status", [
   "pending",
+  "processing",
   "ready",
   "failed",
 ]);
@@ -28,6 +29,7 @@ export const knowledgeSource = pgTable("knowledge_source", {
   type: knowledgeSourceTypeEnum("type").notNull(),
   title: text("title").notNull(),
   status: knowledgeSourceStatusEnum("status").notNull().default("pending"),
+  failureReason: text("failure_reason"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),

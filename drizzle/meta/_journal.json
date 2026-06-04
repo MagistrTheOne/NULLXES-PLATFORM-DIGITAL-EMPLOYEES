@@ -57,6 +57,13 @@
       "when": 1780592200714,
       "tag": "0007_loud_stature",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1780592487941,
+      "tag": "0008_wild_cable",
+      "breakpoints": true
     }
   ]
 }
