@@ -14,7 +14,8 @@
     "identity:verify": "node --env-file=.env --import tsx src/features/auth/verify-identity.ts",
     "employee:verify": "node --env-file=.env --import tsx src/entities/digital-employee/verify-digital-employee.ts",
     "knowledge:verify": "node --env-file=.env --import tsx src/entities/knowledge/verify-knowledge.ts",
-    "runtime:verify": "node --env-file=.env --import tsx src/entities/runtime/verify-runtime.ts"
+    "runtime:verify": "node --env-file=.env --import tsx src/entities/runtime/verify-runtime.ts",
+    "session:verify": "node --env-file=.env --import tsx src/entities/session/verify-session.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",
