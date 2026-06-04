@@ -42,17 +42,29 @@ export function assembleCreateEmployeeDraft(
     throw new Error("Employee role is required");
   }
 
+  if (!form.avatarId || !form.avatarPreviewUrl) {
+    throw new Error("Avatar must be generated before continuing");
+  }
+
+  if (!form.voiceId) {
+    throw new Error("Voice selection is required");
+  }
+
   return {
     status: "draft",
     identity: { name, role },
     avatar: {
+      avatarId: form.avatarId,
+      previewUrl: form.avatarPreviewUrl,
+      provider: "anam",
       photoFileName: form.photoFileName,
       photoFileSize: form.photoFileSize,
-      generateAvatarEnabled: false,
-      avatarProvider: "custom",
+      generateAvatarEnabled: true,
     },
     voice: {
-      provider: form.voiceProvider,
+      voiceId: form.voiceId,
+      provider: "elevenlabs",
+      model: form.voiceModel,
     },
     brain: {
       provider: form.brainProvider,

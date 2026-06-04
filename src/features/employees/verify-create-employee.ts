@@ -7,7 +7,11 @@ function verifyCreateEmployeeExperience(): void {
   form.role = "Legal Operations Employee";
   form.photoFileName = "megan.png";
   form.photoFileSize = 2048;
-  form.voiceProvider = "deepgram";
+  form.avatarId = "anam-avatar-studio-001";
+  form.avatarPreviewUrl = "https://cdn.nullxes.local/avatars/megan.png";
+  form.avatarGenerationStatus = "ready";
+  form.voiceId = "JBFqnCBsd6RMkjVDRZzb";
+  form.voiceName = "George";
   form.brainProvider = "anthropic";
   form.knowledgeUrl = "https://docs.nullxes.local/playbook";
   form.knowledgeText = "Compliance reference notes";
@@ -27,16 +31,24 @@ function verifyCreateEmployeeExperience(): void {
     throw new Error("Brain provider was not preserved");
   }
 
-  if (draft.voice.provider !== "deepgram") {
-    throw new Error("Voice provider was not preserved");
+  if (draft.voice.provider !== "elevenlabs" || draft.voice.model !== "eleven_v3") {
+    throw new Error("Voice studio fields were not preserved");
+  }
+
+  if (draft.voice.voiceId !== "JBFqnCBsd6RMkjVDRZzb") {
+    throw new Error("Voice ID was not preserved");
+  }
+
+  if (draft.avatar.provider !== "anam" || draft.avatar.avatarId !== "anam-avatar-studio-001") {
+    throw new Error("Avatar studio fields were not preserved");
+  }
+
+  if (draft.avatar.generateAvatarEnabled !== true) {
+    throw new Error("Generate avatar must be enabled when avatarId is set");
   }
 
   if (draft.knowledge.length !== 3) {
     throw new Error("Knowledge items were not assembled");
-  }
-
-  if (draft.avatar.generateAvatarEnabled !== false) {
-    throw new Error("Generate avatar must remain disabled in draft payload");
   }
 
   console.log("Create employee draft payload:", JSON.stringify(draft, null, 2));

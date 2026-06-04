@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -13,13 +12,21 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { generateEmployeeAvatar } from "@/features/employees/actions/generate-employee-avatar";
+import { previewEmployeeVoice } from "@/features/employees/actions/preview-employee-voice";
+import {
+  AvatarGenerationState,
+  AvatarPreviewCard,
+  AvatarUpload,
+  VoiceStudioGrid,
+} from "@/features/employees/studio";
 import { assembleCreateEmployeeDraft } from "./assemble-create-employee-draft";
 import { ProviderOption } from "./components/provider-option";
 import {
   BRAIN_PROVIDER_OPTIONS,
   CREATE_EMPLOYEE_STEPS,
+  MAX_AVATAR_UPLOAD_BYTES,
   STEP_LABELS,
-  VOICE_PROVIDER_OPTIONS,
   createInitialFormState,
 } from "./constants";
 import type { BrainProvider } from "@/entities/digital-employee";
@@ -27,7 +34,6 @@ import type {
   CreateEmployeeDraftPayload,
   CreateEmployeeFormState,
   CreateEmployeeStep,
-  VoiceProvider,
 } from "./types";
 
 function stepIndex(step: CreateEmployeeStep): number {
@@ -56,13 +62,21 @@ export function CreateEmployeeDialog({
   const [form, setForm] = useState<CreateEmployeeFormState>(createInitialFormState);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [avatarPreviewUrl, setAvatarPreviewUrl] = useState<string | null>(null);
-  const avatarPreviewUrlRef = useRef<string | null>(null);
+  const [localUploadPreviewUrl, setLocalUploadPreviewUrl] = useState<string | null>(
+    null,
+  );
+  const [previewingVoiceId, setPreviewingVoiceId] = useState<string | null>(null);
+  const localUploadPreviewUrlRef = useRef<string | null>(null);
+  const voicePreviewAudioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     return () => {
-      if (avatarPreviewUrlRef.current) {
-        URL.revokeObjectURL(avatarPreviewUrlRef.current);
+      if (localUploadPreviewUrlRef.current) {
+        URL.revokeObjectURL(localUploadPreviewUrlRef.current);
+      }
+      if (voicePreviewAudioRef.current) {
+        voicePreviewAudioRef.current.pause();
+        voicePreviewAudioRef.current = null;
       }
     };
   }, []);
@@ -84,19 +98,20 @@ export function CreateEmployeeDialog({
     setError(null);
   }
 
-  function clearAvatarPreview(): void {
-    if (avatarPreviewUrlRef.current) {
-      URL.revokeObjectURL(avatarPreviewUrlRef.current);
-      avatarPreviewUrlRef.current = null;
+  function clearLocalUploadPreview(): void {
+    if (localUploadPreviewUrlRef.current) {
+      URL.revokeObjectURL(localUploadPreviewUrlRef.current);
+      localUploadPreviewUrlRef.current = null;
     }
-    setAvatarPreviewUrl(null);
+    setLocalUploadPreviewUrl(null);
   }
 
   function resetFlow(): void {
     setStep("identity");
     setForm(createInitialFormState());
     setError(null);
-    clearAvatarPreview();
+    setPreviewingVoiceId(null);
+    clearLocalUploadPreview();
   }
 
   function handleOpenChange(nextOpen: boolean): void {
@@ -117,6 +132,21 @@ export function CreateEmployeeDialog({
         return false;
       }
     }
+
+    if (step === "avatar") {
+      if (!form.avatarId || !form.avatarPreviewUrl) {
+        setError("Generate an avatar before continuing.");
+        return false;
+      }
+    }
+
+    if (step === "voice") {
+      if (!form.voiceId) {
+        setError("Select a voice before continuing.");
+        return false;
+      }
+    }
+
     return true;
   }
 
@@ -160,24 +190,100 @@ export function CreateEmployeeDialog({
     }
   }
 
-  function handlePhotoChange(event: React.ChangeEvent<HTMLInputElement>): void {
-    const file = event.target.files?.[0];
-    if (!file) {
-      clearAvatarPreview();
-      updateForm({ photoFileName: null, photoFileSize: null });
-      return;
-    }
-
+  function handlePhotoSelected(file: File): void {
     if (!file.type.startsWith("image/")) {
       setError("Upload a PNG, JPG, or WebP image.");
       return;
     }
 
-    clearAvatarPreview();
+    if (file.size > MAX_AVATAR_UPLOAD_BYTES) {
+      setError("Image must be 5MB or smaller.");
+      return;
+    }
+
+    clearLocalUploadPreview();
     const previewUrl = URL.createObjectURL(file);
-    avatarPreviewUrlRef.current = previewUrl;
-    setAvatarPreviewUrl(previewUrl);
-    updateForm({ photoFileName: file.name, photoFileSize: file.size });
+    localUploadPreviewUrlRef.current = previewUrl;
+    setLocalUploadPreviewUrl(previewUrl);
+
+    updateForm({
+      photoFile: file,
+      photoFileName: file.name,
+      photoFileSize: file.size,
+      avatarId: null,
+      avatarPreviewUrl: null,
+      avatarGenerationStatus: "idle",
+      avatarGenerationError: null,
+    });
+  }
+
+  async function handleGenerateAvatar(): Promise<void> {
+    if (!form.photoFile) {
+      setError("Upload a photo before generating an avatar.");
+      return;
+    }
+
+    const displayName = form.name.trim() || "NULLXES Digital Employee";
+    updateForm({
+      avatarGenerationStatus: "generating",
+      avatarGenerationError: null,
+    });
+
+    const payload = new FormData();
+    payload.append("file", form.photoFile);
+    payload.append("displayName", displayName);
+
+    const result = await generateEmployeeAvatar(payload);
+
+    if (result.status === "failed") {
+      updateForm({
+        avatarGenerationStatus: "failed",
+        avatarGenerationError: result.message,
+      });
+      setError(result.message);
+      return;
+    }
+
+    updateForm({
+      avatarId: result.avatarId,
+      avatarPreviewUrl: result.previewUrl,
+      avatarProvider: result.provider,
+      avatarGenerationStatus: "ready",
+      avatarGenerationError: null,
+    });
+    setError(null);
+  }
+
+  async function handlePreviewVoice(voiceId: string): Promise<void> {
+    setPreviewingVoiceId(voiceId);
+    setError(null);
+
+    const result = await previewEmployeeVoice(voiceId);
+
+    if (result.status === "failed") {
+      setPreviewingVoiceId(null);
+      setError(result.message);
+      return;
+    }
+
+    if (voicePreviewAudioRef.current) {
+      voicePreviewAudioRef.current.pause();
+    }
+
+    const audio = new Audio(`data:${result.contentType};base64,${result.audioBase64}`);
+    voicePreviewAudioRef.current = audio;
+    audio.onended = () => setPreviewingVoiceId(null);
+    audio.onerror = () => {
+      setPreviewingVoiceId(null);
+      setError("Unable to play voice preview.");
+    };
+
+    try {
+      await audio.play();
+    } catch {
+      setPreviewingVoiceId(null);
+      setError("Unable to play voice preview.");
+    }
   }
 
   function handleKnowledgeFilesChange(
@@ -191,6 +297,10 @@ export function CreateEmployeeDialog({
       })),
     });
   }
+
+  const uploadPreviewUrl = localUploadPreviewUrl;
+  const showGeneratedPreview =
+    form.avatarGenerationStatus === "ready" && form.avatarPreviewUrl;
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -251,69 +361,40 @@ export function CreateEmployeeDialog({
 
           {step === "avatar" ? (
             <div className="flex flex-col gap-4">
-              <label className="group relative flex cursor-pointer flex-col overflow-hidden rounded-xl border border-dashed border-white/15 bg-white/2 hover:border-white/25 hover:bg-white/4">
-                <div className="relative flex aspect-4/3 w-full items-center justify-center">
-                  {avatarPreviewUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={avatarPreviewUrl}
-                      alt={form.photoFileName ?? "Avatar preview"}
-                      className="size-full object-cover"
-                    />
-                  ) : (
-                    <div className="flex flex-col items-center justify-center gap-3 px-6 py-10">
-                      <Upload className="size-6 text-white/50" />
-                      <div className="text-center">
-                        <p className="text-sm font-medium text-white">Upload Photo</p>
-                        <p className="mt-1 text-xs text-white/50">
-                          PNG, JPG, or WebP
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                  {avatarPreviewUrl ? (
-                    <div className="absolute inset-0 flex items-end justify-center bg-linear-to-t from-black/70 via-black/20 to-transparent p-4 opacity-0 transition-opacity group-hover:opacity-100">
-                      <p className="text-sm font-medium text-white">Change photo</p>
-                    </div>
-                  ) : null}
-                </div>
-                {form.photoFileName ? (
-                  <p className="border-t border-white/10 px-4 py-2 text-center text-xs text-white/50">
-                    {form.photoFileName}
-                  </p>
-                ) : null}
-                <input
-                  type="file"
-                  accept="image/png,image/jpeg,image/webp"
-                  className="sr-only"
-                  onChange={handlePhotoChange}
+              {showGeneratedPreview ? (
+                <AvatarPreviewCard
+                  previewUrl={form.avatarPreviewUrl!}
+                  alt={form.name || "Generated avatar"}
                 />
-              </label>
-              <Button
-                type="button"
-                variant="outline"
-                disabled
-                className="border-white/10 bg-transparent text-white/40"
-              >
-                Generate Avatar
-              </Button>
+              ) : (
+                <AvatarUpload
+                  photoFileName={form.photoFileName}
+                  localPreviewUrl={uploadPreviewUrl}
+                  disabled={
+                    form.avatarGenerationStatus === "generating" ||
+                    form.avatarGenerationStatus === "uploading"
+                  }
+                  onFileSelected={handlePhotoSelected}
+                />
+              )}
+              <AvatarGenerationState
+                status={form.avatarGenerationStatus}
+                errorMessage={form.avatarGenerationError}
+                canGenerate={Boolean(form.photoFile)}
+                onGenerate={handleGenerateAvatar}
+              />
             </div>
           ) : null}
 
           {step === "voice" ? (
-            <div className="grid gap-3 sm:grid-cols-3">
-              {VOICE_PROVIDER_OPTIONS.map((option) => (
-                <ProviderOption
-                  key={option.value}
-                  label={option.label}
-                  value={option.value}
-                  selected={form.voiceProvider === option.value}
-                  onSelect={(value: VoiceProvider) =>
-                    updateForm({ voiceProvider: value })
-                  }
-                />
-              ))}
-            </div>
+            <VoiceStudioGrid
+              selectedVoiceId={form.voiceId}
+              previewingVoiceId={previewingVoiceId}
+              onSelectVoice={(voiceId, voiceName) =>
+                updateForm({ voiceId, voiceName })
+              }
+              onPreviewVoice={handlePreviewVoice}
+            />
           ) : null}
 
           {step === "brain" ? (
@@ -382,26 +463,29 @@ export function CreateEmployeeDialog({
           ) : null}
 
           {step === "summary" && draftPreview ? (
-            <div className="rounded-xl border border-white/10 bg-black/30 px-4">
-              <SummaryRow label="Name" value={draftPreview.identity.name} />
-              <SummaryRow label="Role" value={draftPreview.identity.role} />
-              <SummaryRow
-                label="Avatar"
-                value={draftPreview.avatar.photoFileName ?? "No photo uploaded"}
+            <div className="flex flex-col gap-4">
+              <AvatarPreviewCard
+                previewUrl={draftPreview.avatar.previewUrl}
+                alt={draftPreview.identity.name}
+                className="max-w-sm"
               />
-              <SummaryRow
-                label="Voice"
-                value={draftPreview.voice.provider}
-              />
-              <SummaryRow
-                label="Brain"
-                value={draftPreview.brain.provider}
-              />
-              <SummaryRow
-                label="Knowledge"
-                value={`${draftPreview.knowledge.length} item${draftPreview.knowledge.length === 1 ? "" : "s"}`}
-              />
-              <SummaryRow label="Status" value={draftPreview.status} />
+              <div className="rounded-xl border border-white/10 bg-black/30 px-4">
+                <SummaryRow label="Name" value={draftPreview.identity.name} />
+                <SummaryRow label="Role" value={draftPreview.identity.role} />
+                <SummaryRow
+                  label="Voice"
+                  value={form.voiceName ?? draftPreview.voice.voiceId}
+                />
+                <SummaryRow
+                  label="Brain"
+                  value={draftPreview.brain.provider}
+                />
+                <SummaryRow
+                  label="Knowledge"
+                  value={`${draftPreview.knowledge.length} item${draftPreview.knowledge.length === 1 ? "" : "s"}`}
+                />
+                <SummaryRow label="Status" value={draftPreview.status} />
+              </div>
             </div>
           ) : null}
 
@@ -426,7 +510,7 @@ export function CreateEmployeeDialog({
             <Button
               type="button"
               onClick={handleCreate}
-              disabled={isSubmitting}
+              disabled={isSubmitting || !draftPreview}
               className="bg-white text-black hover:bg-white/90"
             >
               {isSubmitting ? "Creating..." : "Create Employee"}

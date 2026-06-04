@@ -59,8 +59,9 @@ export async function persistDigitalEmployeeFromDraft(
   const session = await requireAuth();
   const workspace = await ensureWorkspace(session.user.id, session.user.name);
 
-  const avatarProvider = draft.avatar.avatarProvider as AvatarProvider;
+  const avatarProvider = draft.avatar.provider as AvatarProvider;
   const brainProvider = draft.brain.provider;
+  const studioProvisionedAt = new Date().toISOString();
 
   const created = await createDigitalEmployee({
     organizationId: workspace.organization.id,
@@ -81,10 +82,16 @@ export async function persistDigitalEmployeeFromDraft(
         providerType: "avatar",
         providerId: avatarProvider,
         config: {
+          avatarId: draft.avatar.avatarId,
+          previewUrl: draft.avatar.previewUrl,
           photoFileName: draft.avatar.photoFileName,
           photoFileSize: draft.avatar.photoFileSize,
           displayName: draft.identity.name,
-          provisioningStatus: "pending",
+          provisioningStatus: "ready",
+          providerMetadata: {
+            source: "studio",
+            provisionedAt: studioProvisionedAt,
+          },
         },
       },
       {
@@ -102,7 +109,14 @@ export async function persistDigitalEmployeeFromDraft(
         providerId: draft.voice.provider,
         config: {
           voiceProvider: draft.voice.provider,
-          provisioningStatus: "pending",
+          voiceId: draft.voice.voiceId,
+          modelId: draft.voice.model,
+          providerResourceId: draft.voice.voiceId,
+          provisioningStatus: "ready",
+          providerMetadata: {
+            source: "studio",
+            provisionedAt: studioProvisionedAt,
+          },
         },
       },
     ]);

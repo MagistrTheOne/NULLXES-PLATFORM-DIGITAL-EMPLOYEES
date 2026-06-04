@@ -29,8 +29,10 @@
     "dashboard-shell:verify": "node --env-file=.env --import tsx src/features/dashboard/verify-dashboard-shell.ts",
     "employees-ui:verify": "node --env-file=.env --import tsx src/features/employees/verify-employees-ui.ts",
     "employees-create:verify": "node --import tsx src/features/employees/verify-create-employee.ts",
+    "employees-studio:verify": "node --import tsx src/features/employees/studio/verify-employee-studio.ts",
     "employees-persist:verify": "node --env-file=.env --import tsx src/features/employees/verify-persist-create-employee.ts",
-    "provider-provisioning:verify": "node --import tsx src/features/provider-provisioning/verify-provider-provisioning.ts"
+    "provider-provisioning:verify": "node --import tsx src/features/provider-provisioning/verify-provider-provisioning.ts",
+    "providers:status": "node --import tsx src/features/provider-provisioning/check-provider-status.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",

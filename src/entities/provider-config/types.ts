@@ -23,6 +23,7 @@ export type ProviderProvisioningStatus =
 export type AvatarProviderConfigPayload = {
   avatarId?: string;
   personaId?: string;
+  previewUrl?: string;
   quality?: string;
   imageUrl?: string;
   displayName?: string;

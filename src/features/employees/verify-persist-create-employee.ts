@@ -19,13 +19,17 @@ const SAMPLE_DRAFT: CreateEmployeeDraftPayload = {
     role: "Automation Engineer",
   },
   avatar: {
+    avatarId: "studio-atlas-avatar-001",
+    previewUrl: "https://cdn.nullxes.local/atlas.png",
+    provider: "anam",
     photoFileName: "atlas.png",
     photoFileSize: 1024,
-    generateAvatarEnabled: false,
-    avatarProvider: "custom",
+    generateAvatarEnabled: true,
   },
   voice: {
+    voiceId: "JBFqnCBsd6RMkjVDRZzb",
     provider: "elevenlabs",
+    model: "eleven_v3",
   },
   brain: {
     provider: "openai",
@@ -65,7 +69,7 @@ async function persistDraftForVerify(
     name: draft.identity.name,
     role: draft.identity.role,
     description: `${draft.identity.role} digital employee`,
-    avatarProvider: draft.avatar.avatarProvider,
+    avatarProvider: draft.avatar.provider,
     brainProvider: draft.brain.provider,
     systemPrompt: `You are ${draft.identity.name}, a ${draft.identity.role}.`,
     reason: "Persist create employee verification",
@@ -76,23 +80,34 @@ async function persistDraftForVerify(
       {
         employeeId: created.employee.id,
         providerType: "avatar",
-        providerId: draft.avatar.avatarProvider,
+        providerId: draft.avatar.provider,
         config: {
+          avatarId: draft.avatar.avatarId,
+          previewUrl: draft.avatar.previewUrl,
           photoFileName: draft.avatar.photoFileName,
           photoFileSize: draft.avatar.photoFileSize,
+          provisioningStatus: "ready",
+          providerMetadata: { source: "studio" },
         },
       },
       {
         employeeId: created.employee.id,
         providerType: "brain",
         providerId: draft.brain.provider,
-        config: { model: "gpt-4.1-mini" },
+        config: { model: "gpt-4.1-mini", provisioningStatus: "pending" },
       },
       {
         employeeId: created.employee.id,
         providerType: "session",
         providerId: draft.voice.provider,
-        config: { voiceProvider: draft.voice.provider },
+        config: {
+          voiceProvider: draft.voice.provider,
+          voiceId: draft.voice.voiceId,
+          modelId: draft.voice.model,
+          providerResourceId: draft.voice.voiceId,
+          provisioningStatus: "ready",
+          providerMetadata: { source: "studio" },
+        },
       },
     ]);
 
@@ -129,13 +144,40 @@ async function verifyPersistCreateEmployee(): Promise<void> {
   const employeeId = await persistDraftForVerify(org.id, SAMPLE_DRAFT);
   await assertEmployeePersisted(employeeId);
 
+  const configs = await db
+    .select()
+    .from(employeeProviderConfig)
+    .where(eq(employeeProviderConfig.employeeId, employeeId));
+
+  const avatarConfig = configs.find((row) => row.providerType === "avatar");
+  const sessionConfig = configs.find((row) => row.providerType === "session");
+
+  const avatarPayload = avatarConfig?.config as {
+    avatarId?: string;
+    previewUrl?: string;
+    provisioningStatus?: string;
+  };
+  const sessionPayload = sessionConfig?.config as {
+    voiceId?: string;
+    modelId?: string;
+    provisioningStatus?: string;
+  };
+
+  if (avatarPayload?.avatarId !== SAMPLE_DRAFT.avatar.avatarId) {
+    throw new Error("Studio avatarId was not persisted");
+  }
+
+  if (sessionPayload?.voiceId !== SAMPLE_DRAFT.voice.voiceId) {
+    throw new Error("Studio voiceId was not persisted");
+  }
+
   const [employee] = await db
     .select()
     .from(digitalEmployee)
     .where(eq(digitalEmployee.id, employeeId))
     .limit(1);
 
-  if (!employee || employee.name !== "Atlas") {
+  if (!employee || employee.name !== "Atlas" || employee.avatarProvider !== "anam") {
     throw new Error("Employee was not persisted");
   }
 
@@ -148,18 +190,8 @@ async function verifyPersistCreateEmployee(): Promise<void> {
     throw new Error("Knowledge metadata was not persisted");
   }
 
-  const [reloaded] = await db
-    .select()
-    .from(digitalEmployee)
-    .where(eq(digitalEmployee.id, employeeId))
-    .limit(1);
-
-  if (!reloaded) {
-    throw new Error("Employee did not remain after reload");
-  }
-
   console.log("Create employee: persisted with runtime and lifecycle");
-  console.log("Provider configuration: avatar, brain, voice stored");
+  console.log("Provider configuration: studio avatar and voice stored");
   console.log("Knowledge metadata: stored without processing");
   console.log("Persist create employee verification: OK");
 }

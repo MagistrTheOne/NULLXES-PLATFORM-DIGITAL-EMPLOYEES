@@ -141,12 +141,13 @@ export async function provisionAvatarProvider(
     return failure;
   }
 
+  const studioAvatarReady =
+    config.provisioningStatus === "ready" && Boolean(config.avatarId);
+
   try {
-    const avatarId = await resolveAvatarId(
-      input.employeeId,
-      input.employeeName,
-      config,
-    );
+    const avatarId = studioAvatarReady
+      ? config.avatarId!
+      : await resolveAvatarId(input.employeeId, input.employeeName, config);
     const voiceId = await resolveAnamVoiceId(input.voiceId);
 
     const persona = await fetchAnamJson<AnamPersonaResponse>("/personas", {

@@ -36,6 +36,22 @@ export async function provisionVoiceProvider(
     };
   }
 
+  if (
+    config.provisioningStatus === "ready" &&
+    config.voiceId &&
+    config.modelId === ELEVENLABS_VOICE_MODEL_ID
+  ) {
+    return {
+      status: "ready",
+      providerResourceId: config.voiceId,
+      providerMetadata: {
+        skipped: true,
+        reason: "studio_voice_already_ready",
+        ...(config.providerMetadata ?? {}),
+      },
+    };
+  }
+
   await mergeProviderConfig(input.employeeId, "session", {
     provisioningStatus: "provisioning",
   });
@@ -50,7 +66,7 @@ export async function provisionVoiceProvider(
     return failure;
   }
 
-  const voiceId = getElevenLabsDefaultVoiceId();
+  const voiceId = config.voiceId ?? getElevenLabsDefaultVoiceId();
   const modelId = ELEVENLABS_VOICE_MODEL_ID;
 
   try {

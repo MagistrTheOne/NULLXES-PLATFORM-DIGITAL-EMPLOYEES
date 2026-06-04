@@ -18,11 +18,7 @@ export const STEP_LABELS: Record<CreateEmployeeStep, string> = {
   summary: "Summary",
 };
 
-export const VOICE_PROVIDER_OPTIONS = [
-  { value: "elevenlabs" as const, label: "ElevenLabs" },
-  { value: "deepgram" as const, label: "Deepgram" },
-  { value: "custom" as const, label: "Custom" },
-];
+export const MAX_AVATAR_UPLOAD_BYTES = 5 * 1024 * 1024;
 
 export const BRAIN_PROVIDER_OPTIONS = [
   { value: "openai" as const, label: "OpenAI" },
@@ -35,9 +31,17 @@ export function createInitialFormState(): CreateEmployeeFormState {
   return {
     name: "",
     role: "",
+    photoFile: null,
     photoFileName: null,
     photoFileSize: null,
-    voiceProvider: "elevenlabs",
+    avatarId: null,
+    avatarPreviewUrl: null,
+    avatarProvider: "anam",
+    avatarGenerationStatus: "idle",
+    avatarGenerationError: null,
+    voiceId: null,
+    voiceName: null,
+    voiceModel: "eleven_v3",
     brainProvider: "openai",
     knowledgeUrl: "",
     knowledgeText: "",
