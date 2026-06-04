@@ -3,6 +3,8 @@ import { drizzle } from "drizzle-orm/neon-http";
 import { getDatabaseUrl } from "@/shared/config/env";
 import * as digitalEmployeeRelations from "@/entities/digital-employee/relations";
 import * as digitalEmployeeSchema from "@/entities/digital-employee/schema";
+import * as knowledgeRelations from "@/entities/knowledge/relations";
+import * as knowledgeSchema from "@/entities/knowledge/schema";
 import * as membershipRelations from "@/entities/membership/relations";
 import * as membershipSchema from "@/entities/membership/schema";
 import * as organizationRelations from "@/entities/organization/relations";
@@ -29,5 +31,7 @@ export const db = drizzle({
     ...membershipRelations,
     ...digitalEmployeeSchema,
     ...digitalEmployeeRelations,
+    ...knowledgeSchema,
+    ...knowledgeRelations,
   },
 });
