@@ -6,11 +6,12 @@ import type {
 import { employeeProviderConfig } from "@/entities/provider-config/schema";
 import { employeeRuntime } from "@/entities/runtime/schema";
 import { db } from "@/shared/db/client";
+import type { OpenAiBrainAdapterConfig } from "./brain/openai/config";
 
 export type EmployeeProviderConfigs = {
   brain: {
     providerId: string;
-    config: BrainProviderConfigPayload;
+    config: OpenAiBrainAdapterConfig;
   };
   avatar: {
     providerId: string;

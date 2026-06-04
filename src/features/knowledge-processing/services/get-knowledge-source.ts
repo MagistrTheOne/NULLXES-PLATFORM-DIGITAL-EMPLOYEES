@@ -1,12 +1,10 @@
 import { eq } from "drizzle-orm";
 import { knowledgeSource } from "@/entities/knowledge/schema";
 import type { KnowledgeSource } from "@/entities/knowledge";
-import { dbWithTransactions } from "@/shared/db/pool-client";
-
-type DbClient = typeof dbWithTransactions;
+import type { DbExecutor } from "@/shared/db/executor";
 
 export async function getKnowledgeSourceOrThrow(
-  client: DbClient,
+  client: DbExecutor,
   sourceId: string,
 ): Promise<KnowledgeSource> {
   const [source] = await client

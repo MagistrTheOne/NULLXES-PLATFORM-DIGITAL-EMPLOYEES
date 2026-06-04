@@ -1,8 +1,6 @@
 import { employeeLifecycleEvent } from "@/entities/employee-lifecycle/schema";
 import type { EmployeeLifecycleEventType } from "@/entities/employee-lifecycle";
-import { db } from "@/shared/db/client";
-
-type DbClient = typeof db;
+import type { DbExecutor } from "@/shared/db/executor";
 
 export type RecordLifecycleEventInput = {
   employeeId: string;
@@ -13,7 +11,7 @@ export type RecordLifecycleEventInput = {
 };
 
 export async function recordLifecycleEvent(
-  client: DbClient,
+  client: DbExecutor,
   input: RecordLifecycleEventInput,
 ) {
   const [event] = await client
