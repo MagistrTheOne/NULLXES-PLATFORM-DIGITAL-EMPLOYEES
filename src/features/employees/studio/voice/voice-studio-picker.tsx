@@ -239,7 +239,7 @@ export function VoiceStudioPicker({
       <section className="flex flex-col gap-3">
         <p className="text-xs uppercase tracking-wide text-white/40">2 · Choose from list</p>
         <Select
-          value={selectedVoiceId ?? undefined}
+          value={selectedVoiceId ?? ""}
           onValueChange={handleSelectCatalogVoice}
         >
           <SelectTrigger

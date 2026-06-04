@@ -3,9 +3,8 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { EmployeeStatus } from "@/entities/digital-employee";
-import {
-  CreateEmployeeDialog,
-} from "@/features/employees/create";
+import { revalidateEmployeePaths } from "@/features/employees/actions/revalidate-employee-paths";
+import { CreateEmployeeDialog } from "@/features/employees/create";
 import type { EmployeeListItem } from "../types";
 import { EmployeeEmptyState } from "./employee-empty-state";
 import { EmployeeGrid } from "./employee-grid";
@@ -44,9 +43,20 @@ export function EmployeesScreen({
 
   const hasEmployees = employees.length > 0;
 
-  async function handleCreateComplete(): Promise<void> {
+  async function handleCreateComplete({
+    employeeId,
+  }: {
+    employeeId: string;
+    avatarProvisionStarted: boolean;
+  }): Promise<void> {
     router.refresh();
-    window.setTimeout(() => router.refresh(), 8000);
+
+    const refreshDelaysMs = [8000, 30000, 90000];
+    for (const delayMs of refreshDelaysMs) {
+      window.setTimeout(() => {
+        void revalidateEmployeePaths(employeeId).then(() => router.refresh());
+      }, delayMs);
+    }
   }
 
   return (
