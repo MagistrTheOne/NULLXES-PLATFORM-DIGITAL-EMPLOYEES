@@ -35,7 +35,7 @@ export function EmployeeDetailTabs({
           value="brain"
           className="rounded-none border-0 px-3 py-2 text-white/50 data-active:bg-transparent data-active:text-white"
         >
-          Brain
+          LLM
         </TabsTrigger>
         <TabsTrigger
           value="knowledge"

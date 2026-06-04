@@ -13,7 +13,7 @@ export const STEP_LABELS: Record<CreateEmployeeStep, string> = {
   identity: "Identity",
   avatar: "Avatar",
   voice: "Voice",
-  brain: "Brain",
+  brain: "LLM",
   knowledge: "Knowledge",
   summary: "Summary",
 };

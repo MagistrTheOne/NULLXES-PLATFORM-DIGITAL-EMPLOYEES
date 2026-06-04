@@ -45,8 +45,8 @@ export function BrainProviderPicker({
             <p className="text-xs uppercase tracking-wide text-white/45">Recommended</p>
             <h3 className="mt-1 text-base font-medium text-white">OpenAI</h3>
             <p className="mt-2 text-sm text-white/55">
-              Default brain for new digital employees. Provisioned via the OpenAI API
-              using your configured key.
+              Default language model for new digital employees. Uses your configured
+              API key.
             </p>
           </div>
           <span className="shrink-0 rounded-full border border-white/20 px-2 py-0.5 text-xs text-white/70">
@@ -62,7 +62,7 @@ export function BrainProviderPicker({
             variant="ghost"
             className="h-auto w-full justify-between px-0 text-sm text-white/60 hover:bg-transparent hover:text-white"
           >
-            Custom brain provider
+            Custom LLM provider
             <ChevronDown
               className={cn(
                 "size-4 transition-transform",

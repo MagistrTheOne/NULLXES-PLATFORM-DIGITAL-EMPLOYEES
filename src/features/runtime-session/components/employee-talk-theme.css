@@ -1,10 +1,15 @@
-.employee-talk-shell {
-  max-width: 1100px;
+.employee-talk-workspace {
+  width: 100%;
+}
+
+.employee-talk-grid {
+  width: 100%;
 }
 
 .employee-talk-stage-wrap {
   aspect-ratio: 4 / 3;
-  max-height: min(52vh, 420px);
+  max-height: min(48vh, 400px);
+  width: 100%;
 }
 
 .employee-anam-stage {
@@ -27,9 +32,13 @@
   object-fit: cover;
 }
 
+.employee-talk-chat-panel {
+  min-height: 240px;
+}
+
 .employee-talk-chat-panel .str-chat {
   height: 100%;
-  min-height: 280px;
+  min-height: 240px;
 }
 
 .employee-talk-chat-panel .str-chat__channel {
@@ -68,6 +77,13 @@
 
 .employee-talk-chat-panel .str-chat__message--me .str-chat__message-bubble {
   background: rgba(255, 255, 255, 0.14);
+}
+
+/* Hide SDK error surfaces if they leak during teardown */
+.employee-talk-chat-panel .str-chat__connection-error,
+.employee-talk-chat-panel .str-chat__error,
+.employee-talk-chat-panel [class*="Error"] {
+  display: none !important;
 }
 
 .employee-talk-chat-header {

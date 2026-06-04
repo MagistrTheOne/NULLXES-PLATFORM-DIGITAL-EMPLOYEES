@@ -14,6 +14,7 @@ import {
 } from "@stream-io/video-react-sdk";
 import { Mic, MicOff, PhoneOff, Video, VideoOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import type { TalkSessionCredentials } from "../services/create-talk-session";
 import type { TalkChatCredentials } from "../services/create-talk-chat-session";
 import { TalkAnamProvider, useTalkAnam } from "../context/talk-anam-context";
@@ -22,6 +23,33 @@ import { EmployeeTalkChat } from "./employee-talk-chat";
 import "@stream-io/video-react-sdk/dist/css/styles.css";
 import "stream-chat-react/css/index.css";
 import "./employee-talk-theme.css";
+
+function TalkIconControl({
+  ariaLabel,
+  disabled,
+  onClick,
+  children,
+}: {
+  ariaLabel: string;
+  disabled?: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      aria-label={ariaLabel}
+      disabled={disabled}
+      onClick={onClick}
+      className={cn(
+        "flex size-10 shrink-0 items-center justify-center rounded-full border border-white/12 bg-white/4 text-white transition-colors",
+        "hover:bg-white/8 disabled:pointer-events-none disabled:opacity-40",
+      )}
+    >
+      {children}
+    </button>
+  );
+}
 
 function TalkStreamPip() {
   const { useLocalParticipant, useCallCallingState, useCameraState } =
@@ -39,7 +67,7 @@ function TalkStreamPip() {
   }
 
   return (
-    <div className="absolute right-3 bottom-3 z-30 w-36 overflow-hidden rounded-lg border border-white/15 bg-black shadow-md">
+    <div className="absolute right-3 bottom-3 z-30 w-32 overflow-hidden rounded-lg border border-white/15 bg-black/80 shadow-md">
       <div className="relative aspect-video bg-[#111111]">
         <ParticipantView
           participant={localParticipant}
@@ -51,13 +79,7 @@ function TalkStreamPip() {
   );
 }
 
-function TalkStreamBridge({
-  streamSession,
-  cameraEnabled,
-}: {
-  streamSession: TalkSessionCredentials;
-  cameraEnabled: boolean;
-}) {
+function TalkStreamBridge({ cameraEnabled }: { cameraEnabled: boolean }) {
   const call = useCall();
   const joinedRef = useRef(false);
 
@@ -113,10 +135,8 @@ function TalkStreamBridge({
 
 function TalkControlsBar({
   streamSession,
-  employeeId,
 }: {
   streamSession: TalkSessionCredentials;
-  employeeId: string;
 }) {
   const router = useRouter();
   const { micMuted, toggleMic, stopSession, isLive } = useTalkAnam();
@@ -169,49 +189,41 @@ function TalkControlsBar({
   return (
     <StreamVideo client={videoClient}>
       <StreamCall call={videoCall}>
-        <TalkStreamBridge
-          streamSession={streamSession}
-          cameraEnabled={cameraEnabled}
-        />
-        <div className="flex flex-wrap items-center justify-center gap-2 border-t border-white/10 px-3 py-3">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
+        <TalkStreamBridge cameraEnabled={cameraEnabled} />
+        <div className="flex items-center justify-center gap-3 py-3">
+          <TalkIconControl
+            ariaLabel={micMuted ? "Unmute microphone" : "Mute microphone"}
             disabled={!isLive || isLeaving}
-            className="h-8 border-white/15 bg-transparent px-3 text-white hover:bg-white/5"
             onClick={toggleMic}
           >
-            {micMuted ? <MicOff className="size-3.5" /> : <Mic className="size-3.5" />}
-            Mic
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
+            {micMuted ? (
+              <MicOff className="size-4 stroke-[1.5]" />
+            ) : (
+              <Mic className="size-4 stroke-[1.5]" />
+            )}
+          </TalkIconControl>
+          <TalkIconControl
+            ariaLabel={cameraEnabled ? "Turn off camera" : "Turn on camera"}
             disabled={isLeaving}
-            className="h-8 border-white/15 bg-transparent px-3 text-white hover:bg-white/5"
             onClick={() => {
               void handleToggleCamera();
             }}
           >
             {cameraEnabled ? (
-              <Video className="size-3.5" />
+              <Video className="size-4 stroke-[1.5]" />
             ) : (
-              <VideoOff className="size-3.5" />
+              <VideoOff className="size-4 stroke-[1.5]" />
             )}
-            Video
-          </Button>
+          </TalkIconControl>
           <Button
             type="button"
-            size="sm"
             disabled={isLeaving}
-            className="h-8 bg-white px-3 text-black hover:bg-white/90"
+            className="h-10 rounded-full border border-white/12 bg-white/6 px-4 text-sm text-white hover:bg-white/10"
             onClick={() => {
               void handleLeave();
             }}
           >
-            <PhoneOff className="size-3.5" />
+            <PhoneOff className="size-4" />
             Leave
           </Button>
         </div>
@@ -236,23 +248,20 @@ function TalkRoomLayout({
   avatarPreviewUrl,
 }: EmployeeTalkRoomProps) {
   return (
-    <div className="employee-talk-shell flex flex-col gap-3">
-      <div className="grid min-h-0 gap-3 lg:grid-cols-[minmax(0,1fr)_280px]">
-        <div className="flex min-h-0 flex-col gap-2">
-          <div className="employee-talk-stage-wrap relative mx-auto w-full max-w-2xl">
+    <div className="employee-talk-workspace w-full">
+      <div className="employee-talk-grid grid min-h-[min(68vh,560px)] gap-4 lg:grid-cols-[7fr_3fr]">
+        <div className="employee-talk-primary flex min-h-0 flex-col gap-2">
+          <div className="employee-talk-stage-wrap relative min-h-0 flex-1">
             <EmployeeAnamStage
               employeeId={employeeId}
               employeeName={employeeName}
               avatarPreviewUrl={avatarPreviewUrl}
             />
           </div>
-          <TalkControlsBar
-            streamSession={streamSession}
-            employeeId={employeeId}
-          />
+          <TalkControlsBar streamSession={streamSession} />
         </div>
 
-        <div className="employee-talk-chat-panel flex min-h-[280px] flex-col overflow-hidden rounded-xl border border-white/10 bg-[#0a0a0a] lg:min-h-0 lg:h-full">
+        <div className="employee-talk-chat-panel flex min-h-[240px] flex-col overflow-hidden rounded-xl border border-white/10 bg-[#0a0a0a] lg:min-h-0">
           <EmployeeTalkChat chatSession={chatSession} />
         </div>
       </div>

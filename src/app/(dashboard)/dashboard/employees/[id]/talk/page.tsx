@@ -47,7 +47,7 @@ export default async function EmployeeTalkPage({
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4">
       <div className="flex items-center gap-4">
         <Button
           variant="ghost"
@@ -64,7 +64,7 @@ export default async function EmployeeTalkPage({
             Talk · {employee.name}
           </h1>
           <p className="mt-1 text-sm text-white/60">
-            Anam persona · session chat · optional camera
+            Live session · chat · optional camera
           </p>
         </div>
       </div>
