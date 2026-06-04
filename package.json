@@ -17,7 +17,8 @@
     "runtime:verify": "node --env-file=.env --import tsx src/entities/runtime/verify-runtime.ts",
     "session:verify": "node --env-file=.env --import tsx src/entities/session/verify-session.ts",
     "lifecycle:verify": "node --env-file=.env --import tsx src/entities/employee-lifecycle/verify-lifecycle.ts",
-    "providers:verify": "node --env-file=.env --import tsx src/shared/providers/verify-providers.ts"
+    "providers:verify": "node --env-file=.env --import tsx src/shared/providers/verify-providers.ts",
+    "orchestration:verify": "node --env-file=.env --import tsx src/features/employee/verify-employee-orchestration.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",
@@ -43,13 +44,15 @@
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.6.0",
     "tw-animate-css": "^1.4.0",
-    "vaul": "^1.1.2"
+    "vaul": "^1.1.2",
+    "ws": "^8.21.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/ws": "^8.18.1",
     "drizzle-kit": "^0.31.10",
     "eslint": "^9",
     "eslint-config-next": "16.2.7",
