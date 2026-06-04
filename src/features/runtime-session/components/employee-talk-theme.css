@@ -1,9 +1,75 @@
+.employee-talk-shell {
+  max-width: 1100px;
+}
+
+.employee-talk-stage-wrap {
+  aspect-ratio: 4 / 3;
+  max-height: min(52vh, 420px);
+}
+
+.employee-anam-stage {
+  height: 100%;
+  width: 100%;
+}
+
+.employee-anam-video {
+  height: 100%;
+  width: 100%;
+  object-fit: contain;
+  object-position: center;
+}
+
 .employee-talk-participant video {
-  filter: grayscale(1) contrast(1.05);
+  filter: grayscale(1) contrast(1.04);
+}
+
+.employee-talk-pip video {
   object-fit: cover;
 }
 
-.str-video__participant-details,
-.str-video__menu-container {
+.employee-talk-chat-panel .str-chat {
+  height: 100%;
+  min-height: 280px;
+}
+
+.employee-talk-chat-panel .str-chat__channel {
+  height: 100%;
+}
+
+.employee-talk-chat-panel .str-chat__main-panel {
+  height: 100%;
+}
+
+.employee-talk-chat-panel .str-chat__window {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.employee-talk-chat-panel .str-chat__list {
+  flex: 1;
+  min-height: 0;
+  background: #0a0a0a;
+}
+
+.employee-talk-chat-panel .str-chat__message-input {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  background: #111111;
+}
+
+.employee-talk-chat-panel .str-chat__message-input textarea {
   color: #ffffff;
+}
+
+.employee-talk-chat-panel .str-chat__message-bubble {
+  background: rgba(255, 255, 255, 0.06);
+  color: #ffffff;
+}
+
+.employee-talk-chat-panel .str-chat__message--me .str-chat__message-bubble {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.employee-talk-chat-header {
+  flex-shrink: 0;
 }
