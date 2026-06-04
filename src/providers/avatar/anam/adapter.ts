@@ -78,6 +78,10 @@ export function createAnamAvatarAdapter(
       }
 
       const avatarId = input.avatarId || config.avatarId;
+      if (!avatarId) {
+        throw new Error("Anam updateAvatar requires avatarId in provider config");
+      }
+
       const response = await fetch(`${getAnamApiBaseUrl()}/avatars/${avatarId}`, {
         method: "PUT",
         headers: {

@@ -11,6 +11,7 @@ import { employeeProviderConfig } from "@/entities/provider-config/schema";
 import { ensureWorkspace } from "@/features/auth/services/ensure-workspace";
 import { requireAuth } from "@/features/auth/services/require-auth";
 import { createDigitalEmployee } from "@/features/employee";
+import { provisionEmployeeProviders } from "@/features/provider-provisioning";
 import { db } from "@/shared/db/client";
 import { dbWithTransactions } from "@/shared/db/pool-client";
 import type {
@@ -82,6 +83,8 @@ export async function persistDigitalEmployeeFromDraft(
         config: {
           photoFileName: draft.avatar.photoFileName,
           photoFileSize: draft.avatar.photoFileSize,
+          displayName: draft.identity.name,
+          provisioningStatus: "pending",
         },
       },
       {
@@ -90,6 +93,7 @@ export async function persistDigitalEmployeeFromDraft(
         providerId: brainProvider,
         config: {
           model: BRAIN_MODEL_DEFAULTS[brainProvider],
+          provisioningStatus: "pending",
         },
       },
       {
@@ -98,6 +102,7 @@ export async function persistDigitalEmployeeFromDraft(
         providerId: draft.voice.provider,
         config: {
           voiceProvider: draft.voice.provider,
+          provisioningStatus: "pending",
         },
       },
     ]);
@@ -117,7 +122,17 @@ export async function persistDigitalEmployeeFromDraft(
     }
   });
 
-  return { employeeId: created.employee.id };
+  const employeeId = created.employee.id;
+
+  void provisionEmployeeProviders({ employeeId }).catch((error: unknown) => {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error(
+      `Provider provisioning failed for employee ${employeeId}:`,
+      message,
+    );
+  });
+
+  return { employeeId };
 }
 
 export async function assertEmployeePersisted(

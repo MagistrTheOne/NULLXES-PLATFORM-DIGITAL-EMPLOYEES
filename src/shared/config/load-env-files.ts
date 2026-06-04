@@ -29,6 +29,13 @@ function applyEnvFile(filePath: string, override: boolean): void {
       value = value.slice(1, -1);
     }
 
+    if (/[A-Z][A-Z0-9_]*=/.test(value)) {
+      console.warn(
+        `[loadEnvFiles] Skipping malformed "${key}" in ${filePath} (paste without newline?)`,
+      );
+      continue;
+    }
+
     if (!override && process.env[key] !== undefined) {
       continue;
     }

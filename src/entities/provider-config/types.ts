@@ -14,16 +14,38 @@ export type NewEmployeeProviderConfig = InferInsertModel<
 export type ProviderConfigType =
   (typeof providerConfigTypeEnum.enumValues)[number];
 
+export type ProviderProvisioningStatus =
+  | "pending"
+  | "provisioning"
+  | "ready"
+  | "failed";
+
 export type AvatarProviderConfigPayload = {
-  avatarId: string;
+  avatarId?: string;
+  personaId?: string;
   quality?: string;
+  imageUrl?: string;
+  displayName?: string;
+  photoFileName?: string;
+  photoFileSize?: number;
+  provisioningStatus?: ProviderProvisioningStatus;
+  providerMetadata?: Record<string, unknown>;
 };
 
 export type BrainProviderConfigPayload = {
   model: string;
   temperature?: number;
+  providerResourceId?: string;
+  provisioningStatus?: ProviderProvisioningStatus;
+  providerMetadata?: Record<string, unknown>;
 };
 
 export type SessionProviderConfigPayload = {
-  roomType: string;
+  roomType?: string;
+  voiceProvider?: string;
+  voiceId?: string;
+  modelId?: string;
+  providerResourceId?: string;
+  provisioningStatus?: ProviderProvisioningStatus;
+  providerMetadata?: Record<string, unknown>;
 };

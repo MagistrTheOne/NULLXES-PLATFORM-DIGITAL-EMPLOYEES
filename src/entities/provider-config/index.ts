@@ -9,5 +9,6 @@ export type {
   EmployeeProviderConfig,
   NewEmployeeProviderConfig,
   ProviderConfigType,
+  ProviderProvisioningStatus,
   SessionProviderConfigPayload,
 } from "./types";

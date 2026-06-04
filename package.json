@@ -29,10 +29,12 @@
     "dashboard-shell:verify": "node --env-file=.env --import tsx src/features/dashboard/verify-dashboard-shell.ts",
     "employees-ui:verify": "node --env-file=.env --import tsx src/features/employees/verify-employees-ui.ts",
     "employees-create:verify": "node --import tsx src/features/employees/verify-create-employee.ts",
-    "employees-persist:verify": "node --env-file=.env --import tsx src/features/employees/verify-persist-create-employee.ts"
+    "employees-persist:verify": "node --env-file=.env --import tsx src/features/employees/verify-persist-create-employee.ts",
+    "provider-provisioning:verify": "node --import tsx src/features/provider-provisioning/verify-provider-provisioning.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",
+    "@elevenlabs/elevenlabs-js": "^2.51.0",
     "@neondatabase/serverless": "^1.1.0",
     "better-auth": "^1.6.14",
     "class-variance-authority": "^0.7.1",
