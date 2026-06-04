@@ -1,7 +1,8 @@
 "use client";
 
 import { Component, type ReactNode, useEffect, useRef, useState } from "react";
-import { Loader2, MessageSquare } from "lucide-react";
+import { Loader2, MessageSquare, RotateCcw } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import type { Channel as StreamChannel } from "stream-chat";
 import type { StreamChat } from "stream-chat";
 import {
@@ -30,16 +31,36 @@ function TalkChatEmptyState() {
   );
 }
 
-function TalkChatFallback({ state }: { state: Exclude<TalkChatUiState, "ready"> }) {
+function TalkChatFallback({
+  state,
+  onRetry,
+}: {
+  state: Exclude<TalkChatUiState, "ready">;
+  onRetry?: () => void;
+}) {
   return (
-    <div className="employee-talk-chat-fallback flex h-full flex-col items-center justify-center gap-2 px-4 text-center">
+    <div className="employee-talk-chat-fallback flex h-full flex-col items-center justify-center gap-3 px-4 text-center">
       {state === "connecting" ? (
         <>
           <Loader2 className="size-4 animate-spin text-white/50" />
           <p className="text-sm text-white/50">Connecting…</p>
         </>
       ) : (
-        <p className="text-sm text-white/50">Conversation unavailable</p>
+        <>
+          <p className="text-sm text-white/50">Conversation unavailable</p>
+          {onRetry ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="border-white/12 text-white/70"
+              onClick={onRetry}
+            >
+              <RotateCcw className="size-3.5" />
+              Retry
+            </Button>
+          ) : null}
+        </>
       )}
     </div>
   );
@@ -77,6 +98,7 @@ export function EmployeeTalkChat({
   const [client, setClient] = useState<StreamChat | null>(null);
   const [channel, setChannel] = useState<StreamChannel | null>(null);
   const [uiState, setUiState] = useState<TalkChatUiState>("connecting");
+  const [connectAttempt, setConnectAttempt] = useState(0);
   const connectGenerationRef = useRef(0);
 
   useEffect(() => {
@@ -126,6 +148,7 @@ export function EmployeeTalkChat({
     chatSession.token,
     chatSession.userId,
     chatSession.userName,
+    connectAttempt,
   ]);
 
   useEffect(() => {
@@ -141,7 +164,16 @@ export function EmployeeTalkChat({
   }, [uiState]);
 
   if (uiState !== "ready" || !client || !channel) {
-    return <TalkChatFallback state={uiState === "ready" ? "connecting" : uiState} />;
+    return (
+      <TalkChatFallback
+        state={uiState === "ready" ? "connecting" : uiState}
+        onRetry={
+          uiState === "unavailable"
+            ? () => setConnectAttempt((current) => current + 1)
+            : undefined
+        }
+      />
+    );
   }
 
   return (

@@ -1,16 +1,8 @@
 import { headers } from "next/headers";
+import { isTransientDatabaseError } from "@/shared/errors/is-transient-database-error";
 import { auth } from "../server";
 
-const MAX_ATTEMPTS = 3;
-
-function isTransientDatabaseError(error: unknown): boolean {
-  const message = error instanceof Error ? error.message : String(error);
-  return (
-    message.includes("fetch failed") ||
-    message.includes("Error connecting to database") ||
-    message.includes("NeonDbError")
-  );
-}
+const MAX_ATTEMPTS = 5;
 
 async function pause(ms: number): Promise<void> {
   await new Promise((resolve) => setTimeout(resolve, ms));
@@ -27,10 +19,12 @@ export async function getCurrentSession() {
       });
     } catch (error: unknown) {
       lastError = error;
+
       if (!isTransientDatabaseError(error) || attempt === MAX_ATTEMPTS - 1) {
         throw error;
       }
-      await pause(200 * (attempt + 1));
+
+      await pause(250 * 2 ** attempt);
     }
   }
 
