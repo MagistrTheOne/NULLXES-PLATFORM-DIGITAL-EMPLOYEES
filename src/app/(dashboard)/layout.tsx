@@ -20,6 +20,7 @@ export default async function DashboardRouteLayout({
   const user: DashboardShellUser = {
     name: session.user.name,
     email: session.user.email,
+    role: workspace.membership.role,
     image: session.user.image,
   };
 

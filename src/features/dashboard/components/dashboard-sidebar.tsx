@@ -11,6 +11,7 @@ import {
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -19,15 +20,18 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import type { DashboardShellUser } from "../types";
+import { SidebarBrand } from "./sidebar-brand";
+import { SidebarUserSection } from "./sidebar-user-section";
 
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { label: "Digital Employees", href: "/employees", icon: Users },
+  { label: "Digital Employees", href: "/dashboard/employees", icon: Users },
   { label: "Analytics", href: "/analytics", icon: BarChart3 },
   { label: "Settings", href: "/settings", icon: Settings },
 ] as const;
 
-export function DashboardSidebar() {
+export function DashboardSidebar({ user }: { user: DashboardShellUser }) {
   const pathname = usePathname();
 
   return (
@@ -35,15 +39,14 @@ export function DashboardSidebar() {
       collapsible="icon"
       className="border-white/10 bg-[#0a0a0a] text-white"
     >
-      <SidebarHeader className="border-b border-white/10 px-4 py-5">
-        <p className="text-xs tracking-[0.28em] text-white/50 uppercase">
-          NULLXES
-        </p>
-        <p className="mt-1 text-sm font-medium text-white">Digital Employees</p>
+      <SidebarHeader className="border-b border-white/10 px-3 py-4">
+        <SidebarBrand />
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="text-white/50">Navigation</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-white/50 group-data-[collapsible=icon]:hidden">
+            Navigation
+          </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {NAV_ITEMS.map((item) => {
@@ -58,7 +61,7 @@ export function DashboardSidebar() {
                       asChild
                       isActive={isActive}
                       tooltip={item.label}
-                      className="text-white/80 hover:bg-white/5 hover:text-white data-active:bg-white/10 data-active:text-white"
+                      className="text-white/80 transition-none hover:bg-white/5 hover:text-white data-active:bg-white/10 data-active:text-white"
                     >
                       <Link href={item.href}>
                         <Icon />
@@ -72,6 +75,9 @@ export function DashboardSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      <SidebarFooter className="mt-auto border-t border-white/10 px-2 py-3">
+        <SidebarUserSection user={user} />
+      </SidebarFooter>
     </Sidebar>
   );
 }

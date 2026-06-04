@@ -26,7 +26,8 @@
     "demo-adapters:verify": "node --env-file=.env --import tsx src/providers/verify-demo-adapters.ts",
     "runtime-engine:verify": "node --env-file=.env --import tsx src/features/runtime-engine/verify-runtime-engine.ts",
     "workspace:verify": "node --env-file=.env --import tsx src/features/workspace/verify-workspace.ts",
-    "dashboard-shell:verify": "node --env-file=.env --import tsx src/features/dashboard/verify-dashboard-shell.ts"
+    "dashboard-shell:verify": "node --env-file=.env --import tsx src/features/dashboard/verify-dashboard-shell.ts",
+    "employees-ui:verify": "node --env-file=.env --import tsx src/features/employees/verify-employees-ui.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",

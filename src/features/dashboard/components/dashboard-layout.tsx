@@ -2,6 +2,7 @@
 
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { dashboardSidebarCssVars } from "../constants";
 import type { DashboardLayoutProps } from "../types";
 import { DashboardSidebar } from "./dashboard-sidebar";
 import { DashboardTopbar } from "./dashboard-topbar";
@@ -13,15 +14,17 @@ export function DashboardLayout({
 }: DashboardLayoutProps) {
   return (
     <TooltipProvider delayDuration={0}>
-    <SidebarProvider defaultOpen>
-      <div className="flex min-h-screen w-full bg-black text-white">
-        <DashboardSidebar />
-        <SidebarInset className="bg-black">
-          <DashboardTopbar workspace={workspace} user={user} />
-          <div className="flex flex-1 flex-col gap-6 p-6">{children}</div>
+      <SidebarProvider
+        defaultOpen
+        style={dashboardSidebarCssVars}
+        className="min-h-svh bg-black text-white"
+      >
+        <DashboardSidebar user={user} />
+        <SidebarInset className="flex min-h-svh min-w-0 flex-1 flex-col bg-black">
+          <DashboardTopbar workspace={workspace} />
+          <div className="flex min-w-0 flex-1 flex-col gap-6 p-6">{children}</div>
         </SidebarInset>
-      </div>
-    </SidebarProvider>
+      </SidebarProvider>
     </TooltipProvider>
   );
 }

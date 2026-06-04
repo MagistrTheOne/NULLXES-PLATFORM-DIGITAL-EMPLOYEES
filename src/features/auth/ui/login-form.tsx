@@ -67,11 +67,11 @@ export function LoginForm() {
 
   return (
     <Card className="w-full max-w-md border-white/10 bg-[#111111] text-white ring-white/10">
-      <CardHeader>
-        <CardTitle className="text-xl font-medium tracking-tight">
+      <CardHeader className="text-center">
+        <CardTitle className="text-center text-xl font-medium tracking-tight">
           Sign in
         </CardTitle>
-        <CardDescription className="text-white/60">
+        <CardDescription className="text-center text-white/60">
           Access your NULLXES digital workforce workspace.
         </CardDescription>
       </CardHeader>

@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 export type DashboardShellUser = {
   name: string;
   email: string;
+  role: string;
   image?: string | null;
 };
 
