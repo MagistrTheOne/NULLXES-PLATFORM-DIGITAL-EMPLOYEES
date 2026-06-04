@@ -22,6 +22,8 @@ export default defineConfig({
     "./src/entities/session/relations.ts",
     "./src/entities/employee-lifecycle/schema.ts",
     "./src/entities/employee-lifecycle/relations.ts",
+    "./src/entities/provider-config/schema.ts",
+    "./src/entities/provider-config/relations.ts",
   ],
   out: "./drizzle",
   dbCredentials: {

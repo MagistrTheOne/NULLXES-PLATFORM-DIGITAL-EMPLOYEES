@@ -18,7 +18,8 @@
     "session:verify": "node --env-file=.env --import tsx src/entities/session/verify-session.ts",
     "lifecycle:verify": "node --env-file=.env --import tsx src/entities/employee-lifecycle/verify-lifecycle.ts",
     "providers:verify": "node --env-file=.env --import tsx src/shared/providers/verify-providers.ts",
-    "orchestration:verify": "node --env-file=.env --import tsx src/features/employee/verify-employee-orchestration.ts"
+    "orchestration:verify": "node --env-file=.env --import tsx src/features/employee/verify-employee-orchestration.ts",
+    "provider-config:verify": "node --env-file=.env --import tsx src/entities/provider-config/verify-provider-config.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",

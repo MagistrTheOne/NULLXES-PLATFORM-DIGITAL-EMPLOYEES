@@ -1,6 +1,7 @@
 import { relations } from "drizzle-orm";
 import { employeeLifecycleEvent } from "@/entities/employee-lifecycle/schema";
 import { knowledgeSource } from "@/entities/knowledge/schema";
+import { employeeProviderConfig } from "@/entities/provider-config/schema";
 import { employeeRuntime } from "@/entities/runtime/schema";
 import { employeeSession } from "@/entities/session/schema";
 import { organization } from "@/entities/organization/schema";
@@ -20,5 +21,6 @@ export const digitalEmployeeRelations = relations(
     }),
     employeeSessions: many(employeeSession),
     lifecycleEvents: many(employeeLifecycleEvent),
+    providerConfigs: many(employeeProviderConfig),
   }),
 );
