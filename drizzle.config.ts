@@ -20,6 +20,8 @@ export default defineConfig({
     "./src/entities/runtime/relations.ts",
     "./src/entities/session/schema.ts",
     "./src/entities/session/relations.ts",
+    "./src/entities/employee-lifecycle/schema.ts",
+    "./src/entities/employee-lifecycle/relations.ts",
   ],
   out: "./drizzle",
   dbCredentials: {
