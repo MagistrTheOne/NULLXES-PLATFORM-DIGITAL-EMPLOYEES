@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -55,6 +55,16 @@ export function CreateEmployeeDialog({
   const [step, setStep] = useState<CreateEmployeeStep>("identity");
   const [form, setForm] = useState<CreateEmployeeFormState>(createInitialFormState);
   const [error, setError] = useState<string | null>(null);
+  const [avatarPreviewUrl, setAvatarPreviewUrl] = useState<string | null>(null);
+  const avatarPreviewUrlRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (avatarPreviewUrlRef.current) {
+        URL.revokeObjectURL(avatarPreviewUrlRef.current);
+      }
+    };
+  }, []);
 
   const currentStepIndex = stepIndex(step);
   const isFirstStep = currentStepIndex === 0;
@@ -73,10 +83,19 @@ export function CreateEmployeeDialog({
     setError(null);
   }
 
+  function clearAvatarPreview(): void {
+    if (avatarPreviewUrlRef.current) {
+      URL.revokeObjectURL(avatarPreviewUrlRef.current);
+      avatarPreviewUrlRef.current = null;
+    }
+    setAvatarPreviewUrl(null);
+  }
+
   function resetFlow(): void {
     setStep("identity");
     setForm(createInitialFormState());
     setError(null);
+    clearAvatarPreview();
   }
 
   function handleOpenChange(nextOpen: boolean): void {
@@ -136,9 +155,20 @@ export function CreateEmployeeDialog({
   function handlePhotoChange(event: React.ChangeEvent<HTMLInputElement>): void {
     const file = event.target.files?.[0];
     if (!file) {
+      clearAvatarPreview();
       updateForm({ photoFileName: null, photoFileSize: null });
       return;
     }
+
+    if (!file.type.startsWith("image/")) {
+      setError("Upload a PNG, JPG, or WebP image.");
+      return;
+    }
+
+    clearAvatarPreview();
+    const previewUrl = URL.createObjectURL(file);
+    avatarPreviewUrlRef.current = previewUrl;
+    setAvatarPreviewUrl(previewUrl);
     updateForm({ photoFileName: file.name, photoFileSize: file.size });
   }
 
@@ -213,14 +243,37 @@ export function CreateEmployeeDialog({
 
           {step === "avatar" ? (
             <div className="flex flex-col gap-4">
-              <label className="flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-white/15 bg-white/2 px-6 py-10 hover:border-white/25 hover:bg-white/4">
-                <Upload className="size-6 text-white/50" />
-                <div className="text-center">
-                  <p className="text-sm font-medium text-white">Upload Photo</p>
-                  <p className="mt-1 text-xs text-white/50">
-                    {form.photoFileName ?? "PNG or JPG, stored locally for this draft"}
-                  </p>
+              <label className="group relative flex cursor-pointer flex-col overflow-hidden rounded-xl border border-dashed border-white/15 bg-white/2 hover:border-white/25 hover:bg-white/4">
+                <div className="relative flex aspect-4/3 w-full items-center justify-center">
+                  {avatarPreviewUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={avatarPreviewUrl}
+                      alt={form.photoFileName ?? "Avatar preview"}
+                      className="size-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center gap-3 px-6 py-10">
+                      <Upload className="size-6 text-white/50" />
+                      <div className="text-center">
+                        <p className="text-sm font-medium text-white">Upload Photo</p>
+                        <p className="mt-1 text-xs text-white/50">
+                          PNG, JPG, or WebP
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  {avatarPreviewUrl ? (
+                    <div className="absolute inset-0 flex items-end justify-center bg-linear-to-t from-black/70 via-black/20 to-transparent p-4 opacity-0 transition-opacity group-hover:opacity-100">
+                      <p className="text-sm font-medium text-white">Change photo</p>
+                    </div>
+                  ) : null}
                 </div>
+                {form.photoFileName ? (
+                  <p className="border-t border-white/10 px-4 py-2 text-center text-xs text-white/50">
+                    {form.photoFileName}
+                  </p>
+                ) : null}
                 <input
                   type="file"
                   accept="image/png,image/jpeg,image/webp"
