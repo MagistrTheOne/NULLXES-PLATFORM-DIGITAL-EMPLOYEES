@@ -6,6 +6,7 @@ import { requireAuth } from "@/features/auth/services/require-auth";
 import { ensureWorkspace } from "@/features/auth/services/ensure-workspace";
 import { getEmployeeDetail } from "@/features/employees/services/get-employee-detail";
 import { EmployeeTalkRoom } from "@/features/runtime-session/components/employee-talk-room";
+import { createAnamTalkSessionTokenForEmployee } from "@/features/runtime-session/services/create-anam-talk-session";
 import { createTalkChatSession } from "@/features/runtime-session/services/create-talk-chat-session";
 import { createTalkSession } from "@/features/runtime-session/services/create-talk-session";
 
@@ -27,7 +28,7 @@ export default async function EmployeeTalkPage({
     redirect(`/dashboard/employees/${id}`);
   }
 
-  const [talkSession, chatSession] = await Promise.all([
+  const [talkSession, chatSession, anamToken] = await Promise.all([
     createTalkSession(
       workspace.organization.id,
       id,
@@ -40,9 +41,10 @@ export default async function EmployeeTalkPage({
       session.user.id,
       session.user.name,
     ),
+    createAnamTalkSessionTokenForEmployee(workspace.organization.id, id),
   ]);
 
-  if (!talkSession || !chatSession) {
+  if (!talkSession || !chatSession || !anamToken.ok) {
     redirect(`/dashboard/employees/${id}`);
   }
 
@@ -71,6 +73,7 @@ export default async function EmployeeTalkPage({
       <EmployeeTalkRoom
         streamSession={talkSession}
         chatSession={chatSession}
+        anamSessionToken={anamToken.sessionToken}
         employeeId={employee.id}
         employeeName={employee.name}
         avatarPreviewUrl={employee.avatarPreviewUrl}

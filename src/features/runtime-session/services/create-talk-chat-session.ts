@@ -66,6 +66,12 @@ export async function createTalkChatSession(
     // Channel already exists for repeat Talk sessions on the same employee.
   }
 
+  try {
+    await channel.addMembers([actorUserId, botUserId]);
+  } catch {
+    // Members may already be on the channel.
+  }
+
   const token = server.createToken(actorUserId);
 
   return {

@@ -62,12 +62,13 @@ export function EmployeeTalkChat({
   const [client, setClient] = useState<StreamChat | null>(null);
   const [channel, setChannel] = useState<StreamChannel | null>(null);
   const [uiState, setUiState] = useState<TalkChatUiState>("connecting");
-  const sessionKey = `${chatSession.apiKey}:${chatSession.userId}:${chatSession.channelId}`;
-  const sessionKeyRef = useRef(sessionKey);
-  sessionKeyRef.current = sessionKey;
+  const connectGenerationRef = useRef(0);
 
   useEffect(() => {
-    let active = true;
+    let cancelled = false;
+    const generation = connectGenerationRef.current + 1;
+    connectGenerationRef.current = generation;
+
     const chatClient = StreamChat.getInstance(chatSession.apiKey);
 
     async function connect(): Promise<void> {
@@ -76,18 +77,16 @@ export function EmployeeTalkChat({
       setChannel(null);
 
       try {
-        if (chatClient.userID && chatClient.userID !== chatSession.userId) {
+        if (chatClient.userID) {
           await chatClient.disconnectUser();
         }
 
-        if (!chatClient.userID) {
-          await chatClient.connectUser(
-            { id: chatSession.userId, name: chatSession.userName },
-            chatSession.token,
-          );
-        }
+        await chatClient.connectUser(
+          { id: chatSession.userId, name: chatSession.userName },
+          chatSession.token,
+        );
 
-        if (!active) {
+        if (cancelled || connectGenerationRef.current !== generation) {
           return;
         }
 
@@ -96,11 +95,9 @@ export function EmployeeTalkChat({
           chatSession.channelId,
         );
 
-        if (!talkChannel.initialized) {
-          await talkChannel.watch();
-        }
+        await talkChannel.watch();
 
-        if (!active) {
+        if (cancelled || connectGenerationRef.current !== generation) {
           return;
         }
 
@@ -109,7 +106,7 @@ export function EmployeeTalkChat({
         setUiState("ready");
       } catch (connectError: unknown) {
         console.error("Talk chat connection failed", connectError);
-        if (!active) {
+        if (cancelled || connectGenerationRef.current !== generation) {
           return;
         }
 
@@ -122,22 +119,19 @@ export function EmployeeTalkChat({
     void connect();
 
     return () => {
-      active = false;
-      const teardownKey = sessionKeyRef.current;
-
-      setUiState("connecting");
+      cancelled = true;
       setClient(null);
       setChannel(null);
-
-      window.setTimeout(() => {
-        if (sessionKeyRef.current !== teardownKey) {
-          return;
-        }
-
-        void chatClient.disconnectUser().catch(() => undefined);
-      }, 0);
+      setUiState("connecting");
     };
-  }, [chatSession]);
+  }, [
+    chatSession.apiKey,
+    chatSession.channelId,
+    chatSession.channelType,
+    chatSession.token,
+    chatSession.userId,
+    chatSession.userName,
+  ]);
 
   if (uiState !== "ready" || !client || !channel) {
     return <TalkChatFallback state={uiState === "ready" ? "connecting" : uiState} />;

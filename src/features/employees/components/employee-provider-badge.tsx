@@ -11,15 +11,19 @@ export function EmployeeProviderBadge({
   provider: string;
   className?: string;
 }) {
+  const debugLabel = `${kind} · ${formatProviderLabel(provider)}`;
+
   return (
     <Badge
       variant="outline"
+      data-provider={provider}
+      data-debug-label={debugLabel}
       className={cn(
         "rounded-md border-white/10 bg-white/2 font-normal text-white/70",
         className,
       )}
     >
-      {kind} · {formatProviderLabel(provider)}
+      {kind}
     </Badge>
   );
 }

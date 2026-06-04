@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { AnamEvent, createClient } from "@anam-ai/js-sdk";
 import { Loader2 } from "lucide-react";
-import { createAnamTalkSessionToken } from "@/features/runtime-session/actions/create-anam-talk-session-token";
 import { useTalkAnam } from "@/features/runtime-session/context/talk-anam-context";
 import { AvatarIdlePreview } from "@/features/employees/components/avatar-idle-preview";
 
@@ -13,10 +12,12 @@ export function EmployeeAnamStage({
   employeeId,
   employeeName,
   avatarPreviewUrl,
+  sessionToken,
 }: {
   employeeId: string;
   employeeName: string;
   avatarPreviewUrl: string | null;
+  sessionToken: string;
 }) {
   const { registerClient, setIsLive } = useTalkAnam();
   const [status, setStatus] = useState<
@@ -32,18 +33,7 @@ export function EmployeeAnamStage({
       setErrorMessage(null);
       setIsLive(false);
 
-      const tokenResult = await createAnamTalkSessionToken(employeeId);
-      if (disposed) {
-        return;
-      }
-
-      if (!tokenResult.ok) {
-        setStatus("error");
-        setErrorMessage(tokenResult.message);
-        return;
-      }
-
-      const anamClient = createClient(tokenResult.sessionToken);
+      const anamClient = createClient(sessionToken);
       registerClient(anamClient);
 
       anamClient.addListener(AnamEvent.VIDEO_PLAY_STARTED, () => {
@@ -80,7 +70,7 @@ export function EmployeeAnamStage({
       disposed = true;
       registerClient(null);
     };
-  }, [employeeId, registerClient, setIsLive]);
+  }, [employeeId, registerClient, sessionToken, setIsLive]);
 
   const showPhotoPlaceholder =
     status !== "live" && Boolean(avatarPreviewUrl);
