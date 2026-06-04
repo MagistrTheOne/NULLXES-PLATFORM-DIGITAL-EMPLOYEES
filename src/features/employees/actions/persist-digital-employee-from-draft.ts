@@ -1,16 +1,19 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
 import type {
   AvatarProvider,
   BrainProvider,
 } from "@/entities/digital-employee";
+import { digitalEmployee } from "@/entities/digital-employee/schema";
 import { employeeLifecycleEvent } from "@/entities/employee-lifecycle/schema";
 import { knowledgeSource } from "@/entities/knowledge/schema";
 import { employeeProviderConfig } from "@/entities/provider-config/schema";
+import { employeeRuntime } from "@/entities/runtime/schema";
 import { ensureWorkspace } from "@/features/auth/services/ensure-workspace";
 import { requireAuth } from "@/features/auth/services/require-auth";
-import { createDigitalEmployee } from "@/features/employee";
+import { recordLifecycleEvent } from "@/features/employee/services/record-lifecycle-event";
 import { provisionEmployeeProviders } from "@/features/provider-provisioning";
 import { db } from "@/shared/db/client";
 import { dbWithTransactions } from "@/shared/db/pool-client";
@@ -63,22 +66,62 @@ export async function persistDigitalEmployeeFromDraft(
   const brainProvider = draft.brain.provider;
   const studioProvisionedAt = new Date().toISOString();
 
-  const created = await createDigitalEmployee({
-    organizationId: workspace.organization.id,
-    actorUserId: session.user.id,
-    name: draft.identity.name,
-    role: draft.identity.role,
-    description: `${draft.identity.role} digital employee`,
-    avatarProvider,
-    brainProvider,
-    systemPrompt: buildSystemPrompt(draft.identity.name, draft.identity.role),
-    reason: "Created from dashboard",
-  });
+  const employeeId = await dbWithTransactions.transaction(async (tx) => {
+    const [employee] = await tx
+      .insert(digitalEmployee)
+      .values({
+        organizationId: workspace.organization.id,
+        name: draft.identity.name,
+        role: draft.identity.role,
+        description: `${draft.identity.role} digital employee`,
+        status: "draft",
+        avatarProvider,
+        brainProvider,
+      })
+      .returning();
 
-  await dbWithTransactions.transaction(async (tx) => {
+    if (!employee) {
+      throw new Error("Failed to create digital employee");
+    }
+
+    const systemPrompt = buildSystemPrompt(
+      draft.identity.name,
+      draft.identity.role,
+    );
+
+    const [runtime] = await tx
+      .insert(employeeRuntime)
+      .values({
+        employeeId: employee.id,
+        brainProvider,
+        avatarProvider,
+        systemPrompt,
+        temperature: 0.7,
+        maxTokens: 4096,
+        sessionLimitSeconds: 3600,
+        isActive: true,
+      })
+      .returning();
+
+    if (!runtime) {
+      throw new Error("Failed to create employee runtime");
+    }
+
+    await recordLifecycleEvent(tx, {
+      employeeId: employee.id,
+      actorUserId: session.user.id,
+      eventType: "created",
+      reason: "Created from dashboard",
+      metadata: {
+        status: employee.status,
+        avatarProvider: employee.avatarProvider,
+        brainProvider: employee.brainProvider,
+      },
+    });
+
     await tx.insert(employeeProviderConfig).values([
       {
-        employeeId: created.employee.id,
+        employeeId: employee.id,
         providerType: "avatar",
         providerId: avatarProvider,
         config: {
@@ -98,7 +141,7 @@ export async function persistDigitalEmployeeFromDraft(
         },
       },
       {
-        employeeId: created.employee.id,
+        employeeId: employee.id,
         providerType: "brain",
         providerId: brainProvider,
         config: {
@@ -107,7 +150,7 @@ export async function persistDigitalEmployeeFromDraft(
         },
       },
       {
-        employeeId: created.employee.id,
+        employeeId: employee.id,
         providerType: "session",
         providerId: draft.voice.provider,
         config: {
@@ -131,7 +174,7 @@ export async function persistDigitalEmployeeFromDraft(
         draft.knowledge.map((item) => {
           const mapped = mapKnowledgeItem(item);
           return {
-            employeeId: created.employee.id,
+            employeeId: employee.id,
             type: mapped.type,
             title: mapped.title,
             status: "pending" as const,
@@ -139,9 +182,9 @@ export async function persistDigitalEmployeeFromDraft(
         }),
       );
     }
-  });
 
-  const employeeId = created.employee.id;
+    return employee.id;
+  });
 
   void provisionEmployeeProviders({ employeeId }).catch((error: unknown) => {
     const message = error instanceof Error ? error.message : String(error);
@@ -150,6 +193,8 @@ export async function persistDigitalEmployeeFromDraft(
       message,
     );
   });
+
+  revalidatePath("/dashboard/employees");
 
   return { employeeId };
 }

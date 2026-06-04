@@ -24,6 +24,31 @@ export type PreviewEmployeeVoiceResult =
   | PreviewEmployeeVoiceSuccess
   | PreviewEmployeeVoiceFailure;
 
+function formatPreviewFailureMessage(error: unknown): string {
+  const raw =
+    error instanceof Error ? error.message : "Voice preview failed";
+  const normalized = raw.toLowerCase();
+
+  if (
+    normalized.includes("fetch failed") ||
+    normalized.includes("econnrefused") ||
+    normalized.includes("enotfound") ||
+    normalized.includes("network")
+  ) {
+    return "ElevenLabs preview is unavailable. Check ELEVENLABS_API_KEY and network access, then try again.";
+  }
+
+  if (normalized.includes("401") || normalized.includes("unauthorized")) {
+    return "ElevenLabs API key was rejected. Verify ELEVENLABS_API_KEY in your environment.";
+  }
+
+  if (normalized.includes("403") || normalized.includes("forbidden")) {
+    return "ElevenLabs denied this request (region or permissions). Preview is optional — you can continue.";
+  }
+
+  return raw;
+}
+
 async function readAudioToBase64(audio: unknown): Promise<string> {
   if (audio instanceof ReadableStream) {
     const reader = audio.getReader();
@@ -97,8 +122,7 @@ export async function previewEmployeeVoice(
   } catch (error) {
     return {
       status: "failed",
-      message:
-        error instanceof Error ? error.message : "Voice preview failed",
+      message: formatPreviewFailureMessage(error),
     };
   }
 }

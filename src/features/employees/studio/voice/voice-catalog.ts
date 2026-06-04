@@ -66,6 +66,63 @@ export const STUDIO_VOICES: StudioVoiceOption[] = [
   },
 ];
 
-export function getStudioVoiceById(voiceId: string): StudioVoiceOption | undefined {
+export const CUSTOM_ELEVENLABS_STUDIO_VOICE_ID = "custom-elevenlabs";
+
+export function createCustomElevenLabsVoiceOption(
+  elevenLabsVoiceId: string,
+): StudioVoiceOption {
+  const shortId =
+    elevenLabsVoiceId.length > 12
+      ? `${elevenLabsVoiceId.slice(0, 8)}…`
+      : elevenLabsVoiceId;
+
+  return {
+    id: CUSTOM_ELEVENLABS_STUDIO_VOICE_ID,
+    name: "Custom ElevenLabs voice",
+    gender: "Custom",
+    language: "Your account",
+    provider: "ElevenLabs",
+    elevenLabsVoiceId,
+  };
+}
+
+export function getStudioVoiceById(
+  voiceId: string,
+  customElevenLabsVoiceId?: string,
+): StudioVoiceOption | undefined {
+  if (voiceId === CUSTOM_ELEVENLABS_STUDIO_VOICE_ID) {
+    const trimmed = customElevenLabsVoiceId?.trim();
+    return trimmed ? createCustomElevenLabsVoiceOption(trimmed) : undefined;
+  }
+
   return STUDIO_VOICES.find((voice) => voice.id === voiceId);
+}
+
+export function filterStudioVoices(input: {
+  query: string;
+  provider: "all" | StudioVoiceProvider;
+}): StudioVoiceOption[] {
+  const normalizedQuery = input.query.trim().toLowerCase();
+
+  return STUDIO_VOICES.filter((voice) => {
+    if (input.provider !== "all" && voice.provider !== input.provider) {
+      return false;
+    }
+
+    if (!normalizedQuery) {
+      return true;
+    }
+
+    const haystack = [
+      voice.name,
+      voice.gender,
+      voice.language,
+      voice.provider,
+      voice.id,
+    ]
+      .join(" ")
+      .toLowerCase();
+
+    return haystack.includes(normalizedQuery);
+  });
 }

@@ -42,6 +42,8 @@ export type CreateEmployeeFormState = {
   voiceBinding: "anam" | "elevenlabs_shell" | null;
   anamPersonaVoiceId: string | null;
   brainProvider: BrainProvider;
+  brainCustomModeEnabled: boolean;
+  customElevenLabsVoiceId: string;
   knowledgeUrl: string;
   knowledgeText: string;
   knowledgeFiles: Array<{ name: string; size: number }>;

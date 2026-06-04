@@ -12,22 +12,27 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { finalizeEmployeeStudio } from "@/features/employees/actions/finalize-employee-studio";
+import { createEmployeeFromStudioWizard } from "@/features/employees/actions/create-employee-from-studio-wizard";
 import { previewEmployeeVoice } from "@/features/employees/actions/preview-employee-voice";
-import { AvatarPreviewCard, AvatarUpload, VoiceStudioGrid } from "@/features/employees/studio";
+import {
+  AvatarPreviewCard,
+  AvatarUpload,
+  VoiceStudioPicker,
+} from "@/features/employees/studio";
+import { CUSTOM_ELEVENLABS_STUDIO_VOICE_ID } from "@/features/employees/studio/voice/voice-catalog";
 import {
   assembleCreateEmployeeDraft,
+  buildKnowledgeItemsFromForm,
   canAssembleCreateEmployeeDraft,
 } from "./assemble-create-employee-draft";
-import { ProviderOption } from "./components/provider-option";
+import { BrainProviderPicker } from "./components/brain-provider-picker";
 import {
-  BRAIN_PROVIDER_OPTIONS,
   CREATE_EMPLOYEE_STEPS,
+  DEFAULT_BRAIN_PROVIDER,
   MAX_AVATAR_UPLOAD_BYTES,
   STEP_LABELS,
   createInitialFormState,
 } from "./constants";
-import type { BrainProvider } from "@/entities/digital-employee";
 import type {
   CreateEmployeeDraftPayload,
   CreateEmployeeFormState,
@@ -54,11 +59,12 @@ export function CreateEmployeeDialog({
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onComplete?: (draft: CreateEmployeeDraftPayload) => Promise<void>;
+  onComplete?: (result: { employeeId: string }) => Promise<void>;
 }) {
   const [step, setStep] = useState<CreateEmployeeStep>("identity");
   const [form, setForm] = useState<CreateEmployeeFormState>(createInitialFormState);
   const [error, setError] = useState<string | null>(null);
+  const [voicePreviewError, setVoicePreviewError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [localUploadPreviewUrl, setLocalUploadPreviewUrl] = useState<string | null>(
     null,
@@ -66,6 +72,8 @@ export function CreateEmployeeDialog({
   const [previewingVoiceId, setPreviewingVoiceId] = useState<string | null>(null);
   const localUploadPreviewUrlRef = useRef<string | null>(null);
   const voicePreviewAudioRef = useRef<HTMLAudioElement | null>(null);
+  const stepRef = useRef<CreateEmployeeStep>(step);
+  stepRef.current = step;
 
   useEffect(() => {
     return () => {
@@ -115,7 +123,24 @@ export function CreateEmployeeDialog({
     setForm(createInitialFormState());
     setError(null);
     setPreviewingVoiceId(null);
+    setVoicePreviewError(null);
     clearLocalUploadPreview();
+  }
+
+  function stopVoicePreview(): void {
+    if (voicePreviewAudioRef.current) {
+      voicePreviewAudioRef.current.pause();
+      voicePreviewAudioRef.current = null;
+    }
+    setPreviewingVoiceId(null);
+  }
+
+  function clearStepScopedErrors(nextStep: CreateEmployeeStep): void {
+    setError(null);
+    if (nextStep !== "voice") {
+      stopVoicePreview();
+      setVoicePreviewError(null);
+    }
   }
 
   function handleOpenChange(nextOpen: boolean): void {
@@ -149,6 +174,13 @@ export function CreateEmployeeDialog({
         setError("Select a voice before continuing.");
         return false;
       }
+      if (
+        form.studioVoiceId === CUSTOM_ELEVENLABS_STUDIO_VOICE_ID &&
+        !form.customElevenLabsVoiceId.trim()
+      ) {
+        setError("Enter a custom ElevenLabs voice ID or pick a catalog voice.");
+        return false;
+      }
     }
 
     return true;
@@ -158,18 +190,26 @@ export function CreateEmployeeDialog({
     if (!validateCurrentStep()) {
       return;
     }
+
+    if (step === "brain") {
+      updateForm({
+        brainProvider: DEFAULT_BRAIN_PROVIDER,
+        brainCustomModeEnabled: false,
+      });
+    }
+
     const next = CREATE_EMPLOYEE_STEPS[currentStepIndex + 1];
     if (next) {
+      clearStepScopedErrors(next);
       setStep(next);
-      setError(null);
     }
   }
 
   function goBack(): void {
     const previous = CREATE_EMPLOYEE_STEPS[currentStepIndex - 1];
     if (previous) {
+      clearStepScopedErrors(previous);
       setStep(previous);
-      setError(null);
     }
   }
 
@@ -192,39 +232,37 @@ export function CreateEmployeeDialog({
       payload.append("name", form.name.trim());
       payload.append("role", form.role.trim());
       payload.append("studioVoiceId", form.studioVoiceId);
+      if (form.studioVoiceId === CUSTOM_ELEVENLABS_STUDIO_VOICE_ID) {
+        payload.append("customElevenLabsVoiceId", form.customElevenLabsVoiceId.trim());
+      }
+      payload.append("brainProvider", DEFAULT_BRAIN_PROVIDER);
+      payload.append("knowledge", JSON.stringify(buildKnowledgeItemsFromForm(form)));
+      if (form.photoFileName) {
+        payload.append("photoFileName", form.photoFileName);
+      }
+      if (form.photoFileSize != null) {
+        payload.append("photoFileSize", String(form.photoFileSize));
+      }
 
-      const studio = await finalizeEmployeeStudio(payload);
+      const result = await createEmployeeFromStudioWizard(payload);
 
-      if (studio.status === "failed") {
+      if (!result.ok) {
+        const message =
+          result.phase === "persist"
+            ? `Avatar was created in Anam, but saving to your workspace failed: ${result.message}`
+            : result.message;
         updateForm({
           avatarGenerationStatus: "failed",
-          avatarGenerationError: studio.message,
+          avatarGenerationError: message,
         });
-        setError(studio.message);
+        setError(message);
         return;
       }
 
-      const nextForm: CreateEmployeeFormState = {
-        ...form,
-        avatarId: studio.avatarId,
-        avatarPreviewUrl: studio.previewUrl,
-        personaId: studio.personaId,
-        avatarProvider: studio.provider,
-        avatarGenerationStatus: "ready",
-        avatarGenerationError: null,
-        studioVoiceId: studio.voice.studioVoiceId,
-        voiceId: studio.voice.voiceId,
-        voiceProvider: studio.voice.provider,
-        voiceModel: studio.voice.model,
-        voiceBinding: studio.voice.voiceBinding,
-        anamPersonaVoiceId: studio.voice.anamPersonaVoiceId,
-      };
+      updateForm({ avatarGenerationStatus: "ready", avatarGenerationError: null });
 
-      setForm(nextForm);
-
-      const draft = assembleCreateEmployeeDraft(nextForm);
       if (onComplete) {
-        await onComplete(draft);
+        await onComplete({ employeeId: result.employeeId });
       }
       handleOpenChange(false);
     } catch (submitError: unknown) {
@@ -271,14 +309,20 @@ export function CreateEmployeeDialog({
   }
 
   async function handlePreviewVoice(elevenLabsVoiceId: string): Promise<void> {
+    const requestStep = stepRef.current;
     setPreviewingVoiceId(elevenLabsVoiceId);
-    setError(null);
+    setVoicePreviewError(null);
 
     const result = await previewEmployeeVoice(elevenLabsVoiceId);
 
+    if (stepRef.current !== requestStep || requestStep !== "voice") {
+      setPreviewingVoiceId(null);
+      return;
+    }
+
     if (result.status === "failed") {
       setPreviewingVoiceId(null);
-      setError(result.message);
+      setVoicePreviewError(result.message);
       return;
     }
 
@@ -291,14 +335,14 @@ export function CreateEmployeeDialog({
     audio.onended = () => setPreviewingVoiceId(null);
     audio.onerror = () => {
       setPreviewingVoiceId(null);
-      setError("Unable to play voice preview.");
+      setVoicePreviewError("Unable to play voice preview.");
     };
 
     try {
       await audio.play();
     } catch {
       setPreviewingVoiceId(null);
-      setError("Unable to play voice preview.");
+      setVoicePreviewError("Unable to play voice preview.");
     }
   }
 
@@ -386,35 +430,49 @@ export function CreateEmployeeDialog({
           ) : null}
 
           {step === "voice" ? (
-            <VoiceStudioGrid
-              selectedVoiceId={form.studioVoiceId}
-              previewingVoiceId={previewingVoiceId}
-              onSelectVoice={({ studioVoiceId, voiceName, provider }) =>
-                updateForm({
-                  studioVoiceId,
-                  voiceName,
-                  voiceProvider:
-                    provider === "Anam" ? "anam" : "elevenlabs",
-                })
-              }
-              onPreviewVoice={handlePreviewVoice}
-            />
+            <div className="flex flex-col gap-4">
+              <VoiceStudioPicker
+                selectedVoiceId={form.studioVoiceId}
+                customElevenLabsVoiceId={form.customElevenLabsVoiceId}
+                previewingVoiceId={previewingVoiceId}
+                onSelectVoice={({ studioVoiceId, voiceName, provider }) =>
+                  updateForm({
+                    studioVoiceId,
+                    voiceName,
+                    voiceProvider: provider === "Anam" ? "anam" : "elevenlabs",
+                    customElevenLabsVoiceId: "",
+                  })
+                }
+                onApplyCustomVoice={(elevenLabsVoiceId) =>
+                  updateForm({
+                    studioVoiceId: CUSTOM_ELEVENLABS_STUDIO_VOICE_ID,
+                    customElevenLabsVoiceId: elevenLabsVoiceId.trim(),
+                    voiceName: `Custom (${elevenLabsVoiceId.slice(0, 8)}…)`,
+                    voiceProvider: "elevenlabs",
+                  })
+                }
+                onPreviewVoice={handlePreviewVoice}
+              />
+              {voicePreviewError ? (
+                <p className="text-sm text-white/70" role="alert">
+                  {voicePreviewError}
+                </p>
+              ) : null}
+            </div>
           ) : null}
 
           {step === "brain" ? (
-            <div className="grid gap-3 sm:grid-cols-2">
-              {BRAIN_PROVIDER_OPTIONS.map((option) => (
-                <ProviderOption
-                  key={option.value}
-                  label={option.label}
-                  value={option.value}
-                  selected={form.brainProvider === option.value}
-                  onSelect={(value: BrainProvider) =>
-                    updateForm({ brainProvider: value })
-                  }
-                />
-              ))}
-            </div>
+            <BrainProviderPicker
+              brainProvider={form.brainProvider}
+              customModeEnabled={form.brainCustomModeEnabled}
+              onBrainProviderChange={() => undefined}
+              onCustomModeChange={(enabled) =>
+                updateForm({
+                  brainCustomModeEnabled: enabled,
+                  brainProvider: DEFAULT_BRAIN_PROVIDER,
+                })
+              }
+            />
           ) : null}
 
           {step === "knowledge" ? (
@@ -486,7 +544,7 @@ export function CreateEmployeeDialog({
                       : "—"
                   }
                 />
-                <SummaryRow label="Brain" value={form.brainProvider} />
+                <SummaryRow label="Brain" value="OpenAI" />
                 <SummaryRow
                   label="Knowledge"
                   value={`${form.knowledgeFiles.length + (form.knowledgeUrl.trim() ? 1 : 0) + (form.knowledgeText.trim() ? 1 : 0)} item(s)`}
@@ -528,7 +586,9 @@ export function CreateEmployeeDialog({
               disabled={isSubmitting || !form.photoFile || !form.studioVoiceId}
               className="bg-white text-black hover:bg-white/90"
             >
-              {isSubmitting ? "Generating avatar…" : "Create Employee"}
+              {isSubmitting
+                ? "Creating employee…"
+                : "Create Employee"}
             </Button>
           ) : (
             <Button

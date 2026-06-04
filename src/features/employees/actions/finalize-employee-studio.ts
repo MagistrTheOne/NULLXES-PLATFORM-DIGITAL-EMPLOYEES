@@ -106,6 +106,9 @@ export async function finalizeEmployeeStudio(
   const name = String(formData.get("name") ?? "").trim();
   const role = String(formData.get("role") ?? "").trim();
   const studioVoiceId = String(formData.get("studioVoiceId") ?? "").trim();
+  const customElevenLabsVoiceId = String(
+    formData.get("customElevenLabsVoiceId") ?? "",
+  ).trim();
 
   if (!(file instanceof File)) {
     return { status: "failed", message: "Photo file is required" };
@@ -115,9 +118,15 @@ export async function finalizeEmployeeStudio(
     return { status: "failed", message: "Employee name and role are required" };
   }
 
-  const selectedVoice = getStudioVoiceById(studioVoiceId);
+  const selectedVoice = getStudioVoiceById(studioVoiceId, customElevenLabsVoiceId);
   if (!selectedVoice) {
-    return { status: "failed", message: "Selected voice is invalid" };
+    return {
+      status: "failed",
+      message:
+        studioVoiceId && customElevenLabsVoiceId
+          ? "Custom ElevenLabs voice ID is invalid"
+          : "Selected voice is invalid",
+    };
   }
 
   try {

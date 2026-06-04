@@ -20,12 +20,13 @@ export const STEP_LABELS: Record<CreateEmployeeStep, string> = {
 
 export const MAX_AVATAR_UPLOAD_BYTES = Math.floor(4.5 * 1024 * 1024);
 
-export const BRAIN_PROVIDER_OPTIONS = [
-  { value: "openai" as const, label: "OpenAI" },
+export const DEFAULT_BRAIN_PROVIDER = "openai" as const;
+
+export const CUSTOM_BRAIN_PROVIDER_OPTIONS = [
   { value: "anthropic" as const, label: "Anthropic" },
   { value: "google" as const, label: "Google" },
   { value: "nullxes" as const, label: "NULLXES" },
-];
+] as const;
 
 export function createInitialFormState(): CreateEmployeeFormState {
   return {
@@ -47,7 +48,9 @@ export function createInitialFormState(): CreateEmployeeFormState {
     voiceModel: null,
     voiceBinding: null,
     anamPersonaVoiceId: null,
-    brainProvider: "openai",
+    brainProvider: DEFAULT_BRAIN_PROVIDER,
+    brainCustomModeEnabled: false,
+    customElevenLabsVoiceId: "",
     knowledgeUrl: "",
     knowledgeText: "",
     knowledgeFiles: [],

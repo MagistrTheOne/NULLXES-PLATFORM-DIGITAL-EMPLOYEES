@@ -3,10 +3,8 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { EmployeeStatus } from "@/entities/digital-employee";
-import { persistDigitalEmployeeFromDraft } from "@/features/employees/actions/persist-digital-employee-from-draft";
 import {
   CreateEmployeeDialog,
-  type CreateEmployeeDraftPayload,
 } from "@/features/employees/create";
 import type { EmployeeListItem } from "../types";
 import { EmployeeEmptyState } from "./employee-empty-state";
@@ -46,10 +44,7 @@ export function EmployeesScreen({
 
   const hasEmployees = employees.length > 0;
 
-  async function handleCreateComplete(
-    draft: CreateEmployeeDraftPayload,
-  ): Promise<void> {
-    await persistDigitalEmployeeFromDraft(draft);
+  async function handleCreateComplete(): Promise<void> {
     router.refresh();
   }
 

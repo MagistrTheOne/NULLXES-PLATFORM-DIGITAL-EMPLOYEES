@@ -4,7 +4,9 @@ import type {
   KnowledgeDraftItem,
 } from "./types";
 
-function buildKnowledgeItems(form: CreateEmployeeFormState): KnowledgeDraftItem[] {
+export function buildKnowledgeItemsFromForm(
+  form: CreateEmployeeFormState,
+): KnowledgeDraftItem[] {
   const items: KnowledgeDraftItem[] = [];
 
   for (const file of form.knowledgeFiles) {
@@ -94,6 +96,6 @@ export function assembleCreateEmployeeDraft(
     brain: {
       provider: form.brainProvider,
     },
-    knowledge: buildKnowledgeItems(form),
+    knowledge: buildKnowledgeItemsFromForm(form),
   };
 }
