@@ -1,10 +1,10 @@
-import Image from "next/image";
 import Link from "next/link";
 import { format } from "date-fns";
 import { Loader2, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import type { EmployeeListItem } from "../types";
+import { AvatarIdlePreview } from "./avatar-idle-preview";
 import { EmployeeProviderBadge } from "./employee-provider-badge";
 import { EmployeeStatusBadge } from "./employee-status-badge";
 
@@ -37,12 +37,9 @@ export function EmployeeCard({ employee }: { employee: EmployeeListItem }) {
     <Card className="flex h-full flex-col gap-0 overflow-hidden border-white/10 bg-[#111111] py-0 text-white ring-white/10">
       <div className="relative flex aspect-4/3 items-center justify-center border-b border-white/10 bg-white/3">
         {showPreview ? (
-          <Image
+          <AvatarIdlePreview
             src={employee.avatarPreviewUrl!}
             alt={employee.name}
-            fill
-            unoptimized
-            className="object-cover"
             sizes="(max-width: 768px) 100vw, 320px"
           />
         ) : (
@@ -95,7 +92,9 @@ export function EmployeeCard({ employee }: { employee: EmployeeListItem }) {
               asChild={employee.canTalk}
             >
               {employee.canTalk ? (
-                <Link href={`/dashboard/employees/${employee.id}`}>Talk</Link>
+                <Link href={`/dashboard/employees/${employee.id}/talk`}>
+                  Talk
+                </Link>
               ) : (
                 <span>Talk</span>
               )}

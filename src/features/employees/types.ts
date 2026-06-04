@@ -3,7 +3,30 @@ import type {
   BrainProvider,
   EmployeeStatus,
 } from "@/entities/digital-employee";
+import type { EmployeeLifecycleEventType } from "@/entities/employee-lifecycle";
+import type {
+  KnowledgeSourceStatus,
+  KnowledgeSourceType,
+} from "@/entities/knowledge";
 import type { ProviderProvisioningStatus } from "@/entities/provider-config";
+
+export type EmployeeKnowledgeItem = {
+  id: string;
+  type: KnowledgeSourceType;
+  title: string;
+  status: KnowledgeSourceStatus;
+  failureReason: string | null;
+  chunkCount: number;
+  createdAt: Date;
+};
+
+export type EmployeeLifecycleItem = {
+  id: string;
+  eventType: EmployeeLifecycleEventType;
+  reason: string | null;
+  actorName: string;
+  createdAt: Date;
+};
 
 export type EmployeeListItem = {
   id: string;
@@ -30,4 +53,6 @@ export type EmployeeDetail = EmployeeListItem & {
   brainProvisioningStatus: ProviderProvisioningStatus;
   sessionProvisioningStatus: ProviderProvisioningStatus;
   systemPrompt: string;
+  knowledge: EmployeeKnowledgeItem[];
+  lifecycle: EmployeeLifecycleItem[];
 };

@@ -1,13 +1,15 @@
-import { count, eq } from "drizzle-orm";
+import { count, desc, eq, sql } from "drizzle-orm";
 import type {
   AvatarProviderConfigPayload,
   BrainProviderConfigPayload,
   SessionProviderConfigPayload,
 } from "@/entities/provider-config";
 import { digitalEmployee } from "@/entities/digital-employee/schema";
+import { employeeLifecycleEvent } from "@/entities/employee-lifecycle/schema";
 import { employeeProviderConfig } from "@/entities/provider-config/schema";
-import { knowledgeSource } from "@/entities/knowledge/schema";
+import { knowledgeChunk, knowledgeSource } from "@/entities/knowledge/schema";
 import { employeeRuntime } from "@/entities/runtime/schema";
+import { user } from "@/entities/user/schema";
 import { db } from "@/shared/db/client";
 import type { EmployeeDetail } from "../types";
 
@@ -56,6 +58,37 @@ export async function getEmployeeDetail(
     .from(knowledgeSource)
     .where(eq(knowledgeSource.employeeId, employeeId));
 
+  const knowledgeRows = await db
+    .select({
+      id: knowledgeSource.id,
+      type: knowledgeSource.type,
+      title: knowledgeSource.title,
+      status: knowledgeSource.status,
+      failureReason: knowledgeSource.failureReason,
+      createdAt: knowledgeSource.createdAt,
+      chunkCount: sql<number>`cast(count(${knowledgeChunk.id}) as int)`.mapWith(
+        Number,
+      ),
+    })
+    .from(knowledgeSource)
+    .leftJoin(knowledgeChunk, eq(knowledgeChunk.sourceId, knowledgeSource.id))
+    .where(eq(knowledgeSource.employeeId, employeeId))
+    .groupBy(knowledgeSource.id)
+    .orderBy(desc(knowledgeSource.createdAt));
+
+  const lifecycleRows = await db
+    .select({
+      id: employeeLifecycleEvent.id,
+      eventType: employeeLifecycleEvent.eventType,
+      reason: employeeLifecycleEvent.reason,
+      createdAt: employeeLifecycleEvent.createdAt,
+      actorName: user.name,
+    })
+    .from(employeeLifecycleEvent)
+    .innerJoin(user, eq(employeeLifecycleEvent.actorUserId, user.id))
+    .where(eq(employeeLifecycleEvent.employeeId, employeeId))
+    .orderBy(desc(employeeLifecycleEvent.createdAt));
+
   const avatarConfig = configs.find((row) => row.providerType === "avatar")
     ?.config as AvatarProviderConfigPayload | undefined;
   const brainConfig = configs.find((row) => row.providerType === "brain")
@@ -99,5 +132,21 @@ export async function getEmployeeDetail(
     brainProvisioningStatus,
     sessionProvisioningStatus,
     systemPrompt: runtime?.systemPrompt ?? "",
+    knowledge: knowledgeRows.map((row) => ({
+      id: row.id,
+      type: row.type,
+      title: row.title,
+      status: row.status,
+      failureReason: row.failureReason,
+      chunkCount: row.chunkCount,
+      createdAt: row.createdAt,
+    })),
+    lifecycle: lifecycleRows.map((row) => ({
+      id: row.id,
+      eventType: row.eventType,
+      reason: row.reason,
+      actorName: row.actorName,
+      createdAt: row.createdAt,
+    })),
   };
 }

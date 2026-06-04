@@ -1,10 +1,13 @@
 import Link from "next/link";
-import Image from "next/image";
 import { format } from "date-fns";
 import { ArrowLeft, Loader2, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { EmployeeDetail } from "../types";
+import { AvatarIdlePreview } from "./avatar-idle-preview";
+import { EmployeeDetailTabs, TabsContent } from "./employee-detail-tabs";
+import { EmployeeKnowledgePanel } from "./employee-knowledge-panel";
+import { EmployeeLifecyclePanel } from "./employee-lifecycle-panel";
 import { EmployeeProviderBadge } from "./employee-provider-badge";
 import { EmployeeStatusBadge } from "./employee-status-badge";
 
@@ -38,6 +41,8 @@ export function EmployeeDetailScreen({ employee }: { employee: EmployeeDetail })
   const isProvisioning =
     employee.avatarProvisioningStatus === "pending" ||
     employee.avatarProvisioningStatus === "provisioning";
+  const showPreview =
+    employee.avatarPreviewUrl && employee.avatarProvisioningStatus === "ready";
 
   return (
     <div className="flex flex-col gap-6">
@@ -63,13 +68,10 @@ export function EmployeeDetailScreen({ employee }: { employee: EmployeeDetail })
       <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
         <Card className="overflow-hidden border-white/10 bg-[#111111] py-0 text-white">
           <div className="relative aspect-4/3 bg-white/3">
-            {employee.avatarPreviewUrl && employee.avatarProvisioningStatus === "ready" ? (
-              <Image
-                src={employee.avatarPreviewUrl}
+            {showPreview ? (
+              <AvatarIdlePreview
+                src={employee.avatarPreviewUrl!}
                 alt={employee.name}
-                fill
-                unoptimized
-                className="object-cover"
                 sizes="320px"
               />
             ) : (
@@ -79,7 +81,7 @@ export function EmployeeDetailScreen({ employee }: { employee: EmployeeDetail })
                 ) : (
                   <UserRound className="size-8" />
                 )}
-                <span className="text-xs uppercase tracking-wide">
+                <span className="text-xs tracking-wide uppercase">
                   {employee.avatarProvisioningStatus}
                 </span>
               </div>
@@ -91,75 +93,109 @@ export function EmployeeDetailScreen({ employee }: { employee: EmployeeDetail })
               type="button"
               disabled={!employee.canTalk}
               className="bg-white text-black hover:bg-white/90 disabled:opacity-40"
+              asChild={employee.canTalk}
             >
-              Talk
+              {employee.canTalk ? (
+                <Link href={`/dashboard/employees/${employee.id}/talk`}>
+                  Talk
+                </Link>
+              ) : (
+                <span>Talk</span>
+              )}
             </Button>
-            <p className="text-xs text-white/45">
-              Runtime sessions (GetStream) ship in Phase X.
-            </p>
+            {!employee.canTalk ? (
+              <p className="text-xs text-white/45">
+                Talk unlocks when avatar and session providers are ready.
+              </p>
+            ) : null}
           </CardContent>
         </Card>
 
-        <div className="flex flex-col gap-4">
-          <SectionCard title="Overview">
-            <DetailRow label="Status" value={employee.status} />
-            <DetailRow
-              label="Created"
-              value={format(employee.createdAt, "MMM d, yyyy")}
-            />
-            <DetailRow
-              label="Knowledge sources"
-              value={String(employee.knowledgeSourcesCount)}
-            />
-            <div className="flex flex-wrap gap-2 py-3">
-              <EmployeeProviderBadge
-                kind="Avatar"
-                provider={employee.avatarProvider}
+        <EmployeeDetailTabs>
+          <TabsContent value="overview" className="mt-4">
+            <SectionCard title="Overview">
+              <DetailRow label="Status" value={employee.status} />
+              <DetailRow
+                label="Created"
+                value={format(employee.createdAt, "MMM d, yyyy")}
               />
-              <EmployeeProviderBadge kind="Brain" provider={employee.brainProvider} />
-              {employee.sessionVoiceProvider ? (
-                <EmployeeProviderBadge
-                  kind="Voice"
-                  provider={employee.sessionVoiceProvider}
-                />
+              <DetailRow
+                label="Knowledge sources"
+                value={String(employee.knowledgeSourcesCount)}
+              />
+              {employee.description ? (
+                <DetailRow label="Description" value={employee.description} />
               ) : null}
-            </div>
-          </SectionCard>
+              <div className="flex flex-wrap gap-2 py-3">
+                <EmployeeProviderBadge
+                  kind="Avatar"
+                  provider={employee.avatarProvider}
+                />
+                <EmployeeProviderBadge
+                  kind="Brain"
+                  provider={employee.brainProvider}
+                />
+                {employee.sessionVoiceProvider ? (
+                  <EmployeeProviderBadge
+                    kind="Voice"
+                    provider={employee.sessionVoiceProvider}
+                  />
+                ) : null}
+              </div>
+            </SectionCard>
+          </TabsContent>
 
-          <SectionCard title="Avatar">
-            <DetailRow
-              label="Provisioning"
-              value={employee.avatarProvisioningStatus}
-            />
-            <DetailRow label="Avatar ID" value={employee.avatarId ?? "—"} />
-            <DetailRow label="Persona ID" value={employee.personaId ?? "—"} />
-          </SectionCard>
+          <TabsContent value="avatar" className="mt-4">
+            <SectionCard title="Avatar">
+              <DetailRow
+                label="Provisioning"
+                value={employee.avatarProvisioningStatus}
+              />
+              <DetailRow label="Avatar ID" value={employee.avatarId ?? "—"} />
+              <DetailRow label="Persona ID" value={employee.personaId ?? "—"} />
+            </SectionCard>
+          </TabsContent>
 
-          <SectionCard title="Voice">
-            <DetailRow
-              label="Provisioning"
-              value={employee.sessionProvisioningStatus}
-            />
-            <DetailRow label="Studio voice" value={employee.studioVoiceId ?? "—"} />
-            <DetailRow label="Voice ID" value={employee.voiceId ?? "—"} />
-          </SectionCard>
+          <TabsContent value="voice" className="mt-4">
+            <SectionCard title="Voice">
+              <DetailRow
+                label="Provisioning"
+                value={employee.sessionProvisioningStatus}
+              />
+              <DetailRow
+                label="Studio voice"
+                value={employee.studioVoiceId ?? "—"}
+              />
+              <DetailRow label="Voice ID" value={employee.voiceId ?? "—"} />
+            </SectionCard>
+          </TabsContent>
 
-          <SectionCard title="Brain">
-            <DetailRow
-              label="Provisioning"
-              value={employee.brainProvisioningStatus}
-            />
-            <DetailRow label="Model" value={employee.brainModel ?? "—"} />
-            <DetailRow
-              label="System prompt"
-              value={
-                employee.systemPrompt.length > 120
-                  ? `${employee.systemPrompt.slice(0, 120)}…`
-                  : employee.systemPrompt
-              }
-            />
-          </SectionCard>
-        </div>
+          <TabsContent value="brain" className="mt-4">
+            <SectionCard title="Brain">
+              <DetailRow
+                label="Provisioning"
+                value={employee.brainProvisioningStatus}
+              />
+              <DetailRow label="Model" value={employee.brainModel ?? "—"} />
+              <DetailRow
+                label="System prompt"
+                value={
+                  employee.systemPrompt.length > 240
+                    ? `${employee.systemPrompt.slice(0, 240)}…`
+                    : employee.systemPrompt
+                }
+              />
+            </SectionCard>
+          </TabsContent>
+
+          <TabsContent value="knowledge" className="mt-4">
+            <EmployeeKnowledgePanel items={employee.knowledge} />
+          </TabsContent>
+
+          <TabsContent value="lifecycle" className="mt-4">
+            <EmployeeLifecyclePanel items={employee.lifecycle} />
+          </TabsContent>
+        </EmployeeDetailTabs>
       </div>
     </div>
   );

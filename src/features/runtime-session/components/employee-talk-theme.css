@@ -1,0 +1,9 @@
+.employee-talk-participant video {
+  filter: grayscale(1) contrast(1.05);
+  object-fit: cover;
+}
+
+.str-video__participant-details,
+.str-video__menu-container {
+  color: #ffffff;
+}

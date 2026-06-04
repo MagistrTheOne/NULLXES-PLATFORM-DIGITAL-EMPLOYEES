@@ -68,3 +68,11 @@ export function getStreamApiKey(): string | undefined {
 export function getStreamSecretKey(): string | undefined {
   return readOptionalEnv("STREAM_SECRET_KEY");
 }
+
+/** Public Stream API key for the Video React SDK (safe to expose in the browser). */
+export function getPublicStreamApiKey(): string | undefined {
+  return (
+    readOptionalEnv("NEXT_PUBLIC_STREAM_API_KEY") ??
+    readOptionalEnv("STREAM_API_KEY")
+  );
+}
