@@ -1,7 +1,12 @@
 import { getSessionCookie } from "better-auth/cookies";
 import { NextRequest, NextResponse } from "next/server";
 
-const PROTECTED_PREFIXES = ["/dashboard", "/employees", "/settings"];
+const PROTECTED_PREFIXES = [
+  "/dashboard",
+  "/employees",
+  "/analytics",
+  "/settings",
+];
 const AUTH_ROUTES = ["/login", "/register"];
 
 function isProtectedRoute(pathname: string): boolean {
@@ -14,7 +19,7 @@ function isAuthRoute(pathname: string): boolean {
   return AUTH_ROUTES.includes(pathname);
 }
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const sessionCookie = getSessionCookie(request);
 
@@ -37,6 +42,8 @@ export const config = {
     "/dashboard/:path*",
     "/employees",
     "/employees/:path*",
+    "/analytics",
+    "/analytics/:path*",
     "/settings",
     "/settings/:path*",
     "/login",

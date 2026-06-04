@@ -14,6 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { authClient } from "../client";
+import { ensureWorkspace } from "../services/ensure-workspace";
 
 export function LoginForm() {
   const router = useRouter();
@@ -27,18 +28,38 @@ export function LoginForm() {
     setError(null);
     setIsSubmitting(true);
 
-    const { error: signInError } = await authClient.signIn.email({
+    const { data, error: signInError } = await authClient.signIn.email({
       email,
       password,
       rememberMe: true,
     });
 
-    setIsSubmitting(false);
-
     if (signInError) {
+      setIsSubmitting(false);
       setError(signInError.message ?? "Unable to sign in");
       return;
     }
+
+    const userId = data?.user?.id;
+    if (!userId) {
+      setIsSubmitting(false);
+      setError("Signed in without a user identifier");
+      return;
+    }
+
+    try {
+      await ensureWorkspace(userId, data.user?.name ?? email);
+    } catch (provisionError: unknown) {
+      setIsSubmitting(false);
+      const message =
+        provisionError instanceof Error
+          ? provisionError.message
+          : "Unable to prepare workspace";
+      setError(message);
+      return;
+    }
+
+    setIsSubmitting(false);
 
     router.push("/dashboard");
     router.refresh();
