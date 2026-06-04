@@ -171,7 +171,7 @@ export function EmployeeDetailScreen({ employee }: { employee: EmployeeDetail })
           </TabsContent>
 
           <TabsContent value="brain" className="mt-4">
-            <SectionCard title="LLM">
+            <SectionCard title="Brain">
               <DetailRow
                 label="Provisioning"
                 value={employee.brainProvisioningStatus}

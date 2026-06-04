@@ -573,7 +573,7 @@ export function CreateEmployeeDialog({
                       : "—"
                   }
                 />
-                <SummaryRow label="LLM" value="OpenAI" />
+                <SummaryRow label="Brain" value="OpenAI" />
                 <SummaryRow
                   label="Knowledge"
                   value={`${form.knowledgeFiles.length + (form.knowledgeUrl.trim() ? 1 : 0) + (form.knowledgeText.trim() ? 1 : 0)} item(s)`}

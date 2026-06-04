@@ -82,8 +82,14 @@
 /* Hide SDK error surfaces if they leak during teardown */
 .employee-talk-chat-panel .str-chat__connection-error,
 .employee-talk-chat-panel .str-chat__error,
-.employee-talk-chat-panel [class*="Error"] {
+.employee-talk-chat-panel [class*="Error"],
+.employee-talk-chat-surface .str-chat__connection-error,
+.employee-talk-chat-surface .str-chat__error {
   display: none !important;
+}
+
+.employee-talk-chat-fallback {
+  min-height: 240px;
 }
 
 .employee-talk-chat-header {

@@ -1,6 +1,6 @@
 "use client";
 
-import { Component, type ReactNode, useEffect, useState } from "react";
+import { Component, type ReactNode, useEffect, useRef, useState } from "react";
 import { Loader2 } from "lucide-react";
 import type { Channel as StreamChannel } from "stream-chat";
 import { StreamChat } from "stream-chat";
@@ -17,7 +17,7 @@ type TalkChatUiState = "connecting" | "ready" | "unavailable";
 
 function TalkChatFallback({ state }: { state: Exclude<TalkChatUiState, "ready"> }) {
   return (
-    <div className="flex h-full flex-col items-center justify-center gap-2 px-4 text-center">
+    <div className="employee-talk-chat-fallback flex h-full flex-col items-center justify-center gap-2 px-4 text-center">
       {state === "connecting" ? (
         <>
           <Loader2 className="size-4 animate-spin text-white/50" />
@@ -31,7 +31,7 @@ function TalkChatFallback({ state }: { state: Exclude<TalkChatUiState, "ready"> 
 }
 
 class TalkChatErrorBoundary extends Component<
-  { children: ReactNode },
+  { onError: () => void; children: ReactNode },
   { hasError: boolean }
 > {
   state = { hasError: false };
@@ -42,6 +42,7 @@ class TalkChatErrorBoundary extends Component<
 
   componentDidCatch(error: unknown): void {
     console.error("Talk chat UI error", error);
+    this.props.onError();
   }
 
   render(): ReactNode {
@@ -61,6 +62,9 @@ export function EmployeeTalkChat({
   const [client, setClient] = useState<StreamChat | null>(null);
   const [channel, setChannel] = useState<StreamChannel | null>(null);
   const [uiState, setUiState] = useState<TalkChatUiState>("connecting");
+  const sessionKey = `${chatSession.apiKey}:${chatSession.userId}:${chatSession.channelId}`;
+  const sessionKeyRef = useRef(sessionKey);
+  sessionKeyRef.current = sessionKey;
 
   useEffect(() => {
     let active = true;
@@ -68,12 +72,20 @@ export function EmployeeTalkChat({
 
     async function connect(): Promise<void> {
       setUiState("connecting");
+      setClient(null);
+      setChannel(null);
 
       try {
-        await chatClient.connectUser(
-          { id: chatSession.userId, name: chatSession.userName },
-          chatSession.token,
-        );
+        if (chatClient.userID && chatClient.userID !== chatSession.userId) {
+          await chatClient.disconnectUser();
+        }
+
+        if (!chatClient.userID) {
+          await chatClient.connectUser(
+            { id: chatSession.userId, name: chatSession.userName },
+            chatSession.token,
+          );
+        }
 
         if (!active) {
           return;
@@ -83,7 +95,10 @@ export function EmployeeTalkChat({
           chatSession.channelType,
           chatSession.channelId,
         );
-        await talkChannel.watch();
+
+        if (!talkChannel.initialized) {
+          await talkChannel.watch();
+        }
 
         if (!active) {
           return;
@@ -108,10 +123,19 @@ export function EmployeeTalkChat({
 
     return () => {
       active = false;
+      const teardownKey = sessionKeyRef.current;
+
+      setUiState("connecting");
       setClient(null);
       setChannel(null);
-      setUiState("connecting");
-      void chatClient.disconnectUser().catch(() => undefined);
+
+      window.setTimeout(() => {
+        if (sessionKeyRef.current !== teardownKey) {
+          return;
+        }
+
+        void chatClient.disconnectUser().catch(() => undefined);
+      }, 0);
     };
   }, [chatSession]);
 
@@ -120,18 +144,20 @@ export function EmployeeTalkChat({
   }
 
   return (
-    <TalkChatErrorBoundary>
-      <Chat client={client} theme="str-chat__theme-dark">
-        <Channel channel={channel}>
-          <Window>
-            <div className="employee-talk-chat-header border-b border-white/10 px-3 py-2 text-xs tracking-wide text-white/50 uppercase">
-              Session chat
-            </div>
-            <MessageList />
-            <MessageComposer />
-          </Window>
-        </Channel>
-      </Chat>
+    <TalkChatErrorBoundary onError={() => setUiState("unavailable")}>
+      <div className="employee-talk-chat-surface h-full min-h-0">
+        <Chat client={client} theme="str-chat__theme-dark">
+          <Channel channel={channel}>
+            <Window>
+              <div className="employee-talk-chat-header border-b border-white/10 px-3 py-2 text-xs tracking-wide text-white/50 uppercase">
+                Session chat
+              </div>
+              <MessageList />
+              <MessageComposer />
+            </Window>
+          </Channel>
+        </Chat>
+      </div>
     </TalkChatErrorBoundary>
   );
 }
