@@ -1,9 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Mic, MicOff, PhoneOff, Video, VideoOff } from "lucide-react";
-import { StreamChat } from "stream-chat";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { TalkSessionCredentials } from "../services/create-talk-session";
@@ -121,15 +120,6 @@ function TalkRoomLayout({
   void streamSession;
 
   const [cameraEnabled, setCameraEnabled] = useState(false);
-
-  useEffect(() => {
-    const apiKey = chatSession.apiKey;
-
-    return () => {
-      const chatClient = StreamChat.getInstance(apiKey);
-      void chatClient.disconnectUser().catch(() => undefined);
-    };
-  }, [chatSession.apiKey]);
 
   return (
     <div className="employee-talk-workspace w-full">

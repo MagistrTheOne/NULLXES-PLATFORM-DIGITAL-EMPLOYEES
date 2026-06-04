@@ -3,7 +3,7 @@
 import { Component, type ReactNode, useEffect, useRef, useState } from "react";
 import { Loader2 } from "lucide-react";
 import type { Channel as StreamChannel } from "stream-chat";
-import { StreamChat } from "stream-chat";
+import type { StreamChat } from "stream-chat";
 import {
   Channel,
   Chat,
@@ -12,6 +12,11 @@ import {
   Window,
 } from "stream-chat-react";
 import type { TalkChatCredentials } from "../services/create-talk-chat-session";
+import {
+  connectTalkChatSession,
+  releaseTalkChatMount,
+  retainTalkChatMount,
+} from "../lib/talk-chat-connection";
 
 type TalkChatUiState = "connecting" | "ready" | "unavailable";
 
@@ -69,7 +74,7 @@ export function EmployeeTalkChat({
     const generation = connectGenerationRef.current + 1;
     connectGenerationRef.current = generation;
 
-    const chatClient = StreamChat.getInstance(chatSession.apiKey);
+    retainTalkChatMount();
 
     async function connect(): Promise<void> {
       setUiState("connecting");
@@ -77,32 +82,14 @@ export function EmployeeTalkChat({
       setChannel(null);
 
       try {
-        if (chatClient.userID) {
-          await chatClient.disconnectUser();
-        }
-
-        await chatClient.connectUser(
-          { id: chatSession.userId, name: chatSession.userName },
-          chatSession.token,
-        );
+        const session = await connectTalkChatSession(chatSession);
 
         if (cancelled || connectGenerationRef.current !== generation) {
           return;
         }
 
-        const talkChannel = chatClient.channel(
-          chatSession.channelType,
-          chatSession.channelId,
-        );
-
-        await talkChannel.watch();
-
-        if (cancelled || connectGenerationRef.current !== generation) {
-          return;
-        }
-
-        setClient(chatClient);
-        setChannel(talkChannel);
+        setClient(session.client);
+        setChannel(session.channel);
         setUiState("ready");
       } catch (connectError: unknown) {
         console.error("Talk chat connection failed", connectError);
@@ -120,9 +107,7 @@ export function EmployeeTalkChat({
 
     return () => {
       cancelled = true;
-      setClient(null);
-      setChannel(null);
-      setUiState("connecting");
+      releaseTalkChatMount(chatSession.apiKey);
     };
   }, [
     chatSession.apiKey,
