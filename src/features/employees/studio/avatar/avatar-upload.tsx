@@ -34,7 +34,7 @@ export function AvatarUpload({
             <Upload className="size-6 text-white/50" />
             <div className="text-center">
               <p className="text-sm font-medium text-white">Upload Photo</p>
-              <p className="mt-1 text-xs text-white/50">PNG, JPG, or WebP up to 5MB</p>
+              <p className="mt-1 text-xs text-white/50">PNG, JPG, or WebP up to 4.5MB</p>
             </div>
           </div>
         )}

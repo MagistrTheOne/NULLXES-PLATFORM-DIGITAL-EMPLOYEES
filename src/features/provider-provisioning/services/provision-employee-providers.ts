@@ -32,20 +32,23 @@ async function loadEmployeeContext(employeeId: string): Promise<{
     .where(eq(employeeRuntime.employeeId, employeeId))
     .limit(1);
 
-  const sessionConfig = await getProviderConfigRow(employeeId, "session");
-  const sessionVoiceId =
-    typeof sessionConfig?.config === "object" &&
-    sessionConfig.config !== null &&
-    "voiceId" in sessionConfig.config
-      ? String((sessionConfig.config as { voiceId?: string }).voiceId ?? "")
+  const avatarConfig = await getProviderConfigRow(employeeId, "avatar");
+  const avatarPayload =
+    avatarConfig?.config && typeof avatarConfig.config === "object"
+      ? (avatarConfig.config as {
+          providerMetadata?: { anamPersonaVoiceId?: string };
+        })
       : undefined;
+
+  const anamPersonaVoiceId =
+    avatarPayload?.providerMetadata?.anamPersonaVoiceId;
 
   return {
     name: employee.name,
     systemPrompt:
       runtime?.systemPrompt ??
       `You are ${employee.name}, a ${employee.role ?? "digital employee"}.`,
-    voiceId: sessionVoiceId || undefined,
+    voiceId: anamPersonaVoiceId,
   };
 }
 

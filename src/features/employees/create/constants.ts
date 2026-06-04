@@ -18,7 +18,7 @@ export const STEP_LABELS: Record<CreateEmployeeStep, string> = {
   summary: "Summary",
 };
 
-export const MAX_AVATAR_UPLOAD_BYTES = 5 * 1024 * 1024;
+export const MAX_AVATAR_UPLOAD_BYTES = Math.floor(4.5 * 1024 * 1024);
 
 export const BRAIN_PROVIDER_OPTIONS = [
   { value: "openai" as const, label: "OpenAI" },
@@ -36,12 +36,17 @@ export function createInitialFormState(): CreateEmployeeFormState {
     photoFileSize: null,
     avatarId: null,
     avatarPreviewUrl: null,
+    personaId: null,
     avatarProvider: "anam",
     avatarGenerationStatus: "idle",
     avatarGenerationError: null,
+    studioVoiceId: null,
     voiceId: null,
     voiceName: null,
-    voiceModel: "eleven_v3",
+    voiceProvider: null,
+    voiceModel: null,
+    voiceBinding: null,
+    anamPersonaVoiceId: null,
     brainProvider: "openai",
     knowledgeUrl: "",
     knowledgeText: "",

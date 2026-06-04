@@ -4,12 +4,36 @@ import {
 } from "@/shared/config/provider-env";
 import { ANAM_AVATAR_PROVIDER_ID } from "@/providers/avatar/anam/config";
 
-const MAX_AVATAR_BYTES = 5 * 1024 * 1024;
+const MAX_AVATAR_BYTES = Math.floor(4.5 * 1024 * 1024);
+const MIN_DISPLAY_NAME_LENGTH = 3;
+const MAX_DISPLAY_NAME_LENGTH = 50;
 
 type AnamAvatarResponse = {
   id?: string;
   imageUrl?: string;
 };
+
+function normalizeDisplayName(displayName: string): string {
+  const trimmed = displayName.trim();
+  if (trimmed.length >= MIN_DISPLAY_NAME_LENGTH) {
+    return trimmed.slice(0, MAX_DISPLAY_NAME_LENGTH);
+  }
+
+  return "NULLXES Digital Employee";
+}
+
+async function readAnamErrorMessage(response: Response): Promise<string> {
+  try {
+    const payload = (await response.json()) as {
+      message?: string;
+      error?: string;
+      detail?: string;
+    };
+    return payload.message ?? payload.error ?? payload.detail ?? response.statusText;
+  } catch {
+    return response.statusText;
+  }
+}
 
 export type CreateAnamAvatarFromFileResult = {
   avatarId: string;
@@ -27,7 +51,7 @@ export async function createAnamAvatarFromFile(input: {
   }
 
   if (input.file.size > MAX_AVATAR_BYTES) {
-    throw new Error("Image must be 5MB or smaller");
+    throw new Error("Image must be 4.5MB or smaller");
   }
 
   if (!input.file.type.startsWith("image/")) {
@@ -35,8 +59,8 @@ export async function createAnamAvatarFromFile(input: {
   }
 
   const formData = new FormData();
-  formData.append("displayName", input.displayName);
-  formData.append("image", input.file, input.file.name);
+  formData.append("displayName", normalizeDisplayName(input.displayName));
+  formData.append("imageFile", input.file, input.file.name);
 
   const createResponse = await fetch(`${getAnamApiBaseUrl()}/avatars`, {
     method: "POST",
@@ -47,8 +71,9 @@ export async function createAnamAvatarFromFile(input: {
   });
 
   if (!createResponse.ok) {
+    const detail = await readAnamErrorMessage(createResponse);
     throw new Error(
-      `Anam avatar creation failed with status ${createResponse.status}`,
+      `Anam avatar creation failed with status ${createResponse.status}: ${detail}`,
     );
   }
 

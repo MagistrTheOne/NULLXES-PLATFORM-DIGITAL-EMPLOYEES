@@ -1,7 +1,8 @@
 "use client";
 
-import { ELEVENLABS_STUDIO_VOICES } from "./voice-catalog";
+import { STUDIO_VOICES } from "./voice-catalog";
 import { VoiceCard } from "./voice-card";
+import type { StudioVoiceProvider } from "./voice-catalog";
 
 export function VoiceStudioGrid({
   selectedVoiceId,
@@ -11,19 +12,36 @@ export function VoiceStudioGrid({
 }: {
   selectedVoiceId: string | null;
   previewingVoiceId: string | null;
-  onSelectVoice: (voiceId: string, voiceName: string) => void;
-  onPreviewVoice: (voiceId: string) => void;
+  onSelectVoice: (input: {
+    studioVoiceId: string;
+    voiceName: string;
+    provider: StudioVoiceProvider;
+  }) => void;
+  onPreviewVoice: (elevenLabsVoiceId: string) => void;
 }) {
   return (
     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-      {ELEVENLABS_STUDIO_VOICES.map((voice) => (
+      {STUDIO_VOICES.map((voice) => (
         <VoiceCard
-          key={voice.voiceId}
+          key={voice.id}
           voice={voice}
-          selected={selectedVoiceId === voice.voiceId}
-          isPreviewing={previewingVoiceId === voice.voiceId}
-          onSelect={() => onSelectVoice(voice.voiceId, voice.name)}
-          onPreview={() => onPreviewVoice(voice.voiceId)}
+          selected={selectedVoiceId === voice.id}
+          isPreviewing={
+            voice.provider === "ElevenLabs" &&
+            previewingVoiceId === voice.elevenLabsVoiceId
+          }
+          onSelect={() =>
+            onSelectVoice({
+              studioVoiceId: voice.id,
+              voiceName: voice.name,
+              provider: voice.provider,
+            })
+          }
+          onPreview={
+            voice.provider === "ElevenLabs" && voice.elevenLabsVoiceId
+              ? () => onPreviewVoice(voice.elevenLabsVoiceId!)
+              : undefined
+          }
         />
       ))}
     </div>

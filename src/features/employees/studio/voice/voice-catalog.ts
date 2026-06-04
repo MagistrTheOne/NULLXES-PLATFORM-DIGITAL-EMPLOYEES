@@ -1,55 +1,71 @@
+export type StudioVoiceProvider = "Anam" | "ElevenLabs";
+
 export type StudioVoiceOption = {
-  voiceId: string;
+  id: string;
   name: string;
   gender: string;
   language: string;
-  provider: "ElevenLabs";
+  provider: StudioVoiceProvider;
+  /** Used for ElevenLabs TTS preview and session config */
+  elevenLabsVoiceId?: string;
+  /** Used for Anam persona binding when provider is Anam */
+  anamVoiceId?: string;
 };
 
 export const STUDIO_VOICE_PREVIEW_TEXT =
   "Welcome to NULLXES Digital Employees";
 
-export const ELEVENLABS_STUDIO_VOICES: StudioVoiceOption[] = [
+export const STUDIO_VOICES: StudioVoiceOption[] = [
   {
-    voiceId: "JBFqnCBsd6RMkjVDRZzb",
+    id: "anam-lucy",
+    name: "Lucy",
+    gender: "Female",
+    language: "English",
+    provider: "Anam",
+    anamVoiceId: "de23e340-1416-4dd8-977d-065a7ca11697",
+  },
+  {
+    id: "anam-george",
+    name: "George (Anam)",
+    gender: "Male",
+    language: "English",
+    provider: "Anam",
+    anamVoiceId: "6bfbe25a-979d-40f3-a92b-5394170af54b",
+  },
+  {
+    id: "elevenlabs-george",
     name: "George",
     gender: "Male",
     language: "English",
     provider: "ElevenLabs",
+    elevenLabsVoiceId: "JBFqnCBsd6RMkjVDRZzb",
   },
   {
-    voiceId: "EXAVITQu4vr4xnSDxMaL",
+    id: "elevenlabs-sarah",
     name: "Sarah",
     gender: "Female",
     language: "English",
     provider: "ElevenLabs",
+    elevenLabsVoiceId: "EXAVITQu4vr4xnSDxMaL",
   },
   {
-    voiceId: "FGY2WhTYpPnrIDTdsKH5",
+    id: "elevenlabs-laura",
     name: "Laura",
     gender: "Female",
     language: "English",
     provider: "ElevenLabs",
+    elevenLabsVoiceId: "FGY2WhTYpPnrIDTdsKH5",
   },
   {
-    voiceId: "IKne3meq5aSn9XLyUdCD",
+    id: "elevenlabs-charlie",
     name: "Charlie",
     gender: "Male",
     language: "English",
     provider: "ElevenLabs",
-  },
-  {
-    voiceId: "SOYHLrjzK2X1ezoPC6cr",
-    name: "Harry",
-    gender: "Male",
-    language: "English",
-    provider: "ElevenLabs",
-  },
-  {
-    voiceId: "Xb7hH8MSUJpSbSDYk0k2",
-    name: "Alice",
-    gender: "Female",
-    language: "English",
-    provider: "ElevenLabs",
+    elevenLabsVoiceId: "IKne3meq5aSn9XLyUdCD",
   },
 ];
+
+export function getStudioVoiceById(voiceId: string): StudioVoiceOption | undefined {
+  return STUDIO_VOICES.find((voice) => voice.id === voiceId);
+}

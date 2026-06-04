@@ -16,8 +16,10 @@ export function VoiceCard({
   selected: boolean;
   isPreviewing: boolean;
   onSelect: () => void;
-  onPreview: () => void;
+  onPreview?: () => void;
 }) {
+  const canPreview = voice.provider === "ElevenLabs" && Boolean(onPreview);
+
   return (
     <div
       className={cn(
@@ -37,24 +39,30 @@ export function VoiceCard({
           <span>Provider: {voice.provider}</span>
         </div>
       </button>
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        disabled={isPreviewing}
-        onClick={(event) => {
-          event.stopPropagation();
-          onPreview();
-        }}
-        className="border-white/10 bg-transparent text-white hover:bg-white/5"
-      >
-        {isPreviewing ? (
-          <Loader2 className="size-4 animate-spin" />
-        ) : (
-          <Play className="size-4" />
-        )}
-        Preview
-      </Button>
+      {canPreview ? (
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          disabled={isPreviewing}
+          onClick={(event) => {
+            event.stopPropagation();
+            onPreview?.();
+          }}
+          className="border-white/10 bg-transparent text-white hover:bg-white/5"
+        >
+          {isPreviewing ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <Play className="size-4" />
+          )}
+          Preview
+        </Button>
+      ) : (
+        <p className="text-xs text-white/40">
+          Anam voice — preview on create
+        </p>
+      )}
     </div>
   );
 }

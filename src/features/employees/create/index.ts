@@ -7,5 +7,5 @@ export type {
   CreateEmployeeFormState,
   CreateEmployeeStep,
   KnowledgeDraftItem,
-  VoiceProvider,
+  StudioVoiceProviderType,
 } from "./types";

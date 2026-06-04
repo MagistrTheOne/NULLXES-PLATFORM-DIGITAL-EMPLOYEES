@@ -45,6 +45,7 @@ export type SessionProviderConfigPayload = {
   roomType?: string;
   voiceProvider?: string;
   voiceId?: string;
+  studioVoiceId?: string;
   modelId?: string;
   providerResourceId?: string;
   provisioningStatus?: ProviderProvisioningStatus;

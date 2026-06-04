@@ -8,7 +8,7 @@ export type CreateEmployeeStep =
   | "knowledge"
   | "summary";
 
-export type VoiceProvider = "elevenlabs";
+export type StudioVoiceProviderType = "anam" | "elevenlabs";
 
 export type AvatarGenerationStatus =
   | "idle"
@@ -30,12 +30,17 @@ export type CreateEmployeeFormState = {
   photoFileSize: number | null;
   avatarId: string | null;
   avatarPreviewUrl: string | null;
+  personaId: string | null;
   avatarProvider: "anam";
   avatarGenerationStatus: AvatarGenerationStatus;
   avatarGenerationError: string | null;
+  studioVoiceId: string | null;
   voiceId: string | null;
   voiceName: string | null;
-  voiceModel: "eleven_v3";
+  voiceProvider: StudioVoiceProviderType | null;
+  voiceModel: "eleven_v3" | null;
+  voiceBinding: "anam" | "elevenlabs_shell" | null;
+  anamPersonaVoiceId: string | null;
   brainProvider: BrainProvider;
   knowledgeUrl: string;
   knowledgeText: string;
@@ -51,15 +56,19 @@ export type CreateEmployeeDraftPayload = {
   avatar: {
     avatarId: string;
     previewUrl: string;
+    personaId: string;
     provider: "anam";
     photoFileName: string | null;
     photoFileSize: number | null;
     generateAvatarEnabled: true;
+    anamPersonaVoiceId: string;
+    voiceBinding: "anam" | "elevenlabs_shell";
   };
   voice: {
+    studioVoiceId: string;
     voiceId: string;
-    provider: VoiceProvider;
-    model: "eleven_v3";
+    provider: StudioVoiceProviderType;
+    model: "eleven_v3" | null;
   };
   brain: {
     provider: BrainProvider;

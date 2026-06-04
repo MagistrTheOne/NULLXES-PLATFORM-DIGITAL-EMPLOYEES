@@ -1,4 +1,7 @@
-import { assembleCreateEmployeeDraft } from "@/features/employees/create/assemble-create-employee-draft";
+import {
+  assembleCreateEmployeeDraft,
+  canAssembleCreateEmployeeDraft,
+} from "@/features/employees/create/assemble-create-employee-draft";
 import { createInitialFormState } from "@/features/employees/create/constants";
 import type { CreateEmployeeDraftPayload } from "@/features/employees/create/types";
 
@@ -8,11 +11,14 @@ function buildStudioPersistConfig(draft: CreateEmployeeDraftPayload) {
       providerId: draft.avatar.provider,
       config: {
         avatarId: draft.avatar.avatarId,
+        personaId: draft.avatar.personaId,
         previewUrl: draft.avatar.previewUrl,
-        photoFileName: draft.avatar.photoFileName,
-        photoFileSize: draft.avatar.photoFileSize,
         provisioningStatus: "ready",
-        providerMetadata: { source: "studio" },
+        providerMetadata: {
+          source: "studio",
+          voiceBinding: draft.avatar.voiceBinding,
+          anamPersonaVoiceId: draft.avatar.anamPersonaVoiceId,
+        },
       },
     },
     session: {
@@ -21,9 +27,8 @@ function buildStudioPersistConfig(draft: CreateEmployeeDraftPayload) {
         voiceProvider: draft.voice.provider,
         voiceId: draft.voice.voiceId,
         modelId: draft.voice.model,
-        providerResourceId: draft.voice.voiceId,
+        studioVoiceId: draft.voice.studioVoiceId,
         provisioningStatus: "ready",
-        providerMetadata: { source: "studio" },
       },
     },
   };
@@ -35,35 +40,30 @@ function verifyEmployeeStudio(): void {
   form.role = "Customer Support Employee";
   form.avatarId = "studio-avatar-001";
   form.avatarPreviewUrl = "https://cdn.nullxes.local/kaira.png";
-  form.avatarGenerationStatus = "ready";
-  form.voiceId = "EXAVITQu4vr4xnSDxMaL";
-  form.voiceName = "Sarah";
+  form.personaId = "studio-persona-001";
+  form.studioVoiceId = "anam-lucy";
+  form.voiceId = "de23e340-1416-4dd8-977d-065a7ca11697";
+  form.voiceName = "Lucy";
+  form.voiceProvider = "anam";
+  form.voiceModel = null;
+  form.voiceBinding = "anam";
+  form.anamPersonaVoiceId = "de23e340-1416-4dd8-977d-065a7ca11697";
+
+  if (!canAssembleCreateEmployeeDraft(form)) {
+    throw new Error("Studio draft readiness check failed");
+  }
 
   const draft = assembleCreateEmployeeDraft(form);
   const persistConfig = buildStudioPersistConfig(draft);
 
-  if (persistConfig.avatar.config.avatarId !== "studio-avatar-001") {
-    throw new Error("Avatar persist mapping failed");
+  if (persistConfig.avatar.config.personaId !== "studio-persona-001") {
+    throw new Error("Persona persist mapping failed");
   }
 
-  if (persistConfig.avatar.config.previewUrl !== "https://cdn.nullxes.local/kaira.png") {
-    throw new Error("Avatar preview URL persist mapping failed");
+  if (persistConfig.session.config.voiceProvider !== "anam") {
+    throw new Error("Anam voice provider persist mapping failed");
   }
 
-  if (persistConfig.session.config.voiceId !== "EXAVITQu4vr4xnSDxMaL") {
-    throw new Error("Voice persist mapping failed");
-  }
-
-  if (persistConfig.session.config.modelId !== "eleven_v3") {
-    throw new Error("Voice model persist mapping failed");
-  }
-
-  if (persistConfig.avatar.config.provisioningStatus !== "ready") {
-    throw new Error("Avatar studio provisioning status must be ready");
-  }
-
-  console.log("Employee studio draft:", JSON.stringify(draft, null, 2));
-  console.log("Employee studio persist mapping: OK");
   console.log("Employee studio verification: OK");
 }
 

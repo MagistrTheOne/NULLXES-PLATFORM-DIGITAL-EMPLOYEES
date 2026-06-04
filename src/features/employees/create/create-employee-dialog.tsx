@@ -12,15 +12,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { generateEmployeeAvatar } from "@/features/employees/actions/generate-employee-avatar";
+import { finalizeEmployeeStudio } from "@/features/employees/actions/finalize-employee-studio";
 import { previewEmployeeVoice } from "@/features/employees/actions/preview-employee-voice";
+import { AvatarPreviewCard, AvatarUpload, VoiceStudioGrid } from "@/features/employees/studio";
 import {
-  AvatarGenerationState,
-  AvatarPreviewCard,
-  AvatarUpload,
-  VoiceStudioGrid,
-} from "@/features/employees/studio";
-import { assembleCreateEmployeeDraft } from "./assemble-create-employee-draft";
+  assembleCreateEmployeeDraft,
+  canAssembleCreateEmployeeDraft,
+} from "./assemble-create-employee-draft";
 import { ProviderOption } from "./components/provider-option";
 import {
   BRAIN_PROVIDER_OPTIONS,
@@ -86,12 +84,18 @@ export function CreateEmployeeDialog({
   const isSummary = step === "summary";
 
   const draftPreview = useMemo(() => {
+    if (!canAssembleCreateEmployeeDraft(form)) {
+      return null;
+    }
     try {
       return assembleCreateEmployeeDraft(form);
     } catch {
       return null;
     }
   }, [form]);
+
+  const summaryPreviewUrl =
+    form.avatarPreviewUrl ?? localUploadPreviewUrl ?? null;
 
   function updateForm(patch: Partial<CreateEmployeeFormState>): void {
     setForm((current) => ({ ...current, ...patch }));
@@ -134,14 +138,14 @@ export function CreateEmployeeDialog({
     }
 
     if (step === "avatar") {
-      if (!form.avatarId || !form.avatarPreviewUrl) {
-        setError("Generate an avatar before continuing.");
+      if (!form.photoFile) {
+        setError("Upload a photo before continuing.");
         return false;
       }
     }
 
     if (step === "voice") {
-      if (!form.voiceId) {
+      if (!form.studioVoiceId) {
         setError("Select a voice before continuing.");
         return false;
       }
@@ -170,11 +174,55 @@ export function CreateEmployeeDialog({
   }
 
   async function handleCreate(): Promise<void> {
+    if (!form.photoFile || !form.studioVoiceId) {
+      setError("Photo and voice are required.");
+      return;
+    }
+
     setIsSubmitting(true);
     setError(null);
+    updateForm({
+      avatarGenerationStatus: "generating",
+      avatarGenerationError: null,
+    });
 
     try {
-      const draft = assembleCreateEmployeeDraft(form);
+      const payload = new FormData();
+      payload.append("file", form.photoFile);
+      payload.append("name", form.name.trim());
+      payload.append("role", form.role.trim());
+      payload.append("studioVoiceId", form.studioVoiceId);
+
+      const studio = await finalizeEmployeeStudio(payload);
+
+      if (studio.status === "failed") {
+        updateForm({
+          avatarGenerationStatus: "failed",
+          avatarGenerationError: studio.message,
+        });
+        setError(studio.message);
+        return;
+      }
+
+      const nextForm: CreateEmployeeFormState = {
+        ...form,
+        avatarId: studio.avatarId,
+        avatarPreviewUrl: studio.previewUrl,
+        personaId: studio.personaId,
+        avatarProvider: studio.provider,
+        avatarGenerationStatus: "ready",
+        avatarGenerationError: null,
+        studioVoiceId: studio.voice.studioVoiceId,
+        voiceId: studio.voice.voiceId,
+        voiceProvider: studio.voice.provider,
+        voiceModel: studio.voice.model,
+        voiceBinding: studio.voice.voiceBinding,
+        anamPersonaVoiceId: studio.voice.anamPersonaVoiceId,
+      };
+
+      setForm(nextForm);
+
+      const draft = assembleCreateEmployeeDraft(nextForm);
       if (onComplete) {
         await onComplete(draft);
       }
@@ -184,6 +232,10 @@ export function CreateEmployeeDialog({
         submitError instanceof Error
           ? submitError.message
           : "Unable to create digital employee";
+      updateForm({
+        avatarGenerationStatus: "failed",
+        avatarGenerationError: message,
+      });
       setError(message);
     } finally {
       setIsSubmitting(false);
@@ -197,7 +249,7 @@ export function CreateEmployeeDialog({
     }
 
     if (file.size > MAX_AVATAR_UPLOAD_BYTES) {
-      setError("Image must be 5MB or smaller.");
+      setError("Image must be 4.5MB or smaller.");
       return;
     }
 
@@ -212,53 +264,17 @@ export function CreateEmployeeDialog({
       photoFileSize: file.size,
       avatarId: null,
       avatarPreviewUrl: null,
+      personaId: null,
       avatarGenerationStatus: "idle",
       avatarGenerationError: null,
     });
   }
 
-  async function handleGenerateAvatar(): Promise<void> {
-    if (!form.photoFile) {
-      setError("Upload a photo before generating an avatar.");
-      return;
-    }
-
-    const displayName = form.name.trim() || "NULLXES Digital Employee";
-    updateForm({
-      avatarGenerationStatus: "generating",
-      avatarGenerationError: null,
-    });
-
-    const payload = new FormData();
-    payload.append("file", form.photoFile);
-    payload.append("displayName", displayName);
-
-    const result = await generateEmployeeAvatar(payload);
-
-    if (result.status === "failed") {
-      updateForm({
-        avatarGenerationStatus: "failed",
-        avatarGenerationError: result.message,
-      });
-      setError(result.message);
-      return;
-    }
-
-    updateForm({
-      avatarId: result.avatarId,
-      avatarPreviewUrl: result.previewUrl,
-      avatarProvider: result.provider,
-      avatarGenerationStatus: "ready",
-      avatarGenerationError: null,
-    });
-    setError(null);
-  }
-
-  async function handlePreviewVoice(voiceId: string): Promise<void> {
-    setPreviewingVoiceId(voiceId);
+  async function handlePreviewVoice(elevenLabsVoiceId: string): Promise<void> {
+    setPreviewingVoiceId(elevenLabsVoiceId);
     setError(null);
 
-    const result = await previewEmployeeVoice(voiceId);
+    const result = await previewEmployeeVoice(elevenLabsVoiceId);
 
     if (result.status === "failed") {
       setPreviewingVoiceId(null);
@@ -297,10 +313,6 @@ export function CreateEmployeeDialog({
       })),
     });
   }
-
-  const uploadPreviewUrl = localUploadPreviewUrl;
-  const showGeneratedPreview =
-    form.avatarGenerationStatus === "ready" && form.avatarPreviewUrl;
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -361,37 +373,29 @@ export function CreateEmployeeDialog({
 
           {step === "avatar" ? (
             <div className="flex flex-col gap-4">
-              {showGeneratedPreview ? (
-                <AvatarPreviewCard
-                  previewUrl={form.avatarPreviewUrl!}
-                  alt={form.name || "Generated avatar"}
-                />
-              ) : (
-                <AvatarUpload
-                  photoFileName={form.photoFileName}
-                  localPreviewUrl={uploadPreviewUrl}
-                  disabled={
-                    form.avatarGenerationStatus === "generating" ||
-                    form.avatarGenerationStatus === "uploading"
-                  }
-                  onFileSelected={handlePhotoSelected}
-                />
-              )}
-              <AvatarGenerationState
-                status={form.avatarGenerationStatus}
-                errorMessage={form.avatarGenerationError}
-                canGenerate={Boolean(form.photoFile)}
-                onGenerate={handleGenerateAvatar}
+              <AvatarUpload
+                photoFileName={form.photoFileName}
+                localPreviewUrl={localUploadPreviewUrl}
+                onFileSelected={handlePhotoSelected}
               />
+              <p className="text-xs text-white/50">
+                Avatar is generated on the final step after you choose a voice,
+                so your ElevenLabs selection is not replaced by Anam defaults.
+              </p>
             </div>
           ) : null}
 
           {step === "voice" ? (
             <VoiceStudioGrid
-              selectedVoiceId={form.voiceId}
+              selectedVoiceId={form.studioVoiceId}
               previewingVoiceId={previewingVoiceId}
-              onSelectVoice={(voiceId, voiceName) =>
-                updateForm({ voiceId, voiceName })
+              onSelectVoice={({ studioVoiceId, voiceName, provider }) =>
+                updateForm({
+                  studioVoiceId,
+                  voiceName,
+                  voiceProvider:
+                    provider === "Anam" ? "anam" : "elevenlabs",
+                })
               }
               onPreviewVoice={handlePreviewVoice}
             />
@@ -462,30 +466,41 @@ export function CreateEmployeeDialog({
             </div>
           ) : null}
 
-          {step === "summary" && draftPreview ? (
+          {step === "summary" ? (
             <div className="flex flex-col gap-4">
-              <AvatarPreviewCard
-                previewUrl={draftPreview.avatar.previewUrl}
-                alt={draftPreview.identity.name}
-                className="max-w-sm"
-              />
+              {summaryPreviewUrl ? (
+                <AvatarPreviewCard
+                  previewUrl={summaryPreviewUrl}
+                  alt={form.name || "Employee photo"}
+                  className="max-w-sm"
+                />
+              ) : null}
               <div className="rounded-xl border border-white/10 bg-black/30 px-4">
-                <SummaryRow label="Name" value={draftPreview.identity.name} />
-                <SummaryRow label="Role" value={draftPreview.identity.role} />
+                <SummaryRow label="Name" value={form.name.trim() || "—"} />
+                <SummaryRow label="Role" value={form.role.trim() || "—"} />
                 <SummaryRow
                   label="Voice"
-                  value={form.voiceName ?? draftPreview.voice.voiceId}
+                  value={
+                    form.voiceName
+                      ? `${form.voiceName} (${form.voiceProvider ?? "—"})`
+                      : "—"
+                  }
                 />
-                <SummaryRow
-                  label="Brain"
-                  value={draftPreview.brain.provider}
-                />
+                <SummaryRow label="Brain" value={form.brainProvider} />
                 <SummaryRow
                   label="Knowledge"
-                  value={`${draftPreview.knowledge.length} item${draftPreview.knowledge.length === 1 ? "" : "s"}`}
+                  value={`${form.knowledgeFiles.length + (form.knowledgeUrl.trim() ? 1 : 0) + (form.knowledgeText.trim() ? 1 : 0)} item(s)`}
                 />
-                <SummaryRow label="Status" value={draftPreview.status} />
+                <SummaryRow
+                  label="Avatar"
+                  value="Generated when you create the employee"
+                />
               </div>
+              {form.avatarGenerationError ? (
+                <p className="text-sm text-white/70" role="alert">
+                  {form.avatarGenerationError}
+                </p>
+              ) : null}
             </div>
           ) : null}
 
@@ -501,7 +516,7 @@ export function CreateEmployeeDialog({
             type="button"
             variant="ghost"
             onClick={goBack}
-            disabled={isFirstStep}
+            disabled={isFirstStep || isSubmitting}
             className="text-white hover:bg-white/5 hover:text-white"
           >
             Back
@@ -510,10 +525,10 @@ export function CreateEmployeeDialog({
             <Button
               type="button"
               onClick={handleCreate}
-              disabled={isSubmitting || !draftPreview}
+              disabled={isSubmitting || !form.photoFile || !form.studioVoiceId}
               className="bg-white text-black hover:bg-white/90"
             >
-              {isSubmitting ? "Creating..." : "Create Employee"}
+              {isSubmitting ? "Generating avatar…" : "Create Employee"}
             </Button>
           ) : (
             <Button

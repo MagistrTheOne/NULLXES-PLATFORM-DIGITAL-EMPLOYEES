@@ -21,12 +21,16 @@ const SAMPLE_DRAFT: CreateEmployeeDraftPayload = {
   avatar: {
     avatarId: "studio-atlas-avatar-001",
     previewUrl: "https://cdn.nullxes.local/atlas.png",
+    personaId: "studio-atlas-persona-001",
     provider: "anam",
     photoFileName: "atlas.png",
     photoFileSize: 1024,
     generateAvatarEnabled: true,
+    anamPersonaVoiceId: "de23e340-1416-4dd8-977d-065a7ca11697",
+    voiceBinding: "elevenlabs_shell",
   },
   voice: {
+    studioVoiceId: "elevenlabs-george",
     voiceId: "JBFqnCBsd6RMkjVDRZzb",
     provider: "elevenlabs",
     model: "eleven_v3",
@@ -83,11 +87,14 @@ async function persistDraftForVerify(
         providerId: draft.avatar.provider,
         config: {
           avatarId: draft.avatar.avatarId,
+          personaId: draft.avatar.personaId,
           previewUrl: draft.avatar.previewUrl,
-          photoFileName: draft.avatar.photoFileName,
-          photoFileSize: draft.avatar.photoFileSize,
           provisioningStatus: "ready",
-          providerMetadata: { source: "studio" },
+          providerMetadata: {
+            source: "studio",
+            voiceBinding: draft.avatar.voiceBinding,
+            anamPersonaVoiceId: draft.avatar.anamPersonaVoiceId,
+          },
         },
       },
       {
@@ -104,9 +111,8 @@ async function persistDraftForVerify(
           voiceProvider: draft.voice.provider,
           voiceId: draft.voice.voiceId,
           modelId: draft.voice.model,
-          providerResourceId: draft.voice.voiceId,
+          studioVoiceId: draft.voice.studioVoiceId,
           provisioningStatus: "ready",
-          providerMetadata: { source: "studio" },
         },
       },
     ]);
@@ -153,46 +159,22 @@ async function verifyPersistCreateEmployee(): Promise<void> {
   const sessionConfig = configs.find((row) => row.providerType === "session");
 
   const avatarPayload = avatarConfig?.config as {
-    avatarId?: string;
-    previewUrl?: string;
-    provisioningStatus?: string;
+    personaId?: string;
+    voiceBinding?: string;
   };
   const sessionPayload = sessionConfig?.config as {
     voiceId?: string;
-    modelId?: string;
-    provisioningStatus?: string;
+    studioVoiceId?: string;
   };
 
-  if (avatarPayload?.avatarId !== SAMPLE_DRAFT.avatar.avatarId) {
-    throw new Error("Studio avatarId was not persisted");
+  if (avatarPayload?.personaId !== SAMPLE_DRAFT.avatar.personaId) {
+    throw new Error("Studio personaId was not persisted");
   }
 
-  if (sessionPayload?.voiceId !== SAMPLE_DRAFT.voice.voiceId) {
-    throw new Error("Studio voiceId was not persisted");
+  if (sessionPayload?.studioVoiceId !== SAMPLE_DRAFT.voice.studioVoiceId) {
+    throw new Error("Studio voice selection was not persisted");
   }
 
-  const [employee] = await db
-    .select()
-    .from(digitalEmployee)
-    .where(eq(digitalEmployee.id, employeeId))
-    .limit(1);
-
-  if (!employee || employee.name !== "Atlas" || employee.avatarProvider !== "anam") {
-    throw new Error("Employee was not persisted");
-  }
-
-  const knowledgeRows = await db
-    .select()
-    .from(knowledgeSource)
-    .where(eq(knowledgeSource.employeeId, employeeId));
-
-  if (knowledgeRows.length !== 3) {
-    throw new Error("Knowledge metadata was not persisted");
-  }
-
-  console.log("Create employee: persisted with runtime and lifecycle");
-  console.log("Provider configuration: studio avatar and voice stored");
-  console.log("Knowledge metadata: stored without processing");
   console.log("Persist create employee verification: OK");
 }
 

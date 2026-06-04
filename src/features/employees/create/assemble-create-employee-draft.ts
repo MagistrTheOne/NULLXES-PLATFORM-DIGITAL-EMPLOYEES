@@ -28,6 +28,23 @@ function buildKnowledgeItems(form: CreateEmployeeFormState): KnowledgeDraftItem[
   return items;
 }
 
+export function canAssembleCreateEmployeeDraft(
+  form: CreateEmployeeFormState,
+): boolean {
+  return Boolean(
+    form.name.trim() &&
+      form.role.trim() &&
+      form.avatarId &&
+      form.avatarPreviewUrl &&
+      form.personaId &&
+      form.studioVoiceId &&
+      form.voiceId &&
+      form.voiceProvider &&
+      form.anamPersonaVoiceId &&
+      form.voiceBinding,
+  );
+}
+
 export function assembleCreateEmployeeDraft(
   form: CreateEmployeeFormState,
 ): CreateEmployeeDraftPayload {
@@ -42,12 +59,16 @@ export function assembleCreateEmployeeDraft(
     throw new Error("Employee role is required");
   }
 
-  if (!form.avatarId || !form.avatarPreviewUrl) {
-    throw new Error("Avatar must be generated before continuing");
+  if (!form.avatarId || !form.avatarPreviewUrl || !form.personaId) {
+    throw new Error("Avatar studio finalization is incomplete");
   }
 
-  if (!form.voiceId) {
+  if (!form.studioVoiceId || !form.voiceId || !form.voiceProvider) {
     throw new Error("Voice selection is required");
+  }
+
+  if (!form.anamPersonaVoiceId || !form.voiceBinding) {
+    throw new Error("Voice binding metadata is missing");
   }
 
   return {
@@ -56,14 +77,18 @@ export function assembleCreateEmployeeDraft(
     avatar: {
       avatarId: form.avatarId,
       previewUrl: form.avatarPreviewUrl,
+      personaId: form.personaId,
       provider: "anam",
       photoFileName: form.photoFileName,
       photoFileSize: form.photoFileSize,
       generateAvatarEnabled: true,
+      anamPersonaVoiceId: form.anamPersonaVoiceId,
+      voiceBinding: form.voiceBinding,
     },
     voice: {
+      studioVoiceId: form.studioVoiceId,
       voiceId: form.voiceId,
-      provider: "elevenlabs",
+      provider: form.voiceProvider,
       model: form.voiceModel,
     },
     brain: {

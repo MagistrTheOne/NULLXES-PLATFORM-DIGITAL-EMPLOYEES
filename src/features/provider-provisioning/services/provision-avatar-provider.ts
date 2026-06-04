@@ -141,14 +141,37 @@ export async function provisionAvatarProvider(
     return failure;
   }
 
+  if (config.provisioningStatus === "ready" && config.personaId) {
+    return {
+      status: "ready",
+      providerResourceId: config.personaId,
+      providerMetadata: {
+        skipped: true,
+        reason: "studio_persona_already_ready",
+        ...(config.providerMetadata ?? {}),
+      },
+    };
+  }
+
   const studioAvatarReady =
     config.provisioningStatus === "ready" && Boolean(config.avatarId);
+
+  const metadataAnamVoiceId =
+    typeof config.providerMetadata?.anamPersonaVoiceId === "string"
+      ? config.providerMetadata.anamPersonaVoiceId
+      : undefined;
 
   try {
     const avatarId = studioAvatarReady
       ? config.avatarId!
       : await resolveAvatarId(input.employeeId, input.employeeName, config);
-    const voiceId = await resolveAnamVoiceId(input.voiceId);
+    const voiceId = metadataAnamVoiceId
+      ? metadataAnamVoiceId
+      : await resolveAnamVoiceId(
+          config.providerMetadata?.voiceBinding === "anam"
+            ? input.voiceId
+            : undefined,
+        );
 
     const persona = await fetchAnamJson<AnamPersonaResponse>("/personas", {
       method: "POST",

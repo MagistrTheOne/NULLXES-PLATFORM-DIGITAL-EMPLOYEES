@@ -29,17 +29,11 @@ export async function provisionVoiceProvider(
   }
 
   const config = existing.config as SessionProviderConfigPayload;
-  if (config.voiceProvider !== "elevenlabs") {
-    return {
-      status: "ready",
-      providerMetadata: { skipped: true, reason: "voice_provider_not_elevenlabs" },
-    };
-  }
-
   if (
     config.provisioningStatus === "ready" &&
     config.voiceId &&
-    config.modelId === ELEVENLABS_VOICE_MODEL_ID
+    (config.voiceProvider === "anam" ||
+      config.modelId === ELEVENLABS_VOICE_MODEL_ID)
   ) {
     return {
       status: "ready",
@@ -49,6 +43,13 @@ export async function provisionVoiceProvider(
         reason: "studio_voice_already_ready",
         ...(config.providerMetadata ?? {}),
       },
+    };
+  }
+
+  if (config.voiceProvider === "anam") {
+    return {
+      status: "ready",
+      providerMetadata: { skipped: true, reason: "anam_voice_from_studio" },
     };
   }
 

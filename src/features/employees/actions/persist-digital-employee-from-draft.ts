@@ -83,6 +83,7 @@ export async function persistDigitalEmployeeFromDraft(
         providerId: avatarProvider,
         config: {
           avatarId: draft.avatar.avatarId,
+          personaId: draft.avatar.personaId,
           previewUrl: draft.avatar.previewUrl,
           photoFileName: draft.avatar.photoFileName,
           photoFileSize: draft.avatar.photoFileSize,
@@ -91,6 +92,8 @@ export async function persistDigitalEmployeeFromDraft(
           providerMetadata: {
             source: "studio",
             provisionedAt: studioProvisionedAt,
+            voiceBinding: draft.avatar.voiceBinding,
+            anamPersonaVoiceId: draft.avatar.anamPersonaVoiceId,
           },
         },
       },
@@ -110,12 +113,14 @@ export async function persistDigitalEmployeeFromDraft(
         config: {
           voiceProvider: draft.voice.provider,
           voiceId: draft.voice.voiceId,
-          modelId: draft.voice.model,
+          modelId: draft.voice.model ?? undefined,
+          studioVoiceId: draft.voice.studioVoiceId,
           providerResourceId: draft.voice.voiceId,
           provisioningStatus: "ready",
           providerMetadata: {
             source: "studio",
             provisionedAt: studioProvisionedAt,
+            voiceBinding: draft.avatar.voiceBinding,
           },
         },
       },
