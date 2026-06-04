@@ -24,9 +24,19 @@ export function getBetterAuthUrl(): string {
 
 /** Client-side auth base URL — set NEXT_PUBLIC_BETTER_AUTH_URL in .env (e.g. http://localhost:3000) */
 export function getPublicBetterAuthUrl(): string {
-  const url = process.env.NEXT_PUBLIC_BETTER_AUTH_URL ?? process.env.BETTER_AUTH_URL;
-  if (!url) {
-    throw new Error("NEXT_PUBLIC_BETTER_AUTH_URL or BETTER_AUTH_URL is not set");
+  const publicUrl = process.env.NEXT_PUBLIC_BETTER_AUTH_URL?.trim();
+  if (publicUrl) {
+    return publicUrl;
   }
-  return url;
+
+  const serverUrl = process.env.BETTER_AUTH_URL?.trim();
+  if (serverUrl) {
+    return serverUrl;
+  }
+
+  if (process.env.NODE_ENV === "development") {
+    return "http://localhost:3000";
+  }
+
+  throw new Error("NEXT_PUBLIC_BETTER_AUTH_URL or BETTER_AUTH_URL is not set");
 }
