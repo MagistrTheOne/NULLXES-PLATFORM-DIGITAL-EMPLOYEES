@@ -46,6 +46,7 @@ export function EmployeesScreen({
 
   async function handleCreateComplete(): Promise<void> {
     router.refresh();
+    window.setTimeout(() => router.refresh(), 8000);
   }
 
   return (

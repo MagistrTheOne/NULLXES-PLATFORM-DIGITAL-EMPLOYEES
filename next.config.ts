@@ -12,6 +12,18 @@ const nextConfig: NextConfig = {
   env: {
     NEXT_PUBLIC_BETTER_AUTH_URL: betterAuthUrl,
   },
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "**.anam.ai",
+      },
+      {
+        protocol: "https",
+        hostname: "**.amazonaws.com",
+      },
+    ],
+  },
 };
 
 export default nextConfig;

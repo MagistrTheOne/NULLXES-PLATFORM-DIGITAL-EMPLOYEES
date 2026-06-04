@@ -10,4 +10,6 @@ export { EmployeeMetrics } from "./components/employee-metrics";
 export { EmployeeToolbar } from "./components/employee-toolbar";
 export { EmployeeEmptyState } from "./components/employee-empty-state";
 export { listOrganizationEmployees } from "./services/list-organization-employees";
+export { getEmployeeDetail } from "./services/get-employee-detail";
+export { EmployeeDetailScreen } from "./components/employee-detail-screen";
 export type { EmployeeListItem } from "./types";

@@ -4,7 +4,7 @@ import {
   getAnamApiKey,
   hasAnamCredentials,
 } from "@/shared/config/provider-env";
-import { createAnamAvatarAdapter } from "@/providers/avatar/anam";
+import { resolveAvatarProvider } from "@/shared/providers";
 import type {
   ProvisionAvatarProviderInput,
   ProvisionProviderResult,
@@ -62,13 +62,8 @@ async function resolveAvatarId(
     return config.avatarId;
   }
 
-  const adapter = createAnamAvatarAdapter({
-    avatarId: config.avatarId,
-    imageUrl: config.imageUrl,
-    displayName: config.displayName ?? employeeName,
-  });
-
   if (config.imageUrl) {
+    const adapter = resolveAvatarProvider("anam");
     const created = await adapter.createAvatar({
       employeeId,
       name: employeeName,

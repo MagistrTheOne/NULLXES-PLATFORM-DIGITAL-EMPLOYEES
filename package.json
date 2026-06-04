@@ -32,12 +32,14 @@
     "employees-studio:verify": "node --import tsx src/features/employees/studio/verify-employee-studio.ts",
     "employees-persist:verify": "node --env-file=.env --import tsx src/features/employees/verify-persist-create-employee.ts",
     "provider-provisioning:verify": "node --import tsx src/features/provider-provisioning/verify-provider-provisioning.ts",
-    "providers:status": "node --import tsx src/features/provider-provisioning/check-provider-status.ts"
+    "providers:status": "node --import tsx src/features/provider-provisioning/check-provider-status.ts",
+    "stream:verify": "node --env-file=.env --import tsx src/features/runtime-session/verify-stream-credentials.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",
     "@elevenlabs/elevenlabs-js": "^2.51.0",
     "@neondatabase/serverless": "^1.1.0",
+    "@stream-io/node-sdk": "^0.7.59",
     "better-auth": "^1.6.14",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

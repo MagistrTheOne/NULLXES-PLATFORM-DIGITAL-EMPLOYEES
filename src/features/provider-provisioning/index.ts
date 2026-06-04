@@ -18,3 +18,9 @@ export {
   getProviderConfigRow,
   mergeProviderConfig,
 } from "./services";
+export {
+  enqueueEmployeeProvisioning,
+  avatarProvisioner,
+  brainProvisioner,
+  voiceProvisioner,
+} from "./orchestrator";

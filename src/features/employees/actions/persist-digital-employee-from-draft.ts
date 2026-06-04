@@ -14,7 +14,7 @@ import { employeeRuntime } from "@/entities/runtime/schema";
 import { ensureWorkspace } from "@/features/auth/services/ensure-workspace";
 import { requireAuth } from "@/features/auth/services/require-auth";
 import { recordLifecycleEvent } from "@/features/employee/services/record-lifecycle-event";
-import { provisionEmployeeProviders } from "@/features/provider-provisioning";
+import { enqueueEmployeeProvisioning } from "@/features/provider-provisioning/orchestrator/enqueue-employee-provisioning";
 import { db } from "@/shared/db/client";
 import { dbWithTransactions } from "@/shared/db/pool-client";
 import type {
@@ -186,13 +186,7 @@ export async function persistDigitalEmployeeFromDraft(
     return employee.id;
   });
 
-  void provisionEmployeeProviders({ employeeId }).catch((error: unknown) => {
-    const message = error instanceof Error ? error.message : String(error);
-    console.error(
-      `Provider provisioning failed for employee ${employeeId}:`,
-      message,
-    );
-  });
+  enqueueEmployeeProvisioning(employeeId);
 
   revalidatePath("/dashboard/employees");
 

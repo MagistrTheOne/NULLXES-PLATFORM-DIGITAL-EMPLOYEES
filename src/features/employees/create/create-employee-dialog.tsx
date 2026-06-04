@@ -12,7 +12,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { createEmployeeFromStudioWizard } from "@/features/employees/actions/create-employee-from-studio-wizard";
+import { createEmployeeRecord } from "@/features/employees/actions/create-employee-record";
+import { provisionEmployeeAvatarStudio } from "@/features/employees/actions/provision-employee-avatar-studio";
+import type { CreateEmployeeWizardInput } from "@/features/employees/create/wizard-intake";
 import { previewEmployeeVoice } from "@/features/employees/actions/preview-employee-voice";
 import {
   AvatarPreviewCard,
@@ -59,7 +61,10 @@ export function CreateEmployeeDialog({
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onComplete?: (result: { employeeId: string }) => Promise<void>;
+  onComplete?: (result: {
+    employeeId: string;
+    avatarProvisionStarted: boolean;
+  }) => Promise<void>;
 }) {
   const [step, setStep] = useState<CreateEmployeeStep>("identity");
   const [form, setForm] = useState<CreateEmployeeFormState>(createInitialFormState);
@@ -227,44 +232,68 @@ export function CreateEmployeeDialog({
     });
 
     try {
-      const payload = new FormData();
-      payload.append("file", form.photoFile);
-      payload.append("name", form.name.trim());
-      payload.append("role", form.role.trim());
-      payload.append("studioVoiceId", form.studioVoiceId);
-      if (form.studioVoiceId === CUSTOM_ELEVENLABS_STUDIO_VOICE_ID) {
-        payload.append("customElevenLabsVoiceId", form.customElevenLabsVoiceId.trim());
-      }
-      payload.append("brainProvider", DEFAULT_BRAIN_PROVIDER);
-      payload.append("knowledge", JSON.stringify(buildKnowledgeItemsFromForm(form)));
-      if (form.photoFileName) {
-        payload.append("photoFileName", form.photoFileName);
-      }
-      if (form.photoFileSize != null) {
-        payload.append("photoFileSize", String(form.photoFileSize));
-      }
-
-      const result = await createEmployeeFromStudioWizard(payload);
-
-      if (!result.ok) {
-        const message =
-          result.phase === "persist"
-            ? `Avatar was created in Anam, but saving to your workspace failed: ${result.message}`
-            : result.message;
-        updateForm({
-          avatarGenerationStatus: "failed",
-          avatarGenerationError: message,
-        });
-        setError(message);
+      if (!form.voiceProvider) {
+        setError("Select a voice before creating the employee.");
         return;
       }
 
-      updateForm({ avatarGenerationStatus: "ready", avatarGenerationError: null });
+      const wizardInput: CreateEmployeeWizardInput = {
+        name: form.name.trim(),
+        role: form.role.trim(),
+        brainProvider: DEFAULT_BRAIN_PROVIDER,
+        studioVoiceId: form.studioVoiceId,
+        customElevenLabsVoiceId:
+          form.studioVoiceId === CUSTOM_ELEVENLABS_STUDIO_VOICE_ID
+            ? form.customElevenLabsVoiceId.trim()
+            : undefined,
+        voiceProvider: form.voiceProvider,
+        photoFileName: form.photoFileName,
+        photoFileSize: form.photoFileSize,
+        knowledge: buildKnowledgeItemsFromForm(form),
+      };
+
+      const created = await createEmployeeRecord(wizardInput);
+
+      if (!created.ok) {
+        updateForm({
+          avatarGenerationStatus: "failed",
+          avatarGenerationError: created.message,
+        });
+        setError(created.message);
+        return;
+      }
+
+      const avatarPayload = new FormData();
+      avatarPayload.append("file", form.photoFile);
+      avatarPayload.append("name", wizardInput.name);
+      avatarPayload.append("role", wizardInput.role);
+      avatarPayload.append("studioVoiceId", form.studioVoiceId);
+      if (wizardInput.customElevenLabsVoiceId) {
+        avatarPayload.append("customElevenLabsVoiceId", wizardInput.customElevenLabsVoiceId);
+      }
+      if (wizardInput.photoFileName) {
+        avatarPayload.append("photoFileName", wizardInput.photoFileName);
+      }
+      if (wizardInput.photoFileSize != null) {
+        avatarPayload.append("photoFileSize", String(wizardInput.photoFileSize));
+      }
+
+      updateForm({ avatarGenerationStatus: "generating", avatarGenerationError: null });
 
       if (onComplete) {
-        await onComplete({ employeeId: result.employeeId });
+        await onComplete({
+          employeeId: created.employeeId,
+          avatarProvisionStarted: true,
+        });
       }
+
       handleOpenChange(false);
+
+      void provisionEmployeeAvatarStudio(created.employeeId, avatarPayload).catch(
+        (provisionError: unknown) => {
+          console.error("Background avatar provisioning failed:", provisionError);
+        },
+      );
     } catch (submitError: unknown) {
       const message =
         submitError instanceof Error
@@ -551,7 +580,7 @@ export function CreateEmployeeDialog({
                 />
                 <SummaryRow
                   label="Avatar"
-                  value="Generated when you create the employee"
+                  value="Provisioned in background after create"
                 />
               </div>
               {form.avatarGenerationError ? (
@@ -586,9 +615,7 @@ export function CreateEmployeeDialog({
               disabled={isSubmitting || !form.photoFile || !form.studioVoiceId}
               className="bg-white text-black hover:bg-white/90"
             >
-              {isSubmitting
-                ? "Creating employee…"
-                : "Create Employee"}
+              {isSubmitting ? "Saving employee…" : "Create Employee"}
             </Button>
           ) : (
             <Button

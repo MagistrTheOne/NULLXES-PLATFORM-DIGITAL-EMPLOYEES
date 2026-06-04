@@ -7,7 +7,7 @@ export function EmployeeProviderBadge({
   provider,
   className,
 }: {
-  kind: "Avatar" | "Brain";
+  kind: "Avatar" | "Brain" | "Voice";
   provider: string;
   className?: string;
 }) {
