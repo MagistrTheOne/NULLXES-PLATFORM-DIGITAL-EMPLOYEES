@@ -10,7 +10,7 @@ export function EmployeeCard({ employee }: { employee: EmployeeListItem }) {
 
   return (
     <Card className="flex h-full flex-col gap-0 overflow-hidden border-white/10 bg-[#111111] py-0 text-white ring-white/10">
-      <div className="flex aspect-[4/3] items-center justify-center border-b border-white/10 bg-white/[0.03]">
+      <div className="flex aspect-4/3 items-center justify-center border-b border-white/10 bg-white/3">
         <div className="flex flex-col items-center gap-2 text-white/40">
           <UserRound className="size-8 stroke-[1.25]" />
           <span className="text-xs tracking-wide uppercase">Avatar preview</span>

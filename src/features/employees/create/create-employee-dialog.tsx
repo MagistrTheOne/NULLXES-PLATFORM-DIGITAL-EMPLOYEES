@@ -213,7 +213,7 @@ export function CreateEmployeeDialog({
 
           {step === "avatar" ? (
             <div className="flex flex-col gap-4">
-              <label className="flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-white/15 bg-white/[0.02] px-6 py-10 hover:border-white/25 hover:bg-white/[0.04]">
+              <label className="flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-white/15 bg-white/2 px-6 py-10 hover:border-white/25 hover:bg-white/4">
                 <Upload className="size-6 text-white/50" />
                 <div className="text-center">
                   <p className="text-sm font-medium text-white">Upload Photo</p>

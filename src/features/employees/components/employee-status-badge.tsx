@@ -10,9 +10,9 @@ const STATUS_LABEL: Record<EmployeeStatus, string> = {
 };
 
 const STATUS_CLASS: Record<EmployeeStatus, string> = {
-  draft: "border-white/20 bg-white/[0.03] text-white/50",
-  active: "border-white/20 bg-white/[0.06] text-white",
-  paused: "border-white/15 bg-white/[0.04] text-white/70",
+  draft: "border-white/20 bg-white/3 text-white/50",
+  active: "border-white/20 bg-white/6 text-white",
+  paused: "border-white/15 bg-white/4 text-white/70",
   archived: "border-white/10 bg-transparent text-white/40",
 };
 

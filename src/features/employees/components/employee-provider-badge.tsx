@@ -15,7 +15,7 @@ export function EmployeeProviderBadge({
     <Badge
       variant="outline"
       className={cn(
-        "rounded-md border-white/10 bg-white/[0.02] font-normal text-white/70",
+        "rounded-md border-white/10 bg-white/2 font-normal text-white/70",
         className,
       )}
     >

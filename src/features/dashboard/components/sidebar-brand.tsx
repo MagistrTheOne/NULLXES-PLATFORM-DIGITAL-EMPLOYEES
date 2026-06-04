@@ -6,7 +6,7 @@ function LogoMark() {
   return (
     <div
       aria-hidden
-      className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04]"
+      className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/4"
     >
       <span className="text-sm font-semibold tracking-tight text-white">N</span>
     </div>
