@@ -16,7 +16,8 @@
     "knowledge:verify": "node --env-file=.env --import tsx src/entities/knowledge/verify-knowledge.ts",
     "runtime:verify": "node --env-file=.env --import tsx src/entities/runtime/verify-runtime.ts",
     "session:verify": "node --env-file=.env --import tsx src/entities/session/verify-session.ts",
-    "lifecycle:verify": "node --env-file=.env --import tsx src/entities/employee-lifecycle/verify-lifecycle.ts"
+    "lifecycle:verify": "node --env-file=.env --import tsx src/entities/employee-lifecycle/verify-lifecycle.ts",
+    "providers:verify": "node --env-file=.env --import tsx src/shared/providers/verify-providers.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",
