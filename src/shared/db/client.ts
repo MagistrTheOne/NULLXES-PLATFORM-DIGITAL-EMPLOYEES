@@ -5,6 +5,8 @@ import * as digitalEmployeeRelations from "@/entities/digital-employee/relations
 import * as digitalEmployeeSchema from "@/entities/digital-employee/schema";
 import * as knowledgeRelations from "@/entities/knowledge/relations";
 import * as knowledgeSchema from "@/entities/knowledge/schema";
+import * as runtimeRelations from "@/entities/runtime/relations";
+import * as runtimeSchema from "@/entities/runtime/schema";
 import * as membershipRelations from "@/entities/membership/relations";
 import * as membershipSchema from "@/entities/membership/schema";
 import * as organizationRelations from "@/entities/organization/relations";
@@ -33,5 +35,7 @@ export const db = drizzle({
     ...digitalEmployeeRelations,
     ...knowledgeSchema,
     ...knowledgeRelations,
+    ...runtimeSchema,
+    ...runtimeRelations,
   },
 });
