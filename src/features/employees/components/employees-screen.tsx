@@ -2,6 +2,10 @@
 
 import { useMemo, useState } from "react";
 import type { EmployeeStatus } from "@/entities/digital-employee";
+import {
+  CreateEmployeeDialog,
+  type CreateEmployeeDraftPayload,
+} from "@/features/employees/create";
 import type { EmployeeListItem } from "../types";
 import { EmployeeEmptyState } from "./employee-empty-state";
 import { EmployeeGrid } from "./employee-grid";
@@ -27,6 +31,7 @@ export function EmployeesScreen({
 }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | EmployeeStatus>("all");
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
   const filteredEmployees = useMemo(() => {
     return employees.filter((employee) => {
@@ -38,37 +43,50 @@ export function EmployeesScreen({
 
   const hasEmployees = employees.length > 0;
 
+  function handleCreateComplete(draft: CreateEmployeeDraftPayload): void {
+    console.info("[mock] create employee draft", draft);
+  }
+
   return (
-    <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-medium tracking-tight text-white">
-          Digital Employees
-        </h1>
-        <p className="mt-2 text-sm text-white/60">
-          Manage and operate your digital workforce.
-        </p>
+    <>
+      <div className="flex flex-col gap-6">
+        <div>
+          <h1 className="text-2xl font-medium tracking-tight text-white">
+            Digital Employees
+          </h1>
+          <p className="mt-2 text-sm text-white/60">
+            Manage and operate your digital workforce.
+          </p>
+        </div>
+
+        {hasEmployees ? (
+          <>
+            <EmployeeMetrics employees={employees} />
+            <EmployeeToolbar
+              searchQuery={searchQuery}
+              statusFilter={statusFilter}
+              onSearchQueryChange={setSearchQuery}
+              onStatusFilterChange={setStatusFilter}
+              onCreateClick={() => setCreateDialogOpen(true)}
+            />
+            {filteredEmployees.length > 0 ? (
+              <EmployeeGrid employees={filteredEmployees} />
+            ) : (
+              <p className="py-8 text-center text-sm text-white/50">
+                No employees match your search or filters.
+              </p>
+            )}
+          </>
+        ) : (
+          <EmployeeEmptyState onCreateClick={() => setCreateDialogOpen(true)} />
+        )}
       </div>
 
-      {hasEmployees ? (
-        <>
-          <EmployeeMetrics employees={employees} />
-          <EmployeeToolbar
-            searchQuery={searchQuery}
-            statusFilter={statusFilter}
-            onSearchQueryChange={setSearchQuery}
-            onStatusFilterChange={setStatusFilter}
-          />
-          {filteredEmployees.length > 0 ? (
-            <EmployeeGrid employees={filteredEmployees} />
-          ) : (
-            <p className="py-8 text-center text-sm text-white/50">
-              No employees match your search or filters.
-            </p>
-          )}
-        </>
-      ) : (
-        <EmployeeEmptyState />
-      )}
-    </div>
+      <CreateEmployeeDialog
+        open={createDialogOpen}
+        onOpenChange={setCreateDialogOpen}
+        onComplete={handleCreateComplete}
+      />
+    </>
   );
 }

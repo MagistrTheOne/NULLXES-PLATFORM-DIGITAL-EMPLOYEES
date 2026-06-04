@@ -26,11 +26,13 @@ export function EmployeeToolbar({
   statusFilter,
   onSearchQueryChange,
   onStatusFilterChange,
+  onCreateClick,
 }: {
   searchQuery: string;
   statusFilter: "all" | EmployeeStatus;
   onSearchQueryChange: (value: string) => void;
   onStatusFilterChange: (value: "all" | EmployeeStatus) => void;
+  onCreateClick: () => void;
 }) {
   return (
     <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -73,6 +75,7 @@ export function EmployeeToolbar({
       </div>
       <Button
         type="button"
+        onClick={onCreateClick}
         className="shrink-0 bg-white text-black hover:bg-white/90"
       >
         <Plus />
