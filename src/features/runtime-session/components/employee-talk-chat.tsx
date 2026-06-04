@@ -1,7 +1,7 @@
 "use client";
 
 import { Component, type ReactNode, useEffect, useRef, useState } from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2, MessageSquare } from "lucide-react";
 import type { Channel as StreamChannel } from "stream-chat";
 import type { StreamChat } from "stream-chat";
 import {
@@ -17,8 +17,18 @@ import {
   releaseTalkChatMount,
   retainTalkChatMount,
 } from "../lib/talk-chat-connection";
-
 type TalkChatUiState = "connecting" | "ready" | "unavailable";
+
+function TalkChatEmptyState() {
+  return (
+    <div className="flex h-full flex-col items-center justify-center gap-3 px-6 text-center">
+      <MessageSquare className="size-10 stroke-[1.25] text-white/25" />
+      <p className="max-w-[220px] text-sm leading-relaxed text-white/45">
+        Отправьте сообщение, чтобы начать разговор
+      </p>
+    </div>
+  );
+}
 
 function TalkChatFallback({ state }: { state: Exclude<TalkChatUiState, "ready"> }) {
   return (
@@ -118,25 +128,71 @@ export function EmployeeTalkChat({
     chatSession.userName,
   ]);
 
+  useEffect(() => {
+    if (uiState !== "ready") {
+      return;
+    }
+
+    const root = document.querySelector(".employee-talk-chat-panel");
+    const textarea = root?.querySelector("textarea");
+    if (textarea) {
+      textarea.setAttribute("placeholder", "Отправьте сообщение...");
+    }
+  }, [uiState]);
+
   if (uiState !== "ready" || !client || !channel) {
     return <TalkChatFallback state={uiState === "ready" ? "connecting" : uiState} />;
   }
 
   return (
     <TalkChatErrorBoundary onError={() => setUiState("unavailable")}>
-      <div className="employee-talk-chat-surface h-full min-h-0">
+      <div className="employee-talk-chat-surface relative h-full min-h-0">
         <Chat client={client} theme="str-chat__theme-dark">
           <Channel channel={channel}>
             <Window>
-              <div className="employee-talk-chat-header border-b border-white/10 px-3 py-2 text-xs tracking-wide text-white/50 uppercase">
+              <div className="employee-talk-chat-header border-b border-white/10 px-4 py-3 text-[11px] font-medium tracking-[0.12em] text-white/50 uppercase">
                 Session chat
               </div>
-              <MessageList />
+              <div className="employee-talk-chat-messages relative min-h-0 flex-1">
+                <TalkChatEmptyOverlay channel={channel} />
+                <MessageList />
+              </div>
               <MessageComposer />
             </Window>
           </Channel>
         </Chat>
       </div>
     </TalkChatErrorBoundary>
+  );
+}
+
+function TalkChatEmptyOverlay({ channel }: { channel: StreamChannel }) {
+  const [isEmpty, setIsEmpty] = useState(
+    () => (channel.state.messages?.length ?? 0) === 0,
+  );
+
+  useEffect(() => {
+    const syncEmpty = () => {
+      setIsEmpty((channel.state.messages?.length ?? 0) === 0);
+    };
+
+    syncEmpty();
+    channel.on("message.new", syncEmpty);
+    channel.on("message.deleted", syncEmpty);
+
+    return () => {
+      channel.off("message.new", syncEmpty);
+      channel.off("message.deleted", syncEmpty);
+    };
+  }, [channel]);
+
+  if (!isEmpty) {
+    return null;
+  }
+
+  return (
+    <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
+      <TalkChatEmptyState />
+    </div>
   );
 }

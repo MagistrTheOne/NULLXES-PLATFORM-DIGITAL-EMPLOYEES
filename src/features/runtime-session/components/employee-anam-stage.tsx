@@ -5,6 +5,7 @@ import { AnamEvent, createClient } from "@anam-ai/js-sdk";
 import { Loader2 } from "lucide-react";
 import { useTalkAnam } from "@/features/runtime-session/context/talk-anam-context";
 import { AvatarIdlePreview } from "@/features/employees/components/avatar-idle-preview";
+import { TalkStageChrome } from "./talk-stage-chrome";
 
 const ANAM_VIDEO_ELEMENT_ID = "nullxes-anam-persona-video";
 
@@ -76,14 +77,14 @@ export function EmployeeAnamStage({
     status !== "live" && Boolean(avatarPreviewUrl);
 
   return (
-    <div className="employee-anam-stage relative flex w-full items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-[#0a0a0a]">
+    <div className="employee-anam-stage relative flex size-full items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-[#0a0a0a]">
       {showPhotoPlaceholder ? (
         <div className="absolute inset-0 z-0 flex items-center justify-center">
-          <div className="relative h-full w-full max-h-full max-w-full">
+          <div className="relative size-full">
             <AvatarIdlePreview
               src={avatarPreviewUrl!}
               alt={employeeName}
-              sizes="(max-width: 720px) 100vw"
+              sizes="(max-width: 960px) 100vw"
               className="!object-contain"
             />
           </div>
@@ -94,10 +95,12 @@ export function EmployeeAnamStage({
         id={ANAM_VIDEO_ELEMENT_ID}
         autoPlay
         playsInline
-        className={`employee-anam-video relative z-10 max-h-full max-w-full transition-opacity duration-500 ${
+        className={`employee-anam-video relative z-10 size-full transition-opacity duration-500 ${
           status === "live" ? "opacity-100" : "opacity-0"
         }`}
       />
+
+      <TalkStageChrome employeeName={employeeName} />
 
       {status === "connecting" ? (
         <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-2 bg-black/55">
@@ -113,10 +116,6 @@ export function EmployeeAnamStage({
           </p>
         </div>
       ) : null}
-
-      <div className="absolute top-2 left-2 z-20 rounded-full border border-white/10 bg-black/65 px-2 py-0.5 text-[10px] tracking-wide text-white/75 uppercase">
-        {employeeName}
-      </div>
     </div>
   );
 }

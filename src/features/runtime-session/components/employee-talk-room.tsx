@@ -5,9 +5,8 @@ import { useRouter } from "next/navigation";
 import { Mic, MicOff, PhoneOff, Video, VideoOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import type { TalkSessionCredentials } from "../services/create-talk-session";
 import type { TalkChatCredentials } from "../services/create-talk-chat-session";
-import { TalkAnamProvider, useTalkAnam } from "../context/talk-anam-context";
+import { useTalkAnam } from "../context/talk-anam-context";
 import { EmployeeAnamStage } from "./employee-anam-stage";
 import { EmployeeTalkChat } from "./employee-talk-chat";
 import { TalkLocalCameraPip } from "./talk-local-camera-pip";
@@ -32,7 +31,7 @@ function TalkIconControl({
       disabled={disabled}
       onClick={onClick}
       className={cn(
-        "flex size-10 shrink-0 items-center justify-center rounded-full border border-white/12 bg-white/4 text-white transition-colors",
+        "flex size-11 shrink-0 items-center justify-center rounded-full border border-white/12 bg-white/4 text-white transition-colors",
         "hover:bg-white/8 disabled:pointer-events-none disabled:opacity-40",
       )}
     >
@@ -62,7 +61,7 @@ function TalkControlsBar({
   }, [router, stopSession]);
 
   return (
-    <div className="flex items-center justify-center gap-3 py-3">
+    <div className="flex items-center justify-center gap-3 py-4">
       <TalkIconControl
         ariaLabel={micMuted ? "Unmute microphone" : "Mute microphone"}
         disabled={!isLive || isLeaving}
@@ -88,7 +87,8 @@ function TalkControlsBar({
       <Button
         type="button"
         disabled={isLeaving}
-        className="h-10 rounded-full border border-white/12 bg-white/6 px-4 text-sm text-white hover:bg-white/10"
+        variant="destructive"
+        className="h-11 rounded-full px-5 text-sm"
         onClick={() => {
           void handleLeave();
         }}
@@ -101,7 +101,6 @@ function TalkControlsBar({
 }
 
 export type EmployeeTalkRoomProps = {
-  streamSession: TalkSessionCredentials;
   chatSession: TalkChatCredentials;
   anamSessionToken: string;
   employeeName: string;
@@ -115,17 +114,14 @@ function TalkRoomLayout({
   employeeId,
   avatarPreviewUrl,
   anamSessionToken,
-  streamSession,
 }: EmployeeTalkRoomProps) {
-  void streamSession;
-
   const [cameraEnabled, setCameraEnabled] = useState(false);
 
   return (
     <div className="employee-talk-workspace w-full">
-      <div className="employee-talk-grid grid min-h-[min(68vh,560px)] gap-4 lg:grid-cols-[7fr_3fr]">
-        <div className="employee-talk-primary flex min-h-0 flex-col gap-2">
-          <div className="employee-talk-stage-wrap relative min-h-0 flex-1">
+      <div className="employee-talk-grid grid gap-4 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-stretch">
+        <div className="employee-talk-primary flex min-h-0 min-w-0 flex-col">
+          <div className="employee-talk-stage-wrap relative min-h-0 w-full">
             <EmployeeAnamStage
               employeeId={employeeId}
               employeeName={employeeName}
@@ -143,7 +139,7 @@ function TalkRoomLayout({
           />
         </div>
 
-        <div className="employee-talk-chat-panel flex min-h-[240px] flex-col overflow-hidden rounded-xl border border-white/10 bg-[#0a0a0a] lg:min-h-0">
+        <div className="employee-talk-chat-panel flex min-h-[320px] flex-col overflow-hidden rounded-xl border border-white/10 bg-[#0a0a0a] lg:min-h-0 lg:self-stretch">
           <EmployeeTalkChat chatSession={chatSession} />
         </div>
       </div>
@@ -152,9 +148,5 @@ function TalkRoomLayout({
 }
 
 export function EmployeeTalkRoom(props: EmployeeTalkRoomProps) {
-  return (
-    <TalkAnamProvider>
-      <TalkRoomLayout {...props} />
-    </TalkAnamProvider>
-  );
+  return <TalkRoomLayout {...props} />;
 }

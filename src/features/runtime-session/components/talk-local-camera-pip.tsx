@@ -39,8 +39,8 @@ export function TalkLocalCameraPip({
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
           video: {
-            width: { ideal: 640 },
-            height: { ideal: 360 },
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
             facingMode: "user",
           },
           audio: false,
@@ -86,10 +86,10 @@ export function TalkLocalCameraPip({
   }
 
   return (
-    <div className="absolute right-3 bottom-3 z-30 w-36 overflow-hidden rounded-lg border border-white/15 bg-black/90 shadow-md">
-      <div className="relative aspect-video bg-[#111111]">
+    <div className="absolute inset-x-0 bottom-0 z-30 flex h-24 items-stretch gap-3 border-t border-white/10 bg-black/75 px-3 py-2 backdrop-blur-[2px]">
+      <div className="relative aspect-video h-full overflow-hidden rounded-md border border-white/12 bg-[#111111]">
         {failed ? (
-          <div className="flex size-full items-center justify-center px-2 text-center text-[10px] text-white/45">
+          <div className="flex size-full min-w-[120px] items-center justify-center px-2 text-center text-[10px] text-white/45">
             Camera unavailable
           </div>
         ) : (
@@ -102,9 +102,10 @@ export function TalkLocalCameraPip({
           />
         )}
       </div>
-      <p className="truncate px-2 py-1 text-[10px] text-white/55">
-        {userName} · You
-      </p>
+      <div className="flex min-w-0 flex-col justify-center">
+        <p className="truncate text-xs text-white/80">{userName}</p>
+        <p className="text-[10px] text-white/45">You</p>
+      </div>
     </div>
   );
 }

@@ -1,0 +1,48 @@
+"use client";
+
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import type { TalkChatCredentials } from "../services/create-talk-chat-session";
+import { TalkAnamProvider } from "../context/talk-anam-context";
+import {
+  EmployeeTalkRoom,
+  type EmployeeTalkRoomProps,
+} from "./employee-talk-room";
+import { TalkSessionMeta } from "./talk-session-meta";
+
+export function EmployeeTalkSession({
+  employeeName,
+  ...roomProps
+}: EmployeeTalkRoomProps & { employeeName: string }) {
+  return (
+    <TalkAnamProvider>
+      <div className="mx-auto flex w-full max-w-[1280px] flex-col gap-5 px-4 pb-8">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="flex min-w-0 items-center gap-4">
+            <Button
+              variant="ghost"
+              className="shrink-0 text-white/60 hover:bg-white/5 hover:text-white"
+              asChild
+            >
+              <Link href="/dashboard/employees">
+                <ArrowLeft className="size-4" />
+                Back
+              </Link>
+            </Button>
+            <div className="min-w-0">
+              <h1 className="text-2xl font-medium tracking-tight text-white">
+                Talk · {employeeName}
+              </h1>
+              <p className="mt-1 text-sm text-white/60">
+                Live session · chat · optional camera
+              </p>
+            </div>
+          </div>
+          <TalkSessionMeta />
+        </div>
+        <EmployeeTalkRoom employeeName={employeeName} {...roomProps} />
+      </div>
+    </TalkAnamProvider>
+  );
+}
