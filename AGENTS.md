@@ -184,7 +184,15 @@ Apple
 Linear
 OpenAI
 Notion
+Background:      #000000
+Surface:         #090909
+Card:            #111111
+Border:          rgba(255,255,255,0.08)
 
+Text Primary:    #FFFFFF
+Text Secondary:  rgba(255,255,255,0.60)
+
+Hover:           rgba(255,255,255,0.04)
 The interface should feel like enterprise software used daily by executives operating digital employees.
 
 ---
