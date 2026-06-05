@@ -1,40 +1,20 @@
-import { and, count, eq, gte, sql } from "drizzle-orm";
+import { and, count, eq, gte, lte, sql } from "drizzle-orm";
 import { digitalEmployee } from "@/entities/digital-employee/schema";
 import { employeeSession } from "@/entities/session/schema";
 import { db } from "@/shared/db/client";
-import type { SessionTimeseriesPoint } from "../types";
+import {
+  buildDateRange,
+  endOfUtcDay,
+  formatUtcDate,
+  getPreviousAnalyticsRange,
+  startOfUtcDay,
+} from "../lib/date-range";
+import type { AnalyticsDateRange, SessionTimeseriesPoint } from "../types";
 
-const TIMESERIES_DAYS = 30;
-
-function startOfUtcDay(date: Date): Date {
-  return new Date(
-    Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()),
-  );
-}
-
-function formatUtcDate(date: Date): string {
-  return date.toISOString().slice(0, 10);
-}
-
-function buildDateRange(): string[] {
-  const today = startOfUtcDay(new Date());
-  const dates: string[] = [];
-
-  for (let offset = TIMESERIES_DAYS - 1; offset >= 0; offset -= 1) {
-    const day = new Date(today);
-    day.setUTCDate(day.getUTCDate() - offset);
-    dates.push(formatUtcDate(day));
-  }
-
-  return dates;
-}
-
-export async function getSessionTimeseries(
+async function querySessionCountsByDate(
   organizationId: string,
-): Promise<SessionTimeseriesPoint[]> {
-  const rangeStart = startOfUtcDay(new Date());
-  rangeStart.setUTCDate(rangeStart.getUTCDate() - (TIMESERIES_DAYS - 1));
-
+  range: AnalyticsDateRange,
+): Promise<Map<string, { sessions: number; durationSeconds: number }>> {
   const rows = await db
     .select({
       date: sql<string>`to_char(date_trunc('day', ${employeeSession.startedAt} at time zone 'UTC'), 'YYYY-MM-DD')`,
@@ -52,13 +32,14 @@ export async function getSessionTimeseries(
     .where(
       and(
         eq(digitalEmployee.organizationId, organizationId),
-        gte(employeeSession.startedAt, rangeStart),
+        gte(employeeSession.startedAt, startOfUtcDay(range.from)),
+        lte(employeeSession.startedAt, endOfUtcDay(range.to)),
       ),
     )
     .groupBy(sql`date_trunc('day', ${employeeSession.startedAt} at time zone 'UTC')`)
     .orderBy(sql`date_trunc('day', ${employeeSession.startedAt} at time zone 'UTC')`);
 
-  const byDate = new Map(
+  return new Map(
     rows.map((row) => [
       row.date,
       {
@@ -67,14 +48,31 @@ export async function getSessionTimeseries(
       },
     ]),
   );
+}
 
-  return buildDateRange().map((date) => {
-    const point = byDate.get(date);
+export async function getSessionTimeseries(
+  organizationId: string,
+  range: AnalyticsDateRange,
+): Promise<SessionTimeseriesPoint[]> {
+  const previousRange = getPreviousAnalyticsRange(range);
+  const [currentRows, previousRows] = await Promise.all([
+    querySessionCountsByDate(organizationId, range),
+    querySessionCountsByDate(organizationId, previousRange),
+  ]);
+
+  const dates = buildDateRange(range);
+  const previousDates = buildDateRange(previousRange);
+
+  return dates.map((date, index) => {
+    const point = currentRows.get(date);
+    const previousDate = previousDates[index] ?? previousDates[previousDates.length - 1];
+    const previousPoint = previousDate ? previousRows.get(previousDate) : undefined;
 
     return {
       date,
       sessions: point?.sessions ?? 0,
       durationSeconds: point?.durationSeconds ?? 0,
+      previousSessions: previousPoint?.sessions ?? 0,
     };
   });
 }

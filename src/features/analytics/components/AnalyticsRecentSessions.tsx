@@ -8,65 +8,89 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatClockDuration } from "../lib/format-clock-duration";
-import type { SessionMetrics, TopEmployeeRow } from "../types";
+import type { RecentSessionRow } from "../types";
 import { AnalyticsCard } from "./analytics-card";
 
+function formatSatisfaction(rating: number | null): string {
+  if (rating === null) {
+    return "—";
+  }
+
+  return `${rating.toFixed(1)} / 5`;
+}
+
+function formatStartedAt(date: Date): string {
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone: "UTC",
+  }).format(date);
+}
+
 export function AnalyticsRecentSessions({
-  employees,
   sessions,
 }: {
-  employees: TopEmployeeRow[];
-  sessions: SessionMetrics;
+  sessions: RecentSessionRow[];
 }) {
-  const rows = employees.filter((employee) => employee.totalSessions > 0);
-
   return (
     <AnalyticsCard
       title="Recent Sessions"
-      description="Employee session totals from workspace records"
+      description="Latest conversations in the selected period"
     >
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow className="border-border hover:bg-transparent">
               <TableHead className="text-muted-foreground">Employee</TableHead>
-              <TableHead className="text-muted-foreground">Status</TableHead>
+              <TableHead className="text-muted-foreground">User</TableHead>
               <TableHead className="text-muted-foreground">Duration</TableHead>
+              <TableHead className="text-muted-foreground">Messages</TableHead>
+              <TableHead className="text-muted-foreground">Satisfaction</TableHead>
               <TableHead className="text-right text-muted-foreground">
-                Created
+                Started At
               </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {rows.length === 0 ? (
+            {sessions.length === 0 ? (
               <TableRow className="border-border hover:bg-transparent">
                 <TableCell
-                  colSpan={4}
+                  colSpan={6}
                   className="py-10 text-center text-sm text-muted-foreground"
                 >
-                  {sessions.totalSessions === 0
-                    ? "No sessions recorded for this workspace yet."
-                    : "No employee session totals available."}
+                  No sessions recorded for this period yet.
                 </TableCell>
               </TableRow>
             ) : (
-              rows.map((employee) => (
-                <TableRow key={employee.employeeId} className="border-border">
+              sessions.map((session) => (
+                <TableRow key={session.id} className="border-border">
                   <TableCell>
                     <Link
-                      href={`/dashboard/employees/${employee.employeeId}`}
+                      href={`/dashboard/employees/${session.employeeId}`}
                       className="font-medium text-foreground hover:text-foreground/80"
                     >
-                      {employee.name}
+                      {session.employeeName}
                     </Link>
                   </TableCell>
                   <TableCell className="text-muted-foreground">
-                    {employee.totalSessions} recorded
+                    {session.userEmail}
                   </TableCell>
                   <TableCell className="tabular-nums text-foreground">
-                    {formatClockDuration(employee.totalDurationSeconds)}
+                    {session.durationSeconds
+                      ? formatClockDuration(session.durationSeconds)
+                      : "—"}
                   </TableCell>
-                  <TableCell className="text-right text-muted-foreground">—</TableCell>
+                  <TableCell className="tabular-nums text-foreground">
+                    {session.messageCount}
+                  </TableCell>
+                  <TableCell className="tabular-nums text-foreground">
+                    {formatSatisfaction(session.satisfactionRating)}
+                  </TableCell>
+                  <TableCell className="text-right text-muted-foreground">
+                    {formatStartedAt(session.startedAt)}
+                  </TableCell>
                 </TableRow>
               ))
             )}

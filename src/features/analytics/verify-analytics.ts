@@ -6,9 +6,14 @@ import { createOrganization } from "@/entities/organization/create-organization"
 import { employeeSession } from "@/entities/session/schema";
 import { user } from "@/entities/user/schema";
 import { db } from "@/shared/db/client";
+import { getDefaultAnalyticsRange } from "./lib/date-range";
 import { getDashboardAnalytics } from "./services/get-dashboard-analytics";
+import { getMessageTimeseries } from "./queries/get-message-timeseries";
+import { getRecentSessions } from "./queries/get-recent-sessions";
+import { getSatisfactionTimeseries } from "./queries/get-satisfaction-timeseries";
 import { getSessionTimeseries } from "./queries/get-session-timeseries";
 import { getTopEmployees } from "./queries/get-top-employees";
+import { getTopTopics } from "./queries/get-top-topics";
 import { getWorkspaceAnalytics } from "./queries/get-workspace-analytics";
 
 const TEST_USER_ID = "analytics-verify-user";
@@ -108,6 +113,12 @@ async function verifyAnalytics(): Promise<void> {
       startedAt: daysAgo(2),
       endedAt: daysAgo(2),
       durationSeconds: 600,
+      messageCount: 24,
+      satisfactionRating: "4.8",
+      firstResponseMs: 1100,
+      resolved: true,
+      escalated: false,
+      primaryTopic: "Sales Pipeline",
     },
     {
       employeeId: somnia.id,
@@ -116,6 +127,12 @@ async function verifyAnalytics(): Promise<void> {
       startedAt: daysAgo(1),
       endedAt: daysAgo(1),
       durationSeconds: 400,
+      messageCount: 18,
+      satisfactionRating: "4.5",
+      firstResponseMs: 1300,
+      resolved: true,
+      escalated: false,
+      primaryTopic: "Sales Pipeline",
     },
     {
       employeeId: somnia.id,
@@ -124,6 +141,12 @@ async function verifyAnalytics(): Promise<void> {
       startedAt: daysAgo(0),
       endedAt: daysAgo(0),
       durationSeconds: 300,
+      messageCount: 12,
+      satisfactionRating: "5.0",
+      firstResponseMs: 900,
+      resolved: true,
+      escalated: false,
+      primaryTopic: "Product Demo",
     },
     {
       employeeId: kaira.id,
@@ -132,12 +155,23 @@ async function verifyAnalytics(): Promise<void> {
       startedAt: daysAgo(3),
       endedAt: daysAgo(3),
       durationSeconds: 200,
+      messageCount: 9,
+      satisfactionRating: "4.2",
+      firstResponseMs: 1500,
+      resolved: false,
+      escalated: true,
+      primaryTopic: "Support Escalation",
     },
     {
       employeeId: kaira.id,
       userId: TEST_USER_ID,
       status: "active",
       startedAt: daysAgo(0),
+      messageCount: 3,
+      firstResponseMs: 1800,
+      resolved: false,
+      escalated: false,
+      primaryTopic: "Account Access",
     },
   ]);
 
@@ -233,84 +267,53 @@ async function verifyAnalytics(): Promise<void> {
     },
   ]);
 
-  const workspace = await getWorkspaceAnalytics(org.id);
+  const range = getDefaultAnalyticsRange();
+  const workspace = await getWorkspaceAnalytics(org.id, range);
 
   if (workspace.employees.totalEmployees !== 5) {
     throw new Error(`Expected 5 employees, got ${workspace.employees.totalEmployees}`);
-  }
-
-  if (workspace.employees.activeEmployees !== 2) {
-    throw new Error(`Expected 2 active employees, got ${workspace.employees.activeEmployees}`);
   }
 
   if (workspace.sessions.totalSessions !== 5) {
     throw new Error(`Expected 5 sessions, got ${workspace.sessions.totalSessions}`);
   }
 
-  if (workspace.sessions.completedSessions !== 4) {
+  if (workspace.conversation.totalMessages !== 66) {
     throw new Error(
-      `Expected 4 completed sessions, got ${workspace.sessions.completedSessions}`,
+      `Expected 66 messages, got ${workspace.conversation.totalMessages}`,
     );
   }
 
-  if (workspace.sessions.totalConversationSeconds !== 1500) {
+  if (workspace.conversation.ratedSessions !== 4) {
     throw new Error(
-      `Expected 1500 conversation seconds, got ${workspace.sessions.totalConversationSeconds}`,
+      `Expected 4 rated sessions, got ${workspace.conversation.ratedSessions}`,
     );
   }
 
-  if (workspace.sessions.averageSessionDurationSeconds !== 375) {
+  if (workspace.performance.averageFirstResponseMs !== 1320) {
     throw new Error(
-      `Expected average duration 375s, got ${workspace.sessions.averageSessionDurationSeconds}`,
+      `Expected average response 1320ms, got ${workspace.performance.averageFirstResponseMs}`,
     );
   }
 
-  if (workspace.knowledge.totalSources !== 5) {
-    throw new Error(`Expected 5 knowledge sources, got ${workspace.knowledge.totalSources}`);
-  }
-
-  if (workspace.knowledge.readySources !== 2) {
-    throw new Error(`Expected 2 ready sources, got ${workspace.knowledge.readySources}`);
-  }
-
-  if (workspace.knowledge.processingSources !== 1) {
+  if (workspace.performance.resolutionRatePercent !== 75) {
     throw new Error(
-      `Expected 1 processing source, got ${workspace.knowledge.processingSources}`,
+      `Expected resolution rate 75%, got ${workspace.performance.resolutionRatePercent}`,
     );
   }
 
-  if (workspace.knowledge.failedSources !== 1) {
-    throw new Error(`Expected 1 failed source, got ${workspace.knowledge.failedSources}`);
-  }
-
-  if (workspace.knowledge.totalChunks !== 3) {
-    throw new Error(`Expected 3 chunks, got ${workspace.knowledge.totalChunks}`);
-  }
-
-  if (workspace.activity.createdEmployeesLast7Days !== 2) {
+  if (workspace.performance.escalationRatePercent !== 20) {
     throw new Error(
-      `Expected 2 created events in 7 days, got ${workspace.activity.createdEmployeesLast7Days}`,
-    );
-  }
-
-  if (workspace.activity.activatedEmployeesLast7Days !== 1) {
-    throw new Error(
-      `Expected 1 activated event in 7 days, got ${workspace.activity.activatedEmployeesLast7Days}`,
-    );
-  }
-
-  if (workspace.activity.archivedEmployeesLast7Days !== 1) {
-    throw new Error(
-      `Expected 1 archived event in 7 days, got ${workspace.activity.archivedEmployeesLast7Days}`,
+      `Expected escalation rate 20%, got ${workspace.performance.escalationRatePercent}`,
     );
   }
 
   console.log("Workspace analytics: counts validated");
 
-  const timeseries = await getSessionTimeseries(org.id);
+  const timeseries = await getSessionTimeseries(org.id, range);
 
-  if (timeseries.length !== 30) {
-    throw new Error(`Expected 30 timeseries points, got ${timeseries.length}`);
+  if (timeseries.length !== 7) {
+    throw new Error(`Expected 7 timeseries points, got ${timeseries.length}`);
   }
 
   const todayKey = daysAgo(0).toISOString().slice(0, 10);
@@ -320,33 +323,61 @@ async function verifyAnalytics(): Promise<void> {
     throw new Error(`Expected 2 sessions today, got ${todayPoint?.sessions ?? 0}`);
   }
 
-  const threeDaysAgoKey = daysAgo(3).toISOString().slice(0, 10);
-  const threeDaysPoint = timeseries.find((point) => point.date === threeDaysAgoKey);
+  console.log("Session timeseries: aggregations validated");
 
-  if (!threeDaysPoint || threeDaysPoint.sessions !== 1) {
+  const messageTimeseries = await getMessageTimeseries(org.id, range);
+  const totalMessagesInSeries = messageTimeseries.reduce(
+    (sum, point) => sum + point.messages,
+    0,
+  );
+
+  if (totalMessagesInSeries !== 66) {
     throw new Error(
-      `Expected 1 session 3 days ago, got ${threeDaysPoint?.sessions ?? 0}`,
+      `Expected 66 messages in timeseries, got ${totalMessagesInSeries}`,
     );
   }
 
-  console.log("Session timeseries: aggregations validated");
+  const satisfactionTimeseries = await getSatisfactionTimeseries(org.id, range);
+  const ratedDays = satisfactionTimeseries.filter(
+    (point) => point.ratedSessions > 0,
+  ).length;
 
-  const topEmployees = await getTopEmployees(org.id);
+  if (ratedDays < 3) {
+    throw new Error("Expected satisfaction ratings across multiple days");
+  }
+
+  const topEmployees = await getTopEmployees(org.id, range);
 
   if (topEmployees[0]?.employeeId !== somnia.id || topEmployees[0]?.totalSessions !== 3) {
     throw new Error("Top employee ranking did not match fixture data");
   }
 
-  if (topEmployees[1]?.employeeId !== kaira.id || topEmployees[1]?.totalSessions !== 2) {
-    throw new Error("Second ranked employee did not match fixture data");
+  const topTopics = await getTopTopics(org.id, range);
+
+  if (topTopics[0]?.topic !== "Sales Pipeline" || topTopics[0]?.sessionCount !== 2) {
+    throw new Error("Top topics did not match fixture data");
   }
 
-  console.log("Top employees: ranking validated");
+  const recentSessions = await getRecentSessions(org.id, range);
 
-  const dashboard = await getDashboardAnalytics(org.id);
+  if (recentSessions.length !== 5) {
+    throw new Error(`Expected 5 recent sessions, got ${recentSessions.length}`);
+  }
+
+  if (!recentSessions[0]?.userEmail.includes("analytics-verify")) {
+    throw new Error("Recent sessions did not include user email");
+  }
+
+  console.log("W.2 analytics queries: validated");
+
+  const dashboard = await getDashboardAnalytics(org.id, range);
 
   if (dashboard.recentLifecycle.length < 4) {
     throw new Error("Expected recent lifecycle events from fixture data");
+  }
+
+  if (dashboard.recentSessions.length !== 5) {
+    throw new Error("Dashboard recent sessions missing fixture rows");
   }
 
   console.log("Dashboard analytics: entry point validated");

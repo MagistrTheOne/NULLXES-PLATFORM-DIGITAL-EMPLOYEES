@@ -1,4 +1,16 @@
 import type { EmployeeLifecycleEventType } from "@/entities/employee-lifecycle";
+import type { EmployeeSessionStatus } from "@/entities/session";
+
+export type AnalyticsDateRange = {
+  from: Date;
+  to: Date;
+};
+
+export type MetricTrend = {
+  value: number;
+  previousValue: number;
+  changePercent: number | null;
+};
 
 export type EmployeeMetrics = {
   totalEmployees: number;
@@ -13,6 +25,27 @@ export type SessionMetrics = {
   completedSessions: number;
   averageSessionDurationSeconds: number;
   totalConversationSeconds: number;
+};
+
+export type ConversationMetrics = {
+  totalMessages: number;
+  averageSatisfaction: number | null;
+  ratedSessions: number;
+};
+
+export type PerformanceMetrics = {
+  averageFirstResponseMs: number;
+  resolutionRatePercent: number;
+  escalationRatePercent: number;
+  completedSessions: number;
+};
+
+export type AnalyticsTrends = {
+  employees: MetricTrend;
+  sessions: MetricTrend;
+  conversationSeconds: MetricTrend;
+  messages: MetricTrend;
+  satisfaction: MetricTrend | null;
 };
 
 export type KnowledgeMetrics = {
@@ -32,14 +65,29 @@ export type ActivityMetrics = {
 export type WorkspaceAnalytics = {
   employees: EmployeeMetrics;
   sessions: SessionMetrics;
+  conversation: ConversationMetrics;
+  performance: PerformanceMetrics;
   knowledge: KnowledgeMetrics;
   activity: ActivityMetrics;
+  trends: AnalyticsTrends;
 };
 
 export type SessionTimeseriesPoint = {
   date: string;
   sessions: number;
   durationSeconds: number;
+  previousSessions: number;
+};
+
+export type MessageTimeseriesPoint = {
+  date: string;
+  messages: number;
+};
+
+export type SatisfactionTimeseriesPoint = {
+  date: string;
+  averageRating: number | null;
+  ratedSessions: number;
 };
 
 export type TopEmployeeRow = {
@@ -47,6 +95,24 @@ export type TopEmployeeRow = {
   name: string;
   totalSessions: number;
   totalDurationSeconds: number;
+};
+
+export type TopicRow = {
+  topic: string;
+  sessionCount: number;
+  sharePercent: number;
+};
+
+export type RecentSessionRow = {
+  id: string;
+  employeeId: string;
+  employeeName: string;
+  userEmail: string;
+  status: EmployeeSessionStatus;
+  messageCount: number;
+  satisfactionRating: number | null;
+  durationSeconds: number | null;
+  startedAt: Date;
 };
 
 export type RecentLifecycleEventRow = {
@@ -60,8 +126,13 @@ export type RecentLifecycleEventRow = {
 };
 
 export type DashboardAnalytics = {
+  range: AnalyticsDateRange;
   metrics: WorkspaceAnalytics;
   timeseries: SessionTimeseriesPoint[];
+  messageTimeseries: MessageTimeseriesPoint[];
+  satisfactionTimeseries: SatisfactionTimeseriesPoint[];
   topEmployees: TopEmployeeRow[];
+  topTopics: TopicRow[];
+  recentSessions: RecentSessionRow[];
   recentLifecycle: RecentLifecycleEventRow[];
 };

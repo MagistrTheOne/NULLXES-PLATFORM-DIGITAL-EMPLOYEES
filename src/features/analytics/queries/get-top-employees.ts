@@ -1,13 +1,15 @@
-import { count, desc, eq, sql } from "drizzle-orm";
+import { and, count, desc, eq, gte, lte, sql } from "drizzle-orm";
 import { digitalEmployee } from "@/entities/digital-employee/schema";
 import { employeeSession } from "@/entities/session/schema";
 import { db } from "@/shared/db/client";
-import type { TopEmployeeRow } from "../types";
+import { endOfUtcDay, startOfUtcDay } from "../lib/date-range";
+import type { AnalyticsDateRange, TopEmployeeRow } from "../types";
 
 const TOP_EMPLOYEE_LIMIT = 8;
 
 export async function getTopEmployees(
   organizationId: string,
+  range: AnalyticsDateRange,
 ): Promise<TopEmployeeRow[]> {
   const rows = await db
     .select({
@@ -22,7 +24,11 @@ export async function getTopEmployees(
     .from(digitalEmployee)
     .leftJoin(
       employeeSession,
-      eq(employeeSession.employeeId, digitalEmployee.id),
+      and(
+        eq(employeeSession.employeeId, digitalEmployee.id),
+        gte(employeeSession.startedAt, startOfUtcDay(range.from)),
+        lte(employeeSession.startedAt, endOfUtcDay(range.to)),
+      ),
     )
     .where(eq(digitalEmployee.organizationId, organizationId))
     .groupBy(digitalEmployee.id, digitalEmployee.name)

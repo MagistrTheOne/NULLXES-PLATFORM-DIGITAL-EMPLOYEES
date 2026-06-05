@@ -6,17 +6,13 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import type { SessionTimeseriesPoint } from "../types";
+import type { SatisfactionTimeseriesPoint } from "../types";
 import { AnalyticsCard } from "./analytics-card";
 
 const chartConfig = {
-  sessions: {
-    label: "Sessions",
+  averageRating: {
+    label: "Satisfaction",
     color: "#ffffff",
-  },
-  previousSessions: {
-    label: "Previous Period",
-    color: "rgba(255,255,255,0.35)",
   },
 } as const;
 
@@ -25,24 +21,28 @@ function formatAxisDate(value: string): string {
   return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
-export function AnalyticsSessionChart({
+export function AnalyticsSatisfactionTrend({
   timeseries,
 }: {
-  timeseries: SessionTimeseriesPoint[];
+  timeseries: SatisfactionTimeseriesPoint[];
 }) {
-  const totalSessions = timeseries.reduce((sum, point) => sum + point.sessions, 0);
+  const ratedDays = timeseries.filter((point) => point.ratedSessions > 0);
+  const chartData = timeseries.map((point) => ({
+    ...point,
+    averageRating: point.averageRating ?? 0,
+  }));
 
   return (
-    <AnalyticsCard title="Sessions Over Time" className="h-[420px]">
-      <div className="flex h-[calc(420px-57px)] flex-col px-4 py-4">
-        {totalSessions === 0 ? (
+    <AnalyticsCard title="User Satisfaction Trend" className="min-h-[320px]">
+      <div className="flex h-[260px] flex-col px-4 py-4">
+        {ratedDays.length === 0 ? (
           <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
-            No sessions recorded in this period.
+            No satisfaction ratings in this period.
           </div>
         ) : (
           <ChartContainer config={chartConfig} className="h-full w-full">
             <LineChart
-              data={timeseries}
+              data={chartData}
               margin={{ left: 4, right: 8, top: 8, bottom: 0 }}
             >
               <CartesianGrid vertical={false} stroke="rgba(255,255,255,0.08)" />
@@ -51,12 +51,12 @@ export function AnalyticsSessionChart({
                 tickLine={false}
                 axisLine={false}
                 tickMargin={8}
-                minTickGap={28}
+                minTickGap={24}
                 tickFormatter={formatAxisDate}
                 stroke="rgba(255,255,255,0.35)"
               />
               <YAxis
-                allowDecimals={false}
+                domain={[1, 5]}
                 tickLine={false}
                 axisLine={false}
                 tickMargin={8}
@@ -67,23 +67,17 @@ export function AnalyticsSessionChart({
                   <ChartTooltipContent
                     className="border-border bg-card text-foreground"
                     labelFormatter={(value) => formatAxisDate(String(value))}
+                    formatter={(value) => `${Number(value).toFixed(1)} / 5`}
                   />
                 }
               />
               <Line
                 type="monotone"
-                dataKey="previousSessions"
-                stroke="var(--color-previousSessions)"
-                strokeWidth={1.5}
-                strokeDasharray="4 4"
-                dot={false}
-              />
-              <Line
-                type="monotone"
-                dataKey="sessions"
-                stroke="var(--color-sessions)"
+                dataKey="averageRating"
+                stroke="var(--color-averageRating)"
                 strokeWidth={2}
                 dot={false}
+                connectNulls
               />
             </LineChart>
           </ChartContainer>

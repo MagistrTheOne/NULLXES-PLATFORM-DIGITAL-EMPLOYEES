@@ -1,12 +1,20 @@
-import { count, eq, sql } from "drizzle-orm";
+import { and, count, eq, sql } from "drizzle-orm";
 import { digitalEmployee } from "@/entities/digital-employee/schema";
 import { employeeSession } from "@/entities/session/schema";
 import { db } from "@/shared/db/client";
-import type { SessionMetrics } from "../types";
+import { sessionStartedInRange } from "../lib/session-range-filter";
+import type { AnalyticsDateRange, SessionMetrics } from "../types";
 
 export async function getSessionMetrics(
   organizationId: string,
+  range?: AnalyticsDateRange,
 ): Promise<SessionMetrics> {
+  const filters = [eq(digitalEmployee.organizationId, organizationId)];
+
+  if (range) {
+    filters.push(sessionStartedInRange(range)!);
+  }
+
   const [row] = await db
     .select({
       totalSessions: count(employeeSession.id),
@@ -28,7 +36,7 @@ export async function getSessionMetrics(
       digitalEmployee,
       eq(employeeSession.employeeId, digitalEmployee.id),
     )
-    .where(eq(digitalEmployee.organizationId, organizationId));
+    .where(and(...filters));
 
   return {
     totalSessions: Number(row?.totalSessions ?? 0),
