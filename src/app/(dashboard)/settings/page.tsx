@@ -1,10 +1,11 @@
-export default function SettingsPage() {
-  return (
-    <div className="flex flex-col gap-2">
-      <h1 className="text-2xl font-medium tracking-tight text-white">Settings</h1>
-      <p className="text-sm text-white/60">
-        Settings UI is not part of this phase.
-      </p>
-    </div>
-  );
+import { requireAuth } from "@/features/auth/services/require-auth";
+import { ensureWorkspace } from "@/features/auth/services/ensure-workspace";
+import { getSettingsPageData, SettingsScreen } from "@/features/settings";
+
+export default async function SettingsPage() {
+  const session = await requireAuth();
+  const workspace = await ensureWorkspace(session.user.id, session.user.name);
+  const data = await getSettingsPageData(workspace);
+
+  return <SettingsScreen data={data} />;
 }

@@ -10,6 +10,8 @@ export default defineConfig({
     "./src/entities/user/relations.ts",
     "./src/entities/organization/schema.ts",
     "./src/entities/organization/relations.ts",
+    "./src/entities/organization-settings/schema.ts",
+    "./src/entities/organization-settings/relations.ts",
     "./src/entities/membership/schema.ts",
     "./src/entities/membership/relations.ts",
     "./src/entities/digital-employee/schema.ts",

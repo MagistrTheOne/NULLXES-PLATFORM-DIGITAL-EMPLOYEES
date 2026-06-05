@@ -1,0 +1,19 @@
+{
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Manage your organization, team, preferences and integrations.",
+    "saved": "Settings saved.",
+    "saveFailed": "Save failed.",
+    "tabs": {
+      "general": "General",
+      "organization": "Organization",
+      "team": "Team",
+      "billing": "Billing",
+      "integrations": "Integrations",
+      "security": "Security",
+      "ai": "AI & Voice",
+      "notifications": "Notifications",
+      "advanced": "Advanced"
+    }
+  }
+}

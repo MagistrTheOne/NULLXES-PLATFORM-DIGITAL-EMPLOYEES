@@ -2,6 +2,10 @@
 
 import { eq } from "drizzle-orm";
 import { membership } from "@/entities/membership/schema";
+import {
+  ensureOrganizationSettings,
+  OrganizationSettingsTableMissingError,
+} from "@/entities/organization-settings/ensure-organization-settings";
 import { resolveWorkspace } from "@/features/workspace";
 import type { WorkspaceContext } from "@/features/workspace";
 import { db } from "@/shared/db/client";
@@ -21,5 +25,15 @@ export async function ensureWorkspace(
     await provisionDefaultWorkspace(userId, displayName);
   }
 
-  return resolveWorkspace({ userId });
+  const workspace = await resolveWorkspace({ userId });
+
+  try {
+    await ensureOrganizationSettings(workspace.organization.id);
+  } catch (error: unknown) {
+    if (!(error instanceof OrganizationSettingsTableMissingError)) {
+      throw error;
+    }
+  }
+
+  return workspace;
 }

@@ -2,6 +2,7 @@
 
 import { createMembership } from "@/entities/membership/create-membership";
 import { createOrganization } from "@/entities/organization/create-organization";
+import { ensureOrganizationSettings } from "@/entities/organization-settings";
 
 export async function provisionDefaultWorkspace(
   userId: string,
@@ -25,4 +26,6 @@ export async function provisionDefaultWorkspace(
     organizationId: org.id,
     role: "owner",
   });
+
+  await ensureOrganizationSettings(org.id);
 }

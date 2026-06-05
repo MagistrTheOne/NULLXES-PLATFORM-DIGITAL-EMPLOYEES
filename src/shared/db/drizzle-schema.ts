@@ -14,6 +14,8 @@ import * as membershipRelations from "@/entities/membership/relations";
 import * as membershipSchema from "@/entities/membership/schema";
 import * as organizationRelations from "@/entities/organization/relations";
 import * as organizationSchema from "@/entities/organization/schema";
+import * as organizationSettingsRelations from "@/entities/organization-settings/relations";
+import * as organizationSettingsSchema from "@/entities/organization-settings/schema";
 import * as userRelations from "@/entities/user/relations";
 import * as userSchema from "@/entities/user/schema";
 import * as authRelations from "@/features/auth/relations";
@@ -28,6 +30,8 @@ export const drizzleSchema = {
   ...userRelations,
   ...organizationSchema,
   ...organizationRelations,
+  ...organizationSettingsSchema,
+  ...organizationSettingsRelations,
   ...membershipSchema,
   ...membershipRelations,
   ...digitalEmployeeSchema,

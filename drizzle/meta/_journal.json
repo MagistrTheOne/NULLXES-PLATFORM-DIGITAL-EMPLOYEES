@@ -71,6 +71,20 @@
       "when": 1780651258482,
       "tag": "0009_legal_cammi",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1780656531004,
+      "tag": "0010_demonic_tana_nile",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1780657200457,
+      "tag": "0011_shiny_bushwacker",
+      "breakpoints": true
     }
   ]
 }

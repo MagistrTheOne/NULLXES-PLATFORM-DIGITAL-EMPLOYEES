@@ -34,6 +34,7 @@
     "employees-crud:verify": "node --env-file=.env --import tsx src/features/employees/verify-employee-crud.ts",
     "analytics:verify": "node --env-file=.env --import tsx src/features/analytics/verify-analytics.ts",
     "overview:verify": "node --env-file=.env --import tsx src/features/overview/verify-overview.ts",
+    "settings:verify": "node --env-file=.env --import tsx src/features/settings/verify-settings.ts",
     "provider-provisioning:verify": "node --import tsx src/features/provider-provisioning/verify-provider-provisioning.ts",
     "providers:status": "node --import tsx src/features/provider-provisioning/check-provider-status.ts",
     "stream:verify": "node --env-file=.env --import tsx src/features/runtime-session/verify-stream-credentials.ts"
@@ -55,6 +56,7 @@
     "input-otp": "^1.4.2",
     "lucide-react": "^1.17.0",
     "next": "^16.2.7",
+    "next-intl": "^4.13.0",
     "next-themes": "^0.4.6",
     "openai": "^6.42.0",
     "radix-ui": "^1.4.3",
