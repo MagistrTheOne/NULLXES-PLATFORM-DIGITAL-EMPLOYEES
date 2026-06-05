@@ -1,3 +1,6 @@
+"use client";
+
+import { useTranslations } from "next-intl";
 import type { ActivityMetrics } from "../types";
 import { AnalyticsCard } from "./analytics-card";
 
@@ -33,6 +36,7 @@ export function AnalyticsLifecycleOverview({
 }: {
   activity: ActivityMetrics;
 }) {
+  const t = useTranslations("analytics.overview");
   const maxValue = Math.max(
     activity.createdEmployeesLast7Days,
     activity.activatedEmployeesLast7Days,
@@ -41,20 +45,20 @@ export function AnalyticsLifecycleOverview({
   );
 
   return (
-    <AnalyticsCard title="Lifecycle Activity" description="Last 7 days">
+    <AnalyticsCard title={t("lifecycle")} description={t("lifecycleDesc")}>
       <div className="space-y-5 px-5 py-5">
         <ActivityStat
-          label="Created"
+          label={t("created")}
           value={activity.createdEmployeesLast7Days}
           max={maxValue}
         />
         <ActivityStat
-          label="Activated"
+          label={t("activated")}
           value={activity.activatedEmployeesLast7Days}
           max={maxValue}
         />
         <ActivityStat
-          label="Archived"
+          label={t("archived")}
           value={activity.archivedEmployeesLast7Days}
           max={maxValue}
         />

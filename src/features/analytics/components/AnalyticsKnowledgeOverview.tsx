@@ -1,3 +1,6 @@
+"use client";
+
+import { useTranslations } from "next-intl";
 import type { KnowledgeMetrics } from "../types";
 import { AnalyticsCard } from "./analytics-card";
 
@@ -33,6 +36,7 @@ export function AnalyticsKnowledgeOverview({
 }: {
   knowledge: KnowledgeMetrics;
 }) {
+  const t = useTranslations("analytics.overview");
   const maxValue = Math.max(
     knowledge.readySources,
     knowledge.processingSources,
@@ -41,17 +45,20 @@ export function AnalyticsKnowledgeOverview({
   );
 
   return (
-    <AnalyticsCard title="Knowledge Overview">
+    <AnalyticsCard title={t("knowledge")}>
       <div className="space-y-5 px-5 py-5">
-        <MetricBar label="Ready" value={knowledge.readySources} max={maxValue} />
+        <MetricBar label={t("ready")} value={knowledge.readySources} max={maxValue} />
         <MetricBar
-          label="Processing"
+          label={t("processing")}
           value={knowledge.processingSources}
           max={maxValue}
         />
-        <MetricBar label="Failed" value={knowledge.failedSources} max={maxValue} />
+        <MetricBar label={t("failed")} value={knowledge.failedSources} max={maxValue} />
         <p className="border-t border-border pt-4 text-xs text-muted-foreground">
-          {knowledge.totalSources} sources · {knowledge.totalChunks} chunks
+          {t("sourcesChunks", {
+            sources: knowledge.totalSources,
+            chunks: knowledge.totalChunks,
+          })}
         </p>
       </div>
     </AnalyticsCard>

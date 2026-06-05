@@ -1,3 +1,6 @@
+"use client";
+
+import { useTranslations } from "next-intl";
 import type { PerformanceMetrics } from "../types";
 import { AnalyticsCard } from "./analytics-card";
 
@@ -18,32 +21,33 @@ export function AnalyticsPerformanceOverview({
 }: {
   performance: PerformanceMetrics;
 }) {
+  const t = useTranslations("analytics.performance");
   const metrics = [
     {
-      label: "Response Time",
+      label: t("responseTime"),
       value: formatResponseTime(performance.averageFirstResponseMs),
-      detail: "Average first response",
+      detail: t("responseTimeDetail"),
     },
     {
-      label: "Resolution Rate",
+      label: t("resolutionRate"),
       value:
         performance.completedSessions > 0
           ? `${performance.resolutionRatePercent}%`
           : "—",
-      detail: "Completed sessions resolved",
+      detail: t("resolutionRateDetail"),
     },
     {
-      label: "Escalation Rate",
+      label: t("escalationRate"),
       value:
         performance.completedSessions > 0 || performance.escalationRatePercent > 0
           ? `${performance.escalationRatePercent}%`
           : "—",
-      detail: "Sessions escalated to human",
+      detail: t("escalationRateDetail"),
     },
   ];
 
   return (
-    <AnalyticsCard title="Performance Overview" className="min-h-[320px]">
+    <AnalyticsCard title={t("title")} className="min-h-[320px]">
       <div className="grid gap-4 px-5 py-5">
         {metrics.map((metric) => (
           <div

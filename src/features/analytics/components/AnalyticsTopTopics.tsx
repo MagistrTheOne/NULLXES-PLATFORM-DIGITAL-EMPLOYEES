@@ -1,18 +1,21 @@
+"use client";
+
+import { useTranslations } from "next-intl";
 import type { TopicRow } from "../types";
 import { AnalyticsCard } from "./analytics-card";
 
 export function AnalyticsTopTopics({ topics }: { topics: TopicRow[] }) {
+  const t = useTranslations("analytics.charts");
+
   return (
     <AnalyticsCard
-      title="Top Conversation Topics"
-      description="Ranked by session volume"
+      title={t("topTopics")}
+      description={t("topTopicsDesc")}
       className="min-h-[320px]"
     >
       <div className="space-y-4 px-5 py-5">
         {topics.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            No conversation topics recorded in this period.
-          </p>
+          <p className="text-sm text-muted-foreground">{t("noTopicsInPeriod")}</p>
         ) : (
           topics.map((topic) => (
             <div key={topic.topic} className="space-y-2">

@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
 import {
   ChartContainer,
@@ -8,13 +9,6 @@ import {
 } from "@/components/ui/chart";
 import type { SatisfactionTimeseriesPoint } from "../types";
 import { AnalyticsCard } from "./analytics-card";
-
-const chartConfig = {
-  averageRating: {
-    label: "Satisfaction",
-    color: "#ffffff",
-  },
-} as const;
 
 function formatAxisDate(value: string): string {
   const date = new Date(`${value}T00:00:00.000Z`);
@@ -26,18 +20,25 @@ export function AnalyticsSatisfactionTrend({
 }: {
   timeseries: SatisfactionTimeseriesPoint[];
 }) {
+  const t = useTranslations("analytics.charts");
   const ratedDays = timeseries.filter((point) => point.ratedSessions > 0);
   const chartData = timeseries.map((point) => ({
     ...point,
     averageRating: point.averageRating ?? 0,
   }));
+  const chartConfig = {
+    averageRating: {
+      label: t("satisfaction"),
+      color: "#ffffff",
+    },
+  } as const;
 
   return (
-    <AnalyticsCard title="User Satisfaction Trend" className="min-h-[320px]">
+    <AnalyticsCard title={t("satisfactionTrend")} className="min-h-[320px]">
       <div className="flex h-[260px] flex-col px-4 py-4">
         {ratedDays.length === 0 ? (
           <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
-            No satisfaction ratings in this period.
+            {t("noSatisfactionRatings")}
           </div>
         ) : (
           <ChartContainer config={chartConfig} className="h-full w-full">

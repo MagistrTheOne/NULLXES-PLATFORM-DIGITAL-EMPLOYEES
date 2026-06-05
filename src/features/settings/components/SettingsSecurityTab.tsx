@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { authClient } from "@/features/auth/client";
@@ -24,6 +25,7 @@ export function SettingsSecurityTab({
   security: SecuritySnapshot;
   canManageOrganization: boolean;
 }) {
+  const t = useTranslations("settings.security");
   const [keyName, setKeyName] = useState("Production API");
   const [createdKey, setCreatedKey] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -37,38 +39,38 @@ export function SettingsSecurityTab({
         return;
       }
       setCreatedKey(result.rawKey);
-      setMessage("Copy this key now. It will not be shown again.");
+      setMessage(t("copyKeyNow"));
     });
   }
 
   function handleEnable2fa(): void {
     startTransition(async () => {
-      const password = window.prompt("Confirm your password to enable 2FA:");
+      const password = window.prompt(t("passwordPrompt"));
       if (!password) {
         return;
       }
       const result = await authClient.twoFactor.enable({ password });
       if (result.error) {
-        setMessage(result.error.message ?? "Failed to enable 2FA.");
+        setMessage(result.error.message ?? t("enable2faFailed"));
         return;
       }
-      setMessage("Scan the TOTP URI in your authenticator app to finish setup.");
+      setMessage(t("totpSetup"));
     });
   }
 
   return (
     <div className="grid gap-6">
-      <SettingsCard title="Authentication" description="Account and session security">
+      <SettingsCard title={t("authentication")} description={t("authenticationDesc")}>
         <div className="grid gap-3">
           <StatusRow
-            label="Two-Factor Authentication"
-            value={security.twoFactorEnabled ? "Enabled" : "Not enabled"}
+            label={t("twoFactor")}
+            value={security.twoFactorEnabled ? t("enabled") : t("notEnabled")}
           />
           <StatusRow
-            label="Active Sessions"
-            value={`${security.activeAuthSessions} device(s)`}
+            label={t("activeSessions")}
+            value={t("devices", { count: security.activeAuthSessions })}
           />
-          <StatusRow label="Session Timeout" value="30 minutes" />
+          <StatusRow label={t("sessionTimeout")} value={t("sessionTimeoutValue")} />
           {!security.twoFactorEnabled ? (
             <Button
               type="button"
@@ -76,23 +78,23 @@ export function SettingsSecurityTab({
               disabled={isPending}
               onClick={handleEnable2fa}
             >
-              Enable 2FA (TOTP)
+              {t("enable2fa")}
             </Button>
           ) : null}
         </div>
       </SettingsCard>
-      <SettingsCard title="API Access">
+      <SettingsCard title={t("apiAccess")}>
         <div className="grid gap-3">
           <StatusRow
-            label="API Keys"
-            value={security.apiKeysConfigured ? "Configured" : "Not configured"}
+            label={t("apiKeys")}
+            value={security.apiKeysConfigured ? t("configured") : t("notConfigured")}
           />
-          <StatusRow label="IP Allowlist" value="Disabled" />
+          <StatusRow label={t("ipAllowlist")} value={t("ipAllowlistDisabled")} />
           {canManageOrganization ? (
             <div className="flex flex-wrap items-end gap-3">
               <div className="grid flex-1 gap-2">
                 <label className="text-sm text-muted-foreground" htmlFor="api-key-name">
-                  Key name
+                  {t("keyName")}
                 </label>
                 <Input
                   id="api-key-name"
@@ -106,7 +108,7 @@ export function SettingsSecurityTab({
                 disabled={isPending || !keyName.trim()}
                 onClick={handleCreateKey}
               >
-                Create API Key
+                {t("createApiKey")}
               </Button>
             </div>
           ) : null}

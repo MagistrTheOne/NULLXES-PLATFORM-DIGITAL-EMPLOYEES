@@ -1,5 +1,7 @@
 "use client";
 
+import { useMemo } from "react";
+import { useTranslations } from "next-intl";
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
 import {
   ChartContainer,
@@ -8,17 +10,6 @@ import {
 } from "@/components/ui/chart";
 import type { SessionTimeseriesPoint } from "../types";
 import { AnalyticsCard } from "./analytics-card";
-
-const chartConfig = {
-  sessions: {
-    label: "Sessions",
-    color: "#ffffff",
-  },
-  previousSessions: {
-    label: "Previous Period",
-    color: "rgba(255,255,255,0.35)",
-  },
-} as const;
 
 function formatAxisDate(value: string): string {
   const date = new Date(`${value}T00:00:00.000Z`);
@@ -30,14 +21,26 @@ export function AnalyticsSessionChart({
 }: {
   timeseries: SessionTimeseriesPoint[];
 }) {
+  const t = useTranslations("analytics.charts");
+  const chartConfig = useMemo(
+    () =>
+      ({
+        sessions: { label: t("sessions"), color: "#ffffff" },
+        previousSessions: {
+          label: t("previousPeriod"),
+          color: "rgba(255,255,255,0.35)",
+        },
+      }) as const,
+    [t],
+  );
   const totalSessions = timeseries.reduce((sum, point) => sum + point.sessions, 0);
 
   return (
-    <AnalyticsCard title="Sessions Over Time" className="h-[420px]">
+    <AnalyticsCard title={t("sessionsOverTime")} className="h-[420px]">
       <div className="flex h-[calc(420px-57px)] flex-col px-4 py-4">
         {totalSessions === 0 ? (
           <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
-            No sessions recorded in this period.
+            {t("noSessionsInPeriod")}
           </div>
         ) : (
           <ChartContainer config={chartConfig} className="h-full w-full">

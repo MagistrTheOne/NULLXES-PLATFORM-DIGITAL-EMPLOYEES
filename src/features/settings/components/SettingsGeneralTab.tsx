@@ -18,6 +18,7 @@ import { updateDefaultEmployeeSettingsAction } from "../actions/update-default-e
 import { updateOrganizationPreferencesAction } from "../actions/update-organization-preferences";
 import { updateOrganizationProfileAction } from "../actions/update-organization-profile";
 import { BRAIN_PROVIDER_OPTIONS } from "../lib/brain-provider-labels";
+import { optionLabel } from "../lib/translated-option-label";
 import {
   DATE_FORMAT_OPTIONS,
   INDUSTRY_OPTIONS,
@@ -71,6 +72,7 @@ export function SettingsGeneralTab({
 }) {
   const t = useTranslations("settings.general");
   const tSettings = useTranslations("settings");
+  const tOptions = useTranslations("settings.options");
   const show = (section: SettingsSection) => sections.includes(section);
   const [message, setMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -159,7 +161,7 @@ export function SettingsGeneralTab({
                 <SelectContent>
                   {INDUSTRY_OPTIONS.map((option) => (
                     <SelectItem key={option.value} value={option.value}>
-                      {option.label}
+                      {optionLabel(tOptions, option.labelKey)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -189,7 +191,7 @@ export function SettingsGeneralTab({
                 <SelectContent>
                   {TIMEZONE_OPTIONS.map((option) => (
                     <SelectItem key={option.value} value={option.value}>
-                      {option.label}
+                      {optionLabel(tOptions, option.labelKey)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -216,20 +218,18 @@ export function SettingsGeneralTab({
           }
         >
           <div className="grid gap-4">
-            <Field label="Theme">
+            <Field label={t("theme")}>
               <Select value={preferences.theme} disabled>
                 <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="dark">Dark</SelectItem>
+                  <SelectItem value="dark">{t("themeDark")}</SelectItem>
                 </SelectContent>
               </Select>
             </Field>
-            <Field label="Language">
-              <p className="text-xs text-muted-foreground">
-                Uses next-intl. Settings UI translates first; other screens follow gradually.
-              </p>
+            <Field label={t("language")}>
+              <p className="text-xs text-muted-foreground">{t("languageHint")}</p>
               <Select
                 value={preferences.language}
                 disabled={!canManageOrganization}
@@ -243,13 +243,13 @@ export function SettingsGeneralTab({
                 <SelectContent>
                   {LANGUAGE_OPTIONS.map((option) => (
                     <SelectItem key={option.value} value={option.value}>
-                      {option.label}
+                      {optionLabel(tOptions, option.labelKey)}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </Field>
-            <Field label="Date Format">
+            <Field label={t("dateFormat")}>
               <Select
                 value={preferences.dateFormat}
                 disabled={!canManageOrganization}
@@ -263,13 +263,13 @@ export function SettingsGeneralTab({
                 <SelectContent>
                   {DATE_FORMAT_OPTIONS.map((option) => (
                     <SelectItem key={option.value} value={option.value}>
-                      {option.label}
+                      {optionLabel(tOptions, option.labelKey)}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </Field>
-            <Field label="Time Format">
+            <Field label={t("timeFormat")}>
               <Select
                 value={preferences.timeFormat}
                 disabled={!canManageOrganization}
@@ -283,13 +283,13 @@ export function SettingsGeneralTab({
                 <SelectContent>
                   {TIME_FORMAT_OPTIONS.map((option) => (
                     <SelectItem key={option.value} value={option.value}>
-                      {option.label}
+                      {optionLabel(tOptions, option.labelKey)}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </Field>
-            <Field label="Default Time Range">
+            <Field label={t("defaultTimeRange")}>
               <Select
                 value={String(preferences.defaultTimeRangeDays)}
                 disabled={!canManageOrganization}
@@ -306,7 +306,7 @@ export function SettingsGeneralTab({
                 <SelectContent>
                   {TIME_RANGE_OPTIONS.map((option) => (
                     <SelectItem key={option.value} value={String(option.value)}>
-                      {option.label}
+                      {optionLabel(tOptions, option.labelKey)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -314,10 +314,8 @@ export function SettingsGeneralTab({
             </Field>
             <div className="flex items-center justify-between gap-4 rounded-xl border border-border bg-background/40 px-4 py-3">
               <div>
-                <p className="text-sm text-foreground">Compact Mode</p>
-                <p className="text-xs text-muted-foreground">
-                  Tighter spacing across dashboard surfaces
-                </p>
+                <p className="text-sm text-foreground">{t("compactMode")}</p>
+                <p className="text-xs text-muted-foreground">{t("compactModeDesc")}</p>
               </div>
               <Switch
                 checked={preferences.compactMode}
@@ -348,7 +346,7 @@ export function SettingsGeneralTab({
           }
         >
           <div className="grid gap-4">
-            <Field label="Default LLM">
+            <Field label={t("defaultLlm")}>
               <Select
                 value={defaults.defaultBrainProvider}
                 disabled={!canManageOrganization}
@@ -365,13 +363,13 @@ export function SettingsGeneralTab({
                 <SelectContent>
                   {BRAIN_PROVIDER_OPTIONS.map((option) => (
                     <SelectItem key={option.value} value={option.value}>
-                      {option.label}
+                      {optionLabel(tOptions, option.labelKey)}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </Field>
-            <Field label="Knowledge Processing">
+            <Field label={t("knowledgeProcessing")}>
               <Select
                 value={defaults.knowledgeProcessing}
                 disabled={!canManageOrganization}
@@ -388,13 +386,13 @@ export function SettingsGeneralTab({
                 <SelectContent>
                   {KNOWLEDGE_PROCESSING_OPTIONS.map((option) => (
                     <SelectItem key={option.value} value={option.value}>
-                      {option.label}
+                      {optionLabel(tOptions, option.labelKey)}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </Field>
-            <Field label="Session Retention">
+            <Field label={t("sessionRetention")}>
               <Select
                 value={String(defaults.sessionRetentionDays)}
                 disabled={!canManageOrganization}
@@ -411,7 +409,7 @@ export function SettingsGeneralTab({
                 <SelectContent>
                   {RETENTION_OPTIONS.map((option) => (
                     <SelectItem key={option.value} value={String(option.value)}>
-                      {option.label}
+                      {optionLabel(tOptions, option.labelKey)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -438,7 +436,7 @@ export function SettingsGeneralTab({
           }
         >
           <div className="grid gap-4">
-            <Field label="Retention Policy">
+            <Field label={t("retentionPolicy")}>
               <Select
                 value={String(privacy.retentionPolicyDays)}
                 disabled={!canManageOrganization}
@@ -452,15 +450,15 @@ export function SettingsGeneralTab({
                 <SelectContent>
                   {RETENTION_OPTIONS.map((option) => (
                     <SelectItem key={option.value} value={String(option.value)}>
-                      {option.label}
+                      {optionLabel(tOptions, option.labelKey)}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </Field>
-            <StatusRow label="Data Export" value="Available on request" />
-            <StatusRow label="Delete Sessions" value="Managed by retention policy" />
-            <StatusRow label="Anonymize Data" value="Contact administrator" />
+            <StatusRow label={t("dataExport")} value={t("dataExportValue")} />
+            <StatusRow label={t("deleteSessions")} value={t("deleteSessionsValue")} />
+            <StatusRow label={t("anonymizeData")} value={t("anonymizeDataValue")} />
           </div>
         </SettingsCard>
         ) : null}

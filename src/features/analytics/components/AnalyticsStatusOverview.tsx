@@ -1,3 +1,6 @@
+"use client";
+
+import { useTranslations } from "next-intl";
 import type { EmployeeMetrics } from "../types";
 import { AnalyticsCard } from "./analytics-card";
 
@@ -33,6 +36,7 @@ export function AnalyticsStatusOverview({
 }: {
   employees: EmployeeMetrics;
 }) {
+  const t = useTranslations("analytics.overview");
   const maxValue = Math.max(
     employees.activeEmployees,
     employees.draftEmployees,
@@ -42,13 +46,13 @@ export function AnalyticsStatusOverview({
   );
 
   return (
-    <AnalyticsCard title="Employee Status">
+    <AnalyticsCard title={t("employeeStatus")}>
       <div className="space-y-5 px-5 py-5">
-        <StatusRow label="Active" value={employees.activeEmployees} max={maxValue} />
-        <StatusRow label="Draft" value={employees.draftEmployees} max={maxValue} />
-        <StatusRow label="Paused" value={employees.pausedEmployees} max={maxValue} />
+        <StatusRow label={t("active")} value={employees.activeEmployees} max={maxValue} />
+        <StatusRow label={t("draft")} value={employees.draftEmployees} max={maxValue} />
+        <StatusRow label={t("paused")} value={employees.pausedEmployees} max={maxValue} />
         <StatusRow
-          label="Archived"
+          label={t("archived")}
           value={employees.archivedEmployees}
           max={maxValue}
         />

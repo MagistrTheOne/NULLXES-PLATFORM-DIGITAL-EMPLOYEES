@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { formatDurationSeconds } from "@/features/analytics/lib/format-duration";
 import {
@@ -22,6 +23,7 @@ export function SettingsBillingTab({
   usage: SettingsUsageSnapshot;
   canManageOrganization: boolean;
 }) {
+  const t = useTranslations("settings.billing");
   const planId = resolveBillingPlanId(organization.billingPlan);
   const activePlan = BILLING_PLANS[planId];
   const polarReady = isPolarConfigured();
@@ -37,10 +39,7 @@ export function SettingsBillingTab({
 
   return (
     <div className="grid gap-6">
-      <SettingsCard
-        title="Current Plan"
-        description="Premium digital workforce operations"
-      >
+      <SettingsCard title={t("currentPlan")} description={t("currentPlanDesc")}>
         <div className="space-y-4">
           <div className="rounded-xl border border-border bg-background/40 px-4 py-4">
             <p className="text-2xl font-medium text-foreground">
@@ -58,7 +57,7 @@ export function SettingsBillingTab({
         </div>
       </SettingsCard>
 
-      <SettingsCard title="Plans" description="NULLXES premium tiers">
+      <SettingsCard title={t("plans")} description={t("plansDesc")}>
         <div className="grid gap-3">
           {Object.values(BILLING_PLANS).map((plan) => {
             const isCurrent = plan.id === planId;
@@ -80,7 +79,7 @@ export function SettingsBillingTab({
                     {plan.name}
                     {isCurrent ? (
                       <span className="ms-2 text-xs text-muted-foreground">
-                        Current
+                        {t("current")}
                       </span>
                     ) : null}
                   </p>
@@ -94,11 +93,11 @@ export function SettingsBillingTab({
                     className="bg-foreground text-background hover:bg-foreground/90"
                     asChild
                   >
-                    <Link href={checkoutUrl}>Upgrade</Link>
+                    <Link href={checkoutUrl}>{t("upgrade")}</Link>
                   </Button>
                 ) : plan.id === "enterprise" || plan.id === "government" ? (
                   <Button type="button" variant="outline" asChild>
-                    <a href="mailto:sales@nullxes.com">Contact sales</a>
+                    <a href="mailto:sales@nullxes.com">{t("contactSales")}</a>
                   </Button>
                 ) : null}
               </div>
@@ -107,28 +106,28 @@ export function SettingsBillingTab({
         </div>
       </SettingsCard>
 
-      <SettingsCard title="Usage Meters" description="Billable workspace activity">
+      <SettingsCard title={t("usageMeters")} description={t("usageMetersDesc")}>
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="rounded-xl border border-border bg-background/40 px-4 py-3">
-            <p className="text-xs text-muted-foreground">Sessions</p>
+            <p className="text-xs text-muted-foreground">{t("sessions")}</p>
             <p className="text-xl font-medium text-foreground">
               {usage.totalSessions}
             </p>
           </div>
           <div className="rounded-xl border border-border bg-background/40 px-4 py-3">
-            <p className="text-xs text-muted-foreground">Talk time</p>
+            <p className="text-xs text-muted-foreground">{t("talkTime")}</p>
             <p className="text-xl font-medium text-foreground">
               {formatDurationSeconds(usage.totalConversationSeconds)}
             </p>
           </div>
           <div className="rounded-xl border border-border bg-background/40 px-4 py-3">
-            <p className="text-xs text-muted-foreground">Messages</p>
+            <p className="text-xs text-muted-foreground">{t("messages")}</p>
             <p className="text-xl font-medium text-foreground">
               {usage.totalMessages}
             </p>
           </div>
           <div className="rounded-xl border border-border bg-background/40 px-4 py-3">
-            <p className="text-xs text-muted-foreground">Knowledge sources</p>
+            <p className="text-xs text-muted-foreground">{t("knowledgeSources")}</p>
             <p className="text-xl font-medium text-foreground">
               {usage.totalKnowledgeSources}
             </p>
@@ -136,9 +135,9 @@ export function SettingsBillingTab({
         </div>
       </SettingsCard>
 
-      <SettingsCard title="Customer Portal">
+      <SettingsCard title={t("customerPortal")}>
         <p className="mb-4 text-sm text-muted-foreground">
-          Manage subscriptions, invoices, and payment methods in Polar.
+          {t("customerPortalDesc")}
         </p>
         <Button
           type="button"
@@ -147,9 +146,9 @@ export function SettingsBillingTab({
           asChild={canManageOrganization && polarReady}
         >
           {canManageOrganization && polarReady ? (
-            <Link href="/api/portal">Open Polar Customer Portal</Link>
+            <Link href="/api/portal">{t("openPortal")}</Link>
           ) : (
-            <span>Open Polar Customer Portal</span>
+            <span>{t("openPortal")}</span>
           )}
         </Button>
       </SettingsCard>

@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { UserRound } from "lucide-react";
 import { formatDurationSeconds } from "../lib/format-duration";
 import type { TopEmployeeRow } from "../types";
@@ -23,17 +26,18 @@ export function AnalyticsTopEmployees({
 }: {
   employees: TopEmployeeRow[];
 }) {
+  const t = useTranslations("analytics.charts");
   const maxSessions = employees[0]?.totalSessions ?? 0;
 
   return (
     <AnalyticsCard
-      title="Top Employees"
-      description="Ranked by total sessions"
+      title={t("topEmployees")}
+      description={t("topEmployeesDesc")}
       className="min-h-[280px] 2xl:min-h-[420px]"
     >
       <div className="flex max-h-[360px] flex-col overflow-y-auto px-5 py-4 2xl:max-h-none 2xl:min-h-[calc(420px-57px)]">
         {employees.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No employees in this workspace.</p>
+          <p className="text-sm text-muted-foreground">{t("noSessionsInPeriod")}</p>
         ) : (
           <div className="space-y-4">
             {employees.map((employee, index) => {
@@ -55,12 +59,11 @@ export function AnalyticsTopEmployees({
                           {index + 1}. {employee.name}
                         </Link>
                         <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
-                          {employee.totalSessions} sessions
+                          {t("sessionCount", { count: employee.totalSessions })}
                         </span>
                       </div>
                       <p className="text-xs text-muted-foreground">
-                        {formatDurationSeconds(employee.totalDurationSeconds)} conversation
-                        time
+                        {formatDurationSeconds(employee.totalDurationSeconds)}
                       </p>
                     </div>
                   </div>

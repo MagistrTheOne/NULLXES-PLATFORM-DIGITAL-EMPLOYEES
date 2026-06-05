@@ -1,31 +1,34 @@
-import { getBrainProviderLabel } from "../lib/brain-provider-labels";
+import { getTranslations } from "next-intl/server";
+import type { BrainProvider } from "@/entities/digital-employee";
 import type { OrganizationSettingsDto } from "../types";
 import { SettingsCard } from "./settings-card";
 
-export function SettingsAiTab({
+const BRAIN_OPTION_KEYS: Record<BrainProvider, "brainOpenai" | "brainAnthropic" | "brainGoogle" | "brainNullxes"> = {
+  openai: "brainOpenai",
+  anthropic: "brainAnthropic",
+  google: "brainGoogle",
+  nullxes: "brainNullxes",
+};
+
+export async function SettingsAiTab({
   settings,
 }: {
   settings: OrganizationSettingsDto;
 }) {
+  const t = await getTranslations("settings.ai");
+  const tOptions = await getTranslations("settings.options");
+
   return (
-    <SettingsCard
-      title="AI Configuration"
-      description="LLM defaults for new digital employees"
-    >
+    <SettingsCard title={t("title")} description={t("description")}>
       <div className="space-y-4 text-sm">
         <div className="flex items-center justify-between gap-4 rounded-xl border border-border bg-background/40 px-4 py-3">
-          <span className="text-muted-foreground">Default LLM</span>
+          <span className="text-muted-foreground">{t("defaultLlm")}</span>
           <span className="text-foreground">
-            {getBrainProviderLabel(settings.defaultBrainProvider)}
+            {tOptions(BRAIN_OPTION_KEYS[settings.defaultBrainProvider])}
           </span>
         </div>
-        <p className="text-muted-foreground">
-          Voice and avatar providers are provisioned per employee during creation
-          and are not managed in workspace settings.
-        </p>
-        <p className="text-muted-foreground">
-          Update the default LLM under General → Default Employee Settings.
-        </p>
+        <p className="text-muted-foreground">{t("perEmployeeNote")}</p>
+        <p className="text-muted-foreground">{t("generalNote")}</p>
       </div>
     </SettingsCard>
   );

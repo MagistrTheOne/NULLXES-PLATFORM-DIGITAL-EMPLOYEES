@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import {
   ChartContainer,
@@ -8,13 +9,6 @@ import {
 } from "@/components/ui/chart";
 import type { MessageTimeseriesPoint } from "../types";
 import { AnalyticsCard } from "./analytics-card";
-
-const chartConfig = {
-  messages: {
-    label: "Messages",
-    color: "#ffffff",
-  },
-} as const;
 
 function formatAxisDate(value: string): string {
   const date = new Date(`${value}T00:00:00.000Z`);
@@ -26,14 +20,21 @@ export function AnalyticsMessageVolumeChart({
 }: {
   timeseries: MessageTimeseriesPoint[];
 }) {
+  const t = useTranslations("analytics.charts");
   const totalMessages = timeseries.reduce((sum, point) => sum + point.messages, 0);
+  const chartConfig = {
+    messages: {
+      label: t("messages"),
+      color: "#ffffff",
+    },
+  } as const;
 
   return (
-    <AnalyticsCard title="Message Volume" className="min-h-[320px]">
+    <AnalyticsCard title={t("messageVolume")} className="min-h-[320px]">
       <div className="flex h-[260px] flex-col px-4 py-4">
         {totalMessages === 0 ? (
           <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
-            No messages recorded in this period.
+            {t("noMessagesInPeriod")}
           </div>
         ) : (
           <ChartContainer config={chartConfig} className="h-full w-full">

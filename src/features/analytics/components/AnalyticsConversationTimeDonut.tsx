@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Cell, Pie, PieChart } from "recharts";
 import {
   ChartContainer,
@@ -28,6 +29,7 @@ export function AnalyticsConversationTimeDonut({
   employees: TopEmployeeRow[];
   totalConversationSeconds: number;
 }) {
+  const t = useTranslations("analytics.charts");
   const slices = employees
     .filter((employee) => employee.totalDurationSeconds > 0)
     .slice(0, 8)
@@ -45,15 +47,13 @@ export function AnalyticsConversationTimeDonut({
 
   return (
     <AnalyticsCard
-      title="Conversation Time"
-      description="Distribution by employee"
+      title={t("conversationTime")}
+      description={t("conversationTimeDesc")}
       className="min-h-[280px]"
     >
       <div className="flex flex-col gap-4 px-5 py-5 lg:flex-row lg:items-center">
         {slices.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            No conversation time recorded yet.
-          </p>
+          <p className="text-sm text-muted-foreground">{t("noConversationTime")}</p>
         ) : (
           <>
             <ChartContainer
@@ -93,7 +93,7 @@ export function AnalyticsConversationTimeDonut({
               <p className="text-2xl font-medium tabular-nums text-foreground">
                 {formatDurationSeconds(totalConversationSeconds)}
               </p>
-              <p className="text-xs text-muted-foreground">Total conversation time</p>
+              <p className="text-xs text-muted-foreground">{t("totalConversationTime")}</p>
               <ul className="space-y-1.5 pt-2">
                 {slices.map((slice) => (
                   <li

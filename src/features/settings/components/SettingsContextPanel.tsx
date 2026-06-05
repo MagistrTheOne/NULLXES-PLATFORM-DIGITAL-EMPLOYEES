@@ -1,4 +1,7 @@
+"use client";
+
 import { format } from "date-fns";
+import { useTranslations } from "next-intl";
 import { formatDurationSeconds } from "@/features/analytics/lib/format-duration";
 import type { OrganizationProfileDto, SettingsContextPanel as ContextPanel } from "../types";
 import { SettingsCard } from "./settings-card";
@@ -16,17 +19,19 @@ function UsageMetric({
   label,
   value,
   trend,
+  trendLabel,
 }: {
   label: string;
   value: string;
   trend: string | null;
+  trendLabel: (trend: string) => string;
 }) {
   return (
     <div className="rounded-xl border border-border bg-background/40 px-4 py-3">
       <p className="text-xs text-muted-foreground">{label}</p>
       <p className="mt-2 text-xl font-medium tabular-nums text-foreground">{value}</p>
       {trend ? (
-        <p className="mt-1 text-xs text-muted-foreground">{trend} vs previous period</p>
+        <p className="mt-1 text-xs text-muted-foreground">{trendLabel(trend)}</p>
       ) : null}
     </div>
   );
@@ -39,6 +44,7 @@ export function SettingsContextPanel({
   organization: OrganizationProfileDto;
   context: ContextPanel;
 }) {
+  const t = useTranslations("settings.context");
   const chunkLimit = 32_000;
   const chunkPercent =
     chunkLimit > 0
@@ -47,27 +53,27 @@ export function SettingsContextPanel({
 
   return (
     <div className="flex flex-col gap-6">
-      <SettingsCard title="Organization Summary">
+      <SettingsCard title={t("orgSummary")}>
         <dl className="space-y-3 text-sm">
           <div className="flex items-center justify-between gap-3">
-            <dt className="text-muted-foreground">Plan</dt>
+            <dt className="text-muted-foreground">{t("plan")}</dt>
             <dd className="capitalize text-foreground">{organization.type}</dd>
           </div>
           <div className="flex items-center justify-between gap-3">
-            <dt className="text-muted-foreground">Members</dt>
+            <dt className="text-muted-foreground">{t("members")}</dt>
             <dd className="tabular-nums text-foreground">{context.memberCount}</dd>
           </div>
           <div className="flex items-center justify-between gap-3">
-            <dt className="text-muted-foreground">Digital Employees</dt>
+            <dt className="text-muted-foreground">{t("digitalEmployees")}</dt>
             <dd className="tabular-nums text-foreground">{context.employeeCount}</dd>
           </div>
           <div className="flex items-center justify-between gap-3">
-            <dt className="text-muted-foreground">Active Now</dt>
+            <dt className="text-muted-foreground">{t("activeNow")}</dt>
             <dd className="tabular-nums text-foreground">{context.activeNow}</dd>
           </div>
           <div className="space-y-2 border-t border-border pt-4">
             <div className="flex items-center justify-between gap-3">
-              <dt className="text-muted-foreground">Indexed chunks</dt>
+              <dt className="text-muted-foreground">{t("indexedChunks")}</dt>
               <dd className="tabular-nums text-foreground">
                 {context.totalChunks.toLocaleString()} / {chunkLimit.toLocaleString()}
               </dd>
@@ -80,7 +86,7 @@ export function SettingsContextPanel({
             </div>
           </div>
           <div className="flex items-center justify-between gap-3 border-t border-border pt-4">
-            <dt className="text-muted-foreground">Created</dt>
+            <dt className="text-muted-foreground">{t("created")}</dt>
             <dd className="text-foreground">
               {format(organization.createdAt, "MMM d, yyyy")}
             </dd>
@@ -88,35 +94,39 @@ export function SettingsContextPanel({
         </dl>
       </SettingsCard>
 
-      <SettingsCard title="Usage Overview" description="Selected analytics period">
+      <SettingsCard title={t("usageOverview")} description={t("usageOverviewDesc")}>
         <div className="grid grid-cols-2 gap-3">
           <UsageMetric
-            label="Sessions"
+            label={t("sessions")}
             value={String(context.usage.totalSessions)}
             trend={formatTrend(context.usage.sessionTrendPercent)}
+            trendLabel={(trend) => t("trendVsPrevious", { trend })}
           />
           <UsageMetric
-            label="Talk Time"
+            label={t("talkTime")}
             value={formatDurationSeconds(context.usage.totalConversationSeconds)}
             trend={formatTrend(context.usage.conversationTrendPercent)}
+            trendLabel={(trend) => t("trendVsPrevious", { trend })}
           />
           <UsageMetric
-            label="Messages"
+            label={t("messages")}
             value={context.usage.totalMessages.toLocaleString()}
             trend={formatTrend(context.usage.messagesTrendPercent)}
+            trendLabel={(trend) => t("trendVsPrevious", { trend })}
           />
           <UsageMetric
-            label="Knowledge Sources"
+            label={t("knowledgeSources")}
             value={String(context.usage.totalKnowledgeSources)}
             trend={formatTrend(context.usage.knowledgeTrendPercent)}
+            trendLabel={(trend) => t("trendVsPrevious", { trend })}
           />
         </div>
       </SettingsCard>
 
-      <SettingsCard title="Team Members">
+      <SettingsCard title={t("teamMembers")}>
         <ul className="space-y-3">
           {context.teamMembers.length === 0 ? (
-            <li className="text-sm text-muted-foreground">No team members found.</li>
+            <li className="text-sm text-muted-foreground">{t("noTeamMembers")}</li>
           ) : (
             context.teamMembers.map((member) => (
               <li

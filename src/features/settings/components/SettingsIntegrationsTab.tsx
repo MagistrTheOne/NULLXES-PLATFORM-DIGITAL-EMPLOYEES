@@ -1,27 +1,30 @@
+import { getTranslations } from "next-intl/server";
 import type { SystemStatusItem } from "@/features/overview/types";
 import { SettingsCard } from "./settings-card";
 
-function statusLabel(status: SystemStatusItem["status"]): string {
+function statusLabel(
+  status: SystemStatusItem["status"],
+  t: Awaited<ReturnType<typeof getTranslations<"settings.integrations">>>,
+): string {
   switch (status) {
     case "operational":
-      return "Connected";
+      return t("connected");
     case "degraded":
-      return "Degraded";
+      return t("degraded");
     case "unavailable":
-      return "Not configured";
+      return t("notConfigured");
   }
 }
 
-export function SettingsIntegrationsTab({
+export async function SettingsIntegrationsTab({
   integrations,
 }: {
   integrations: SystemStatusItem[];
 }) {
+  const t = await getTranslations("settings.integrations");
+
   return (
-    <SettingsCard
-      title="Connected Services"
-      description="Provider availability for this deployment"
-    >
+    <SettingsCard title={t("title")} description={t("description")}>
       <ul className="space-y-3">
         {integrations.map((item) => (
           <li
@@ -32,7 +35,9 @@ export function SettingsIntegrationsTab({
               <p className="text-sm text-foreground">{item.label}</p>
               <p className="text-xs text-muted-foreground">{item.detail}</p>
             </div>
-            <span className="text-xs text-foreground/70">{statusLabel(item.status)}</span>
+            <span className="text-xs text-foreground/70">
+              {statusLabel(item.status, t)}
+            </span>
           </li>
         ))}
       </ul>

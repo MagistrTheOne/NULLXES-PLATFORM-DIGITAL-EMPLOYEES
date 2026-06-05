@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import type { DateRange } from "react-day-picker";
@@ -40,6 +41,8 @@ export function AnalyticsHeaderControls({
   range: AnalyticsDateRange;
   data: DashboardAnalytics;
 }) {
+  const t = useTranslations("analytics");
+  const tCommon = useTranslations("common.actions");
   const router = useRouter();
   const searchParams = useSearchParams();
   const [open, setOpen] = useState(false);
@@ -84,7 +87,7 @@ export function AnalyticsHeaderControls({
               onClick={() => applyRange(selectedRange)}
               disabled={!selectedRange?.from || !selectedRange?.to}
             >
-              Apply range
+              {tCommon("applyRange")}
             </Button>
           </div>
         </PopoverContent>
@@ -95,7 +98,7 @@ export function AnalyticsHeaderControls({
         onClick={() => exportAnalyticsReport(data)}
       >
         <Download className="size-4" />
-        Export Report
+        {t("exportReport")}
       </Button>
     </div>
   );

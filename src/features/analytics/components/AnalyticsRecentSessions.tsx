@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import {
   Table,
   TableBody,
@@ -34,22 +37,21 @@ export function AnalyticsRecentSessions({
 }: {
   sessions: RecentSessionRow[];
 }) {
+  const t = useTranslations("analytics.recent");
+
   return (
-    <AnalyticsCard
-      title="Recent Sessions"
-      description="Latest conversations in the selected period"
-    >
+    <AnalyticsCard title={t("sessions")} description={t("sessionsDesc")}>
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow className="border-border hover:bg-transparent">
-              <TableHead className="text-muted-foreground">Employee</TableHead>
-              <TableHead className="text-muted-foreground">User</TableHead>
-              <TableHead className="text-muted-foreground">Duration</TableHead>
-              <TableHead className="text-muted-foreground">Messages</TableHead>
-              <TableHead className="text-muted-foreground">Satisfaction</TableHead>
+              <TableHead className="text-muted-foreground">{t("employee")}</TableHead>
+              <TableHead className="text-muted-foreground">{t("user")}</TableHead>
+              <TableHead className="text-muted-foreground">{t("duration")}</TableHead>
+              <TableHead className="text-muted-foreground">{t("messages")}</TableHead>
+              <TableHead className="text-muted-foreground">{t("satisfaction")}</TableHead>
               <TableHead className="text-right text-muted-foreground">
-                Started At
+                {t("startedAt")}
               </TableHead>
             </TableRow>
           </TableHeader>
@@ -60,7 +62,7 @@ export function AnalyticsRecentSessions({
                   colSpan={6}
                   className="py-10 text-center text-sm text-muted-foreground"
                 >
-                  No sessions recorded for this period yet.
+                  {t("emptySessions")}
                 </TableCell>
               </TableRow>
             ) : (
