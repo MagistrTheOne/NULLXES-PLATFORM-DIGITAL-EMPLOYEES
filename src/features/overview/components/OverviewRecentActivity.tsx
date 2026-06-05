@@ -38,7 +38,7 @@ export function OverviewRecentActivity({
       description={t("description")}
       className="min-h-[360px]"
     >
-      <div className="flex min-h-[calc(360px-57px)] flex-col">
+      <div className="flex min-h-[303px] flex-col">
         <div className="flex items-center justify-between gap-4 border-b border-border px-5 py-3">
           <span className="text-sm text-muted-foreground">{t("event")}</span>
           <span className="text-sm text-muted-foreground">{t("when")}</span>

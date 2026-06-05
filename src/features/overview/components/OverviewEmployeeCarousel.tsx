@@ -25,9 +25,9 @@ function CarouselEmployeeCard({ employee }: { employee: OverviewEmployee }) {
   return (
     <Link
       href={`/dashboard/employees/${employee.id}`}
-      className="group flex w-[220px] shrink-0 flex-col overflow-hidden rounded-2xl border border-border bg-card transition-colors hover:bg-white/[0.03]"
+      className="group flex w-[220px] shrink-0 flex-col overflow-hidden rounded-2xl border border-border bg-card transition-colors hover:bg-white/3"
     >
-      <div className="relative flex aspect-[4/3] items-center justify-center border-b border-border bg-white/[0.02]">
+      <div className="relative flex aspect-4/3 items-center justify-center border-b border-border bg-white/2">
         {showPreview ? (
           <AvatarIdlePreview
             src={employee.avatarPreviewUrl!}
@@ -70,7 +70,7 @@ function CreateEmployeeCard({ onCreateClick }: { onCreateClick: () => void }) {
     <button
       type="button"
       onClick={onCreateClick}
-      className="flex w-[220px] shrink-0 flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-border bg-card px-4 py-8 text-muted-foreground transition-colors hover:border-foreground/20 hover:bg-white/[0.03] hover:text-foreground"
+      className="flex w-[220px] shrink-0 flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-border bg-card px-4 py-8 text-muted-foreground transition-colors hover:border-foreground/20 hover:bg-white/3 hover:text-foreground"
     >
       <span className="flex size-12 items-center justify-center rounded-full border border-border bg-background">
         <Plus className="size-5" />
