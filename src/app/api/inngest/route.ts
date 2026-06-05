@@ -2,6 +2,7 @@ import { serve } from "inngest/next";
 import { inngest } from "@/inngest/client";
 import { processExportJob } from "@/inngest/functions/export-jobs";
 import {
+  notifyEmployeeCreated,
   notifyKnowledgeFailed,
   notifySessionCompleted,
   sendWeeklyDigest,
@@ -13,6 +14,7 @@ export const { GET, POST, PUT } = serve({
     sendWeeklyDigest,
     notifySessionCompleted,
     notifyKnowledgeFailed,
+    notifyEmployeeCreated,
     processExportJob,
   ],
 });

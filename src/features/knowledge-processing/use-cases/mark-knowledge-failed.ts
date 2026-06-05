@@ -1,6 +1,9 @@
 import { eq } from "drizzle-orm";
+import { digitalEmployee } from "@/entities/digital-employee/schema";
 import { knowledgeSource } from "@/entities/knowledge/schema";
 import type { KnowledgeSourceStatus } from "@/entities/knowledge";
+import { inngest } from "@/inngest/client";
+import { db } from "@/shared/db/client";
 import { dbWithTransactions } from "@/shared/db/pool-client";
 import { assertKnowledgeStatusTransition } from "../services/assert-status-transition";
 import { getKnowledgeSourceOrThrow } from "../services/get-knowledge-source";
@@ -37,5 +40,24 @@ export async function markKnowledgeFailed(
     }
 
     return { source, previousStatus, nextStatus };
+  }).then(async (result) => {
+    const employee = await db.query.digitalEmployee.findFirst({
+      where: eq(digitalEmployee.id, result.source.employeeId),
+    });
+
+    if (employee) {
+      await inngest.send({
+        name: "knowledge/processing.failed",
+        data: {
+          sourceId: result.source.id,
+          organizationId: employee.organizationId,
+          title: result.source.title,
+          failureReason: input.failureReason,
+          employeeName: employee.name,
+        },
+      });
+    }
+
+    return result;
   });
 }

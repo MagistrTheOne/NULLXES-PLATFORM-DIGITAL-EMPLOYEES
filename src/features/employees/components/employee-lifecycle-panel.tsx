@@ -1,21 +1,20 @@
 import { format } from "date-fns";
+import { getTranslations } from "next-intl/server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { EmployeeLifecycleItem } from "../types";
 
-function eventLabel(eventType: EmployeeLifecycleItem["eventType"]): string {
-  return eventType.replace(/_/g, " ");
-}
-
-export function EmployeeLifecyclePanel({
+export async function EmployeeLifecyclePanel({
   items,
 }: {
   items: EmployeeLifecycleItem[];
 }) {
+  const t = await getTranslations("employees.lifecycle");
+
   if (items.length === 0) {
     return (
       <Card className="border-white/10 bg-[#111111] py-0 text-white">
         <CardContent className="px-5 py-8 text-sm text-white/50">
-          No lifecycle events recorded yet.
+          {t("empty")}
         </CardContent>
       </Card>
     );
@@ -24,7 +23,7 @@ export function EmployeeLifecyclePanel({
   return (
     <Card className="border-white/10 bg-[#111111] py-0 text-white">
       <CardHeader className="border-b border-white/10 px-5 py-4">
-        <CardTitle className="text-base font-medium">Lifecycle events</CardTitle>
+        <CardTitle className="text-base font-medium">{t("title")}</CardTitle>
       </CardHeader>
       <CardContent className="px-5 py-4">
         <ol className="relative border-s border-white/10 ps-6">
@@ -33,7 +32,7 @@ export function EmployeeLifecyclePanel({
               <span className="absolute -start-1.5 mt-1.5 size-3 rounded-full border border-white/20 bg-[#111111]" />
               <div className="flex flex-col gap-1">
                 <p className="text-sm font-medium text-white capitalize">
-                  {eventLabel(item.eventType)}
+                  {t(`events.${item.eventType}`)}
                 </p>
                 <p className="text-xs text-white/50">
                   {item.actorName} · {format(item.createdAt, "MMM d, yyyy HH:mm")}

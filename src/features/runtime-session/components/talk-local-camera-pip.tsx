@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 
 export function TalkLocalCameraPip({
   enabled,
@@ -9,6 +10,7 @@ export function TalkLocalCameraPip({
   enabled: boolean;
   userName: string;
 }) {
+  const t = useTranslations("employees.talk.stage");
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const [failed, setFailed] = useState(false);
@@ -90,7 +92,7 @@ export function TalkLocalCameraPip({
       <div className="relative aspect-video h-full overflow-hidden rounded-md border border-white/12 bg-[#111111]">
         {failed ? (
           <div className="flex size-full min-w-[120px] items-center justify-center px-2 text-center text-[10px] text-white/45">
-            Camera unavailable
+            {t("cameraUnavailable")}
           </div>
         ) : (
           <video
@@ -104,7 +106,7 @@ export function TalkLocalCameraPip({
       </div>
       <div className="flex min-w-0 flex-col justify-center">
         <p className="truncate text-xs text-white/80">{userName}</p>
-        <p className="text-[10px] text-white/45">You</p>
+        <p className="text-[10px] text-white/45">{t("you")}</p>
       </div>
     </div>
   );

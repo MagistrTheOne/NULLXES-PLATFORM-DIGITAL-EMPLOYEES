@@ -3,6 +3,7 @@
 import { format } from "date-fns";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -39,6 +40,7 @@ export function SettingsTeamTab({
   currentUserId: string;
   actorRole: MembershipRole;
 }) {
+  const t = useTranslations("settings.team");
   const router = useRouter();
   const [message, setMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -78,11 +80,7 @@ export function SettingsTeamTab({
         setMessage(result.message);
         return;
       }
-      setMessage(
-        result.emailSent
-          ? "Invite resent by email."
-          : "Invite renewed. Configure Resend to send email delivery.",
-      );
+      setMessage(result.emailSent ? t("resentEmail") : t("resentNoEmail"));
       router.refresh();
     });
   }
@@ -90,15 +88,15 @@ export function SettingsTeamTab({
   return (
     <div className="grid gap-6">
       {canManageMembers ? (
-        <SettingsCard title="Invite Member" description="Send a workspace invite by email">
+        <SettingsCard title={t("inviteMember")} description={t("inviteDescription")}>
           <SettingsTeamInviteForm onInvited={() => router.refresh()} />
         </SettingsCard>
       ) : null}
 
       {canManageMembers && pendingInvites.length > 0 ? (
         <SettingsCard
-          title="Pending Invites"
-          description="Outstanding invitations awaiting acceptance"
+          title={t("pendingInvites")}
+          description={t("pendingInvitesDesc")}
         >
           <ul className="space-y-3">
             {pendingInvites.map((invite) => (
@@ -113,9 +111,11 @@ export function SettingsTeamTab({
                   <p className="text-xs text-muted-foreground">
                     <span className="capitalize">{invite.role}</span>
                     {" · "}
-                    Invited by {invite.invitedByName}
+                    {t("invitedBy", { name: invite.invitedByName })}
                     {" · "}
-                    Expires {format(invite.expiresAt, "MMM d, yyyy")}
+                    {t("expires", {
+                      date: format(invite.expiresAt, "MMM d, yyyy"),
+                    })}
                   </p>
                 </div>
                 <div className="flex shrink-0 gap-2">
@@ -126,7 +126,7 @@ export function SettingsTeamTab({
                     disabled={isPending}
                     onClick={() => handleResendInvite(invite.id)}
                   >
-                    Resend
+                    {t("resend")}
                   </Button>
                   <Button
                     type="button"
@@ -135,7 +135,7 @@ export function SettingsTeamTab({
                     disabled={isPending}
                     onClick={() => handleRevokeInvite(invite.id)}
                   >
-                    Revoke
+                    {t("revoke")}
                   </Button>
                 </div>
               </li>
@@ -145,13 +145,11 @@ export function SettingsTeamTab({
       ) : null}
 
       <SettingsCard
-        title="Team Members"
-        description="People with access to this workspace"
+        title={t("teamMembers")}
+        description={t("teamMembersDesc")}
         footer={
           <p className="mr-auto text-xs text-muted-foreground">
-            {canManageMembers
-              ? "Invites expire after 7 days. Members can accept via email or OAuth."
-              : "Only admins can manage team membership."}
+            {canManageMembers ? t("footerManage") : t("footerView")}
           </p>
         }
       >
@@ -170,7 +168,7 @@ export function SettingsTeamTab({
                     {member.name}
                     {isSelf ? (
                       <span className="ml-2 text-xs font-normal text-muted-foreground">
-                        (you)
+                        {t("you")}
                       </span>
                     ) : null}
                   </p>
@@ -200,7 +198,9 @@ export function SettingsTeamTab({
                     <p className="text-xs capitalize text-foreground">{member.role}</p>
                   )}
                   <p className="hidden text-xs text-muted-foreground sm:block">
-                    Joined {format(member.createdAt, "MMM d, yyyy")}
+                    {t("joined", {
+                      date: format(member.createdAt, "MMM d, yyyy"),
+                    })}
                   </p>
                   {canEditMember ? (
                     <Button
@@ -210,7 +210,7 @@ export function SettingsTeamTab({
                       disabled={isPending}
                       onClick={() => handleRemoveMember(member.id)}
                     >
-                      Remove
+                      {t("remove")}
                     </Button>
                   ) : null}
                 </div>

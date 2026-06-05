@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Loader2, Play, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,15 +30,6 @@ import {
   type StudioVoiceProvider,
 } from "./voice-catalog";
 
-const PROVIDER_FILTER_OPTIONS: Array<{
-  value: "all" | StudioVoiceProvider;
-  label: string;
-}> = [
-  { value: "all", label: "All providers" },
-  { value: "Anam", label: "Anam" },
-  { value: "ElevenLabs", label: "ElevenLabs" },
-];
-
 function VoiceDetailPanel({
   voice,
   isCustomVoice,
@@ -49,20 +41,21 @@ function VoiceDetailPanel({
   isPreviewing: boolean;
   onPreview?: () => void;
 }) {
+  const t = useTranslations("employees.studio.voice");
   const canPreview = voice.provider === "ElevenLabs" && Boolean(onPreview);
 
   return (
     <div className="rounded-xl border border-white/10 bg-black/30 p-4">
-      <p className="text-xs uppercase tracking-wide text-white/40">Selected voice</p>
+      <p className="text-xs uppercase tracking-wide text-white/40">{t("selectedVoice")}</p>
       <h3 className="mt-2 text-lg font-medium text-white">{voice.name}</h3>
       <dl className="mt-4 grid gap-2 text-sm">
         <div className="flex justify-between gap-4 border-b border-white/10 py-2">
-          <dt className="text-white/50">Provider</dt>
+          <dt className="text-white/50">{t("provider")}</dt>
           <dd className="text-white">{voice.provider}</dd>
         </div>
         {isCustomVoice && voice.elevenLabsVoiceId ? (
           <div className="flex flex-col gap-1 border-b border-white/10 py-2">
-            <dt className="text-white/50">Voice ID</dt>
+            <dt className="text-white/50">{t("voiceId")}</dt>
             <dd className="break-all font-mono text-xs text-white">
               {voice.elevenLabsVoiceId}
             </dd>
@@ -70,11 +63,11 @@ function VoiceDetailPanel({
         ) : (
           <>
             <div className="flex justify-between gap-4 border-b border-white/10 py-2">
-              <dt className="text-white/50">Gender</dt>
+              <dt className="text-white/50">{t("gender")}</dt>
               <dd className="text-white">{voice.gender}</dd>
             </div>
             <div className="flex justify-between gap-4 py-2">
-              <dt className="text-white/50">Language</dt>
+              <dt className="text-white/50">{t("language")}</dt>
               <dd className="text-white">{voice.language}</dd>
             </div>
           </>
@@ -94,7 +87,7 @@ function VoiceDetailPanel({
             ) : (
               <Play className="size-4" />
             )}
-            Listen to preview
+            {t("listenPreview")}
           </Button>
         ) : (
           <p className="text-xs text-white/45">
@@ -125,6 +118,15 @@ export function VoiceStudioPicker({
   onApplyCustomVoice: (elevenLabsVoiceId: string) => void;
   onPreviewVoice: (elevenLabsVoiceId: string) => void;
 }) {
+  const t = useTranslations("employees.studio.voice");
+  const providerFilterOptions: Array<{
+    value: "all" | StudioVoiceProvider;
+    label: string;
+  }> = [
+    { value: "all", label: t("allProviders") },
+    { value: "Anam", label: "Anam" },
+    { value: "ElevenLabs", label: "ElevenLabs" },
+  ];
   const [providerFilter, setProviderFilter] = useState<"all" | StudioVoiceProvider>(
     "all",
   );
@@ -196,7 +198,7 @@ export function VoiceStudioPicker({
   return (
     <div className="flex flex-col gap-6">
       <section className="flex flex-col gap-3">
-        <p className="text-xs uppercase tracking-wide text-white/40">1 · Find a voice</p>
+        <p className="text-xs uppercase tracking-wide text-white/40">{t("findVoice")}</p>
         <div className="flex flex-col gap-3 sm:flex-row">
           <div className="relative min-w-0 flex-1">
             <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-white/40" />
@@ -204,7 +206,7 @@ export function VoiceStudioPicker({
               type="search"
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
-              placeholder="Search by name, language, provider…"
+              placeholder={t("search")}
               className="border-white/10 bg-black/40 pl-9 text-white placeholder:text-white/40"
               aria-label="Search voices"
             />
@@ -222,7 +224,7 @@ export function VoiceStudioPicker({
               <SelectValue placeholder="Provider" />
             </SelectTrigger>
             <SelectContent className="border-white/10 bg-[#111111] text-white">
-              {PROVIDER_FILTER_OPTIONS.map((option) => (
+              {providerFilterOptions.map((option) => (
                 <SelectItem
                   key={option.value}
                   value={option.value}

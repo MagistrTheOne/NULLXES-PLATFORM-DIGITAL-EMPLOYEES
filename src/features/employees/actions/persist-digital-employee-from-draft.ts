@@ -15,6 +15,7 @@ import { ensureWorkspace } from "@/features/auth/services/ensure-workspace";
 import { requireAuth } from "@/features/auth/services/require-auth";
 import { recordLifecycleEvent } from "@/features/employee/services/record-lifecycle-event";
 import { enqueueEmployeeProvisioning } from "@/features/provider-provisioning/orchestrator/enqueue-employee-provisioning";
+import { inngest } from "@/inngest/client";
 import { db } from "@/shared/db/client";
 import { dbWithTransactions } from "@/shared/db/pool-client";
 import type {
@@ -187,6 +188,16 @@ export async function persistDigitalEmployeeFromDraft(
   });
 
   enqueueEmployeeProvisioning(employeeId);
+
+  await inngest.send({
+    name: "employee/created",
+    data: {
+      employeeId,
+      organizationId: workspace.organization.id,
+      name: draft.identity.name,
+      role: draft.identity.role,
+    },
+  });
 
   revalidatePath("/dashboard/employees");
 

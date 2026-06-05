@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 
 export default function EmployeeTalkError({
@@ -11,6 +12,8 @@ export default function EmployeeTalkError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const t = useTranslations("employees.talk.error");
+
   useEffect(() => {
     console.error("Employee Talk page error", error);
   }, [error]);
@@ -22,18 +25,16 @@ export default function EmployeeTalkError({
 
   return (
     <div className="mx-auto flex w-full max-w-lg flex-col gap-4 px-4 py-16 text-center">
-      <h1 className="text-xl font-medium text-white">Talk session unavailable</h1>
+      <h1 className="text-xl font-medium text-white">{t("title")}</h1>
       <p className="text-sm leading-relaxed text-white/55">
-        {isDatabaseUnavailable
-          ? "Could not reach the database to verify your session. Check your network and DATABASE_URL (Neon), then try again."
-          : "Something went wrong while loading this Talk session."}
+        {isDatabaseUnavailable ? t("database") : t("generic")}
       </p>
       <div className="flex flex-wrap items-center justify-center gap-3">
         <Button type="button" onClick={() => reset()}>
-          Try again
+          {t("tryAgain")}
         </Button>
         <Button variant="outline" asChild>
-          <Link href="/dashboard/employees">Back to employees</Link>
+          <Link href="/dashboard/employees">{t("backToEmployees")}</Link>
         </Button>
       </div>
     </div>

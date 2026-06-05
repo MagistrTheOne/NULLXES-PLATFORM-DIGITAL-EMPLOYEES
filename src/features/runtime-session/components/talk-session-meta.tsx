@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useTalkAnam } from "../context/talk-anam-context";
 
 function formatElapsed(seconds: number): string {
@@ -22,6 +23,7 @@ export function TalkSessionMeta({
   sessionLimitSeconds: number;
   onLimitReached?: () => void;
 }) {
+  const t = useTranslations("employees.talk");
   const { isLive } = useTalkAnam();
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const limitReached = isLive && elapsedSeconds >= sessionLimitSeconds;
@@ -54,10 +56,10 @@ export function TalkSessionMeta({
         {isLive ? (
           <span className="flex items-center gap-2 text-white/80">
             <span className="size-2 rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.55)]" />
-            Live
+            {t("live")}
           </span>
         ) : (
-          <span className="text-white/40">Connecting…</span>
+          <span className="text-white/40">{t("connecting")}</span>
         )}
         <span className="text-white/55">{formatElapsed(elapsedSeconds)}</span>
       </div>
@@ -69,8 +71,10 @@ export function TalkSessionMeta({
               : "text-xs text-white/45"
           }
         >
-          {formatElapsed(remainingSeconds)} remaining · limit{" "}
-          {formatElapsed(sessionLimitSeconds)}
+          {t("remaining", {
+            remaining: formatElapsed(remainingSeconds),
+            limit: formatElapsed(sessionLimitSeconds),
+          })}
         </span>
       ) : null}
     </div>

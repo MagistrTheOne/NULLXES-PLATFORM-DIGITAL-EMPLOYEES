@@ -229,7 +229,90 @@
       "title": "Talk · {name}",
       "subtitle": "Live session · chat · optional camera",
       "leave": "Leave",
-      "connecting": "Connecting…"
+      "connecting": "Connecting…",
+      "live": "Live",
+      "remaining": "{remaining} remaining · limit {limit}",
+      "chat": {
+        "title": "Session chat",
+        "empty": "Send a message to start the conversation",
+        "placeholder": "Send a message...",
+        "unavailable": "Conversation unavailable",
+        "retry": "Retry"
+      },
+      "controls": {
+        "muteMic": "Mute microphone",
+        "unmuteMic": "Unmute microphone",
+        "turnOffCamera": "Turn off camera",
+        "turnOnCamera": "Turn on camera"
+      },
+      "stage": {
+        "goodConnection": "Good connection",
+        "fullscreen": "Fullscreen",
+        "cameraUnavailable": "Camera unavailable",
+        "you": "You",
+        "anamClosed": "Anam connection closed",
+        "anamStreamFailed": "Failed to start Anam stream",
+        "anamUnavailable": "Anam session unavailable"
+      },
+      "error": {
+        "title": "Talk session unavailable",
+        "generic": "Something went wrong while loading this Talk session.",
+        "database": "Could not reach the database to verify your session. Check your network and DATABASE_URL (Neon), then try again.",
+        "tryAgain": "Try again",
+        "backToEmployees": "Back to employees"
+      }
+    },
+    "knowledge": {
+      "empty": "No knowledge sources attached to this employee yet.",
+      "title": "Knowledge sources ({count})",
+      "chunks": "{count} chunks",
+      "status": {
+        "pending": "pending",
+        "processing": "processing",
+        "ready": "ready",
+        "failed": "failed"
+      }
+    },
+    "lifecycle": {
+      "empty": "No lifecycle events recorded yet.",
+      "title": "Lifecycle events",
+      "events": {
+        "created": "created",
+        "activated": "activated",
+        "paused": "paused",
+        "archived": "archived",
+        "runtime_updated": "runtime updated",
+        "knowledge_updated": "knowledge updated"
+      }
+    },
+    "studio": {
+      "avatar": {
+        "upload": "Upload Photo",
+        "formats": "PNG, JPG, or WebP up to 4.5MB",
+        "change": "Change photo",
+        "generating": "Generating avatar with Anam…",
+        "regenerate": "Regenerate Avatar",
+        "generate": "Generate Avatar"
+      },
+      "voice": {
+        "allProviders": "All providers",
+        "selectedVoice": "Selected voice",
+        "provider": "Provider",
+        "voiceId": "Voice ID",
+        "gender": "Gender",
+        "language": "Language",
+        "listenPreview": "Listen to preview",
+        "findVoice": "1 · Find a voice",
+        "search": "Search voices",
+        "customVoiceId": "Custom ElevenLabs voice ID"
+      },
+      "brain": {
+        "recommended": "Recommended",
+        "openAi": "OpenAI",
+        "openAiDescription": "Default brain for new digital employees. Provisioned via the OpenAI API using your configured key.",
+        "active": "Active",
+        "customProviders": "Custom providers"
+      }
     }
   },
   "settings": {
@@ -237,6 +320,7 @@
     "subtitle": "Manage your organization, team, preferences and integrations.",
     "saved": "Settings saved.",
     "saveFailed": "Save failed.",
+    "saveChanges": "Save Changes",
     "tabs": {
       "general": "General",
       "organization": "Organization",
@@ -247,6 +331,101 @@
       "ai": "AI & Voice",
       "notifications": "Notifications",
       "advanced": "Advanced"
+    },
+    "general": {
+      "organizationProfile": "Organization Profile",
+      "organizationProfileDesc": "Workspace identity and regional defaults",
+      "preferences": "Preferences",
+      "preferencesDesc": "Platform display and analytics defaults",
+      "defaultEmployee": "Default Employee Settings",
+      "defaultEmployeeDesc": "Defaults applied when creating new digital employees",
+      "dataPrivacy": "Data & Privacy",
+      "dataPrivacyDesc": "Retention and export controls",
+      "compactMode": "Compact Mode",
+      "organizationName": "Organization Name",
+      "industry": "Industry",
+      "website": "Website",
+      "timezone": "Timezone",
+      "theme": "Theme",
+      "language": "Language",
+      "dateFormat": "Date Format",
+      "timeFormat": "Time Format",
+      "defaultTimeRange": "Default Time Range",
+      "defaultLlm": "Default LLM",
+      "knowledgeProcessing": "Knowledge Processing",
+      "sessionRetention": "Session Retention",
+      "retentionPolicy": "Retention Policy",
+      "dataExport": "Data Export",
+      "dataExportValue": "Available on request",
+      "deleteSessions": "Delete Sessions",
+      "deleteSessionsValue": "Managed by retention policy",
+      "anonymizeData": "Anonymize Data",
+      "anonymizeDataValue": "Contact administrator"
+    },
+    "notifications": {
+      "title": "Notification Preferences",
+      "description": "Email alerts delivered to workspace admins when enabled",
+      "saved": "Notification settings saved.",
+      "sessionCompleted": "Session completed",
+      "sessionCompletedDetail": "When a talk session ends in this workspace",
+      "employeeCreated": "Employee created",
+      "employeeCreatedDetail": "When a new digital employee is provisioned",
+      "knowledgeFailed": "Knowledge processing failed",
+      "knowledgeFailedDetail": "When indexing fails for a knowledge source",
+      "weeklyDigest": "Weekly digest",
+      "weeklyDigestDetail": "Summary of workforce activity every Monday"
+    },
+    "team": {
+      "inviteMember": "Invite Member",
+      "inviteDescription": "Send a workspace invite by email",
+      "pendingInvites": "Pending Invites",
+      "pendingInvitesDesc": "Outstanding invitations awaiting acceptance",
+      "teamMembers": "Team Members",
+      "teamMembersDesc": "People with access to this workspace",
+      "footerManage": "Invites expire after 7 days. Members can accept via email or OAuth.",
+      "footerView": "Only admins can manage team membership.",
+      "resend": "Resend",
+      "revoke": "Revoke",
+      "remove": "Remove",
+      "you": "(you)",
+      "joined": "Joined {date}",
+      "invitedBy": "Invited by {name}",
+      "expires": "Expires {date}",
+      "resentEmail": "Invite resent by email.",
+      "resentNoEmail": "Invite renewed. Configure Resend to send email delivery.",
+      "inviteEmail": "Email",
+      "inviteRole": "Role",
+      "invite": "Invite",
+      "inviteCreated": "Invite created. Email sends when Resend is configured; the invite is always stored."
+    },
+    "advanced": {
+      "title": "Data Export",
+      "description": "Export workspace configuration and metadata",
+      "exportNow": "Export now",
+      "queueExport": "Queue export job",
+      "downloaded": "Workspace export downloaded.",
+      "queued": "Export job queued ({jobId}…). Download link when ready."
+    },
+    "options": {
+      "enterprise": "Enterprise",
+      "technology": "Technology",
+      "healthcare": "Healthcare",
+      "finance": "Finance",
+      "legal": "Legal",
+      "other": "Other",
+      "en": "English",
+      "ru": "Russian",
+      "24h": "24-hour",
+      "12h": "12-hour",
+      "days7": "Last 7 days",
+      "days14": "Last 14 days",
+      "days30": "Last 30 days",
+      "retention30": "30 days",
+      "retention90": "90 days",
+      "retention180": "180 days",
+      "retention365": "365 days",
+      "auto": "Auto",
+      "manual": "Manual"
     }
   }
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { AnamEvent, createClient } from "@anam-ai/js-sdk";
 import { Loader2 } from "lucide-react";
 import {
@@ -26,6 +27,7 @@ export function EmployeeAnamStage({
   avatarPreviewUrl: string | null;
   sessionToken: string;
 }) {
+  const t = useTranslations("employees.talk");
   const { registerClient, setIsLive } = useTalkAnam();
   const [status, setStatus] = useState<
     "idle" | "connecting" | "live" | "error"
@@ -55,7 +57,7 @@ export function EmployeeAnamStage({
         if (!disposed) {
           setStatus("error");
           setIsLive(false);
-          setErrorMessage("Anam connection closed");
+          setErrorMessage(t("stage.anamClosed"));
           void failTalkSessionAction(employeeSessionId);
         }
       });
@@ -67,7 +69,7 @@ export function EmployeeAnamStage({
           setStatus("error");
           setIsLive(false);
           setErrorMessage(
-            error instanceof Error ? error.message : "Failed to start Anam stream",
+            error instanceof Error ? error.message : t("stage.anamStreamFailed"),
           );
           void failTalkSessionAction(employeeSessionId);
         }
@@ -114,14 +116,14 @@ export function EmployeeAnamStage({
       {status === "connecting" ? (
         <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-2 bg-black/55">
           <Loader2 className="size-6 animate-spin text-white/70" />
-          <p className="text-xs text-white/55">Connecting…</p>
+          <p className="text-xs text-white/55">{t("connecting")}</p>
         </div>
       ) : null}
 
       {status === "error" ? (
         <div className="absolute inset-x-0 bottom-0 z-20 border-t border-white/10 bg-black/85 px-3 py-2">
           <p className="text-xs text-white/65" role="alert">
-            {errorMessage ?? "Anam session unavailable"}
+            {errorMessage ?? t("stage.anamUnavailable")}
           </p>
         </div>
       ) : null}

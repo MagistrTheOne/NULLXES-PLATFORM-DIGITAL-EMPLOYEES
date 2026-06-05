@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Mic, MicOff, PhoneOff, Video, VideoOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -52,6 +53,7 @@ function TalkControlsBar({
   onCameraToggle: () => void;
   employeeSessionId: string;
 }) {
+  const t = useTranslations("employees.talk");
   const router = useRouter();
   const { micMuted, toggleMic, stopSession, isLive } = useTalkAnam();
   const [isLeaving, setIsLeaving] = useState(false);
@@ -69,7 +71,7 @@ function TalkControlsBar({
   return (
     <div className="flex items-center justify-center gap-3 py-4">
       <TalkIconControl
-        ariaLabel={micMuted ? "Unmute microphone" : "Mute microphone"}
+        ariaLabel={micMuted ? t("controls.unmuteMic") : t("controls.muteMic")}
         disabled={!isLive || isLeaving}
         onClick={toggleMic}
       >
@@ -80,7 +82,9 @@ function TalkControlsBar({
         )}
       </TalkIconControl>
       <TalkIconControl
-        ariaLabel={cameraEnabled ? "Turn off camera" : "Turn on camera"}
+        ariaLabel={
+          cameraEnabled ? t("controls.turnOffCamera") : t("controls.turnOnCamera")
+        }
         disabled={isLeaving}
         onClick={onCameraToggle}
       >
@@ -100,7 +104,7 @@ function TalkControlsBar({
         }}
       >
         <PhoneOff className="size-4" />
-        Leave
+        {t("leave")}
       </Button>
     </div>
   );

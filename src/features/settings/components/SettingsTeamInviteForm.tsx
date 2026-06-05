@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -19,6 +20,7 @@ export function SettingsTeamInviteForm({
 }: {
   onInvited?: () => void;
 }) {
+  const t = useTranslations("settings.team");
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<MembershipRole>("viewer");
@@ -33,9 +35,7 @@ export function SettingsTeamInviteForm({
         return;
       }
       setEmail("");
-      setMessage(
-        "Invite created. Email sends when Resend is configured; the invite is always stored.",
-      );
+      setMessage(t("inviteCreated"));
       onInvited?.();
       router.refresh();
     });
@@ -45,7 +45,7 @@ export function SettingsTeamInviteForm({
     <div className="grid gap-3 sm:grid-cols-[1fr_160px_auto] sm:items-end">
       <div className="grid gap-2">
         <label className="text-sm text-muted-foreground" htmlFor="invite-email">
-          Email
+          {t("inviteEmail")}
         </label>
         <Input
           id="invite-email"
@@ -57,7 +57,7 @@ export function SettingsTeamInviteForm({
       </div>
       <div className="grid gap-2">
         <label className="text-sm text-muted-foreground" htmlFor="invite-role">
-          Role
+          {t("inviteRole")}
         </label>
         <Select value={role} onValueChange={(value) => setRole(value as MembershipRole)}>
           <SelectTrigger id="invite-role">
@@ -71,7 +71,7 @@ export function SettingsTeamInviteForm({
         </Select>
       </div>
       <Button type="button" disabled={isPending || !email.trim()} onClick={handleInvite}>
-        Invite
+        {t("invite")}
       </Button>
       {message ? <p className="text-sm text-muted-foreground sm:col-span-3">{message}</p> : null}
     </div>

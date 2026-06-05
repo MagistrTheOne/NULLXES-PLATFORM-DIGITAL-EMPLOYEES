@@ -1,21 +1,20 @@
 import { format } from "date-fns";
+import { getTranslations } from "next-intl/server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { EmployeeKnowledgeItem } from "../types";
 
-function statusLabel(status: EmployeeKnowledgeItem["status"]): string {
-  return status.replace("_", " ");
-}
-
-export function EmployeeKnowledgePanel({
+export async function EmployeeKnowledgePanel({
   items,
 }: {
   items: EmployeeKnowledgeItem[];
 }) {
+  const t = await getTranslations("employees.knowledge");
+
   if (items.length === 0) {
     return (
       <Card className="border-white/10 bg-[#111111] py-0 text-white">
         <CardContent className="px-5 py-8 text-sm text-white/50">
-          No knowledge sources attached to this employee yet.
+          {t("empty")}
         </CardContent>
       </Card>
     );
@@ -25,7 +24,7 @@ export function EmployeeKnowledgePanel({
     <Card className="border-white/10 bg-[#111111] py-0 text-white">
       <CardHeader className="border-b border-white/10 px-5 py-4">
         <CardTitle className="text-base font-medium">
-          Knowledge sources ({items.length})
+          {t("title", { count: items.length })}
         </CardTitle>
       </CardHeader>
       <CardContent className="divide-y divide-white/10 px-0 py-0">
@@ -39,7 +38,7 @@ export function EmployeeKnowledgePanel({
                 {item.title}
               </p>
               <p className="mt-1 text-xs tracking-wide text-white/45 uppercase">
-                {item.type} · {statusLabel(item.status)}
+                {item.type} · {t(`status.${item.status}`)}
               </p>
               {item.failureReason ? (
                 <p className="mt-2 text-xs text-white/55">
@@ -48,7 +47,7 @@ export function EmployeeKnowledgePanel({
               ) : null}
             </div>
             <div className="flex shrink-0 flex-col items-start gap-1 text-xs text-white/50 sm:items-end">
-              <span>{item.chunkCount} chunks</span>
+              <span>{t("chunks", { count: item.chunkCount })}</span>
               <span>{format(item.createdAt, "MMM d, yyyy")}</span>
             </div>
           </div>

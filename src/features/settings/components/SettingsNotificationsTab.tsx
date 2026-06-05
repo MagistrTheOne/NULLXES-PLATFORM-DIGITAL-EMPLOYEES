@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { updateNotificationSettingsAction } from "../actions/update-notification-settings";
@@ -14,6 +15,8 @@ export function SettingsNotificationsTab({
   settings: OrganizationSettingsDto;
   canManageOrganization: boolean;
 }) {
+  const t = useTranslations("settings.notifications");
+  const tSettings = useTranslations("settings");
   const [message, setMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [notifications, setNotifications] = useState({
@@ -26,30 +29,30 @@ export function SettingsNotificationsTab({
   const rows = [
     {
       key: "notifySessionCompleted" as const,
-      title: "Session completed",
-      detail: "When a talk session ends in this workspace",
+      title: t("sessionCompleted"),
+      detail: t("sessionCompletedDetail"),
     },
     {
       key: "notifyEmployeeCreated" as const,
-      title: "Employee created",
-      detail: "When a new digital employee is provisioned",
+      title: t("employeeCreated"),
+      detail: t("employeeCreatedDetail"),
     },
     {
       key: "notifyKnowledgeFailed" as const,
-      title: "Knowledge processing failed",
-      detail: "When indexing fails for a knowledge source",
+      title: t("knowledgeFailed"),
+      detail: t("knowledgeFailedDetail"),
     },
     {
       key: "notifyWeeklyDigest" as const,
-      title: "Weekly digest",
-      detail: "Summary of workforce activity every Monday",
+      title: t("weeklyDigest"),
+      detail: t("weeklyDigestDetail"),
     },
   ];
 
   return (
     <SettingsCard
-      title="Notification Preferences"
-      description="Workspace alerts stored for future delivery channels"
+      title={t("title")}
+      description={t("description")}
       footer={
         <Button
           type="button"
@@ -57,11 +60,13 @@ export function SettingsNotificationsTab({
           onClick={() =>
             startTransition(async () => {
               const result = await updateNotificationSettingsAction(notifications);
-              setMessage(result.ok ? "Notification settings saved." : result.message);
+              setMessage(
+                result.ok ? t("saved") : result.message ?? tSettings("saveFailed"),
+              );
             })
           }
         >
-          Save Changes
+          {tSettings("saveChanges")}
         </Button>
       }
     >

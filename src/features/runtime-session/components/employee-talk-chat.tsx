@@ -1,6 +1,7 @@
 "use client";
 
 import { Component, type ReactNode, useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Loader2, MessageSquare, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { Channel as StreamChannel } from "stream-chat";
@@ -20,13 +21,11 @@ import {
 } from "../lib/talk-chat-connection";
 type TalkChatUiState = "connecting" | "ready" | "unavailable";
 
-function TalkChatEmptyState() {
+function TalkChatEmptyState({ message }: { message: string }) {
   return (
     <div className="flex h-full flex-col items-center justify-center gap-3 px-6 text-center">
       <MessageSquare className="size-10 stroke-[1.25] text-white/25" />
-      <p className="max-w-[220px] text-sm leading-relaxed text-white/45">
-        Отправьте сообщение, чтобы начать разговор
-      </p>
+      <p className="max-w-[220px] text-sm leading-relaxed text-white/45">{message}</p>
     </div>
   );
 }
@@ -34,20 +33,26 @@ function TalkChatEmptyState() {
 function TalkChatFallback({
   state,
   onRetry,
+  connectingLabel,
+  unavailableLabel,
+  retryLabel,
 }: {
   state: Exclude<TalkChatUiState, "ready">;
   onRetry?: () => void;
+  connectingLabel: string;
+  unavailableLabel: string;
+  retryLabel: string;
 }) {
   return (
     <div className="employee-talk-chat-fallback flex h-full flex-col items-center justify-center gap-3 px-4 text-center">
       {state === "connecting" ? (
         <>
           <Loader2 className="size-4 animate-spin text-white/50" />
-          <p className="text-sm text-white/50">Connecting…</p>
+          <p className="text-sm text-white/50">{connectingLabel}</p>
         </>
       ) : (
         <>
-          <p className="text-sm text-white/50">Conversation unavailable</p>
+          <p className="text-sm text-white/50">{unavailableLabel}</p>
           {onRetry ? (
             <Button
               type="button"
@@ -57,7 +62,7 @@ function TalkChatFallback({
               onClick={onRetry}
             >
               <RotateCcw className="size-3.5" />
-              Retry
+              {retryLabel}
             </Button>
           ) : null}
         </>
@@ -67,7 +72,11 @@ function TalkChatFallback({
 }
 
 class TalkChatErrorBoundary extends Component<
-  { onError: () => void; children: ReactNode },
+  {
+    onError: () => void;
+    children: ReactNode;
+    unavailableLabel: string;
+  },
   { hasError: boolean }
 > {
   state = { hasError: false };
@@ -83,7 +92,14 @@ class TalkChatErrorBoundary extends Component<
 
   render(): ReactNode {
     if (this.state.hasError) {
-      return <TalkChatFallback state="unavailable" />;
+      return (
+        <TalkChatFallback
+          state="unavailable"
+          unavailableLabel={this.props.unavailableLabel}
+          connectingLabel=""
+          retryLabel=""
+        />
+      );
     }
 
     return this.props.children;
@@ -95,6 +111,8 @@ export function EmployeeTalkChat({
 }: {
   chatSession: TalkChatCredentials;
 }) {
+  const t = useTranslations("employees.talk.chat");
+  const tTalk = useTranslations("employees.talk");
   const [client, setClient] = useState<StreamChat | null>(null);
   const [channel, setChannel] = useState<StreamChannel | null>(null);
   const [uiState, setUiState] = useState<TalkChatUiState>("connecting");
@@ -159,14 +177,17 @@ export function EmployeeTalkChat({
     const root = document.querySelector(".employee-talk-chat-panel");
     const textarea = root?.querySelector("textarea");
     if (textarea) {
-      textarea.setAttribute("placeholder", "Отправьте сообщение...");
+      textarea.setAttribute("placeholder", t("placeholder"));
     }
-  }, [uiState]);
+  }, [uiState, t]);
 
   if (uiState !== "ready" || !client || !channel) {
     return (
       <TalkChatFallback
         state={uiState === "ready" ? "connecting" : uiState}
+        connectingLabel={tTalk("connecting")}
+        unavailableLabel={t("unavailable")}
+        retryLabel={t("retry")}
         onRetry={
           uiState === "unavailable"
             ? () => setConnectAttempt((current) => current + 1)
@@ -177,16 +198,19 @@ export function EmployeeTalkChat({
   }
 
   return (
-    <TalkChatErrorBoundary onError={() => setUiState("unavailable")}>
+    <TalkChatErrorBoundary
+      onError={() => setUiState("unavailable")}
+      unavailableLabel={t("unavailable")}
+    >
       <div className="employee-talk-chat-surface relative h-full min-h-0">
         <Chat client={client} theme="str-chat__theme-dark">
           <Channel channel={channel}>
             <Window>
               <div className="employee-talk-chat-header border-b border-white/10 px-4 py-3 text-[11px] font-medium tracking-[0.12em] text-white/50 uppercase">
-                Session chat
+                {t("title")}
               </div>
               <div className="employee-talk-chat-messages relative min-h-0 flex-1">
-                <TalkChatEmptyOverlay channel={channel} />
+                <TalkChatEmptyOverlay channel={channel} emptyMessage={t("empty")} />
                 <MessageList />
               </div>
               <MessageComposer />
@@ -198,7 +222,13 @@ export function EmployeeTalkChat({
   );
 }
 
-function TalkChatEmptyOverlay({ channel }: { channel: StreamChannel }) {
+function TalkChatEmptyOverlay({
+  channel,
+  emptyMessage,
+}: {
+  channel: StreamChannel;
+  emptyMessage: string;
+}) {
   const [isEmpty, setIsEmpty] = useState(
     () => (channel.state.messages?.length ?? 0) === 0,
   );
@@ -224,7 +254,7 @@ function TalkChatEmptyOverlay({ channel }: { channel: StreamChannel }) {
 
   return (
     <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
-      <TalkChatEmptyState />
+      <TalkChatEmptyState message={emptyMessage} />
     </div>
   );
 }

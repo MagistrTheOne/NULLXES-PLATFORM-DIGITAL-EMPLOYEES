@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -68,6 +69,8 @@ export function SettingsGeneralTab({
   canManageOrganization: boolean;
   sections?: SettingsSection[];
 }) {
+  const t = useTranslations("settings.general");
+  const tSettings = useTranslations("settings");
   const show = (section: SettingsSection) => sections.includes(section);
   const [message, setMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -101,7 +104,9 @@ export function SettingsGeneralTab({
   function runAction(action: () => Promise<{ ok: boolean; message?: string }>) {
     startTransition(async () => {
       const result = await action();
-      setMessage(result.ok ? "Settings saved." : result.message ?? "Save failed.");
+      setMessage(
+        result.ok ? tSettings("saved") : result.message ?? tSettings("saveFailed"),
+      );
     });
   }
 
@@ -116,8 +121,8 @@ export function SettingsGeneralTab({
       <div className="grid gap-6 xl:grid-cols-2">
         {show("profile") ? (
         <SettingsCard
-          title="Organization Profile"
-          description="Workspace identity and regional defaults"
+          title={t("organizationProfile")}
+          description={t("organizationProfileDesc")}
           footer={
             <Button
               type="button"
@@ -126,12 +131,12 @@ export function SettingsGeneralTab({
                 runAction(() => updateOrganizationProfileAction(profile))
               }
             >
-              Save Changes
+              {tSettings("saveChanges")}
             </Button>
           }
         >
           <div className="grid gap-4">
-            <Field label="Organization Name">
+            <Field label={t("organizationName")}>
               <Input
                 value={profile.name}
                 disabled={!canManageOrganization}
@@ -140,7 +145,7 @@ export function SettingsGeneralTab({
                 }
               />
             </Field>
-            <Field label="Industry">
+            <Field label={t("industry")}>
               <Select
                 value={profile.industry}
                 disabled={!canManageOrganization}
@@ -160,7 +165,7 @@ export function SettingsGeneralTab({
                 </SelectContent>
               </Select>
             </Field>
-            <Field label="Website">
+            <Field label={t("website")}>
               <Input
                 value={profile.website}
                 disabled={!canManageOrganization}
@@ -170,7 +175,7 @@ export function SettingsGeneralTab({
                 }
               />
             </Field>
-            <Field label="Timezone">
+            <Field label={t("timezone")}>
               <Select
                 value={profile.timezone}
                 disabled={!canManageOrganization}
@@ -196,8 +201,8 @@ export function SettingsGeneralTab({
 
         {show("preferences") ? (
         <SettingsCard
-          title="Preferences"
-          description="Platform display and analytics defaults"
+          title={t("preferences")}
+          description={t("preferencesDesc")}
           footer={
             <Button
               type="button"
@@ -206,7 +211,7 @@ export function SettingsGeneralTab({
                 runAction(() => updateOrganizationPreferencesAction(preferences))
               }
             >
-              Save Changes
+              {tSettings("saveChanges")}
             </Button>
           }
         >
@@ -328,8 +333,8 @@ export function SettingsGeneralTab({
 
         {show("defaults") ? (
         <SettingsCard
-          title="Default Employee Settings"
-          description="Defaults applied when creating new digital employees"
+          title={t("defaultEmployee")}
+          description={t("defaultEmployeeDesc")}
           footer={
             <Button
               type="button"
@@ -338,7 +343,7 @@ export function SettingsGeneralTab({
                 runAction(() => updateDefaultEmployeeSettingsAction(defaults))
               }
             >
-              Save Changes
+              {tSettings("saveChanges")}
             </Button>
           }
         >
@@ -418,8 +423,8 @@ export function SettingsGeneralTab({
 
         {show("privacy") ? (
         <SettingsCard
-          title="Data & Privacy"
-          description="Retention and export controls"
+          title={t("dataPrivacy")}
+          description={t("dataPrivacyDesc")}
           footer={
             <Button
               type="button"
@@ -428,7 +433,7 @@ export function SettingsGeneralTab({
                 runAction(() => updateDataPrivacySettingsAction(privacy))
               }
             >
-              Save Changes
+              {tSettings("saveChanges")}
             </Button>
           }
         >

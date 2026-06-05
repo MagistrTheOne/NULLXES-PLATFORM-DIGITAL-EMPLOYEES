@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { completeTalkSessionAction } from "../actions/employee-session";
@@ -19,6 +20,8 @@ function TalkSessionShell({
   employeeSessionId,
   ...roomProps
 }: EmployeeTalkRoomProps & { employeeName: string }) {
+  const t = useTranslations("employees.talk");
+  const tCommon = useTranslations("common.actions");
   const router = useRouter();
   const { stopSession } = useTalkAnam();
   const [isLimitLeaving, setIsLimitLeaving] = useState(false);
@@ -49,16 +52,14 @@ function TalkSessionShell({
           >
             <Link href="/dashboard/employees">
               <ArrowLeft className="size-4" />
-              Back
+              {tCommon("back")}
             </Link>
           </Button>
           <div className="min-w-0">
             <h1 className="text-2xl font-medium tracking-tight text-white">
-              Talk · {employeeName}
+              {t("title", { name: employeeName })}
             </h1>
-            <p className="mt-1 text-sm text-white/60">
-              Live session · chat · optional camera
-            </p>
+            <p className="mt-1 text-sm text-white/60">{t("subtitle")}</p>
           </div>
         </div>
         <TalkSessionMeta

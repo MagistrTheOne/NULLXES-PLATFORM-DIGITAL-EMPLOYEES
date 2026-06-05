@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { AvatarGenerationStatus } from "@/features/employees/create/types";
@@ -15,6 +16,7 @@ export function AvatarGenerationState({
   canGenerate: boolean;
   onGenerate: () => void;
 }) {
+  const t = useTranslations("employees.studio.avatar");
   const isGenerating = status === "generating" || status === "uploading";
 
   return (
@@ -22,7 +24,7 @@ export function AvatarGenerationState({
       {isGenerating ? (
         <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-[#111111] px-4 py-3 text-sm text-white/70">
           <Loader2 className="size-4 animate-spin text-white/60" />
-          Generating avatar with Anam…
+          {t("generating")}
         </div>
       ) : null}
 
@@ -39,7 +41,7 @@ export function AvatarGenerationState({
         onClick={onGenerate}
         className="border-white/10 bg-transparent text-white hover:bg-white/5"
       >
-        {status === "ready" ? "Regenerate Avatar" : "Generate Avatar"}
+        {status === "ready" ? t("regenerate") : t("generate")}
       </Button>
     </div>
   );

@@ -229,7 +229,90 @@
       "title": "Разговор · {name}",
       "subtitle": "Живая сессия · чат · камера по желанию",
       "leave": "Завершить",
-      "connecting": "Подключение…"
+      "connecting": "Подключение…",
+      "live": "В эфире",
+      "remaining": "осталось {remaining} · лимит {limit}",
+      "chat": {
+        "title": "Чат сессии",
+        "empty": "Отправьте сообщение, чтобы начать разговор",
+        "placeholder": "Отправьте сообщение...",
+        "unavailable": "Чат недоступен",
+        "retry": "Повторить"
+      },
+      "controls": {
+        "muteMic": "Выключить микрофон",
+        "unmuteMic": "Включить микрофон",
+        "turnOffCamera": "Выключить камеру",
+        "turnOnCamera": "Включить камеру"
+      },
+      "stage": {
+        "goodConnection": "Хорошее соединение",
+        "fullscreen": "На весь экран",
+        "cameraUnavailable": "Камера недоступна",
+        "you": "Вы",
+        "anamClosed": "Соединение с Anam закрыто",
+        "anamStreamFailed": "Не удалось запустить поток Anam",
+        "anamUnavailable": "Сессия Anam недоступна"
+      },
+      "error": {
+        "title": "Сессия Talk недоступна",
+        "generic": "При загрузке сессии Talk произошла ошибка.",
+        "database": "Не удалось подключиться к базе для проверки сессии. Проверьте сеть и DATABASE_URL (Neon), затем повторите.",
+        "tryAgain": "Повторить",
+        "backToEmployees": "К списку сотрудников"
+      }
+    },
+    "knowledge": {
+      "empty": "У этого сотрудника пока нет источников знаний.",
+      "title": "Источники знаний ({count})",
+      "chunks": "{count} фрагментов",
+      "status": {
+        "pending": "ожидание",
+        "processing": "обработка",
+        "ready": "готово",
+        "failed": "ошибка"
+      }
+    },
+    "lifecycle": {
+      "empty": "События жизненного цикла пока не записаны.",
+      "title": "События жизненного цикла",
+      "events": {
+        "created": "создан",
+        "activated": "активирован",
+        "paused": "приостановлен",
+        "archived": "в архиве",
+        "runtime_updated": "обновлён runtime",
+        "knowledge_updated": "обновлены знания"
+      }
+    },
+    "studio": {
+      "avatar": {
+        "upload": "Загрузить фото",
+        "formats": "PNG, JPG или WebP до 4,5 МБ",
+        "change": "Сменить фото",
+        "generating": "Генерация аватара через Anam…",
+        "regenerate": "Перегенерировать аватар",
+        "generate": "Сгенерировать аватар"
+      },
+      "voice": {
+        "allProviders": "Все провайдеры",
+        "selectedVoice": "Выбранный голос",
+        "provider": "Провайдер",
+        "voiceId": "ID голоса",
+        "gender": "Пол",
+        "language": "Язык",
+        "listenPreview": "Прослушать превью",
+        "findVoice": "1 · Найти голос",
+        "search": "Поиск голосов",
+        "customVoiceId": "Свой ID голоса ElevenLabs"
+      },
+      "brain": {
+        "recommended": "Рекомендуется",
+        "openAi": "OpenAI",
+        "openAiDescription": "Мозг по умолчанию для новых цифровых сотрудников. Подключается через OpenAI API с вашим ключом.",
+        "active": "Активен",
+        "customProviders": "Другие провайдеры"
+      }
     }
   },
   "settings": {
@@ -237,6 +320,7 @@
     "subtitle": "Организация, команда, предпочтения и интеграции.",
     "saved": "Настройки сохранены.",
     "saveFailed": "Не удалось сохранить.",
+    "saveChanges": "Сохранить",
     "tabs": {
       "general": "Общие",
       "organization": "Организация",
@@ -247,6 +331,101 @@
       "ai": "ИИ и голос",
       "notifications": "Уведомления",
       "advanced": "Дополнительно"
+    },
+    "general": {
+      "organizationProfile": "Профиль организации",
+      "organizationProfileDesc": "Идентичность рабочего пространства и региональные настройки",
+      "preferences": "Предпочтения",
+      "preferencesDesc": "Отображение платформы и аналитика по умолчанию",
+      "defaultEmployee": "Настройки сотрудника по умолчанию",
+      "defaultEmployeeDesc": "Значения при создании новых цифровых сотрудников",
+      "dataPrivacy": "Данные и конфиденциальность",
+      "dataPrivacyDesc": "Хранение и экспорт",
+      "compactMode": "Компактный режим",
+      "organizationName": "Название организации",
+      "industry": "Отрасль",
+      "website": "Сайт",
+      "timezone": "Часовой пояс",
+      "theme": "Тема",
+      "language": "Язык",
+      "dateFormat": "Формат даты",
+      "timeFormat": "Формат времени",
+      "defaultTimeRange": "Период аналитики",
+      "defaultLlm": "LLM по умолчанию",
+      "knowledgeProcessing": "Обработка знаний",
+      "sessionRetention": "Хранение сессий",
+      "retentionPolicy": "Политика хранения",
+      "dataExport": "Экспорт данных",
+      "dataExportValue": "По запросу",
+      "deleteSessions": "Удаление сессий",
+      "deleteSessionsValue": "По политике хранения",
+      "anonymizeData": "Анонимизация",
+      "anonymizeDataValue": "Свяжитесь с администратором"
+    },
+    "notifications": {
+      "title": "Уведомления",
+      "description": "Email-оповещения администраторам рабочего пространства",
+      "saved": "Настройки уведомлений сохранены.",
+      "sessionCompleted": "Сессия завершена",
+      "sessionCompletedDetail": "Когда talk-сессия заканчивается в этом workspace",
+      "employeeCreated": "Сотрудник создан",
+      "employeeCreatedDetail": "Когда создан новый цифровой сотрудник",
+      "knowledgeFailed": "Ошибка обработки знаний",
+      "knowledgeFailedDetail": "Когда индексация источника знаний не удалась",
+      "weeklyDigest": "Еженедельная сводка",
+      "weeklyDigestDetail": "Сводка активности workforce по понедельникам"
+    },
+    "team": {
+      "inviteMember": "Пригласить участника",
+      "inviteDescription": "Отправить приглашение по email",
+      "pendingInvites": "Ожидающие приглашения",
+      "pendingInvitesDesc": "Приглашения, ожидающие принятия",
+      "teamMembers": "Участники команды",
+      "teamMembersDesc": "Люди с доступом к workspace",
+      "footerManage": "Приглашения действуют 7 дней. Принятие по email или OAuth.",
+      "footerView": "Только администраторы управляют командой.",
+      "resend": "Отправить снова",
+      "revoke": "Отозвать",
+      "remove": "Удалить",
+      "you": "(вы)",
+      "joined": "Вступил {date}",
+      "invitedBy": "Пригласил {name}",
+      "expires": "Истекает {date}",
+      "resentEmail": "Приглашение отправлено повторно.",
+      "resentNoEmail": "Приглашение обновлено. Настройте Resend для отправки email.",
+      "inviteEmail": "Email",
+      "inviteRole": "Роль",
+      "invite": "Пригласить",
+      "inviteCreated": "Приглашение создано. Email уходит при настроенном Resend; запись всегда сохраняется."
+    },
+    "advanced": {
+      "title": "Экспорт данных",
+      "description": "Экспорт конфигурации и метаданных workspace",
+      "exportNow": "Экспортировать сейчас",
+      "queueExport": "Поставить в очередь",
+      "downloaded": "Экспорт workspace загружен.",
+      "queued": "Задача экспорта ({jobId}…). Ссылка на скачивание по готовности."
+    },
+    "options": {
+      "enterprise": "Корпоративный",
+      "technology": "Технологии",
+      "healthcare": "Здравоохранение",
+      "finance": "Финансы",
+      "legal": "Юридический",
+      "other": "Другое",
+      "en": "Английский",
+      "ru": "Русский",
+      "24h": "24 часа",
+      "12h": "12 часов",
+      "days7": "Последние 7 дней",
+      "days14": "Последние 14 дней",
+      "days30": "Последние 30 дней",
+      "retention30": "30 дней",
+      "retention90": "90 дней",
+      "retention180": "180 дней",
+      "retention365": "365 дней",
+      "auto": "Авто",
+      "manual": "Вручную"
     }
   }
 }

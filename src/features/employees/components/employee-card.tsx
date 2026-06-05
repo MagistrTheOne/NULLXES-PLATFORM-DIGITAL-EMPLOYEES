@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import { format } from "date-fns";
+import { useTranslations } from "next-intl";
 import { Loader2, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -8,23 +11,28 @@ import { AvatarIdlePreview } from "./avatar-idle-preview";
 import { EmployeeProviderBadge } from "./employee-provider-badge";
 import { EmployeeStatusBadge } from "./employee-status-badge";
 
-function provisioningLabel(status: EmployeeListItem["avatarProvisioningStatus"]): string {
+function provisioningLabel(
+  status: EmployeeListItem["avatarProvisioningStatus"],
+  t: ReturnType<typeof useTranslations<"employees.card">>,
+): string {
   if (status === "provisioning") {
-    return "Provisioning avatar…";
+    return t("provisioningAvatar");
   }
 
   if (status === "pending") {
-    return "Queued for provisioning";
+    return t("queuedProvisioning");
   }
 
   if (status === "failed") {
-    return "Avatar provisioning failed";
+    return t("provisioningFailed");
   }
 
   return "";
 }
 
 export function EmployeeCard({ employee }: { employee: EmployeeListItem }) {
+  const t = useTranslations("employees.card");
+  const tActions = useTranslations("common.actions");
   const createdLabel = format(employee.createdAt, "MMM d, yyyy");
   const isProvisioning =
     employee.avatarProvisioningStatus === "pending" ||
@@ -50,8 +58,8 @@ export function EmployeeCard({ employee }: { employee: EmployeeListItem }) {
               <UserRound className="size-8 stroke-[1.25]" />
             )}
             <span className="px-4 text-center text-xs tracking-wide uppercase">
-              {provisioningLabel(employee.avatarProvisioningStatus) ||
-                "Avatar preview"}
+              {provisioningLabel(employee.avatarProvisioningStatus, t) ||
+                t("avatarPreview")}
             </span>
           </div>
         )}
@@ -93,10 +101,10 @@ export function EmployeeCard({ employee }: { employee: EmployeeListItem }) {
             >
               {employee.canTalk ? (
                 <Link href={`/dashboard/employees/${employee.id}/talk`}>
-                  Talk
+                  {tActions("talk")}
                 </Link>
               ) : (
-                <span>Talk</span>
+                <span>{tActions("talk")}</span>
               )}
             </Button>
             <span className="text-xs text-white/50">{createdLabel}</span>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { exportWorkspaceDataAction } from "../actions/export-workspace-data";
 import { requestExportJobAction } from "../actions/request-export-job";
@@ -14,6 +15,7 @@ export function SettingsAdvancedTab({
   settings: OrganizationSettingsDto;
   canManageOrganization: boolean;
 }) {
+  const t = useTranslations("settings.advanced");
   const [message, setMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -22,7 +24,7 @@ export function SettingsAdvancedTab({
       const result = await requestExportJobAction();
       setMessage(
         result.ok
-          ? `Export job queued (${result.jobId.slice(0, 8)}…). Download link when ready.`
+          ? t("queued", { jobId: result.jobId.slice(0, 8) })
           : result.message,
       );
     });
@@ -44,16 +46,13 @@ export function SettingsAdvancedTab({
       anchor.download = `nullxes-workspace-export-${new Date().toISOString().slice(0, 10)}.json`;
       anchor.click();
       URL.revokeObjectURL(url);
-      setMessage("Workspace export downloaded.");
+      setMessage(t("downloaded"));
     });
   }
 
   return (
     <div className="grid gap-6">
-      <SettingsCard title="Data Export">
-        <p className="mb-4 text-sm text-muted-foreground">
-          Download organization settings, usage snapshot, and team metadata as JSON.
-        </p>
+      <SettingsCard title={t("title")} description={t("description")}>
         <div className="flex flex-wrap gap-3">
           <Button
             type="button"
@@ -61,7 +60,7 @@ export function SettingsAdvancedTab({
             disabled={!canManageOrganization || isPending}
             onClick={handleExport}
           >
-            Export Now (JSON)
+            {t("exportNow")}
           </Button>
           <Button
             type="button"
@@ -69,16 +68,16 @@ export function SettingsAdvancedTab({
             disabled={!canManageOrganization || isPending}
             onClick={handleAsyncExport}
           >
-            Queue Background Export
+            {t("queueExport")}
           </Button>
         </div>
         {message ? <p className="mt-3 text-sm text-muted-foreground">{message}</p> : null}
       </SettingsCard>
-      <SettingsCard title="Retention Controls">
+      <SettingsCard title={t("title")}>
         <div className="space-y-2 text-sm text-muted-foreground">
-          <p>Session retention: {settings.sessionRetentionDays} days</p>
-          <p>Data retention policy: {settings.retentionPolicyDays} days</p>
-          <p>Adjust these values in General and Data & Privacy.</p>
+          <p>
+            {settings.sessionRetentionDays} / {settings.retentionPolicyDays}
+          </p>
         </div>
       </SettingsCard>
     </div>

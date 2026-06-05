@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Upload } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -14,6 +15,8 @@ export function AvatarUpload({
   disabled?: boolean;
   onFileSelected: (file: File) => void;
 }) {
+  const t = useTranslations("employees.studio.avatar");
+
   return (
     <label
       className={cn(
@@ -26,21 +29,21 @@ export function AvatarUpload({
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={localPreviewUrl}
-            alt={photoFileName ?? "Uploaded photo"}
+            alt={photoFileName ?? t("upload")}
             className="size-full object-cover"
           />
         ) : (
           <div className="flex flex-col items-center justify-center gap-3 px-6 py-10">
             <Upload className="size-6 text-white/50" />
             <div className="text-center">
-              <p className="text-sm font-medium text-white">Upload Photo</p>
-              <p className="mt-1 text-xs text-white/50">PNG, JPG, or WebP up to 4.5MB</p>
+              <p className="text-sm font-medium text-white">{t("upload")}</p>
+              <p className="mt-1 text-xs text-white/50">{t("formats")}</p>
             </div>
           </div>
         )}
         {localPreviewUrl ? (
           <div className="absolute inset-0 flex items-end justify-center bg-linear-to-t from-black/70 via-black/20 to-transparent p-4 opacity-0 transition-opacity group-hover:opacity-100">
-            <p className="text-sm font-medium text-white">Change photo</p>
+            <p className="text-sm font-medium text-white">{t("change")}</p>
           </div>
         ) : null}
       </div>
