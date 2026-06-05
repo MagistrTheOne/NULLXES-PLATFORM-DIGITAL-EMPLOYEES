@@ -47,6 +47,47 @@ export async function countActiveApiKeys(organizationId: string): Promise<number
   return rows.length;
 }
 
+export async function verifyApiKey(
+  rawKey: string,
+): Promise<
+  | {
+      organizationId: string;
+      keyId: string;
+      createdByUserId: string;
+    }
+  | null
+> {
+  if (!rawKey.startsWith("nx_")) {
+    return null;
+  }
+
+  const keyHash = hashApiKey(rawKey);
+  const [row] = await db
+    .select({
+      id: apiKey.id,
+      organizationId: apiKey.organizationId,
+      createdByUserId: apiKey.createdByUserId,
+    })
+    .from(apiKey)
+    .where(and(eq(apiKey.keyHash, keyHash), isNull(apiKey.revokedAt)))
+    .limit(1);
+
+  if (!row) {
+    return null;
+  }
+
+  await db
+    .update(apiKey)
+    .set({ lastUsedAt: new Date() })
+    .where(eq(apiKey.id, row.id));
+
+  return {
+    organizationId: row.organizationId,
+    keyId: row.id,
+    createdByUserId: row.createdByUserId,
+  };
+}
+
 export async function revokeApiKey(input: {
   organizationId: string;
   keyId: string;

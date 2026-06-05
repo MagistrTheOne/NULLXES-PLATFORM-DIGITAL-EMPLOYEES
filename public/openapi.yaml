@@ -1,0 +1,90 @@
+openapi: 3.1.0
+info:
+  title: NULLXES Digital Employees API
+  version: 1.0.0
+  description: Public REST API for workforce automation. Authenticate with Bearer API keys (nx_...).
+servers:
+  - url: /api/v1
+security:
+  - bearerAuth: []
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: Organization API key created in Settings → Security
+paths:
+  /employees:
+    get:
+      summary: List digital employees
+      responses:
+        "200":
+          description: Employee list
+    post:
+      summary: Create digital employee (draft)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, role]
+              properties:
+                name: { type: string }
+                role: { type: string }
+                description: { type: string }
+      responses:
+        "201":
+          description: Created
+  /employees/{id}:
+    get:
+      summary: Get employee detail
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Employee detail
+    patch:
+      summary: Update employee
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Updated
+    delete:
+      summary: Delete employee
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Deleted
+  /sessions:
+    get:
+      summary: List talk sessions
+      parameters:
+        - in: query
+          name: limit
+          schema: { type: integer, maximum: 100, default: 50 }
+      responses:
+        "200":
+          description: Session list
+  /sessions/{id}:
+    get:
+      summary: Get session detail
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Session detail

@@ -2,6 +2,7 @@
 
 import { requireAuth } from "@/features/auth/services/require-auth";
 import { ensureWorkspace } from "@/features/auth/services/ensure-workspace";
+import { dispatchOrganizationWebhook } from "@/features/public-api/services/dispatch-outbound-webhook";
 import { inngest } from "@/inngest/client";
 import {
   activateEmployeeSession,
@@ -28,7 +29,7 @@ export async function completeTalkSessionAction(
   startedAtIso?: string,
 ): Promise<void> {
   const { organizationId, userId } = await resolveWorkspaceContext();
-  await completeEmployeeSession({
+  const result = await completeEmployeeSession({
     sessionId,
     organizationId,
     userId,
@@ -39,6 +40,20 @@ export async function completeTalkSessionAction(
     name: "employee/session.completed",
     data: { sessionId, organizationId },
   });
+
+  if (result) {
+    void dispatchOrganizationWebhook({
+      organizationId,
+      event: "session.completed",
+      data: {
+        sessionId,
+        employeeId: result.employeeId,
+        durationSeconds: result.durationSeconds,
+        status: result.status,
+        limitExceeded: result.limitExceeded,
+      },
+    });
+  }
 }
 
 export async function failTalkSessionAction(sessionId: string): Promise<void> {
