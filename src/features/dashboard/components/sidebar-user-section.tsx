@@ -38,11 +38,7 @@ export function SidebarUserSection({
   const isExpanded = sidebarState === "expanded";
   const { billing } = workspace;
   const showUpgrade = Boolean(billing.checkoutUrl);
-  const showPortal =
-    Boolean(billing.portalUrl) &&
-    (billing.planId === "super_pro" ||
-      billing.planId === "enterprise" ||
-      billing.planId === "government");
+  const showPortal = Boolean(billing.portalUrl);
 
   return (
     <DropdownMenu>
@@ -135,7 +131,10 @@ export function SidebarUserSection({
             {t("billingSettings")}
           </Link>
         </DropdownMenuItem>
-        {billing.planId === "free" && billing.canManageBilling ? (
+        {(billing.planId === "free" ||
+          billing.planId === "enterprise" ||
+          billing.planId === "government") &&
+        billing.canManageBilling ? (
           <DropdownMenuItem
             asChild
             className="cursor-pointer text-white focus:bg-white/10 focus:text-white"

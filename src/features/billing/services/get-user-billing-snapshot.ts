@@ -29,7 +29,7 @@ export function getUserBillingSnapshot(input: {
   const superProProductId = getPolarProductId("super_pro");
 
   const checkoutUrl =
-    planId !== "super_pro" &&
+    planId === "free" &&
     input.canManageOrganization &&
     polarReady &&
     superProProductId
@@ -41,7 +41,9 @@ export function getUserBillingSnapshot(input: {
       : null;
 
   const portalUrl =
-    input.canManageOrganization && polarReady ? "/api/portal" : null;
+    planId === "super_pro" && input.canManageOrganization && polarReady
+      ? "/api/portal"
+      : null;
 
   return {
     planId,
