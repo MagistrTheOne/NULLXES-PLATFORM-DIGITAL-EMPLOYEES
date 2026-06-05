@@ -27,17 +27,26 @@ export function OverviewRecentActivity({
   events: RecentLifecycleEventRow[];
 }) {
   return (
-    <OverviewCard title="Recent Activity" description="Latest workspace events">
-      <ul className="max-h-[360px] space-y-0 overflow-y-auto px-5 py-2">
+    <OverviewCard
+      title="Recent Activity"
+      description="Latest workspace events"
+      className="min-h-[360px]"
+    >
+      <div className="flex min-h-[calc(360px-57px)] flex-col">
+        <div className="flex items-center justify-between gap-4 border-b border-border px-5 py-3">
+          <span className="text-sm text-muted-foreground">Event</span>
+          <span className="text-sm text-muted-foreground">When</span>
+        </div>
+        <ul className="flex-1 space-y-0 overflow-y-auto">
         {events.length === 0 ? (
-          <li className="py-10 text-center text-sm text-muted-foreground">
+          <li className="px-5 py-10 text-center text-sm text-muted-foreground">
             No recent activity recorded yet.
           </li>
         ) : (
           events.map((event) => (
             <li
               key={event.id}
-              className="flex items-start justify-between gap-4 border-b border-border py-4 last:border-b-0"
+              className="flex items-start justify-between gap-4 border-b border-border px-5 py-4 last:border-b-0"
             >
               <div className="min-w-0">
                 <p className="text-sm text-foreground">
@@ -54,7 +63,8 @@ export function OverviewRecentActivity({
             </li>
           ))
         )}
-      </ul>
+        </ul>
+      </div>
     </OverviewCard>
   );
 }
