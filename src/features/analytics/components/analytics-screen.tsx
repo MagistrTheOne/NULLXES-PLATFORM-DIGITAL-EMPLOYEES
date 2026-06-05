@@ -1,8 +1,10 @@
 import { formatDurationSeconds } from "../lib/format-duration";
 import type { DashboardAnalytics } from "../types";
+import { AnalyticsConversationTimeDonut } from "./AnalyticsConversationTimeDonut";
 import { AnalyticsKpiCard } from "./AnalyticsKpiCard";
 import { AnalyticsKnowledgeOverview } from "./AnalyticsKnowledgeOverview";
 import { AnalyticsLifecycleOverview } from "./AnalyticsLifecycleOverview";
+import { AnalyticsRecentLifecycle } from "./AnalyticsRecentLifecycle";
 import { AnalyticsRecentSessions } from "./AnalyticsRecentSessions";
 import { AnalyticsSessionChart } from "./AnalyticsSessionChart";
 import { AnalyticsStatusOverview } from "./AnalyticsStatusOverview";
@@ -12,7 +14,7 @@ export function AnalyticsScreen({ data }: { data: DashboardAnalytics }) {
   const { metrics } = data;
 
   return (
-    <div className="flex w-full max-w-none flex-col gap-6">
+    <div className="flex w-full flex-col gap-6">
       <header>
         <h1 className="text-2xl font-medium tracking-tight text-foreground">
           Analytics
@@ -22,7 +24,7 @@ export function AnalyticsScreen({ data }: { data: DashboardAnalytics }) {
         </p>
       </header>
 
-      <section className="grid gap-6 lg:grid-cols-2 xl:grid-cols-5">
+      <section className="grid gap-6 sm:grid-cols-2 xl:grid-cols-5">
         <AnalyticsKpiCard
           title="Total Employees"
           value={String(metrics.employees.totalEmployees)}
@@ -54,11 +56,17 @@ export function AnalyticsScreen({ data }: { data: DashboardAnalytics }) {
         />
       </section>
 
-      <section className="grid gap-6 xl:grid-cols-3">
-        <div className="xl:col-span-2">
+      <section className="grid gap-6 2xl:grid-cols-12">
+        <div className="2xl:col-span-6">
           <AnalyticsSessionChart timeseries={data.timeseries} />
         </div>
-        <AnalyticsTopEmployees employees={data.topEmployees} />
+        <div className="grid gap-6 2xl:col-span-6 2xl:grid-cols-2">
+          <AnalyticsTopEmployees employees={data.topEmployees} />
+          <AnalyticsConversationTimeDonut
+            employees={data.topEmployees}
+            totalConversationSeconds={metrics.sessions.totalConversationSeconds}
+          />
+        </div>
       </section>
 
       <section className="grid gap-6 lg:grid-cols-3">
@@ -67,10 +75,13 @@ export function AnalyticsScreen({ data }: { data: DashboardAnalytics }) {
         <AnalyticsLifecycleOverview activity={metrics.activity} />
       </section>
 
-      <AnalyticsRecentSessions
-        employees={data.topEmployees}
-        sessions={metrics.sessions}
-      />
+      <section className="grid gap-6 xl:grid-cols-2">
+        <AnalyticsRecentSessions
+          employees={data.topEmployees}
+          sessions={metrics.sessions}
+        />
+        <AnalyticsRecentLifecycle events={data.recentLifecycle} />
+      </section>
     </div>
   );
 }

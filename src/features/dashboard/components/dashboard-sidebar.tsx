@@ -20,7 +20,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import type { DashboardShellUser } from "../types";
+import type { DashboardShellUser, DashboardShellWorkspace } from "../types";
 import { SidebarBrand } from "./sidebar-brand";
 import { SidebarUserSection } from "./sidebar-user-section";
 
@@ -31,7 +31,13 @@ const NAV_ITEMS = [
   { label: "Settings", href: "/settings", icon: Settings },
 ] as const;
 
-export function DashboardSidebar({ user }: { user: DashboardShellUser }) {
+export function DashboardSidebar({
+  user,
+  workspace,
+}: {
+  user: DashboardShellUser;
+  workspace: DashboardShellWorkspace;
+}) {
   const pathname = usePathname();
 
   return (
@@ -76,7 +82,7 @@ export function DashboardSidebar({ user }: { user: DashboardShellUser }) {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter className="mt-auto border-t border-white/10 px-2 py-3">
-        <SidebarUserSection user={user} />
+        <SidebarUserSection user={user} workspace={workspace} />
       </SidebarFooter>
     </Sidebar>
   );

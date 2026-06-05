@@ -29,9 +29,9 @@ export function AnalyticsTopEmployees({
     <AnalyticsCard
       title="Top Employees"
       description="Ranked by total sessions"
-      className="h-[420px]"
+      className="min-h-[280px] 2xl:min-h-[420px]"
     >
-      <div className="flex h-[calc(420px-57px)] flex-col overflow-y-auto px-5 py-4">
+      <div className="flex max-h-[360px] flex-col overflow-y-auto px-5 py-4 2xl:max-h-none 2xl:min-h-[calc(420px-57px)]">
         {employees.length === 0 ? (
           <p className="text-sm text-muted-foreground">No employees in this workspace.</p>
         ) : (

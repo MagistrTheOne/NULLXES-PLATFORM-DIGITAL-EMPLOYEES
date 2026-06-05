@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import type { DashboardShellUser } from "../types";
+import type { DashboardShellUser, DashboardShellWorkspace } from "../types";
 import { useDashboardSidebar } from "../use-dashboard-sidebar";
 
 function getInitials(name: string): string {
@@ -25,9 +25,20 @@ function getInitials(name: string): string {
   return `${parts[0]![0] ?? ""}${parts[1]![0] ?? ""}`.toUpperCase();
 }
 
-export function SidebarUserSection({ user }: { user: DashboardShellUser }) {
+function formatOrganizationType(type: string): string {
+  return type.charAt(0).toUpperCase() + type.slice(1);
+}
+
+export function SidebarUserSection({
+  user,
+  workspace,
+}: {
+  user: DashboardShellUser;
+  workspace: DashboardShellWorkspace;
+}) {
   const { sidebarState } = useDashboardSidebar();
   const isExpanded = sidebarState === "expanded";
+  const organizationType = formatOrganizationType(workspace.organizationType);
 
   return (
     <DropdownMenu>
@@ -47,11 +58,13 @@ export function SidebarUserSection({ user }: { user: DashboardShellUser }) {
           </Avatar>
           {isExpanded ? (
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium whitespace-nowrap text-white">
-                {user.name}
+              <p className="truncate text-sm font-medium text-white">
+                {workspace.organizationName}
               </p>
-              <p className="text-xs whitespace-nowrap text-white/60 capitalize">
-                {user.role}
+              <p className="truncate text-xs text-white/60 capitalize">
+                {workspace.role}
+                <span className="text-white/30"> · </span>
+                {organizationType}
               </p>
             </div>
           ) : null}
@@ -61,8 +74,17 @@ export function SidebarUserSection({ user }: { user: DashboardShellUser }) {
       <DropdownMenuContent
         side={isExpanded ? "top" : "right"}
         align={isExpanded ? "start" : "center"}
-        className="w-56 border-white/10 bg-[#111111] text-white"
+        className="w-64 border-white/10 bg-[#111111] text-white"
       >
+        <DropdownMenuLabel className="space-y-1 font-normal">
+          <p className="text-sm font-medium">{workspace.organizationName}</p>
+          <p className="text-xs text-white/60 capitalize">
+            {workspace.role}
+            <span className="text-white/30"> · </span>
+            {organizationType}
+          </p>
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator className="bg-white/10" />
         <DropdownMenuLabel className="font-normal">
           <p className="text-sm font-medium">{user.name}</p>
           <p className="text-xs text-white/60">{user.email}</p>

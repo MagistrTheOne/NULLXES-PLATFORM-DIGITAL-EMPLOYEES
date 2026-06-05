@@ -19,10 +19,12 @@ export function DashboardLayout({
         style={dashboardSidebarCssVars}
         className="min-h-svh bg-black text-white"
       >
-        <DashboardSidebar user={user} />
+        <DashboardSidebar user={user} workspace={workspace} />
         <SidebarInset className="flex min-h-svh min-w-0 flex-1 flex-col bg-black">
-          <DashboardTopbar workspace={workspace} />
-          <div className="flex min-w-0 flex-1 flex-col gap-6 p-6">{children}</div>
+          <DashboardTopbar />
+          <div className="mx-auto flex w-full max-w-[1760px] min-w-0 flex-1 flex-col gap-6 p-6 2xl:px-8">
+            {children}
+          </div>
         </SidebarInset>
       </SidebarProvider>
     </TooltipProvider>
