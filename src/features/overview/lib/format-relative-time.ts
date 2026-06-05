@@ -1,7 +1,20 @@
 import { formatDistanceToNow } from "date-fns";
+import { enUS, ru } from "date-fns/locale";
+import type { AppLocale } from "@/i18n/config";
 
-export function formatRelativeTime(date: Date): string {
-  return formatDistanceToNow(date, { addSuffix: true });
+const DATE_FNS_LOCALES = {
+  en: enUS,
+  ru,
+} as const;
+
+export function formatRelativeTime(
+  date: Date,
+  locale: AppLocale = "en",
+): string {
+  return formatDistanceToNow(date, {
+    addSuffix: true,
+    locale: DATE_FNS_LOCALES[locale],
+  });
 }
 
 export function formatLiveDuration(startedAt: Date, now = Date.now()): string {

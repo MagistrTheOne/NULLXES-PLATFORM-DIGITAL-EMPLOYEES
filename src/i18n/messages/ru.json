@@ -98,7 +98,23 @@
       "needsAttention": "Некоторые сервисы требуют внимания",
       "operational": "Работает",
       "degraded": "Снижена",
-      "unavailable": "Недоступно"
+      "unavailable": "Недоступно",
+      "services": {
+        "database": "База данных",
+        "aiServices": "ИИ-сервисы",
+        "voiceServices": "Голосовые сервисы",
+        "avatarServices": "Сервисы аватаров",
+        "knowledgeServices": "Сервисы знаний",
+        "storage": "Хранилище"
+      },
+      "details": {
+        "connected": "Подключено",
+        "configured": "Настроено",
+        "notConfigured": "Не настроено",
+        "readyForIndexing": "Готово к индексации",
+        "requiresAiProvider": "Требуется ИИ-провайдер",
+        "neonPostgresql": "Neon PostgreSQL"
+      }
     }
   },
   "employees": {

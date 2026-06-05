@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useLocale, useTranslations } from "next-intl";
 import { Loader2, Plus, UserRound } from "lucide-react";
 import { AvatarIdlePreview } from "@/features/employees/components/avatar-idle-preview";
 import { EmployeeStatusBadge } from "@/features/employees/components/employee-status-badge";
@@ -7,6 +10,8 @@ import type { OverviewEmployee } from "../types";
 import { OverviewCard } from "./overview-card";
 
 function CarouselEmployeeCard({ employee }: { employee: OverviewEmployee }) {
+  const locale = useLocale();
+  const t = useTranslations("dashboard.carousel");
   const showPreview =
     employee.avatarPreviewUrl &&
     employee.avatarProvisioningStatus === "ready";
@@ -14,8 +19,8 @@ function CarouselEmployeeCard({ employee }: { employee: OverviewEmployee }) {
     employee.avatarProvisioningStatus === "pending" ||
     employee.avatarProvisioningStatus === "provisioning";
   const talkedLabel = employee.lastSessionAt
-    ? `Talked ${formatRelativeTime(employee.lastSessionAt)}`
-    : "No sessions yet";
+    ? t("talked", { time: formatRelativeTime(employee.lastSessionAt, locale) })
+    : t("noSessions");
 
   return (
     <Link
@@ -50,7 +55,7 @@ function CarouselEmployeeCard({ employee }: { employee: OverviewEmployee }) {
         <div className="mt-auto space-y-1 text-xs text-muted-foreground">
           <p>{talkedLabel}</p>
           <p className="tabular-nums text-foreground/80">
-            {employee.sessionsInRange} sessions in period
+            {t("sessionsInPeriod", { count: employee.sessionsInRange })}
           </p>
         </div>
       </div>
@@ -59,6 +64,8 @@ function CarouselEmployeeCard({ employee }: { employee: OverviewEmployee }) {
 }
 
 function CreateEmployeeCard({ onCreateClick }: { onCreateClick: () => void }) {
+  const t = useTranslations("common.actions");
+
   return (
     <button
       type="button"
@@ -68,7 +75,7 @@ function CreateEmployeeCard({ onCreateClick }: { onCreateClick: () => void }) {
       <span className="flex size-12 items-center justify-center rounded-full border border-border bg-background">
         <Plus className="size-5" />
       </span>
-      <span className="text-sm font-medium">Create Employee</span>
+      <span className="text-sm font-medium">{t("createEmployee")}</span>
     </button>
   );
 }
@@ -80,6 +87,7 @@ export function OverviewEmployeeCarousel({
   employees: OverviewEmployee[];
   onCreateClick: () => void;
 }) {
+  const t = useTranslations("dashboard.carousel");
   const activeFirst = [...employees].sort((left, right) => {
     if (left.status === "active" && right.status !== "active") {
       return -1;
@@ -91,10 +99,7 @@ export function OverviewEmployeeCarousel({
   });
 
   return (
-    <OverviewCard
-      title="Your Digital Employees"
-      description="Active workforce in this workspace"
-    >
+    <OverviewCard title={t("title")} description={t("description")}>
       <div className="flex gap-4 overflow-x-auto px-5 py-5">
         {activeFirst.length === 0 ? (
           <div className="flex min-h-[220px] w-full items-center justify-center">

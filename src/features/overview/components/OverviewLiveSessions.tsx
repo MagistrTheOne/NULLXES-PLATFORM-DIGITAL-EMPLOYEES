@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import {
   Table,
@@ -35,22 +36,25 @@ export function OverviewLiveSessions({
 }: {
   sessions: LiveSessionRow[];
 }) {
+  const locale = useLocale();
+  const t = useTranslations("dashboard.sessions");
+
   return (
     <OverviewCard
-      title="Live Sessions"
-      description="Active conversations right now"
+      title={t("title")}
+      description={t("description")}
       className="min-h-[360px]"
     >
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow className="border-border hover:bg-transparent">
-              <TableHead className="text-muted-foreground">Employee</TableHead>
-              <TableHead className="text-muted-foreground">User</TableHead>
-              <TableHead className="text-muted-foreground">Duration</TableHead>
-              <TableHead className="text-muted-foreground">Status</TableHead>
+              <TableHead className="text-muted-foreground">{t("employee")}</TableHead>
+              <TableHead className="text-muted-foreground">{t("user")}</TableHead>
+              <TableHead className="text-muted-foreground">{t("duration")}</TableHead>
+              <TableHead className="text-muted-foreground">{t("status")}</TableHead>
               <TableHead className="text-right text-muted-foreground">
-                Started
+                {t("started")}
               </TableHead>
             </TableRow>
           </TableHeader>
@@ -61,7 +65,7 @@ export function OverviewLiveSessions({
                   colSpan={5}
                   className="py-10 text-center text-sm text-muted-foreground"
                 >
-                  No live sessions in this workspace.
+                  {t("empty")}
                 </TableCell>
               </TableRow>
             ) : (
@@ -83,11 +87,11 @@ export function OverviewLiveSessions({
                   </TableCell>
                   <TableCell>
                     <span className="rounded-full border border-border px-2 py-0.5 text-xs text-foreground">
-                      Live
+                      {t("live")}
                     </span>
                   </TableCell>
                   <TableCell className="text-right text-muted-foreground">
-                    {formatRelativeTime(session.startedAt)}
+                    {formatRelativeTime(session.startedAt, locale)}
                   </TableCell>
                 </TableRow>
               ))

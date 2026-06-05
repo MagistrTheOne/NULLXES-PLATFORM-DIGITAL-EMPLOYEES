@@ -1,6 +1,6 @@
 "use client";
 
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import type { KnowledgeMetrics } from "@/features/analytics/types";
 import { formatNumber } from "@/shared/i18n/format-number";
 import { OverviewCard } from "./overview-card";
@@ -37,6 +37,7 @@ export function OverviewKnowledgePanel({
 }: {
   knowledge: KnowledgeMetrics;
 }) {
+  const t = useTranslations("dashboard.knowledge");
   const locale = useLocale();
   const maxValue = Math.max(
     knowledge.readySources,
@@ -51,18 +52,18 @@ export function OverviewKnowledgePanel({
       : 0;
 
   return (
-    <OverviewCard title="Knowledge Overview">
+    <OverviewCard title={t("title")}>
       <div className="space-y-5 px-5 py-5">
-        <MetricBar label="Ready" value={knowledge.readySources} max={maxValue} />
+        <MetricBar label={t("ready")} value={knowledge.readySources} max={maxValue} />
         <MetricBar
-          label="Processing"
+          label={t("processing")}
           value={knowledge.processingSources}
           max={maxValue}
         />
-        <MetricBar label="Failed" value={knowledge.failedSources} max={maxValue} />
+        <MetricBar label={t("failed")} value={knowledge.failedSources} max={maxValue} />
         <div className="space-y-2 border-t border-border pt-4">
           <div className="flex items-center justify-between gap-3 text-sm">
-            <span className="text-muted-foreground">Indexed chunks</span>
+            <span className="text-muted-foreground">{t("indexedChunks")}</span>
             <span className="tabular-nums text-foreground">
               {formatNumber(knowledge.totalChunks, locale)} /{" "}
               {formatNumber(chunkLimit, locale)}
@@ -75,7 +76,7 @@ export function OverviewKnowledgePanel({
             />
           </div>
           <p className="text-xs text-muted-foreground">
-            {knowledge.totalSources} sources indexed
+            {t("sourcesIndexed", { count: knowledge.totalSources })}
           </p>
         </div>
       </div>

@@ -98,7 +98,23 @@
       "needsAttention": "Some services need attention",
       "operational": "Operational",
       "degraded": "Degraded",
-      "unavailable": "Unavailable"
+      "unavailable": "Unavailable",
+      "services": {
+        "database": "Database",
+        "aiServices": "AI Services",
+        "voiceServices": "Voice Services",
+        "avatarServices": "Avatar Services",
+        "knowledgeServices": "Knowledge Services",
+        "storage": "Storage"
+      },
+      "details": {
+        "connected": "Connected",
+        "configured": "Configured",
+        "notConfigured": "Not configured",
+        "readyForIndexing": "Ready for indexing",
+        "requiresAiProvider": "Requires AI provider",
+        "neonPostgresql": "Neon PostgreSQL"
+      }
     }
   },
   "employees": {
