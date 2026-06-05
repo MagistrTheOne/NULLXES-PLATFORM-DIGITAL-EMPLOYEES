@@ -23,6 +23,14 @@
       "saveChanges": "Сохранить",
       "applyRange": "Применить период"
     },
+    "userMenu": {
+      "plan": "Тариф",
+      "upgrade": "Перейти на Super Pro",
+      "manageSubscription": "Управление подпиской",
+      "billingSettings": "Настройки оплаты",
+      "contactSales": "Enterprise и Government",
+      "logout": "Выйти"
+    },
     "subtitle": {
       "workforce": "Управляйте и оперируйте цифровым персоналом."
     }

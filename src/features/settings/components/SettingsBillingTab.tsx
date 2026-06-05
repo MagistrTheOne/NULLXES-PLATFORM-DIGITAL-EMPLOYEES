@@ -6,25 +6,12 @@ import { formatDurationSeconds } from "@/features/analytics/lib/format-duration"
 import {
   BILLING_PLANS,
   getPolarProductId,
-  type BillingPlanId,
 } from "@/features/billing/config/plans";
+import { resolveBillingPlanId } from "@/features/billing/lib/resolve-billing-plan";
 import { buildPolarCheckoutUrl } from "@/features/billing/lib/build-checkout-url";
 import { isPolarConfigured } from "@/features/billing/services/polar-config";
 import type { OrganizationProfileDto, SettingsUsageSnapshot } from "../types";
 import { SettingsCard } from "./settings-card";
-
-function resolveActivePlanId(billingPlan: string): BillingPlanId {
-  if (
-    billingPlan === "free" ||
-    billingPlan === "super_pro" ||
-    billingPlan === "enterprise" ||
-    billingPlan === "government"
-  ) {
-    return billingPlan;
-  }
-
-  return "free";
-}
 
 export function SettingsBillingTab({
   organization,
@@ -35,7 +22,7 @@ export function SettingsBillingTab({
   usage: SettingsUsageSnapshot;
   canManageOrganization: boolean;
 }) {
-  const planId = resolveActivePlanId(organization.billingPlan);
+  const planId = resolveBillingPlanId(organization.billingPlan);
   const activePlan = BILLING_PLANS[planId];
   const polarReady = isPolarConfigured();
   const superProProductId = getPolarProductId("super_pro");

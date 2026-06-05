@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { LogOut } from "lucide-react";
+import { CreditCard, LogOut, Sparkles } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -37,8 +38,16 @@ export function SidebarUserSection({
   workspace: DashboardShellWorkspace;
 }) {
   const { sidebarState } = useDashboardSidebar();
+  const t = useTranslations("common.userMenu");
   const isExpanded = sidebarState === "expanded";
   const organizationType = formatOrganizationType(workspace.organizationType);
+  const { billing } = workspace;
+  const showUpgrade = Boolean(billing.checkoutUrl);
+  const showPortal =
+    Boolean(billing.portalUrl) &&
+    (billing.planId === "super_pro" ||
+      billing.planId === "enterprise" ||
+      billing.planId === "government");
 
   return (
     <DropdownMenu>
@@ -64,7 +73,7 @@ export function SidebarUserSection({
               <p className="truncate text-xs text-white/60 capitalize">
                 {workspace.role}
                 <span className="text-white/30"> · </span>
-                {organizationType}
+                {billing.planName}
               </p>
             </div>
           ) : null}
@@ -90,13 +99,63 @@ export function SidebarUserSection({
           <p className="text-xs text-white/60">{user.email}</p>
         </DropdownMenuLabel>
         <DropdownMenuSeparator className="bg-white/10" />
+        <DropdownMenuLabel className="font-normal">
+          <p className="text-xs text-white/50">{t("plan")}</p>
+          <p className="text-sm font-medium">
+            {billing.planName}
+            <span className="font-normal text-white/50">
+              {" "}
+              · {billing.priceLabel}
+            </span>
+          </p>
+        </DropdownMenuLabel>
+        {showUpgrade ? (
+          <DropdownMenuItem
+            asChild
+            className="cursor-pointer text-white focus:bg-white/10 focus:text-white"
+          >
+            <Link href={billing.checkoutUrl!}>
+              <Sparkles />
+              {t("upgrade")}
+            </Link>
+          </DropdownMenuItem>
+        ) : null}
+        {showPortal ? (
+          <DropdownMenuItem
+            asChild
+            className="cursor-pointer text-white focus:bg-white/10 focus:text-white"
+          >
+            <Link href={billing.portalUrl!}>
+              <CreditCard />
+              {t("manageSubscription")}
+            </Link>
+          </DropdownMenuItem>
+        ) : null}
+        <DropdownMenuItem
+          asChild
+          className="cursor-pointer text-white focus:bg-white/10 focus:text-white"
+        >
+          <Link href="/settings?tab=billing">
+            <CreditCard />
+            {t("billingSettings")}
+          </Link>
+        </DropdownMenuItem>
+        {billing.planId === "free" && billing.canManageBilling ? (
+          <DropdownMenuItem
+            asChild
+            className="cursor-pointer text-white focus:bg-white/10 focus:text-white"
+          >
+            <a href="mailto:sales@nullxes.com">{t("contactSales")}</a>
+          </DropdownMenuItem>
+        ) : null}
+        <DropdownMenuSeparator className="bg-white/10" />
         <DropdownMenuItem
           asChild
           className="cursor-pointer text-white focus:bg-white/10 focus:text-white"
         >
           <Link href="/logout">
             <LogOut />
-            Logout
+            {t("logout")}
           </Link>
         </DropdownMenuItem>
       </DropdownMenuContent>

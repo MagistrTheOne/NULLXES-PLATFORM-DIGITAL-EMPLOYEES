@@ -23,6 +23,14 @@
       "saveChanges": "Save changes",
       "applyRange": "Apply range"
     },
+    "userMenu": {
+      "plan": "Plan",
+      "upgrade": "Upgrade to Super Pro",
+      "manageSubscription": "Manage subscription",
+      "billingSettings": "Billing settings",
+      "contactSales": "Enterprise & Government",
+      "logout": "Logout"
+    },
     "subtitle": {
       "workforce": "Manage and operate your digital workforce."
     }

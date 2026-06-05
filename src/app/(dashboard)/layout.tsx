@@ -1,4 +1,5 @@
 import { requireAuth } from "@/features/auth/services/require-auth";
+import { getUserBillingSnapshot } from "@/features/billing/services/get-user-billing-snapshot";
 import { DashboardLayout } from "@/features/dashboard";
 import type {
   DashboardShellUser,
@@ -28,9 +29,16 @@ export default async function DashboardRouteLayout({
   };
 
   const workspaceShell: DashboardShellWorkspace = {
+    organizationId: workspace.organization.id,
     organizationName: workspace.organization.name,
     role: workspace.membership.role,
     organizationType: workspace.organization.type,
+    billing: getUserBillingSnapshot({
+      organizationId: workspace.organization.id,
+      billingPlan: workspace.organization.billingPlan,
+      canManageOrganization: workspace.permissions.canManageOrganization,
+      customerEmail: session.user.email,
+    }),
   };
 
   const locale = await getRequestLocale();
