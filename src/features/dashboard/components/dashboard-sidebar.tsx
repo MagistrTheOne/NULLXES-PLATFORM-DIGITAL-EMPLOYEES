@@ -27,7 +27,7 @@ import { SidebarUserSection } from "./sidebar-user-section";
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { label: "Digital Employees", href: "/dashboard/employees", icon: Users },
-  { label: "Analytics", href: "/analytics", icon: BarChart3 },
+  { label: "Analytics", href: "/dashboard/analytics", icon: BarChart3 },
   { label: "Settings", href: "/settings", icon: Settings },
 ] as const;
 

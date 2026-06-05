@@ -31,6 +31,8 @@
     "employees-create:verify": "node --import tsx src/features/employees/verify-create-employee.ts",
     "employees-studio:verify": "node --import tsx src/features/employees/studio/verify-employee-studio.ts",
     "employees-persist:verify": "node --env-file=.env --import tsx src/features/employees/verify-persist-create-employee.ts",
+    "employees-crud:verify": "node --env-file=.env --import tsx src/features/employees/verify-employee-crud.ts",
+    "analytics:verify": "node --env-file=.env --import tsx src/features/analytics/verify-analytics.ts",
     "provider-provisioning:verify": "node --import tsx src/features/provider-provisioning/verify-provider-provisioning.ts",
     "providers:status": "node --import tsx src/features/provider-provisioning/check-provider-status.ts",
     "stream:verify": "node --env-file=.env --import tsx src/features/runtime-session/verify-stream-credentials.ts"
