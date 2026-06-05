@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { getCurrentSession } from "@/features/auth/services/get-current-session";
+import { getEnabledOAuthProviders } from "@/features/auth/lib/oauth-providers";
 import { LoginForm } from "@/features/auth/ui/login-form";
 import { lookupOrganizationInviteByToken } from "@/features/team/services/lookup-organization-invite";
 
@@ -29,7 +30,11 @@ export default async function LoginPage({
         <p className="mb-8 text-center text-xs tracking-[0.3em] text-white/50 uppercase">
           NULLXES Digital Employees
         </p>
-        <LoginForm inviteToken={inviteToken ?? null} invite={invite} />
+        <LoginForm
+          inviteToken={inviteToken ?? null}
+          invite={invite}
+          oauthProviders={getEnabledOAuthProviders()}
+        />
       </div>
     </main>
   );

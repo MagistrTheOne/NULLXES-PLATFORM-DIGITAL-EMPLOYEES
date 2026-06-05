@@ -15,16 +15,20 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { acceptInviteForNewUserAction } from "@/features/team/actions/accept-invite-for-new-user";
 import type { OrganizationInvitePreview } from "@/features/team/services/lookup-organization-invite";
+import type { OAuthProviderId } from "../lib/oauth-providers";
 import { authClient } from "../client";
 import { provisionDefaultWorkspace } from "../services/provision-default-workspace";
 import { InviteAuthBanner } from "./invite-auth-banner";
+import { OAuthSignInButtons } from "./oauth-sign-in-buttons";
 
 export function RegisterForm({
   inviteToken,
   invite,
+  oauthProviders,
 }: {
   inviteToken: string | null;
   invite: OrganizationInvitePreview | null;
+  oauthProviders: OAuthProviderId[];
 }) {
   const router = useRouter();
   const [name, setName] = useState("");
@@ -173,6 +177,7 @@ export function RegisterForm({
             {isSubmitting ? "Creating account..." : "Create account"}
           </Button>
         </form>
+        <OAuthSignInButtons providers={oauthProviders} inviteToken={inviteToken} />
         <p className="mt-6 text-sm text-white/60">
           Already have an account?{" "}
           <Link

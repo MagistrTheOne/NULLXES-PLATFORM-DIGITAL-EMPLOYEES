@@ -15,16 +15,20 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { acceptOrganizationInviteAction } from "@/features/team/actions/accept-organization-invite";
 import type { OrganizationInvitePreview } from "@/features/team/services/lookup-organization-invite";
+import type { OAuthProviderId } from "../lib/oauth-providers";
 import { authClient } from "../client";
 import { ensureWorkspace } from "../services/ensure-workspace";
 import { InviteAuthBanner } from "./invite-auth-banner";
+import { OAuthSignInButtons } from "./oauth-sign-in-buttons";
 
 export function LoginForm({
   inviteToken,
   invite,
+  oauthProviders,
 }: {
   inviteToken: string | null;
   invite: OrganizationInvitePreview | null;
+  oauthProviders: OAuthProviderId[];
 }) {
   const router = useRouter();
   const [email, setEmail] = useState(invite?.email ?? "");
@@ -140,6 +144,7 @@ export function LoginForm({
             {isSubmitting ? "Signing in..." : "Sign in"}
           </Button>
         </form>
+        <OAuthSignInButtons providers={oauthProviders} inviteToken={inviteToken} />
         <p className="mt-6 text-sm text-white/60">
           No account?{" "}
           <Link
