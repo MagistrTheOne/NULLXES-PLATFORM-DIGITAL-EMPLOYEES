@@ -1,7 +1,10 @@
 import type { NextConfig } from "next";
+import createNextIntlPlugin from "next-intl/plugin";
 import { loadEnvFiles } from "./src/shared/config/load-env-files";
 
 loadEnvFiles();
+
+const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
 const betterAuthUrl =
   process.env.NEXT_PUBLIC_BETTER_AUTH_URL ??
@@ -26,4 +29,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+export default withNextIntl(nextConfig);
