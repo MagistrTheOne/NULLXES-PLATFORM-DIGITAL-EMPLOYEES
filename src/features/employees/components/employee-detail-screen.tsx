@@ -9,6 +9,7 @@ import { EmployeeDetailTabs, TabsContent } from "./employee-detail-tabs";
 import { EmployeeKnowledgePanel } from "./employee-knowledge-panel";
 import { EmployeeLifecyclePanel } from "./employee-lifecycle-panel";
 import { EmployeeProviderBadge } from "./employee-provider-badge";
+import { EmployeeDetailActions } from "./employee-detail-actions";
 import { EmployeeStatusBadge } from "./employee-status-badge";
 
 function DetailRow({ label, value }: { label: string; value: string }) {
@@ -46,23 +47,26 @@ export function EmployeeDetailScreen({ employee }: { employee: EmployeeDetail })
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center gap-4">
-        <Button
-          variant="ghost"
-          className="text-white/60 hover:bg-white/5 hover:text-white"
-          asChild
-        >
-          <Link href="/dashboard/employees">
-            <ArrowLeft className="size-4" />
-            Back
-          </Link>
-        </Button>
-        <div>
-          <h1 className="text-2xl font-medium tracking-tight text-white">
-            {employee.name}
-          </h1>
-          <p className="mt-1 text-sm text-white/60">{employee.role}</p>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            className="text-white/60 hover:bg-white/5 hover:text-white"
+            asChild
+          >
+            <Link href="/dashboard/employees">
+              <ArrowLeft className="size-4" />
+              Back
+            </Link>
+          </Button>
+          <div>
+            <h1 className="text-2xl font-medium tracking-tight text-white">
+              {employee.name}
+            </h1>
+            <p className="mt-1 text-sm text-white/60">{employee.role}</p>
+          </div>
         </div>
+        <EmployeeDetailActions employee={employee} />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
