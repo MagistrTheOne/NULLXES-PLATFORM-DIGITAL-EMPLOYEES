@@ -87,6 +87,15 @@ export function getInngestEventKey(): string | undefined {
   return readOptionalEnv("INNGEST_EVENT_KEY");
 }
 
+export function getNgrokUrl(): string | undefined {
+  return readOptionalEnv("NGROK_URL");
+}
+
 export function getInngestServeUrl(): string {
+  const ngrokUrl = getNgrokUrl();
+  if (ngrokUrl) {
+    return `${ngrokUrl.replace(/\/$/, "")}/api/inngest`;
+  }
+
   return `${getBetterAuthUrl().replace(/\/$/, "")}/api/inngest`;
 }
