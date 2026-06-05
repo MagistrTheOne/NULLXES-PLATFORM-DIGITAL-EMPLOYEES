@@ -85,6 +85,13 @@
       "when": 1780657200457,
       "tag": "0011_shiny_bushwacker",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1780658528134,
+      "tag": "0012_luxuriant_trauma",
+      "breakpoints": true
     }
   ]
 }

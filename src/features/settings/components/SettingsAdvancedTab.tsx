@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { exportWorkspaceDataAction } from "../actions/export-workspace-data";
+import { requestExportJobAction } from "../actions/request-export-job";
 import type { OrganizationSettingsDto } from "../types";
 import { SettingsCard } from "./settings-card";
 
@@ -15,6 +16,17 @@ export function SettingsAdvancedTab({
 }) {
   const [message, setMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+
+  function handleAsyncExport(): void {
+    startTransition(async () => {
+      const result = await requestExportJobAction();
+      setMessage(
+        result.ok
+          ? `Export job queued (${result.jobId.slice(0, 8)}…). Download link when ready.`
+          : result.message,
+      );
+    });
+  }
 
   function handleExport(): void {
     startTransition(async () => {
@@ -42,14 +54,24 @@ export function SettingsAdvancedTab({
         <p className="mb-4 text-sm text-muted-foreground">
           Download organization settings, usage snapshot, and team metadata as JSON.
         </p>
-        <Button
-          type="button"
-          variant="outline"
-          disabled={!canManageOrganization || isPending}
-          onClick={handleExport}
-        >
-          Export Workspace Data
-        </Button>
+        <div className="flex flex-wrap gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            disabled={!canManageOrganization || isPending}
+            onClick={handleExport}
+          >
+            Export Now (JSON)
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            disabled={!canManageOrganization || isPending}
+            onClick={handleAsyncExport}
+          >
+            Queue Background Export
+          </Button>
+        </div>
         {message ? <p className="mt-3 text-sm text-muted-foreground">{message}</p> : null}
       </SettingsCard>
       <SettingsCard title="Retention Controls">

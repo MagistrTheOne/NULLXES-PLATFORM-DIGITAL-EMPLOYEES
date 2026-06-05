@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import type { DateRange } from "react-day-picker";
 import { CalendarIcon, Plus } from "lucide-react";
@@ -31,6 +32,7 @@ export function OverviewHeader({
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const t = useTranslations("common.actions");
   const [open, setOpen] = useState(false);
   const [selectedRange, setSelectedRange] = useState<DateRange | undefined>(
     toDateRange(range),
@@ -73,14 +75,14 @@ export function OverviewHeader({
               onClick={() => applyRange(selectedRange)}
               disabled={!selectedRange?.from || !selectedRange?.to}
             >
-              Apply range
+              {t("applyRange")}
             </Button>
           </div>
         </PopoverContent>
       </Popover>
       <Button type="button" onClick={onCreateClick}>
         <Plus className="size-4" />
-        Create Employee
+        {t("createEmployee")}
       </Button>
     </div>
   );

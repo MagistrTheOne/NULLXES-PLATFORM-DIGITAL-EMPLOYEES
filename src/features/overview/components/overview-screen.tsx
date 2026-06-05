@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { AnalyticsKpiCard } from "@/features/analytics/components/AnalyticsKpiCard";
 import { formatDurationSeconds } from "@/features/analytics/lib/format-duration";
@@ -16,6 +17,8 @@ import { OverviewSystemStatus } from "./OverviewSystemStatus";
 
 export function OverviewScreen({ data }: { data: DashboardOverview }) {
   const router = useRouter();
+  const t = useTranslations("dashboard");
+  const tCommon = useTranslations("common");
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const { metrics } = data;
 
@@ -41,10 +44,10 @@ export function OverviewScreen({ data }: { data: DashboardOverview }) {
         <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <h1 className="text-2xl font-medium tracking-tight text-foreground">
-              Dashboard
+              {t("title")}
             </h1>
             <p className="mt-2 text-sm text-muted-foreground">
-              Manage and operate your digital workforce.
+              {tCommon("subtitle.workforce")}
             </p>
           </div>
           <OverviewHeader
@@ -55,38 +58,44 @@ export function OverviewScreen({ data }: { data: DashboardOverview }) {
 
         <section className="grid gap-6 sm:grid-cols-2 xl:grid-cols-5">
           <AnalyticsKpiCard
-            title="Total Employees"
+            title={t("kpi.totalEmployees")}
             value={String(metrics.employees.total)}
-            detail={`${metrics.employees.active} active`}
+            detail={t("kpi.active", { count: metrics.employees.active })}
             trend={metrics.trends.employees}
           />
           <AnalyticsKpiCard
-            title="Active Now"
+            title={t("kpi.activeNow")}
             value={String(metrics.activeNow)}
             detail={
               metrics.activeNow > 0
-                ? "In conversations"
-                : "No live conversations"
+                ? t("kpi.inConversations")
+                : t("kpi.noLiveConversations")
             }
           />
           <AnalyticsKpiCard
-            title="Total Sessions"
+            title={t("kpi.totalSessions")}
             value={String(metrics.sessions.totalSessions)}
-            detail={`${metrics.sessions.completedSessions} completed`}
+            detail={t("kpi.completed", {
+              count: metrics.sessions.completedSessions,
+            })}
             trend={metrics.trends.sessions}
           />
           <AnalyticsKpiCard
-            title="Total Talk Time"
+            title={t("kpi.totalTalkTime")}
             value={formatDurationSeconds(metrics.sessions.totalConversationSeconds)}
             detail={
               metrics.sessions.completedSessions > 0
-                ? `Avg ${formatDurationSeconds(metrics.sessions.averageSessionDurationSeconds)}`
-                : "No completed sessions yet"
+                ? t("kpi.avgDuration", {
+                    duration: formatDurationSeconds(
+                      metrics.sessions.averageSessionDurationSeconds,
+                    ),
+                  })
+                : t("kpi.noCompletedSessions")
             }
             trend={metrics.trends.conversationSeconds}
           />
           <AnalyticsKpiCard
-            title="Satisfaction"
+            title={t("kpi.satisfaction")}
             value={
               metrics.conversation.averageSatisfaction !== null
                 ? `${metrics.conversation.averageSatisfaction.toFixed(1)} / 5`
@@ -94,8 +103,10 @@ export function OverviewScreen({ data }: { data: DashboardOverview }) {
             }
             detail={
               metrics.conversation.ratedSessions > 0
-                ? `${metrics.conversation.ratedSessions} ratings`
-                : "No ratings in this period"
+                ? t("kpi.ratings", {
+                    count: metrics.conversation.ratedSessions,
+                  })
+                : t("kpi.noRatings")
             }
             trend={metrics.trends.satisfaction}
           />

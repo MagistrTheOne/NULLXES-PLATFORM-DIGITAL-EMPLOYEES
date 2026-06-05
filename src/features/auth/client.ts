@@ -1,6 +1,7 @@
 "use client";
 
 import { createAuthClient } from "better-auth/react";
+import { twoFactorClient } from "better-auth/client/plugins";
 
 function resolveAuthClientBaseUrl(): string {
   const configured = process.env.NEXT_PUBLIC_BETTER_AUTH_URL?.trim();
@@ -17,4 +18,5 @@ function resolveAuthClientBaseUrl(): string {
 
 export const authClient = createAuthClient({
   baseURL: resolveAuthClientBaseUrl(),
+  plugins: [twoFactorClient()],
 });

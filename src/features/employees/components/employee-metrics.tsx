@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import type { EmployeeListItem } from "../types";
 
 type EmployeeMetricsProps = {
@@ -14,16 +15,17 @@ function MetricCell({ label, value }: { label: string; value: number }) {
 }
 
 export function EmployeeMetrics({ employees }: EmployeeMetricsProps) {
+  const t = useTranslations("employees.metrics");
   const active = employees.filter((employee) => employee.status === "active").length;
   const draft = employees.filter((employee) => employee.status === "draft").length;
   const paused = employees.filter((employee) => employee.status === "paused").length;
 
   return (
     <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-6">
-      <MetricCell label="Employees" value={employees.length} />
-      <MetricCell label="Active" value={active} />
-      <MetricCell label="Draft" value={draft} />
-      <MetricCell label="Paused" value={paused} />
+      <MetricCell label={t("employees")} value={employees.length} />
+      <MetricCell label={t("active")} value={active} />
+      <MetricCell label={t("draft")} value={draft} />
+      <MetricCell label={t("paused")} value={paused} />
     </div>
   );
 }

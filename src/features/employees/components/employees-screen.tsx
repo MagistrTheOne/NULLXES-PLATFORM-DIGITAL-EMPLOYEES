@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { EmployeeStatus } from "@/entities/digital-employee";
@@ -29,6 +30,8 @@ export function EmployeesScreen({
   employees: EmployeeListItem[];
 }) {
   const router = useRouter();
+  const t = useTranslations("employees.list");
+  const tCommon = useTranslations("common");
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | EmployeeStatus>("all");
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -64,10 +67,10 @@ export function EmployeesScreen({
       <div className="flex flex-col gap-6">
         <div>
           <h1 className="text-2xl font-medium tracking-tight text-white">
-            Digital Employees
+            {t("title")}
           </h1>
           <p className="mt-2 text-sm text-white/60">
-            Manage and operate your digital workforce.
+            {tCommon("subtitle.workforce")}
           </p>
         </div>
 
@@ -85,7 +88,7 @@ export function EmployeesScreen({
               <EmployeeGrid employees={filteredEmployees} />
             ) : (
               <p className="py-8 text-center text-sm text-white/50">
-                No employees match your search or filters.
+                {t("noMatches")}
               </p>
             )}
           </>

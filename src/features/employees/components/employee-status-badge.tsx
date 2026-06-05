@@ -1,13 +1,7 @@
+import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { EmployeeStatus } from "@/entities/digital-employee";
-
-const STATUS_LABEL: Record<EmployeeStatus, string> = {
-  draft: "Draft",
-  active: "Active",
-  paused: "Paused",
-  archived: "Archived",
-};
 
 const STATUS_CLASS: Record<EmployeeStatus, string> = {
   draft: "border-white/20 bg-white/3 text-white/50",
@@ -17,12 +11,14 @@ const STATUS_CLASS: Record<EmployeeStatus, string> = {
 };
 
 export function EmployeeStatusBadge({ status }: { status: EmployeeStatus }) {
+  const t = useTranslations("employees.status");
+
   return (
     <Badge
       variant="outline"
       className={cn("rounded-md font-normal", STATUS_CLASS[status])}
     >
-      {STATUS_LABEL[status]}
+      {t(status)}
     </Badge>
   );
 }

@@ -5,6 +5,7 @@ import { getEmployeeDetail } from "@/features/employees/services/get-employee-de
 import { EmployeeTalkSession } from "@/features/runtime-session/components/employee-talk-session";
 import { createAnamTalkSessionTokenForEmployee } from "@/features/runtime-session/services/create-anam-talk-session";
 import { createTalkChatSession } from "@/features/runtime-session/services/create-talk-chat-session";
+import { startEmployeeSession } from "@/features/runtime-session/services/record-employee-session";
 
 export default async function EmployeeTalkPage({
   params,
@@ -38,12 +39,19 @@ export default async function EmployeeTalkPage({
     redirect(`/dashboard/employees/${id}`);
   }
 
+  const employeeSessionId = await startEmployeeSession({
+    organizationId: workspace.organization.id,
+    employeeId: employee.id,
+    userId: session.user.id,
+  });
+
   return (
     <EmployeeTalkSession
       employeeName={employee.name}
       chatSession={chatSession}
       anamSessionToken={anamToken.sessionToken}
       employeeId={employee.id}
+      employeeSessionId={employeeSessionId}
       avatarPreviewUrl={employee.avatarPreviewUrl}
     />
   );

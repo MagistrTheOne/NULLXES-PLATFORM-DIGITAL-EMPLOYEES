@@ -4,7 +4,7 @@ import { membership } from "@/entities/membership/schema";
 import { getDefaultAnalyticsRange } from "@/features/analytics/lib/date-range";
 import { getWorkspaceAnalytics } from "@/features/analytics/queries/get-workspace-analytics";
 import { getActiveSessionCount } from "@/features/overview/queries/get-active-session-count";
-import { getSystemStatus } from "@/features/overview/services/get-system-status";
+import { getWorkspaceIntegrations } from "@/features/integrations/queries/get-workspace-integrations";
 import { getSecuritySnapshot } from "../queries/get-security-snapshot";
 import type { WorkspaceContext } from "@/features/workspace";
 import { db } from "@/shared/db/client";
@@ -59,7 +59,10 @@ export async function getSettingsPageData(
       getWorkspaceAnalytics(organizationId, range),
       getActiveSessionCount(organizationId),
       getTeamMembers(organizationId),
-      getSecuritySnapshot(workspace.user.id),
+      getSecuritySnapshot({
+        userId: workspace.user.id,
+        organizationId,
+      }),
     ]);
 
     const memberCount = Number(memberCountRow[0]?.total ?? 0);
@@ -94,7 +97,7 @@ export async function getSettingsPageData(
         },
         teamMembers,
       },
-      integrations: getSystemStatus(),
+      integrations: await getWorkspaceIntegrations(organizationId),
       security,
     };
   });

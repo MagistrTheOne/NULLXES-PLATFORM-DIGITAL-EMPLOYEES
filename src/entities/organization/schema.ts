@@ -18,6 +18,7 @@ export const organization = pgTable("organization", {
   slug: text("slug").notNull().unique(),
   type: organizationTypeEnum("type").notNull(),
   status: organizationStatusEnum("status").notNull().default("active"),
+  stripeCustomerId: text("stripe_customer_id"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),

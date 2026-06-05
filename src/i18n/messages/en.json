@@ -1,4 +1,154 @@
 {
+  "common": {
+    "nav": {
+      "dashboard": "Dashboard",
+      "employees": "Digital Employees",
+      "analytics": "Analytics",
+      "settings": "Settings",
+      "navigation": "Navigation"
+    },
+    "brand": {
+      "name": "NULLXES",
+      "product": "Digital Employees"
+    },
+    "actions": {
+      "back": "Back",
+      "cancel": "Cancel",
+      "continue": "Continue",
+      "createEmployee": "Create Employee",
+      "edit": "Edit",
+      "delete": "Delete",
+      "talk": "Talk",
+      "logout": "Logout",
+      "saveChanges": "Save changes",
+      "applyRange": "Apply range"
+    },
+    "subtitle": {
+      "workforce": "Manage and operate your digital workforce."
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "kpi": {
+      "totalEmployees": "Total Employees",
+      "activeNow": "Active Now",
+      "totalSessions": "Total Sessions",
+      "totalTalkTime": "Total Talk Time",
+      "satisfaction": "Satisfaction",
+      "active": "{count} active",
+      "inConversations": "In conversations",
+      "noLiveConversations": "No live conversations",
+      "completed": "{count} completed",
+      "avgDuration": "Avg {duration}",
+      "noCompletedSessions": "No completed sessions yet",
+      "ratings": "{count} ratings",
+      "noRatings": "No ratings in this period"
+    },
+    "carousel": {
+      "title": "Your Digital Employees",
+      "description": "Active workforce in this workspace",
+      "talked": "Talked {time}",
+      "noSessions": "No sessions yet",
+      "sessionsInPeriod": "{count} sessions in period"
+    },
+    "activity": {
+      "title": "Recent Activity",
+      "description": "Latest workspace events",
+      "event": "Event",
+      "when": "When",
+      "empty": "No recent activity recorded yet.",
+      "created": "{name} was created",
+      "activated": "{name} was activated",
+      "paused": "{name} was paused",
+      "archived": "{name} was archived",
+      "runtimeUpdated": "{name} runtime was updated",
+      "knowledgeUpdated": "{name} knowledge was updated",
+      "generic": "{name} lifecycle event"
+    },
+    "sessions": {
+      "title": "Live Sessions",
+      "description": "Active conversations right now",
+      "employee": "Employee",
+      "user": "User",
+      "duration": "Duration",
+      "status": "Status",
+      "started": "Started",
+      "empty": "No live sessions in this workspace.",
+      "live": "Live"
+    },
+    "knowledge": {
+      "title": "Knowledge Overview",
+      "ready": "Ready",
+      "processing": "Processing",
+      "failed": "Failed",
+      "indexedChunks": "Indexed chunks",
+      "sourcesIndexed": "{count} sources indexed"
+    },
+    "systemStatus": {
+      "title": "System Status",
+      "allOperational": "All systems operational",
+      "needsAttention": "Some services need attention",
+      "operational": "Operational",
+      "degraded": "Degraded",
+      "unavailable": "Unavailable"
+    }
+  },
+  "employees": {
+    "list": {
+      "title": "Digital Employees",
+      "empty": "No digital employees in this workspace.",
+      "noMatches": "No employees match your search or filters."
+    },
+    "metrics": {
+      "employees": "Employees",
+      "active": "Active",
+      "draft": "Draft",
+      "paused": "Paused"
+    },
+    "toolbar": {
+      "search": "Search employees",
+      "status": "Status",
+      "allStatuses": "All statuses"
+    },
+    "status": {
+      "draft": "Draft",
+      "active": "Active",
+      "paused": "Paused",
+      "archived": "Archived"
+    },
+    "card": {
+      "provisioningAvatar": "Provisioning avatar…",
+      "queuedProvisioning": "Queued for provisioning",
+      "provisioningFailed": "Avatar provisioning failed",
+      "avatarPreview": "Avatar preview"
+    },
+    "detail": {
+      "talkLocked": "Talk unlocks when avatar and session providers are ready.",
+      "overview": "Overview",
+      "avatar": "Avatar",
+      "voice": "Voice",
+      "brain": "Brain",
+      "knowledge": "Knowledge",
+      "lifecycle": "Lifecycle",
+      "status": "Status",
+      "created": "Created",
+      "knowledgeSources": "Knowledge sources",
+      "description": "Description",
+      "provisioning": "Provisioning",
+      "avatarId": "Avatar ID",
+      "personaId": "Persona ID",
+      "studioVoice": "Studio voice",
+      "voiceId": "Voice ID",
+      "model": "Model",
+      "systemPrompt": "System prompt"
+    },
+    "talk": {
+      "title": "Talk · {name}",
+      "subtitle": "Live session · chat · optional camera",
+      "leave": "Leave",
+      "connecting": "Connecting…"
+    }
+  },
   "settings": {
     "title": "Settings",
     "subtitle": "Manage your organization, team, preferences and integrations.",

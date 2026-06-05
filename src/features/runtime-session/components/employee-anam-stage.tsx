@@ -3,6 +3,10 @@
 import { useEffect, useState } from "react";
 import { AnamEvent, createClient } from "@anam-ai/js-sdk";
 import { Loader2 } from "lucide-react";
+import {
+  activateTalkSessionAction,
+  failTalkSessionAction,
+} from "@/features/runtime-session/actions/employee-session";
 import { useTalkAnam } from "@/features/runtime-session/context/talk-anam-context";
 import { AvatarIdlePreview } from "@/features/employees/components/avatar-idle-preview";
 import { TalkStageChrome } from "./talk-stage-chrome";
@@ -12,11 +16,13 @@ const ANAM_VIDEO_ELEMENT_ID = "nullxes-anam-persona-video";
 export function EmployeeAnamStage({
   employeeId,
   employeeName,
+  employeeSessionId,
   avatarPreviewUrl,
   sessionToken,
 }: {
   employeeId: string;
   employeeName: string;
+  employeeSessionId: string;
   avatarPreviewUrl: string | null;
   sessionToken: string;
 }) {
@@ -41,6 +47,7 @@ export function EmployeeAnamStage({
         if (!disposed) {
           setStatus("live");
           setIsLive(true);
+          void activateTalkSessionAction(employeeSessionId);
         }
       });
 
@@ -49,6 +56,7 @@ export function EmployeeAnamStage({
           setStatus("error");
           setIsLive(false);
           setErrorMessage("Anam connection closed");
+          void failTalkSessionAction(employeeSessionId);
         }
       });
 
@@ -61,6 +69,7 @@ export function EmployeeAnamStage({
           setErrorMessage(
             error instanceof Error ? error.message : "Failed to start Anam stream",
           );
+          void failTalkSessionAction(employeeSessionId);
         }
       }
     }
@@ -71,7 +80,7 @@ export function EmployeeAnamStage({
       disposed = true;
       registerClient(null);
     };
-  }, [employeeId, registerClient, sessionToken, setIsLive]);
+  }, [employeeId, employeeSessionId, registerClient, sessionToken, setIsLive]);
 
   const showPhotoPlaceholder =
     status !== "live" && Boolean(avatarPreviewUrl);

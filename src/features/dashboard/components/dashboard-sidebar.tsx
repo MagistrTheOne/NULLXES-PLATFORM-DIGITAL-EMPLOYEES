@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import {
   BarChart3,
   LayoutDashboard,
@@ -25,10 +26,10 @@ import { SidebarBrand } from "./sidebar-brand";
 import { SidebarUserSection } from "./sidebar-user-section";
 
 const NAV_ITEMS = [
-  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { label: "Digital Employees", href: "/dashboard/employees", icon: Users },
-  { label: "Analytics", href: "/dashboard/analytics", icon: BarChart3 },
-  { label: "Settings", href: "/settings", icon: Settings },
+  { labelKey: "dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { labelKey: "employees", href: "/dashboard/employees", icon: Users },
+  { labelKey: "analytics", href: "/dashboard/analytics", icon: BarChart3 },
+  { labelKey: "settings", href: "/settings", icon: Settings },
 ] as const;
 
 export function DashboardSidebar({
@@ -39,6 +40,7 @@ export function DashboardSidebar({
   workspace: DashboardShellWorkspace;
 }) {
   const pathname = usePathname();
+  const t = useTranslations("common.nav");
 
   return (
     <Sidebar
@@ -51,7 +53,7 @@ export function DashboardSidebar({
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel className="text-white/50 group-data-[collapsible=icon]:hidden">
-            Navigation
+            {t("navigation")}
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -66,12 +68,12 @@ export function DashboardSidebar({
                     <SidebarMenuButton
                       asChild
                       isActive={isActive}
-                      tooltip={item.label}
+                      tooltip={t(item.labelKey)}
                       className="text-white/80 transition-none hover:bg-white/5 hover:text-white data-active:bg-white/10 data-active:text-white"
                     >
                       <Link href={item.href}>
                         <Icon />
-                        <span>{item.label}</span>
+                        <span>{t(item.labelKey)}</span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>

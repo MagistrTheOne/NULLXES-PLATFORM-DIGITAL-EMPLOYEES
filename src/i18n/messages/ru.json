@@ -1,19 +1,169 @@
 {
+  "common": {
+    "nav": {
+      "dashboard": "Панель",
+      "employees": "Цифровые сотрудники",
+      "analytics": "Аналитика",
+      "settings": "Настройки",
+      "navigation": "Навигация"
+    },
+    "brand": {
+      "name": "NULLXES",
+      "product": "Цифровые сотрудники"
+    },
+    "actions": {
+      "back": "Назад",
+      "cancel": "Отмена",
+      "continue": "Далее",
+      "createEmployee": "Создать сотрудника",
+      "edit": "Изменить",
+      "delete": "Удалить",
+      "talk": "Разговор",
+      "logout": "Выйти",
+      "saveChanges": "Сохранить",
+      "applyRange": "Применить период"
+    },
+    "subtitle": {
+      "workforce": "Управляйте и оперируйте цифровым персоналом."
+    }
+  },
+  "dashboard": {
+    "title": "Панель",
+    "kpi": {
+      "totalEmployees": "Всего сотрудников",
+      "activeNow": "Активны сейчас",
+      "totalSessions": "Всего сессий",
+      "totalTalkTime": "Время разговоров",
+      "satisfaction": "Удовлетворённость",
+      "active": "{count} активных",
+      "inConversations": "В разговорах",
+      "noLiveConversations": "Нет активных разговоров",
+      "completed": "{count} завершено",
+      "avgDuration": "Сред. {duration}",
+      "noCompletedSessions": "Нет завершённых сессий",
+      "ratings": "{count} оценок",
+      "noRatings": "Нет оценок за период"
+    },
+    "carousel": {
+      "title": "Ваши цифровые сотрудники",
+      "description": "Активный персонал в рабочем пространстве",
+      "talked": "Разговор {time}",
+      "noSessions": "Сессий пока нет",
+      "sessionsInPeriod": "{count} сессий за период"
+    },
+    "activity": {
+      "title": "Недавняя активность",
+      "description": "Последние события",
+      "event": "Событие",
+      "when": "Когда",
+      "empty": "Активность пока не зафиксирована.",
+      "created": "{name} создан",
+      "activated": "{name} активирован",
+      "paused": "{name} приостановлен",
+      "archived": "{name} архивирован",
+      "runtimeUpdated": "Обновлён runtime {name}",
+      "knowledgeUpdated": "Обновлены знания {name}",
+      "generic": "Событие жизненного цикла {name}"
+    },
+    "sessions": {
+      "title": "Живые сессии",
+      "description": "Активные разговоры прямо сейчас",
+      "employee": "Сотрудник",
+      "user": "Пользователь",
+      "duration": "Длительность",
+      "status": "Статус",
+      "started": "Начало",
+      "empty": "Нет живых сессий.",
+      "live": "В эфире"
+    },
+    "knowledge": {
+      "title": "База знаний",
+      "ready": "Готово",
+      "processing": "Обработка",
+      "failed": "Ошибка",
+      "indexedChunks": "Индексированные фрагменты",
+      "sourcesIndexed": "{count} источников"
+    },
+    "systemStatus": {
+      "title": "Статус системы",
+      "allOperational": "Все системы работают",
+      "needsAttention": "Некоторые сервисы требуют внимания",
+      "operational": "Работает",
+      "degraded": "Снижена",
+      "unavailable": "Недоступно"
+    }
+  },
+  "employees": {
+    "list": {
+      "title": "Цифровые сотрудники",
+      "empty": "В рабочем пространстве нет цифровых сотрудников.",
+      "noMatches": "Нет сотрудников по вашему запросу или фильтрам."
+    },
+    "metrics": {
+      "employees": "Сотрудники",
+      "active": "Активные",
+      "draft": "Черновики",
+      "paused": "На паузе"
+    },
+    "toolbar": {
+      "search": "Поиск сотрудников",
+      "status": "Статус",
+      "allStatuses": "Все статусы"
+    },
+    "status": {
+      "draft": "Черновик",
+      "active": "Активен",
+      "paused": "На паузе",
+      "archived": "Архив"
+    },
+    "card": {
+      "provisioningAvatar": "Создание аватара…",
+      "queuedProvisioning": "В очереди на создание",
+      "provisioningFailed": "Ошибка создания аватара",
+      "avatarPreview": "Превью аватара"
+    },
+    "detail": {
+      "talkLocked": "Разговор доступен после готовности аватара и провайдеров.",
+      "overview": "Обзор",
+      "avatar": "Аватар",
+      "voice": "Голос",
+      "brain": "Интеллект",
+      "knowledge": "Знания",
+      "lifecycle": "Жизненный цикл",
+      "status": "Статус",
+      "created": "Создан",
+      "knowledgeSources": "Источники знаний",
+      "description": "Описание",
+      "provisioning": "Провижининг",
+      "avatarId": "ID аватара",
+      "personaId": "ID персоны",
+      "studioVoice": "Голос студии",
+      "voiceId": "ID голоса",
+      "model": "Модель",
+      "systemPrompt": "Системный промпт"
+    },
+    "talk": {
+      "title": "Разговор · {name}",
+      "subtitle": "Живая сессия · чат · камера по желанию",
+      "leave": "Завершить",
+      "connecting": "Подключение…"
+    }
+  },
   "settings": {
     "title": "Настройки",
-    "subtitle": "Управление организацией, командой, предпочтениями и интеграциями.",
+    "subtitle": "Организация, команда, предпочтения и интеграции.",
     "saved": "Настройки сохранены.",
     "saveFailed": "Не удалось сохранить.",
     "tabs": {
       "general": "Общие",
       "organization": "Организация",
       "team": "Команда",
-      "billing": "Биллинг",
+      "billing": "Оплата",
       "integrations": "Интеграции",
       "security": "Безопасность",
-      "ai": "AI и голос",
+      "ai": "ИИ и голос",
       "notifications": "Уведомления",
-      "advanced": "Расширенные"
+      "advanced": "Дополнительно"
     }
   }
 }

@@ -7,6 +7,9 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { TalkChatCredentials } from "../services/create-talk-chat-session";
 import { useTalkAnam } from "../context/talk-anam-context";
+import {
+  completeTalkSessionAction,
+} from "../actions/employee-session";
 import { EmployeeAnamStage } from "./employee-anam-stage";
 import { EmployeeTalkChat } from "./employee-talk-chat";
 import { TalkLocalCameraPip } from "./talk-local-camera-pip";
@@ -43,9 +46,11 @@ function TalkIconControl({
 function TalkControlsBar({
   cameraEnabled,
   onCameraToggle,
+  employeeSessionId,
 }: {
   cameraEnabled: boolean;
   onCameraToggle: () => void;
+  employeeSessionId: string;
 }) {
   const router = useRouter();
   const { micMuted, toggleMic, stopSession, isLive } = useTalkAnam();
@@ -55,10 +60,11 @@ function TalkControlsBar({
     setIsLeaving(true);
     try {
       await stopSession();
+      await completeTalkSessionAction(employeeSessionId);
     } finally {
       router.push("/dashboard/employees");
     }
-  }, [router, stopSession]);
+  }, [employeeSessionId, router, stopSession]);
 
   return (
     <div className="flex items-center justify-center gap-3 py-4">
@@ -105,6 +111,7 @@ export type EmployeeTalkRoomProps = {
   anamSessionToken: string;
   employeeName: string;
   employeeId: string;
+  employeeSessionId: string;
   avatarPreviewUrl: string | null;
 };
 
@@ -112,6 +119,7 @@ function TalkRoomLayout({
   chatSession,
   employeeName,
   employeeId,
+  employeeSessionId,
   avatarPreviewUrl,
   anamSessionToken,
 }: EmployeeTalkRoomProps) {
@@ -125,6 +133,7 @@ function TalkRoomLayout({
             <EmployeeAnamStage
               employeeId={employeeId}
               employeeName={employeeName}
+              employeeSessionId={employeeSessionId}
               avatarPreviewUrl={avatarPreviewUrl}
               sessionToken={anamSessionToken}
             />
@@ -135,6 +144,7 @@ function TalkRoomLayout({
           </div>
           <TalkControlsBar
             cameraEnabled={cameraEnabled}
+            employeeSessionId={employeeSessionId}
             onCameraToggle={() => setCameraEnabled((current) => !current)}
           />
         </div>

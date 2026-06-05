@@ -82,7 +82,11 @@ export function SettingsScreen({ data }: { data: SettingsPageData }) {
             </TabsContent>
 
             <TabsContent value="billing">
-              <SettingsBillingTab organization={data.organization} />
+              <SettingsBillingTab
+                organization={data.organization}
+                usage={data.context.usage}
+                canManageOrganization={data.canManageOrganization}
+              />
             </TabsContent>
 
             <TabsContent value="integrations">
@@ -90,7 +94,10 @@ export function SettingsScreen({ data }: { data: SettingsPageData }) {
             </TabsContent>
 
             <TabsContent value="security">
-              <SettingsSecurityTab security={data.security} />
+              <SettingsSecurityTab
+                security={data.security}
+                canManageOrganization={data.canManageOrganization}
+              />
             </TabsContent>
 
             <TabsContent value="ai">

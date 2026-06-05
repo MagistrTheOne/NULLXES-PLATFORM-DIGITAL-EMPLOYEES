@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Plus, Search } from "lucide-react";
 import type { EmployeeStatus } from "@/entities/digital-employee";
 import { Button } from "@/components/ui/button";
@@ -11,15 +12,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-const STATUS_FILTER_OPTIONS: Array<{ value: "all" | EmployeeStatus; label: string }> =
-  [
-    { value: "all", label: "All statuses" },
-    { value: "draft", label: "Draft" },
-    { value: "active", label: "Active" },
-    { value: "paused", label: "Paused" },
-    { value: "archived", label: "Archived" },
-  ];
 
 export function EmployeeToolbar({
   searchQuery,
@@ -34,6 +26,16 @@ export function EmployeeToolbar({
   onStatusFilterChange: (value: "all" | EmployeeStatus) => void;
   onCreateClick: () => void;
 }) {
+  const t = useTranslations("employees");
+  const tCommon = useTranslations("common.actions");
+  const statusOptions: Array<{ value: "all" | EmployeeStatus; label: string }> = [
+    { value: "all", label: t("toolbar.allStatuses") },
+    { value: "draft", label: t("status.draft") },
+    { value: "active", label: t("status.active") },
+    { value: "paused", label: t("status.paused") },
+    { value: "archived", label: t("status.archived") },
+  ];
+
   return (
     <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
       <div className="flex flex-1 flex-col gap-3 sm:flex-row">
@@ -43,9 +45,9 @@ export function EmployeeToolbar({
             type="search"
             value={searchQuery}
             onChange={(event) => onSearchQueryChange(event.target.value)}
-            placeholder="Search employees"
+            placeholder={t("toolbar.search")}
             className="border-white/10 bg-[#111111] pl-9 text-white placeholder:text-white/40"
-            aria-label="Search employees"
+            aria-label={t("toolbar.search")}
           />
         </div>
         <Select
@@ -58,10 +60,10 @@ export function EmployeeToolbar({
             className="w-full border-white/10 bg-[#111111] text-white sm:w-44"
             aria-label="Filter by status"
           >
-            <SelectValue placeholder="Status" />
+            <SelectValue placeholder={t("toolbar.status")} />
           </SelectTrigger>
           <SelectContent className="border-white/10 bg-[#111111] text-white">
-            {STATUS_FILTER_OPTIONS.map((option) => (
+            {statusOptions.map((option) => (
               <SelectItem
                 key={option.value}
                 value={option.value}
@@ -79,7 +81,7 @@ export function EmployeeToolbar({
         className="shrink-0 bg-white text-black hover:bg-white/90"
       >
         <Plus />
-        Create Employee
+        {tCommon("createEmployee")}
       </Button>
     </div>
   );
