@@ -76,3 +76,17 @@ export function getPublicStreamApiKey(): string | undefined {
     readOptionalEnv("STREAM_API_KEY")
   );
 }
+
+/** Inngest — https://www.inngest.com/docs/platform/signing-keys */
+export function getInngestSigningKey(): string | undefined {
+  return readOptionalEnv("INNGEST_SIGNING_KEY");
+}
+
+/** Inngest event publishing — https://www.inngest.com/docs/events/creating-an-event-key */
+export function getInngestEventKey(): string | undefined {
+  return readOptionalEnv("INNGEST_EVENT_KEY");
+}
+
+export function getInngestServeUrl(): string {
+  return `${getBetterAuthUrl().replace(/\/$/, "")}/api/inngest`;
+}
