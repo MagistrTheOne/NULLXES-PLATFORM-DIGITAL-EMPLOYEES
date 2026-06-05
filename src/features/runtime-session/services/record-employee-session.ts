@@ -120,7 +120,8 @@ export async function completeEmployeeSession(input: {
     limitExceeded: limited.limitExceeded,
     employeeId: row.employeeId,
     durationSeconds: limited.durationSeconds,
-    status: limited.status,
+    status:
+      limited.status === "expired" ? "expired" : "completed",
   };
 }
 
