@@ -26,10 +26,6 @@ function getInitials(name: string): string {
   return `${parts[0]![0] ?? ""}${parts[1]![0] ?? ""}`.toUpperCase();
 }
 
-function formatOrganizationType(type: string): string {
-  return type.charAt(0).toUpperCase() + type.slice(1);
-}
-
 export function SidebarUserSection({
   user,
   workspace,
@@ -40,7 +36,6 @@ export function SidebarUserSection({
   const { sidebarState } = useDashboardSidebar();
   const t = useTranslations("common.userMenu");
   const isExpanded = sidebarState === "expanded";
-  const organizationType = formatOrganizationType(workspace.organizationType);
   const { billing } = workspace;
   const showUpgrade = Boolean(billing.checkoutUrl);
   const showPortal =
@@ -90,7 +85,7 @@ export function SidebarUserSection({
           <p className="text-xs text-white/60 capitalize">
             {workspace.role}
             <span className="text-white/30"> · </span>
-            {organizationType}
+            {billing.planName}
           </p>
         </DropdownMenuLabel>
         <DropdownMenuSeparator className="bg-white/10" />

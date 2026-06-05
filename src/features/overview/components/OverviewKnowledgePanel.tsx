@@ -1,4 +1,8 @@
+"use client";
+
+import { useLocale } from "next-intl";
 import type { KnowledgeMetrics } from "@/features/analytics/types";
+import { formatNumber } from "@/shared/i18n/format-number";
 import { OverviewCard } from "./overview-card";
 
 function MetricBar({
@@ -33,6 +37,7 @@ export function OverviewKnowledgePanel({
 }: {
   knowledge: KnowledgeMetrics;
 }) {
+  const locale = useLocale();
   const maxValue = Math.max(
     knowledge.readySources,
     knowledge.processingSources,
@@ -59,7 +64,8 @@ export function OverviewKnowledgePanel({
           <div className="flex items-center justify-between gap-3 text-sm">
             <span className="text-muted-foreground">Indexed chunks</span>
             <span className="tabular-nums text-foreground">
-              {knowledge.totalChunks.toLocaleString()} / {chunkLimit.toLocaleString()}
+              {formatNumber(knowledge.totalChunks, locale)} /{" "}
+              {formatNumber(chunkLimit, locale)}
             </span>
           </div>
           <div className="h-1.5 overflow-hidden rounded-full bg-white/8">

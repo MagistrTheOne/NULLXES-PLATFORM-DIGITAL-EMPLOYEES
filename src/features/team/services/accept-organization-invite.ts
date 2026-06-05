@@ -2,6 +2,7 @@ import { and, eq } from "drizzle-orm";
 import { createMembership } from "@/entities/membership/create-membership";
 import { membership } from "@/entities/membership/schema";
 import { organizationInvite } from "@/entities/organization-invite/schema";
+import { user } from "@/entities/user/schema";
 import { db } from "@/shared/db/client";
 import { hashInviteToken } from "../lib/hash-invite-token";
 
@@ -62,6 +63,11 @@ export async function acceptOrganizationInvite(input: {
     .update(organizationInvite)
     .set({ status: "accepted", acceptedAt: new Date() })
     .where(eq(organizationInvite.id, invite.id));
+
+  await db
+    .update(user)
+    .set({ status: "active", updatedAt: new Date() })
+    .where(eq(user.id, input.userId));
 
   return { ok: true, organizationId: invite.organizationId };
 }

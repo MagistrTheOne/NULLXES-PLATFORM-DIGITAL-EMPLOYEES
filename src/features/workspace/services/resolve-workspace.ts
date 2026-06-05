@@ -34,6 +34,19 @@ function selectActiveMembership(
   }
 
   const sorted = [...activeMemberships].sort((left, right) => {
+    const leftPersonalDemo =
+      left.organization.type === "demo" && left.membership.role === "owner"
+        ? 1
+        : 0;
+    const rightPersonalDemo =
+      right.organization.type === "demo" && right.membership.role === "owner"
+        ? 1
+        : 0;
+
+    if (leftPersonalDemo !== rightPersonalDemo) {
+      return leftPersonalDemo - rightPersonalDemo;
+    }
+
     const roleDifference =
       ROLE_PRIORITY[left.membership.role] -
       ROLE_PRIORITY[right.membership.role];
@@ -43,7 +56,7 @@ function selectActiveMembership(
     }
 
     return (
-      left.membership.createdAt.getTime() - right.membership.createdAt.getTime()
+      right.membership.createdAt.getTime() - left.membership.createdAt.getTime()
     );
   });
 

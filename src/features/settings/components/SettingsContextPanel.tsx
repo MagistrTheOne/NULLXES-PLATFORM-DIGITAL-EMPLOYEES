@@ -1,8 +1,11 @@
 "use client";
 
 import { format } from "date-fns";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
+import { BILLING_PLANS } from "@/features/billing/config/plans";
+import { resolveBillingPlanId } from "@/features/billing/lib/resolve-billing-plan";
 import { formatDurationSeconds } from "@/features/analytics/lib/format-duration";
+import { formatNumber } from "@/shared/i18n/format-number";
 import type { OrganizationProfileDto, SettingsContextPanel as ContextPanel } from "../types";
 import { SettingsCard } from "./settings-card";
 
@@ -45,6 +48,8 @@ export function SettingsContextPanel({
   context: ContextPanel;
 }) {
   const t = useTranslations("settings.context");
+  const locale = useLocale();
+  const billingPlan = BILLING_PLANS[resolveBillingPlanId(organization.billingPlan)];
   const chunkLimit = 32_000;
   const chunkPercent =
     chunkLimit > 0
@@ -57,7 +62,10 @@ export function SettingsContextPanel({
         <dl className="space-y-3 text-sm">
           <div className="flex items-center justify-between gap-3">
             <dt className="text-muted-foreground">{t("plan")}</dt>
-            <dd className="capitalize text-foreground">{organization.type}</dd>
+            <dd className="text-foreground">
+              {billingPlan.name}
+              <span className="text-muted-foreground"> · {billingPlan.priceLabel}</span>
+            </dd>
           </div>
           <div className="flex items-center justify-between gap-3">
             <dt className="text-muted-foreground">{t("members")}</dt>
@@ -75,7 +83,7 @@ export function SettingsContextPanel({
             <div className="flex items-center justify-between gap-3">
               <dt className="text-muted-foreground">{t("indexedChunks")}</dt>
               <dd className="tabular-nums text-foreground">
-                {context.totalChunks.toLocaleString()} / {chunkLimit.toLocaleString()}
+                {formatNumber(context.totalChunks, locale)} / {formatNumber(chunkLimit, locale)}
               </dd>
             </div>
             <div className="h-1.5 overflow-hidden rounded-full bg-white/8">
@@ -110,7 +118,7 @@ export function SettingsContextPanel({
           />
           <UsageMetric
             label={t("messages")}
-            value={context.usage.totalMessages.toLocaleString()}
+            value={formatNumber(context.usage.totalMessages, locale)}
             trend={formatTrend(context.usage.messagesTrendPercent)}
             trendLabel={(trend) => t("trendVsPrevious", { trend })}
           />
