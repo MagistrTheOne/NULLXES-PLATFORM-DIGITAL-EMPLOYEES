@@ -2,6 +2,8 @@ import { and, eq } from "drizzle-orm";
 import { digitalEmployee } from "@/entities/digital-employee/schema";
 import { employeeSession } from "@/entities/session/schema";
 import { db } from "@/shared/db/client";
+import { applySessionDurationLimit } from "./enforce-session-limit";
+import { getEmployeeSessionLimitSeconds } from "./get-employee-session-limit";
 
 async function assertSessionOwnership(
   sessionId: string,
@@ -73,37 +75,53 @@ export async function activateEmployeeSession(input: {
     .where(eq(employeeSession.id, input.sessionId));
 }
 
+export type CompleteEmployeeSessionResult = {
+  limitExceeded: boolean;
+  employeeId: string;
+  durationSeconds: number;
+  status: "completed" | "expired";
+};
+
 export async function completeEmployeeSession(input: {
   sessionId: string;
   organizationId: string;
   userId: string;
   startedAt?: Date;
-}): Promise<void> {
+}): Promise<CompleteEmployeeSessionResult | null> {
   const row = await assertSessionOwnership(
     input.sessionId,
     input.organizationId,
     input.userId,
   );
 
-  if (row.status === "completed" || row.status === "failed") {
-    return;
+  if (row.status === "completed" || row.status === "failed" || row.status === "expired") {
+    return null;
   }
 
   const endedAt = new Date();
   const startedAt = input.startedAt ?? row.startedAt;
-  const durationSeconds = Math.max(
-    0,
-    Math.round((endedAt.getTime() - startedAt.getTime()) / 1000),
-  );
+  const sessionLimitSeconds = await getEmployeeSessionLimitSeconds(row.employeeId);
+  const limited = applySessionDurationLimit({
+    startedAt,
+    endedAt,
+    sessionLimitSeconds,
+  });
 
   await db
     .update(employeeSession)
     .set({
-      status: "completed",
+      status: limited.status,
       endedAt,
-      durationSeconds,
+      durationSeconds: limited.durationSeconds,
     })
     .where(eq(employeeSession.id, input.sessionId));
+
+  return {
+    limitExceeded: limited.limitExceeded,
+    employeeId: row.employeeId,
+    durationSeconds: limited.durationSeconds,
+    status: limited.status,
+  };
 }
 
 export async function failEmployeeSession(input: {

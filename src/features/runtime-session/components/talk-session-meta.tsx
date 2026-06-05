@@ -15,9 +15,16 @@ function formatElapsed(seconds: number): string {
   return `${String(minutes).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
 }
 
-export function TalkSessionMeta() {
+export function TalkSessionMeta({
+  sessionLimitSeconds,
+  onLimitReached,
+}: {
+  sessionLimitSeconds: number;
+  onLimitReached?: () => void;
+}) {
   const { isLive } = useTalkAnam();
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const limitReached = isLive && elapsedSeconds >= sessionLimitSeconds;
 
   useEffect(() => {
     if (!isLive) {
@@ -33,17 +40,39 @@ export function TalkSessionMeta() {
     return () => window.clearInterval(timer);
   }, [isLive]);
 
+  useEffect(() => {
+    if (limitReached && onLimitReached) {
+      onLimitReached();
+    }
+  }, [limitReached, onLimitReached]);
+
+  const remainingSeconds = Math.max(0, sessionLimitSeconds - elapsedSeconds);
+
   return (
-    <div className="flex shrink-0 items-center gap-4 text-sm tabular-nums">
+    <div className="flex shrink-0 flex-col items-end gap-1 text-sm tabular-nums">
+      <div className="flex items-center gap-4">
+        {isLive ? (
+          <span className="flex items-center gap-2 text-white/80">
+            <span className="size-2 rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.55)]" />
+            Live
+          </span>
+        ) : (
+          <span className="text-white/40">Connecting…</span>
+        )}
+        <span className="text-white/55">{formatElapsed(elapsedSeconds)}</span>
+      </div>
       {isLive ? (
-        <span className="flex items-center gap-2 text-white/80">
-          <span className="size-2 rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.55)]" />
-          Live
+        <span
+          className={
+            remainingSeconds <= 30
+              ? "text-xs text-white/80"
+              : "text-xs text-white/45"
+          }
+        >
+          {formatElapsed(remainingSeconds)} remaining · limit{" "}
+          {formatElapsed(sessionLimitSeconds)}
         </span>
-      ) : (
-        <span className="text-white/40">Connecting…</span>
-      )}
-      <span className="text-white/55">{formatElapsed(elapsedSeconds)}</span>
+      ) : null}
     </div>
   );
 }

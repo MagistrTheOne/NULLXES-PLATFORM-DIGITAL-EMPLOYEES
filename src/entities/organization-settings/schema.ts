@@ -25,6 +25,8 @@ export const organizationSettings = pgTable("organization_settings", {
   notifyEmployeeCreated: boolean("notify_employee_created").notNull().default(true),
   notifyKnowledgeFailed: boolean("notify_knowledge_failed").notNull().default(true),
   notifyWeeklyDigest: boolean("notify_weekly_digest").notNull().default(false),
+  outboundWebhookUrl: text("outbound_webhook_url"),
+  outboundWebhookSecret: text("outbound_webhook_secret"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),

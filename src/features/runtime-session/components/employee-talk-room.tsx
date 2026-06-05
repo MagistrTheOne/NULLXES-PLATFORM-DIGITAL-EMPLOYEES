@@ -113,6 +113,7 @@ export type EmployeeTalkRoomProps = {
   employeeId: string;
   employeeSessionId: string;
   avatarPreviewUrl: string | null;
+  sessionLimitSeconds: number;
 };
 
 function TalkRoomLayout({

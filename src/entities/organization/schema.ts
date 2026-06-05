@@ -25,7 +25,6 @@ export const organization = pgTable("organization", {
   slug: text("slug").notNull().unique(),
   type: organizationTypeEnum("type").notNull(),
   status: organizationStatusEnum("status").notNull().default("active"),
-  stripeCustomerId: text("stripe_customer_id"),
   polarCustomerId: text("polar_customer_id"),
   billingPlan: organizationBillingPlanEnum("billing_plan")
     .notNull()
