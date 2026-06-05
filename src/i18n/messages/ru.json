@@ -140,7 +140,82 @@
       "studioVoice": "Голос студии",
       "voiceId": "ID голоса",
       "model": "Модель",
-      "systemPrompt": "Системный промпт"
+      "systemPrompt": "Системный промпт",
+      "actions": {
+        "edit": "Изменить",
+        "delete": "Удалить",
+        "editTitle": "Редактирование сотрудника",
+        "editDescription": "Изменения сразу сохраняются в рабочем пространстве организации.",
+        "name": "Имя",
+        "role": "Роль",
+        "description": "Описание",
+        "status": "Статус",
+        "systemPrompt": "Системный промпт",
+        "saving": "Сохранение…",
+        "deleteTitle": "Удалить {name}?",
+        "deleteDescription": "Сотрудник, конфигурация, источники знаний и история будут удалены безвозвратно.",
+        "deleteConfirm": "Удалить сотрудника",
+        "deleting": "Удаление…"
+      }
+    },
+    "create": {
+      "title": "Создать цифрового сотрудника",
+      "stepProgress": "Шаг {current} из {total} · {step}",
+      "steps": {
+        "identity": "Идентичность",
+        "avatar": "Аватар",
+        "voice": "Голос",
+        "brain": "Интеллект",
+        "knowledge": "Знания",
+        "summary": "Итог"
+      },
+      "identity": {
+        "name": "Имя сотрудника",
+        "namePlaceholder": "Somnia",
+        "role": "Роль",
+        "rolePlaceholder": "Сотрудник корпоративных продаж"
+      },
+      "avatar": {
+        "hint": "Аватар создаётся на финальном шаге после выбора голоса — выбранный ElevenLabs не заменяется настройками Anam."
+      },
+      "knowledge": {
+        "uploadFiles": "Загрузить файлы",
+        "filesSelected": "{count, plural, one {Выбран # файл} few {Выбрано # файла} many {Выбрано # файлов} other {Выбрано # файла}}",
+        "addUrl": "Добавить URL",
+        "urlPlaceholder": "https://",
+        "pasteText": "Вставить текст",
+        "textPlaceholder": "Вставьте справочный текст для этого сотрудника."
+      },
+      "summary": {
+        "name": "Имя",
+        "role": "Роль",
+        "voice": "Голос",
+        "brain": "Интеллект",
+        "knowledge": "Знания",
+        "avatar": "Аватар",
+        "avatarValue": "Создаётся в фоне после создания",
+        "items": "{count} элемент(ов)",
+        "empty": "—"
+      },
+      "actions": {
+        "back": "Назад",
+        "continue": "Далее",
+        "create": "Создать сотрудника",
+        "creating": "Сохранение…"
+      },
+      "errors": {
+        "nameRequired": "Укажите имя сотрудника.",
+        "roleRequired": "Укажите роль.",
+        "photoRequired": "Загрузите фото перед продолжением.",
+        "voiceRequired": "Выберите голос перед продолжением.",
+        "customVoiceRequired": "Введите ID голоса ElevenLabs или выберите из каталога.",
+        "photoVoiceRequired": "Нужны фото и голос.",
+        "voiceBeforeCreate": "Выберите голос перед созданием сотрудника.",
+        "invalidImage": "Загрузите изображение PNG, JPG или WebP.",
+        "imageTooLarge": "Размер изображения не более 4,5 МБ.",
+        "createFailed": "Не удалось создать цифрового сотрудника",
+        "voicePreviewPlay": "Не удалось воспроизвести превью голоса."
+      }
     },
     "talk": {
       "title": "Разговор · {name}",

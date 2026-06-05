@@ -13,13 +13,22 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { acceptInviteForNewUserAction } from "@/features/team/actions/accept-invite-for-new-user";
+import type { OrganizationInvitePreview } from "@/features/team/services/lookup-organization-invite";
 import { authClient } from "../client";
 import { provisionDefaultWorkspace } from "../services/provision-default-workspace";
+import { InviteAuthBanner } from "./invite-auth-banner";
 
-export function RegisterForm() {
+export function RegisterForm({
+  inviteToken,
+  invite,
+}: {
+  inviteToken: string | null;
+  invite: OrganizationInvitePreview | null;
+}) {
   const router = useRouter();
   const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(invite?.email ?? "");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -49,7 +58,18 @@ export function RegisterForm() {
     }
 
     try {
-      await provisionDefaultWorkspace(userId, name);
+      if (inviteToken) {
+        const accepted = await acceptInviteForNewUserAction({
+          token: inviteToken,
+          userId,
+          email,
+        });
+        if (!accepted.ok) {
+          throw new Error(accepted.message);
+        }
+      } else {
+        await provisionDefaultWorkspace(userId, name);
+      }
     } catch (provisionError: unknown) {
       setIsSubmitting(false);
       const message =
@@ -73,7 +93,7 @@ export function RegisterForm() {
         signInError.message ??
           "Account created. Sign in with your credentials.",
       );
-      router.push("/login");
+      router.push(inviteToken ? `/login?invite=${inviteToken}` : "/login");
       return;
     }
 
@@ -88,10 +108,19 @@ export function RegisterForm() {
           Create account
         </CardTitle>
         <CardDescription className="text-white/60">
-          Start operating digital employees at enterprise scale.
+          {invite
+            ? "Accept your workspace invite."
+            : "Start operating digital employees at enterprise scale."}
         </CardDescription>
       </CardHeader>
       <CardContent>
+        {invite ? (
+          <InviteAuthBanner
+            organizationName={invite.organizationName}
+            role={invite.role}
+            email={invite.email}
+          />
+        ) : null}
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
             <Label htmlFor="name">Name</Label>
@@ -112,6 +141,7 @@ export function RegisterForm() {
               type="email"
               autoComplete="email"
               required
+              readOnly={Boolean(invite)}
               value={email}
               onChange={(event) => setEmail(event.target.value)}
               className="border-white/10 bg-black/40 text-white"
@@ -145,7 +175,10 @@ export function RegisterForm() {
         </form>
         <p className="mt-6 text-sm text-white/60">
           Already have an account?{" "}
-          <Link href="/login" className="text-white hover:underline">
+          <Link
+            href={inviteToken ? `/login?invite=${inviteToken}` : "/login"}
+            className="text-white hover:underline"
+          >
             Sign in
           </Link>
         </p>

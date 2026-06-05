@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Loader2, Pencil, Trash2 } from "lucide-react";
 import type { EmployeeStatus } from "@/entities/digital-employee";
 import {
@@ -46,6 +47,9 @@ const STATUS_OPTIONS: EmployeeStatus[] = [
 
 export function EmployeeDetailActions({ employee }: { employee: EmployeeDetail }) {
   const router = useRouter();
+  const t = useTranslations("employees.detail.actions");
+  const tCommon = useTranslations("common.actions");
+  const tStatus = useTranslations("employees.status");
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -121,7 +125,7 @@ export function EmployeeDetailActions({ employee }: { employee: EmployeeDetail }
           onClick={() => handleEditOpenChange(true)}
         >
           <Pencil className="size-4" />
-          Edit
+          {t("edit")}
         </Button>
         <Button
           type="button"
@@ -133,7 +137,7 @@ export function EmployeeDetailActions({ employee }: { employee: EmployeeDetail }
           }}
         >
           <Trash2 className="size-4" />
-          Delete
+          {t("delete")}
         </Button>
       </div>
 
@@ -143,15 +147,15 @@ export function EmployeeDetailActions({ employee }: { employee: EmployeeDetail }
           className="w-full border-white/10 bg-[#0a0a0a] text-white sm:max-w-md"
         >
           <SheetHeader>
-            <SheetTitle>Edit employee</SheetTitle>
+            <SheetTitle>{t("editTitle")}</SheetTitle>
             <SheetDescription className="text-white/50">
-              Changes are saved to your organization workspace immediately.
+              {t("editDescription")}
             </SheetDescription>
           </SheetHeader>
 
           <div className="flex flex-col gap-4 px-4">
             <div className="space-y-2">
-              <Label htmlFor="employee-name">Name</Label>
+              <Label htmlFor="employee-name">{t("name")}</Label>
               <Input
                 id="employee-name"
                 value={name}
@@ -160,7 +164,7 @@ export function EmployeeDetailActions({ employee }: { employee: EmployeeDetail }
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="employee-role">Role</Label>
+              <Label htmlFor="employee-role">{t("role")}</Label>
               <Input
                 id="employee-role"
                 value={role}
@@ -169,7 +173,7 @@ export function EmployeeDetailActions({ employee }: { employee: EmployeeDetail }
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="employee-description">Description</Label>
+              <Label htmlFor="employee-description">{t("description")}</Label>
               <Textarea
                 id="employee-description"
                 value={description}
@@ -179,7 +183,7 @@ export function EmployeeDetailActions({ employee }: { employee: EmployeeDetail }
               />
             </div>
             <div className="space-y-2">
-              <Label>Status</Label>
+              <Label>{t("status")}</Label>
               <Select
                 value={status}
                 onValueChange={(value) => setStatus(value as EmployeeStatus)}
@@ -190,14 +194,14 @@ export function EmployeeDetailActions({ employee }: { employee: EmployeeDetail }
                 <SelectContent className="border-white/12 bg-[#111111] text-white">
                   {STATUS_OPTIONS.map((option) => (
                     <SelectItem key={option} value={option}>
-                      {option}
+                      {tStatus(option)}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="employee-system-prompt">System prompt</Label>
+              <Label htmlFor="employee-system-prompt">{t("systemPrompt")}</Label>
               <Textarea
                 id="employee-system-prompt"
                 value={systemPrompt}
@@ -221,7 +225,7 @@ export function EmployeeDetailActions({ employee }: { employee: EmployeeDetail }
               disabled={isPending}
               onClick={() => setEditOpen(false)}
             >
-              Cancel
+              {tCommon("cancel")}
             </Button>
             <Button
               type="button"
@@ -232,10 +236,10 @@ export function EmployeeDetailActions({ employee }: { employee: EmployeeDetail }
               {isPending ? (
                 <>
                   <Loader2 className="size-4 animate-spin" />
-                  Saving…
+                  {t("saving")}
                 </>
               ) : (
-                "Save changes"
+                tCommon("saveChanges")
               )}
             </Button>
           </SheetFooter>
@@ -245,11 +249,11 @@ export function EmployeeDetailActions({ employee }: { employee: EmployeeDetail }
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <AlertDialogContent className="border-white/10 bg-[#111111] text-white">
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete {employee.name}?</AlertDialogTitle>
+            <AlertDialogTitle>
+              {t("deleteTitle", { name: employee.name })}
+            </AlertDialogTitle>
             <AlertDialogDescription className="text-white/55">
-              This permanently removes the employee, runtime config, knowledge
-              sources, and lifecycle history from your workspace. This cannot be
-              undone.
+              {t("deleteDescription")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           {errorMessage ? (
@@ -259,7 +263,7 @@ export function EmployeeDetailActions({ employee }: { employee: EmployeeDetail }
           ) : null}
           <AlertDialogFooter>
             <AlertDialogCancel className="border-white/12 bg-transparent text-white hover:bg-white/5">
-              Cancel
+              {tCommon("cancel")}
             </AlertDialogCancel>
             <AlertDialogAction
               className="bg-white text-black hover:bg-white/90"
@@ -269,7 +273,7 @@ export function EmployeeDetailActions({ employee }: { employee: EmployeeDetail }
                 handleDelete();
               }}
             >
-              {isPending ? "Deleting…" : "Delete employee"}
+              {isPending ? t("deleting") : t("deleteConfirm")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

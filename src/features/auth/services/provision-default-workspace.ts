@@ -17,7 +17,7 @@ export async function provisionDefaultWorkspace(
   const org = await createOrganization({
     name: `${displayName}'s Organization`,
     slug: `${slugBase || "workspace"}-${Date.now()}`,
-    type: "enterprise",
+    type: "demo",
     status: "active",
   });
 

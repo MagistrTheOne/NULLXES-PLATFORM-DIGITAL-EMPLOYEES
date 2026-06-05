@@ -140,7 +140,82 @@
       "studioVoice": "Studio voice",
       "voiceId": "Voice ID",
       "model": "Model",
-      "systemPrompt": "System prompt"
+      "systemPrompt": "System prompt",
+      "actions": {
+        "edit": "Edit",
+        "delete": "Delete",
+        "editTitle": "Edit employee",
+        "editDescription": "Changes are saved to your organization workspace immediately.",
+        "name": "Name",
+        "role": "Role",
+        "description": "Description",
+        "status": "Status",
+        "systemPrompt": "System prompt",
+        "saving": "Saving…",
+        "deleteTitle": "Delete {name}?",
+        "deleteDescription": "This permanently removes the employee, runtime config, knowledge sources, and lifecycle history from your workspace. This cannot be undone.",
+        "deleteConfirm": "Delete employee",
+        "deleting": "Deleting…"
+      }
+    },
+    "create": {
+      "title": "Create Digital Employee",
+      "stepProgress": "Step {current} of {total} · {step}",
+      "steps": {
+        "identity": "Identity",
+        "avatar": "Avatar",
+        "voice": "Voice",
+        "brain": "Brain",
+        "knowledge": "Knowledge",
+        "summary": "Summary"
+      },
+      "identity": {
+        "name": "Employee Name",
+        "namePlaceholder": "Somnia",
+        "role": "Role",
+        "rolePlaceholder": "Enterprise Sales Employee"
+      },
+      "avatar": {
+        "hint": "Avatar is generated on the final step after you choose a voice, so your ElevenLabs selection is not replaced by Anam defaults."
+      },
+      "knowledge": {
+        "uploadFiles": "Upload Files",
+        "filesSelected": "{count, plural, one {# file selected} other {# files selected}}",
+        "addUrl": "Add URL",
+        "urlPlaceholder": "https://",
+        "pasteText": "Paste Text",
+        "textPlaceholder": "Paste reference text for this employee."
+      },
+      "summary": {
+        "name": "Name",
+        "role": "Role",
+        "voice": "Voice",
+        "brain": "Brain",
+        "knowledge": "Knowledge",
+        "avatar": "Avatar",
+        "avatarValue": "Provisioned in background after create",
+        "items": "{count} item(s)",
+        "empty": "—"
+      },
+      "actions": {
+        "back": "Back",
+        "continue": "Continue",
+        "create": "Create Employee",
+        "creating": "Saving employee…"
+      },
+      "errors": {
+        "nameRequired": "Employee name is required.",
+        "roleRequired": "Role is required.",
+        "photoRequired": "Upload a photo before continuing.",
+        "voiceRequired": "Select a voice before continuing.",
+        "customVoiceRequired": "Enter a custom ElevenLabs voice ID or pick a catalog voice.",
+        "photoVoiceRequired": "Photo and voice are required.",
+        "voiceBeforeCreate": "Select a voice before creating the employee.",
+        "invalidImage": "Upload a PNG, JPG, or WebP image.",
+        "imageTooLarge": "Image must be 4.5MB or smaller.",
+        "createFailed": "Unable to create digital employee",
+        "voicePreviewPlay": "Unable to play voice preview."
+      }
     },
     "talk": {
       "title": "Talk · {name}",

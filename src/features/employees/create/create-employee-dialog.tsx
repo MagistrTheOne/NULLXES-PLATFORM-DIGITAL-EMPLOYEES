@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -32,7 +33,6 @@ import {
   CREATE_EMPLOYEE_STEPS,
   DEFAULT_BRAIN_PROVIDER,
   MAX_AVATAR_UPLOAD_BYTES,
-  STEP_LABELS,
   createInitialFormState,
 } from "./constants";
 import type {
@@ -66,6 +66,8 @@ export function CreateEmployeeDialog({
     avatarProvisionStarted: boolean;
   }) => Promise<void>;
 }) {
+  const t = useTranslations("employees.create");
+  const tCommon = useTranslations("common.actions");
   const [step, setStep] = useState<CreateEmployeeStep>("identity");
   const [form, setForm] = useState<CreateEmployeeFormState>(createInitialFormState);
   const [error, setError] = useState<string | null>(null);
@@ -158,32 +160,32 @@ export function CreateEmployeeDialog({
   function validateCurrentStep(): boolean {
     if (step === "identity") {
       if (!form.name.trim()) {
-        setError("Employee name is required.");
+        setError(t("errors.nameRequired"));
         return false;
       }
       if (!form.role.trim()) {
-        setError("Role is required.");
+        setError(t("errors.roleRequired"));
         return false;
       }
     }
 
     if (step === "avatar") {
       if (!form.photoFile) {
-        setError("Upload a photo before continuing.");
+        setError(t("errors.photoRequired"));
         return false;
       }
     }
 
     if (step === "voice") {
       if (!form.studioVoiceId) {
-        setError("Select a voice before continuing.");
+        setError(t("errors.voiceRequired"));
         return false;
       }
       if (
         form.studioVoiceId === CUSTOM_ELEVENLABS_STUDIO_VOICE_ID &&
         !form.customElevenLabsVoiceId.trim()
       ) {
-        setError("Enter a custom ElevenLabs voice ID or pick a catalog voice.");
+        setError(t("errors.customVoiceRequired"));
         return false;
       }
     }
@@ -220,7 +222,7 @@ export function CreateEmployeeDialog({
 
   async function handleCreate(): Promise<void> {
     if (!form.photoFile || !form.studioVoiceId) {
-      setError("Photo and voice are required.");
+      setError(t("errors.photoVoiceRequired"));
       return;
     }
 
@@ -233,7 +235,7 @@ export function CreateEmployeeDialog({
 
     try {
       if (!form.voiceProvider) {
-        setError("Select a voice before creating the employee.");
+        setError(t("errors.voiceBeforeCreate"));
         return;
       }
 
@@ -298,7 +300,7 @@ export function CreateEmployeeDialog({
       const message =
         submitError instanceof Error
           ? submitError.message
-          : "Unable to create digital employee";
+          : t("errors.createFailed");
       updateForm({
         avatarGenerationStatus: "failed",
         avatarGenerationError: message,
@@ -311,12 +313,12 @@ export function CreateEmployeeDialog({
 
   function handlePhotoSelected(file: File): void {
     if (!file.type.startsWith("image/")) {
-      setError("Upload a PNG, JPG, or WebP image.");
+      setError(t("errors.invalidImage"));
       return;
     }
 
     if (file.size > MAX_AVATAR_UPLOAD_BYTES) {
-      setError("Image must be 4.5MB or smaller.");
+      setError(t("errors.imageTooLarge"));
       return;
     }
 
@@ -364,14 +366,14 @@ export function CreateEmployeeDialog({
     audio.onended = () => setPreviewingVoiceId(null);
     audio.onerror = () => {
       setPreviewingVoiceId(null);
-      setVoicePreviewError("Unable to play voice preview.");
+      setVoicePreviewError(t("errors.voicePreviewPlay"));
     };
 
     try {
       await audio.play();
     } catch {
       setPreviewingVoiceId(null);
-      setVoicePreviewError("Unable to play voice preview.");
+      setVoicePreviewError(t("errors.voicePreviewPlay"));
     }
   }
 
@@ -392,11 +394,14 @@ export function CreateEmployeeDialog({
       <DialogContent className="flex max-h-[90vh] max-w-2xl flex-col gap-0 overflow-hidden border-white/10 bg-[#111111] p-0 text-white">
         <DialogHeader className="border-b border-white/10 px-6 py-5">
           <DialogTitle className="text-lg font-medium text-white">
-            Create Digital Employee
+            {t("title")}
           </DialogTitle>
           <DialogDescription className="text-white/60">
-            Step {currentStepIndex + 1} of {CREATE_EMPLOYEE_STEPS.length} ·{" "}
-            {STEP_LABELS[step]}
+            {t("stepProgress", {
+              current: currentStepIndex + 1,
+              total: CREATE_EMPLOYEE_STEPS.length,
+              step: t(`steps.${step}`),
+            })}
           </DialogDescription>
           <div className="mt-4 flex flex-wrap gap-2">
             {CREATE_EMPLOYEE_STEPS.map((item, index) => (
@@ -408,7 +413,7 @@ export function CreateEmployeeDialog({
                     : "text-xs text-white/35"
                 }
               >
-                {STEP_LABELS[item]}
+                {t(`steps.${item}`)}
               </span>
             ))}
           </div>
@@ -419,26 +424,26 @@ export function CreateEmployeeDialog({
             <div className="flex flex-col gap-4">
               <div className="flex flex-col gap-2">
                 <Label htmlFor="employee-name" className="text-white/80">
-                  Employee Name
+                  {t("identity.name")}
                 </Label>
                 <Input
                   id="employee-name"
                   value={form.name}
                   onChange={(event) => updateForm({ name: event.target.value })}
                   className="border-white/10 bg-black/40 text-white"
-                  placeholder="Somnia"
+                  placeholder={t("identity.namePlaceholder")}
                 />
               </div>
               <div className="flex flex-col gap-2">
                 <Label htmlFor="employee-role" className="text-white/80">
-                  Role
+                  {t("identity.role")}
                 </Label>
                 <Input
                   id="employee-role"
                   value={form.role}
                   onChange={(event) => updateForm({ role: event.target.value })}
                   className="border-white/10 bg-black/40 text-white"
-                  placeholder="Enterprise Sales Employee"
+                  placeholder={t("identity.rolePlaceholder")}
                 />
               </div>
             </div>
@@ -451,10 +456,7 @@ export function CreateEmployeeDialog({
                 localPreviewUrl={localUploadPreviewUrl}
                 onFileSelected={handlePhotoSelected}
               />
-              <p className="text-xs text-white/50">
-                Avatar is generated on the final step after you choose a voice,
-                so your ElevenLabs selection is not replaced by Anam defaults.
-              </p>
+              <p className="text-xs text-white/50">{t("avatar.hint")}</p>
             </div>
           ) : null}
 
@@ -507,7 +509,7 @@ export function CreateEmployeeDialog({
           {step === "knowledge" ? (
             <div className="flex flex-col gap-6">
               <div className="flex flex-col gap-2">
-                <Label className="text-white/80">Upload Files</Label>
+                <Label className="text-white/80">{t("knowledge.uploadFiles")}</Label>
                 <Input
                   type="file"
                   multiple
@@ -516,14 +518,15 @@ export function CreateEmployeeDialog({
                 />
                 {form.knowledgeFiles.length > 0 ? (
                   <p className="text-xs text-white/50">
-                    {form.knowledgeFiles.length} file
-                    {form.knowledgeFiles.length === 1 ? "" : "s"} selected
+                    {t("knowledge.filesSelected", {
+                      count: form.knowledgeFiles.length,
+                    })}
                   </p>
                 ) : null}
               </div>
               <div className="flex flex-col gap-2">
                 <Label htmlFor="knowledge-url" className="text-white/80">
-                  Add URL
+                  {t("knowledge.addUrl")}
                 </Label>
                 <Input
                   id="knowledge-url"
@@ -532,13 +535,13 @@ export function CreateEmployeeDialog({
                   onChange={(event) =>
                     updateForm({ knowledgeUrl: event.target.value })
                   }
-                  placeholder="https://"
+                  placeholder={t("knowledge.urlPlaceholder")}
                   className="border-white/10 bg-black/40 text-white"
                 />
               </div>
               <div className="flex flex-col gap-2">
                 <Label htmlFor="knowledge-text" className="text-white/80">
-                  Paste Text
+                  {t("knowledge.pasteText")}
                 </Label>
                 <Textarea
                   id="knowledge-text"
@@ -546,7 +549,7 @@ export function CreateEmployeeDialog({
                   onChange={(event) =>
                     updateForm({ knowledgeText: event.target.value })
                   }
-                  placeholder="Paste reference text for this employee."
+                  placeholder={t("knowledge.textPlaceholder")}
                   className="min-h-28 border-white/10 bg-black/40 text-white"
                 />
               </div>
@@ -563,24 +566,35 @@ export function CreateEmployeeDialog({
                 />
               ) : null}
               <div className="rounded-xl border border-white/10 bg-black/30 px-4">
-                <SummaryRow label="Name" value={form.name.trim() || "—"} />
-                <SummaryRow label="Role" value={form.role.trim() || "—"} />
                 <SummaryRow
-                  label="Voice"
+                  label={t("summary.name")}
+                  value={form.name.trim() || t("summary.empty")}
+                />
+                <SummaryRow
+                  label={t("summary.role")}
+                  value={form.role.trim() || t("summary.empty")}
+                />
+                <SummaryRow
+                  label={t("summary.voice")}
                   value={
                     form.voiceName
-                      ? `${form.voiceName} (${form.voiceProvider ?? "—"})`
-                      : "—"
+                      ? `${form.voiceName} (${form.voiceProvider ?? t("summary.empty")})`
+                      : t("summary.empty")
                   }
                 />
-                <SummaryRow label="Brain" value="OpenAI" />
+                <SummaryRow label={t("summary.brain")} value="OpenAI" />
                 <SummaryRow
-                  label="Knowledge"
-                  value={`${form.knowledgeFiles.length + (form.knowledgeUrl.trim() ? 1 : 0) + (form.knowledgeText.trim() ? 1 : 0)} item(s)`}
+                  label={t("summary.knowledge")}
+                  value={t("summary.items", {
+                    count:
+                      form.knowledgeFiles.length +
+                      (form.knowledgeUrl.trim() ? 1 : 0) +
+                      (form.knowledgeText.trim() ? 1 : 0),
+                  })}
                 />
                 <SummaryRow
-                  label="Avatar"
-                  value="Provisioned in background after create"
+                  label={t("summary.avatar")}
+                  value={t("summary.avatarValue")}
                 />
               </div>
               {form.avatarGenerationError ? (
@@ -606,7 +620,7 @@ export function CreateEmployeeDialog({
             disabled={isFirstStep || isSubmitting}
             className="text-white hover:bg-white/5 hover:text-white"
           >
-            Back
+            {t("actions.back")}
           </Button>
           {isSummary ? (
             <Button
@@ -615,7 +629,7 @@ export function CreateEmployeeDialog({
               disabled={isSubmitting || !form.photoFile || !form.studioVoiceId}
               className="bg-white text-black hover:bg-white/90"
             >
-              {isSubmitting ? "Saving employee…" : "Create Employee"}
+              {isSubmitting ? t("actions.creating") : tCommon("createEmployee")}
             </Button>
           ) : (
             <Button
@@ -623,7 +637,7 @@ export function CreateEmployeeDialog({
               onClick={goNext}
               className="bg-white text-black hover:bg-white/90"
             >
-              Continue
+              {tCommon("continue")}
             </Button>
           )}
         </div>

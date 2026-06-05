@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export function EmployeeDetailTabs({
@@ -7,6 +8,8 @@ export function EmployeeDetailTabs({
 }: {
   children: React.ReactNode;
 }) {
+  const t = useTranslations("employees.detail");
+
   return (
     <Tabs defaultValue="overview" className="w-full">
       <TabsList
@@ -17,37 +20,37 @@ export function EmployeeDetailTabs({
           value="overview"
           className="rounded-none border-0 px-3 py-2 text-white/50 data-active:bg-transparent data-active:text-white"
         >
-          Overview
+          {t("overview")}
         </TabsTrigger>
         <TabsTrigger
           value="avatar"
           className="rounded-none border-0 px-3 py-2 text-white/50 data-active:bg-transparent data-active:text-white"
         >
-          Avatar
+          {t("avatar")}
         </TabsTrigger>
         <TabsTrigger
           value="voice"
           className="rounded-none border-0 px-3 py-2 text-white/50 data-active:bg-transparent data-active:text-white"
         >
-          Voice
+          {t("voice")}
         </TabsTrigger>
         <TabsTrigger
           value="brain"
           className="rounded-none border-0 px-3 py-2 text-white/50 data-active:bg-transparent data-active:text-white"
         >
-          Brain
+          {t("brain")}
         </TabsTrigger>
         <TabsTrigger
           value="knowledge"
           className="rounded-none border-0 px-3 py-2 text-white/50 data-active:bg-transparent data-active:text-white"
         >
-          Knowledge
+          {t("knowledge")}
         </TabsTrigger>
         <TabsTrigger
           value="lifecycle"
           className="rounded-none border-0 px-3 py-2 text-white/50 data-active:bg-transparent data-active:text-white"
         >
-          Lifecycle
+          {t("lifecycle")}
         </TabsTrigger>
       </TabsList>
       {children}

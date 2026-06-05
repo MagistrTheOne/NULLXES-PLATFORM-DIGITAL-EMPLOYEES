@@ -6,6 +6,11 @@ import { digitalEmployee } from "@/entities/digital-employee/schema";
 import { knowledgeSource } from "@/entities/knowledge/schema";
 import { employeeProviderConfig } from "@/entities/provider-config/schema";
 import { employeeRuntime } from "@/entities/runtime/schema";
+import {
+  assertCanCreateEmployee,
+  getSessionLimitSecondsForPlan,
+} from "@/features/billing/services/check-plan-limits";
+import type { BillingPlanId } from "@/features/billing/config/plans";
 import { ensureWorkspace } from "@/features/auth/services/ensure-workspace";
 import { requireAuth } from "@/features/auth/services/require-auth";
 import { recordLifecycleEvent } from "@/features/employee/services/record-lifecycle-event";
@@ -49,6 +54,17 @@ export async function createEmployeeRecord(
       authSession.user.id,
       authSession.user.name,
     );
+    const billingPlan = workspace.organization.billingPlan as BillingPlanId;
+    const employeeLimit = await assertCanCreateEmployee(
+      workspace.organization.id,
+      billingPlan,
+    );
+
+    if (!employeeLimit.ok) {
+      return { ok: false, message: employeeLimit.message };
+    }
+
+    const sessionLimitSeconds = getSessionLimitSecondsForPlan(billingPlan);
     const avatarProvider: AvatarProvider = "anam";
 
     const employeeId = await dbWithTransactions.transaction(async (tx) => {
@@ -78,7 +94,7 @@ export async function createEmployeeRecord(
           systemPrompt: buildSystemPrompt(name, role),
           temperature: 0.7,
           maxTokens: 4096,
-          sessionLimitSeconds: 3600,
+          sessionLimitSeconds,
           isActive: true,
         })
         .returning();

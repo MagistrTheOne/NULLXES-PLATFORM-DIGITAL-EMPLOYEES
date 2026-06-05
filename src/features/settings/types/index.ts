@@ -32,6 +32,7 @@ export type OrganizationProfileDto = {
   id: string;
   name: string;
   type: string;
+  billingPlan: string;
   createdAt: Date;
 };
 

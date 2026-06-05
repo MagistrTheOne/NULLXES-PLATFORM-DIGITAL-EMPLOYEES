@@ -40,13 +40,17 @@
     "stream:verify": "node --env-file=.env --import tsx src/features/runtime-session/verify-stream-credentials.ts",
     "inngest:sync": "node --env-file=.env --import tsx scripts/sync-inngest.ts",
     "inngest:dev": "npx --yes inngest-cli@latest dev -u http://localhost:3000/api/inngest",
-    "tunnel:ngrok": "ngrok http 3000"
+    "tunnel:ngrok": "ngrok http 3000",
+    "polar:setup": "node --env-file=.env --import tsx scripts/setup-polar-products.ts",
+    "polar:webhook": "node --env-file=.env --import tsx scripts/setup-polar-webhook.ts"
   },
   "dependencies": {
     "@anam-ai/js-sdk": "^4.15.0",
     "@base-ui/react": "^1.5.0",
     "@elevenlabs/elevenlabs-js": "^2.51.0",
     "@neondatabase/serverless": "^1.1.0",
+    "@polar-sh/nextjs": "^0.9.6",
+    "@polar-sh/sdk": "^0.48.0",
     "@stream-io/node-sdk": "^0.7.59",
     "@stream-io/video-react-sdk": "^1.37.4",
     "better-auth": "^1.6.14",

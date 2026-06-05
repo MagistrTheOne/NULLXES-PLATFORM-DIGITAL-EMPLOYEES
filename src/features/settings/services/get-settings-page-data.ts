@@ -74,6 +74,7 @@ export async function getSettingsPageData(
         id: workspace.organization.id,
         name: workspace.organization.name,
         type: workspace.organization.type,
+        billingPlan: workspace.organization.billingPlan,
         createdAt: workspace.organization.createdAt,
       },
       settings: toSettingsDto(settings),

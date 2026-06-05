@@ -91,6 +91,16 @@ export function getNgrokUrl(): string | undefined {
   return readOptionalEnv("NGROK_URL");
 }
 
+/** Public HTTPS base URL — ngrok in local dev, BETTER_AUTH_URL in production. */
+export function getPublicAppUrl(): string {
+  const ngrokUrl = getNgrokUrl();
+  if (ngrokUrl) {
+    return ngrokUrl.replace(/\/$/, "");
+  }
+
+  return getBetterAuthUrl().replace(/\/$/, "");
+}
+
 export function getInngestServeUrl(): string {
   const ngrokUrl = getNgrokUrl();
   if (ngrokUrl) {

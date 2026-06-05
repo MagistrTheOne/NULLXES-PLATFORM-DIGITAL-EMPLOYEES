@@ -13,12 +13,21 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { acceptOrganizationInviteAction } from "@/features/team/actions/accept-organization-invite";
+import type { OrganizationInvitePreview } from "@/features/team/services/lookup-organization-invite";
 import { authClient } from "../client";
 import { ensureWorkspace } from "../services/ensure-workspace";
+import { InviteAuthBanner } from "./invite-auth-banner";
 
-export function LoginForm() {
+export function LoginForm({
+  inviteToken,
+  invite,
+}: {
+  inviteToken: string | null;
+  invite: OrganizationInvitePreview | null;
+}) {
   const router = useRouter();
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(invite?.email ?? "");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -48,7 +57,14 @@ export function LoginForm() {
     }
 
     try {
-      await ensureWorkspace(userId, data.user?.name ?? email);
+      if (inviteToken) {
+        const accepted = await acceptOrganizationInviteAction(inviteToken);
+        if (!accepted.ok) {
+          throw new Error(accepted.message);
+        }
+      } else {
+        await ensureWorkspace(userId, data.user?.name ?? email);
+      }
     } catch (provisionError: unknown) {
       setIsSubmitting(false);
       const message =
@@ -72,10 +88,19 @@ export function LoginForm() {
           Sign in
         </CardTitle>
         <CardDescription className="text-center text-white/60">
-          Access your NULLXES digital workforce workspace.
+          {invite
+            ? "Accept your workspace invite."
+            : "Access your NULLXES digital workforce workspace."}
         </CardDescription>
       </CardHeader>
       <CardContent>
+        {invite ? (
+          <InviteAuthBanner
+            organizationName={invite.organizationName}
+            role={invite.role}
+            email={invite.email}
+          />
+        ) : null}
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
             <Label htmlFor="email">Email</Label>
@@ -84,6 +109,7 @@ export function LoginForm() {
               type="email"
               autoComplete="email"
               required
+              readOnly={Boolean(invite)}
               value={email}
               onChange={(event) => setEmail(event.target.value)}
               className="border-white/10 bg-black/40 text-white"
@@ -116,7 +142,10 @@ export function LoginForm() {
         </form>
         <p className="mt-6 text-sm text-white/60">
           No account?{" "}
-          <Link href="/register" className="text-white hover:underline">
+          <Link
+            href={inviteToken ? `/register?invite=${inviteToken}` : "/register"}
+            className="text-white hover:underline"
+          >
             Create one
           </Link>
         </p>

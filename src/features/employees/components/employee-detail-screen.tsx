@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { format } from "date-fns";
 import { ArrowLeft, Loader2, UserRound } from "lucide-react";
+import { getTranslations } from "next-intl/server";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { EmployeeDetail } from "../types";
@@ -38,7 +39,16 @@ function SectionCard({
   );
 }
 
-export function EmployeeDetailScreen({ employee }: { employee: EmployeeDetail }) {
+export async function EmployeeDetailScreen({
+  employee,
+}: {
+  employee: EmployeeDetail;
+}) {
+  const t = await getTranslations("employees.detail");
+  const tCommon = await getTranslations("common.actions");
+  const tStatus = await getTranslations("employees.status");
+  const empty = "—";
+
   const isProvisioning =
     employee.avatarProvisioningStatus === "pending" ||
     employee.avatarProvisioningStatus === "provisioning";
@@ -56,7 +66,7 @@ export function EmployeeDetailScreen({ employee }: { employee: EmployeeDetail })
           >
             <Link href="/dashboard/employees">
               <ArrowLeft className="size-4" />
-              Back
+              {tCommon("back")}
             </Link>
           </Button>
           <div>
@@ -101,34 +111,35 @@ export function EmployeeDetailScreen({ employee }: { employee: EmployeeDetail })
             >
               {employee.canTalk ? (
                 <Link href={`/dashboard/employees/${employee.id}/talk`}>
-                  Talk
+                  {tCommon("talk")}
                 </Link>
               ) : (
-                <span>Talk</span>
+                <span>{tCommon("talk")}</span>
               )}
             </Button>
             {!employee.canTalk ? (
-              <p className="text-xs text-white/45">
-                Talk unlocks when avatar and session providers are ready.
-              </p>
+              <p className="text-xs text-white/45">{t("talkLocked")}</p>
             ) : null}
           </CardContent>
         </Card>
 
         <EmployeeDetailTabs>
           <TabsContent value="overview" className="mt-4">
-            <SectionCard title="Overview">
-              <DetailRow label="Status" value={employee.status} />
+            <SectionCard title={t("overview")}>
               <DetailRow
-                label="Created"
+                label={t("status")}
+                value={tStatus(employee.status)}
+              />
+              <DetailRow
+                label={t("created")}
                 value={format(employee.createdAt, "MMM d, yyyy")}
               />
               <DetailRow
-                label="Knowledge sources"
+                label={t("knowledgeSources")}
                 value={String(employee.knowledgeSourcesCount)}
               />
               {employee.description ? (
-                <DetailRow label="Description" value={employee.description} />
+                <DetailRow label={t("description")} value={employee.description} />
               ) : null}
               <div className="flex flex-wrap gap-2 py-3">
                 <EmployeeProviderBadge
@@ -150,39 +161,51 @@ export function EmployeeDetailScreen({ employee }: { employee: EmployeeDetail })
           </TabsContent>
 
           <TabsContent value="avatar" className="mt-4">
-            <SectionCard title="Avatar">
+            <SectionCard title={t("avatar")}>
               <DetailRow
-                label="Provisioning"
+                label={t("provisioning")}
                 value={employee.avatarProvisioningStatus}
               />
-              <DetailRow label="Avatar ID" value={employee.avatarId ?? "—"} />
-              <DetailRow label="Persona ID" value={employee.personaId ?? "—"} />
+              <DetailRow
+                label={t("avatarId")}
+                value={employee.avatarId ?? empty}
+              />
+              <DetailRow
+                label={t("personaId")}
+                value={employee.personaId ?? empty}
+              />
             </SectionCard>
           </TabsContent>
 
           <TabsContent value="voice" className="mt-4">
-            <SectionCard title="Voice">
+            <SectionCard title={t("voice")}>
               <DetailRow
-                label="Provisioning"
+                label={t("provisioning")}
                 value={employee.sessionProvisioningStatus}
               />
               <DetailRow
-                label="Studio voice"
-                value={employee.studioVoiceId ?? "—"}
+                label={t("studioVoice")}
+                value={employee.studioVoiceId ?? empty}
               />
-              <DetailRow label="Voice ID" value={employee.voiceId ?? "—"} />
+              <DetailRow
+                label={t("voiceId")}
+                value={employee.voiceId ?? empty}
+              />
             </SectionCard>
           </TabsContent>
 
           <TabsContent value="brain" className="mt-4">
-            <SectionCard title="Brain">
+            <SectionCard title={t("brain")}>
               <DetailRow
-                label="Provisioning"
+                label={t("provisioning")}
                 value={employee.brainProvisioningStatus}
               />
-              <DetailRow label="Model" value={employee.brainModel ?? "—"} />
               <DetailRow
-                label="System prompt"
+                label={t("model")}
+                value={employee.brainModel ?? empty}
+              />
+              <DetailRow
+                label={t("systemPrompt")}
                 value={
                   employee.systemPrompt.length > 240
                     ? `${employee.systemPrompt.slice(0, 240)}…`
