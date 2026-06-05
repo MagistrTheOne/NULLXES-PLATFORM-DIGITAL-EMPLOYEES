@@ -1,45 +1,76 @@
+import { formatDurationSeconds } from "../lib/format-duration";
 import type { DashboardAnalytics } from "../types";
-import { AnalyticsKnowledgeOverview } from "./analytics-knowledge-overview";
-import { AnalyticsKpiRow } from "./analytics-kpi-row";
-import { AnalyticsRecentActivity } from "./analytics-recent-activity";
-import { AnalyticsSessionTrendChart } from "./analytics-session-trend-chart";
-import { AnalyticsTopEmployeesPanel } from "./analytics-top-employees-panel";
+import { AnalyticsKpiCard } from "./AnalyticsKpiCard";
+import { AnalyticsKnowledgeOverview } from "./AnalyticsKnowledgeOverview";
+import { AnalyticsLifecycleOverview } from "./AnalyticsLifecycleOverview";
+import { AnalyticsRecentSessions } from "./AnalyticsRecentSessions";
+import { AnalyticsSessionChart } from "./AnalyticsSessionChart";
+import { AnalyticsStatusOverview } from "./AnalyticsStatusOverview";
+import { AnalyticsTopEmployees } from "./AnalyticsTopEmployees";
 
 export function AnalyticsScreen({ data }: { data: DashboardAnalytics }) {
+  const { metrics } = data;
+
   return (
-    <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-medium tracking-tight text-white">Analytics</h1>
-        <p className="mt-2 text-sm text-white/60">
+    <div className="flex w-full max-w-none flex-col gap-6">
+      <header>
+        <h1 className="text-2xl font-medium tracking-tight text-foreground">
+          Analytics
+        </h1>
+        <p className="mt-2 text-sm text-muted-foreground">
           Real-time insights into your digital employees and conversations.
         </p>
-      </div>
+      </header>
 
-      <AnalyticsKpiRow metrics={data.metrics} />
-
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
-        <section className="space-y-3">
-          <h2 className="text-sm font-medium tracking-wide text-white/55 uppercase">
-            Session Trend
-          </h2>
-          <AnalyticsSessionTrendChart timeseries={data.timeseries} />
-        </section>
-
-        <section className="space-y-3">
-          <h2 className="text-sm font-medium tracking-wide text-white/55 uppercase">
-            Employee Ranking
-          </h2>
-          <AnalyticsTopEmployeesPanel employees={data.topEmployees} />
-        </section>
-      </div>
-
-      <div className="grid gap-4 xl:grid-cols-2">
-        <AnalyticsKnowledgeOverview knowledge={data.metrics.knowledge} />
-        <AnalyticsRecentActivity
-          events={data.recentLifecycle}
-          activity={data.metrics.activity}
+      <section className="grid gap-6 lg:grid-cols-2 xl:grid-cols-5">
+        <AnalyticsKpiCard
+          title="Total Employees"
+          value={String(metrics.employees.totalEmployees)}
+          detail={`${metrics.employees.activeEmployees} active`}
         />
-      </div>
+        <AnalyticsKpiCard
+          title="Total Sessions"
+          value={String(metrics.sessions.totalSessions)}
+          detail={`${metrics.sessions.completedSessions} completed`}
+        />
+        <AnalyticsKpiCard
+          title="Conversation Time"
+          value={formatDurationSeconds(metrics.sessions.totalConversationSeconds)}
+          detail={
+            metrics.sessions.completedSessions > 0
+              ? `Avg ${formatDurationSeconds(metrics.sessions.averageSessionDurationSeconds)}`
+              : "No completed sessions yet"
+          }
+        />
+        <AnalyticsKpiCard
+          title="Knowledge Sources"
+          value={String(metrics.knowledge.totalSources)}
+          detail={`${metrics.knowledge.totalChunks} chunks indexed`}
+        />
+        <AnalyticsKpiCard
+          title="Active Employees"
+          value={String(metrics.employees.activeEmployees)}
+          detail={`${metrics.employees.draftEmployees} draft`}
+        />
+      </section>
+
+      <section className="grid gap-6 xl:grid-cols-3">
+        <div className="xl:col-span-2">
+          <AnalyticsSessionChart timeseries={data.timeseries} />
+        </div>
+        <AnalyticsTopEmployees employees={data.topEmployees} />
+      </section>
+
+      <section className="grid gap-6 lg:grid-cols-3">
+        <AnalyticsKnowledgeOverview knowledge={metrics.knowledge} />
+        <AnalyticsStatusOverview employees={metrics.employees} />
+        <AnalyticsLifecycleOverview activity={metrics.activity} />
+      </section>
+
+      <AnalyticsRecentSessions
+        employees={data.topEmployees}
+        sessions={metrics.sessions}
+      />
     </div>
   );
 }
