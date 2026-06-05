@@ -9,6 +9,7 @@ import { getSecuritySnapshot } from "../queries/get-security-snapshot";
 import type { WorkspaceContext } from "@/features/workspace";
 import { db } from "@/shared/db/client";
 import { withDatabaseRetry } from "@/shared/db/with-database-retry";
+import { getPendingInvites } from "@/features/team/queries/get-pending-invites";
 import { getTeamMembers } from "../queries/get-team-members";
 import type { OrganizationSettingsDto, SettingsPageData } from "../types";
 
@@ -49,6 +50,7 @@ export async function getSettingsPageData(
       workspaceAnalytics,
       activeNow,
       teamMembers,
+      pendingInvites,
       security,
     ] = await Promise.all([
       ensureOrganizationSettings(organizationId),
@@ -59,6 +61,7 @@ export async function getSettingsPageData(
       getWorkspaceAnalytics(organizationId, range),
       getActiveSessionCount(organizationId),
       getTeamMembers(organizationId),
+      getPendingInvites(organizationId),
       getSecuritySnapshot({
         userId: workspace.user.id,
         organizationId,
@@ -70,6 +73,8 @@ export async function getSettingsPageData(
     return {
       canManageOrganization: workspace.permissions.canManageOrganization,
       canManageMembers: workspace.permissions.canManageMembers,
+      currentUserId: workspace.user.id,
+      actorRole: workspace.membership.role,
       organization: {
         id: workspace.organization.id,
         name: workspace.organization.name,
@@ -98,6 +103,7 @@ export async function getSettingsPageData(
         },
         teamMembers,
       },
+      pendingInvites,
       integrations: await getWorkspaceIntegrations(organizationId),
       security,
     };

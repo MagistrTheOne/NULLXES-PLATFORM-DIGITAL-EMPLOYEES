@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,7 +14,12 @@ import {
 import type { MembershipRole } from "@/features/workspace/types";
 import { inviteTeamMemberAction } from "@/features/team/actions/invite-team-member";
 
-export function SettingsTeamInviteForm() {
+export function SettingsTeamInviteForm({
+  onInvited,
+}: {
+  onInvited?: () => void;
+}) {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<MembershipRole>("viewer");
   const [message, setMessage] = useState<string | null>(null);
@@ -27,7 +33,11 @@ export function SettingsTeamInviteForm() {
         return;
       }
       setEmail("");
-      setMessage("Invite sent. If Resend is not configured, the invite is still stored.");
+      setMessage(
+        "Invite created. Email sends when Resend is configured; the invite is always stored.",
+      );
+      onInvited?.();
+      router.refresh();
     });
   }
 

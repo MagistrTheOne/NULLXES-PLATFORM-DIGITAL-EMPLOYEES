@@ -45,6 +45,16 @@ export type TeamMemberRow = {
   createdAt: Date;
 };
 
+export type TeamInviteRow = {
+  id: string;
+  email: string;
+  role: MembershipRole;
+  status: string;
+  expiresAt: Date;
+  createdAt: Date;
+  invitedByName: string;
+};
+
 export type SettingsUsageSnapshot = {
   totalSessions: number;
   totalConversationSeconds: number;
@@ -69,9 +79,12 @@ export type SettingsContextPanel = {
 export type SettingsPageData = {
   canManageOrganization: boolean;
   canManageMembers: boolean;
+  currentUserId: string;
+  actorRole: MembershipRole;
   organization: OrganizationProfileDto;
   settings: OrganizationSettingsDto;
   context: SettingsContextPanel;
+  pendingInvites: TeamInviteRow[];
   integrations: SystemStatusItem[];
   security: SecuritySnapshot;
 };

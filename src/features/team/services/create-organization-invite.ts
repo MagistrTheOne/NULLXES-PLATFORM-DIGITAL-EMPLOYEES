@@ -1,14 +1,9 @@
-import { createHash, randomBytes } from "node:crypto";
 import { and, eq } from "drizzle-orm";
 import type { MembershipRole } from "@/features/workspace/types";
 import { organizationInvite } from "@/entities/organization-invite/schema";
-import { getResendClient, getResendFromAddress } from "@/shared/email/resend-client";
-import { getBetterAuthUrl } from "@/shared/config/env";
 import { db } from "@/shared/db/client";
-
-function hashInviteToken(token: string): string {
-  return createHash("sha256").update(token).digest("hex");
-}
+import { createInviteToken, hashInviteToken } from "../lib/hash-invite-token";
+import { sendInviteEmail } from "../lib/send-invite-email";
 
 export async function createOrganizationInvite(input: {
   organizationId: string;
@@ -34,7 +29,7 @@ export async function createOrganizationInvite(input: {
     return { ok: false, message: "An invite is already pending for this email." };
   }
 
-  const token = randomBytes(32).toString("hex");
+  const token = createInviteToken();
   const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 7);
 
   const [invite] = await db
@@ -53,16 +48,12 @@ export async function createOrganizationInvite(input: {
     return { ok: false, message: "Failed to create invite." };
   }
 
-  const resend = getResendClient();
-  if (resend) {
-    const acceptUrl = `${getBetterAuthUrl()}/register?invite=${token}`;
-    await resend.emails.send({
-      from: getResendFromAddress(),
-      to: normalizedEmail,
-      subject: `Join ${input.organizationName} on NULLXES`,
-      html: `<p>You were invited to <strong>${input.organizationName}</strong> as <strong>${input.role}</strong>.</p><p><a href="${acceptUrl}">Accept invite</a></p>`,
-    });
-  }
+  await sendInviteEmail({
+    email: normalizedEmail,
+    organizationName: input.organizationName,
+    role: input.role,
+    token,
+  });
 
   return { ok: true, inviteId: invite.id };
 }

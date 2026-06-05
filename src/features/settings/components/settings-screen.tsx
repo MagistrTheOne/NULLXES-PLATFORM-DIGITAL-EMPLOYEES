@@ -77,7 +77,10 @@ export function SettingsScreen({ data }: { data: SettingsPageData }) {
             <TabsContent value="team">
               <SettingsTeamTab
                 members={data.context.teamMembers}
+                pendingInvites={data.pendingInvites}
                 canManageMembers={data.canManageMembers}
+                currentUserId={data.currentUserId}
+                actorRole={data.actorRole}
               />
             </TabsContent>
 

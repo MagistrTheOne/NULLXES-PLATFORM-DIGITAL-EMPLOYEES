@@ -1,13 +1,9 @@
-import { createHash } from "node:crypto";
 import { and, eq } from "drizzle-orm";
 import { createMembership } from "@/entities/membership/create-membership";
 import { membership } from "@/entities/membership/schema";
 import { organizationInvite } from "@/entities/organization-invite/schema";
 import { db } from "@/shared/db/client";
-
-function hashInviteToken(token: string): string {
-  return createHash("sha256").update(token).digest("hex");
-}
+import { hashInviteToken } from "../lib/hash-invite-token";
 
 export async function acceptOrganizationInvite(input: {
   token: string;
