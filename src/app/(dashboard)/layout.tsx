@@ -7,9 +7,7 @@ import type {
 } from "@/features/dashboard/types";
 import { ensureWorkspace } from "@/features/auth/services/ensure-workspace";
 import { getOrganizationDisplayPreferences } from "@/features/workspace/services/get-organization-display-preferences";
-import { loadMessages } from "@/i18n/load-messages";
-import { getRequestLocale } from "@/i18n/request";
-import { IntlProvider } from "@/shared/i18n/intl-provider";
+import { DEFAULT_ORGANIZATION_DISPLAY_PREFERENCES } from "@/features/workspace/types/display-preferences";
 
 export default async function DashboardRouteLayout({
   children,
@@ -42,21 +40,23 @@ export default async function DashboardRouteLayout({
     }),
   };
 
-  const locale = await getRequestLocale();
-  const messages = loadMessages(locale);
-  const displayPreferences = await getOrganizationDisplayPreferences(
-    workspace.organization.id,
-  );
+  let displayPreferences = DEFAULT_ORGANIZATION_DISPLAY_PREFERENCES;
+
+  try {
+    displayPreferences = await getOrganizationDisplayPreferences(
+      workspace.organization.id,
+    );
+  } catch {
+    // Settings page surfaces migration errors; keep the shell usable.
+  }
 
   return (
-    <IntlProvider locale={locale} messages={messages}>
-      <DashboardLayout
-        user={user}
-        workspace={workspaceShell}
-        displayPreferences={displayPreferences}
-      >
-        {children}
-      </DashboardLayout>
-    </IntlProvider>
+    <DashboardLayout
+      user={user}
+      workspace={workspaceShell}
+      displayPreferences={displayPreferences}
+    >
+      {children}
+    </DashboardLayout>
   );
 }

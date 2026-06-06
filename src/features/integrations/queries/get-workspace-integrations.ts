@@ -67,7 +67,7 @@ export async function getWorkspaceIntegrations(
       detail:
         slack?.status === "connected"
           ? "OAuth connected"
-          : "Connect via OAuth (Phase S.5)",
+          : "Not connected",
     },
     {
       label: "Microsoft Teams",
@@ -80,7 +80,7 @@ export async function getWorkspaceIntegrations(
       detail:
         teams?.status === "connected"
           ? "OAuth connected"
-          : "Connect via OAuth (Phase S.5)",
+          : "Not connected",
     },
   ];
 }

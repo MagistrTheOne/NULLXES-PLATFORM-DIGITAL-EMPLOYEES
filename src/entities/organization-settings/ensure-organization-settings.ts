@@ -5,21 +5,21 @@ import {
 } from "@/shared/errors/is-missing-relation-error";
 import { db } from "@/shared/db/client";
 import { organizationSettings } from "./schema";
+import {
+  organizationSettingsMigrationPendingMessage,
+  organizationSettingsTableMissingMessage,
+} from "./user-facing-errors";
 
 export class OrganizationSettingsTableMissingError extends Error {
   constructor() {
-    super(
-      "organization_settings table is missing. Run npm run db:migrate to apply pending migrations.",
-    );
+    super(organizationSettingsTableMissingMessage());
     this.name = "OrganizationSettingsTableMissingError";
   }
 }
 
 export class OrganizationSettingsMigrationPendingError extends Error {
   constructor() {
-    super(
-      "organization_settings schema is out of date. Run npm run db:migrate, then restart npm run dev.",
-    );
+    super(organizationSettingsMigrationPendingMessage());
     this.name = "OrganizationSettingsMigrationPendingError";
   }
 }

@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
+import { loadMessages } from "@/i18n/load-messages";
+import { getRequestLocale } from "@/i18n/request";
+import { IntlProvider } from "@/shared/i18n/intl-provider";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 
@@ -20,14 +23,17 @@ export const metadata: Metadata = {
   description: "Digital Workforce Operating System",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await getRequestLocale();
+  const messages = loadMessages(locale);
+
   return (
     <html
-      lang="en"
+      lang={locale}
       className={cn(
         "dark h-full antialiased",
         geistSans.variable,
@@ -36,7 +42,11 @@ export default function RootLayout({
         inter.variable,
       )}
     >
-      <body className="flex min-h-full flex-col">{children}</body>
+      <body className="flex min-h-full flex-col">
+        <IntlProvider locale={locale} messages={messages}>
+          {children}
+        </IntlProvider>
+      </body>
     </html>
   );
 }

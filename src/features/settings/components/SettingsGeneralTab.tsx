@@ -223,18 +223,8 @@ export function SettingsGeneralTab({
           }
         >
           <div className="grid gap-4">
-            <Field label={t("theme")}>
-              <Select value={preferences.theme} disabled>
-                <SelectTrigger className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="dark">{t("themeDark")}</SelectItem>
-                </SelectContent>
-              </Select>
-            </Field>
+            <StatusRow label={t("theme")} value={t("themeDark")} />
             <Field label={t("language")}>
-              <p className="text-xs text-muted-foreground">{t("languageHint")}</p>
               <Select
                 value={preferences.language}
                 disabled={!canManageOrganization}

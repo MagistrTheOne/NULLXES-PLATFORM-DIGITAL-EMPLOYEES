@@ -3,3 +3,10 @@ export type OrganizationDisplayPreferences = {
   timeFormat: string;
   language: string;
 };
+
+export const DEFAULT_ORGANIZATION_DISPLAY_PREFERENCES: OrganizationDisplayPreferences =
+  {
+    dateFormat: "MMM d, yyyy",
+    timeFormat: "24h",
+    language: "en",
+  };

@@ -33,7 +33,7 @@ const DETAIL_KEYS: Record<string, string> = {
   "Requires AI provider": "requiresAiProvider",
   "Neon PostgreSQL": "neonPostgresql",
   "OAuth connected": "oauthConnected",
-  "Connect via OAuth (Phase S.5)": "connectViaOauth",
+  "Not connected": "notConnected",
   "No employee avatar configs yet": "noAvatarConfigs",
   "No employee voice/session configs yet": "noVoiceConfigs",
 };

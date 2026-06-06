@@ -1,3 +1,7 @@
+export function isDevelopmentRuntime(): boolean {
+  return process.env.NODE_ENV === "development";
+}
+
 export function getDatabaseUrl(): string {
   const url = process.env.DATABASE_URL;
   if (!url) {
