@@ -49,6 +49,7 @@ export async function createAnamTalkSessionTokenForEmployee(
     }
   }
 
+  const languageCode = await resolveTalkSpeechLanguageCode(organizationId);
   const personaConfig = buildAnamTalkEphemeralPersonaConfig({
     name: employee.name,
     avatarId: employee.avatarId,
