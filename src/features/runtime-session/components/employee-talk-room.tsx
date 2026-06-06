@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Mic, MicOff, PhoneOff, Play, Square, Video, VideoOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -9,7 +8,6 @@ import { cn } from "@/lib/utils";
 import type { TalkChatCredentials } from "../services/create-talk-chat-session";
 import { useTalkAnam } from "../context/talk-anam-context";
 import {
-  completeTalkSessionAction,
   startTalkSessionAction,
 } from "../actions/employee-session";
 import type { TalkVoiceMode } from "../services/resolve-talk-voice-mode";
@@ -58,21 +56,22 @@ function TalkControlsBar({
   employeeId,
   activeSession,
   onSessionStarted,
-  onSessionStopped,
+  onStopSession,
+  onLeaveSession,
+  sessionBusy,
 }: {
   cameraEnabled: boolean;
   onCameraToggle: () => void;
   employeeId: string;
   activeSession: ActiveTalkSession | null;
   onSessionStarted: (session: ActiveTalkSession) => void;
-  onSessionStopped: () => void;
+  onStopSession: () => Promise<void>;
+  onLeaveSession: () => Promise<void>;
+  sessionBusy: boolean;
 }) {
   const t = useTranslations("employees.talk");
-  const router = useRouter();
-  const { micMuted, toggleMic, stopSession, isLive } = useTalkAnam();
+  const { micMuted, toggleMic, isLive } = useTalkAnam();
   const [isStarting, setIsStarting] = useState(false);
-  const [isStopping, setIsStopping] = useState(false);
-  const [isLeaving, setIsLeaving] = useState(false);
   const [startError, setStartError] = useState<string | null>(null);
 
   const handleStart = useCallback(async () => {
@@ -95,32 +94,22 @@ function TalkControlsBar({
   }, [employeeId, onSessionStarted]);
 
   const handleStop = useCallback(async () => {
-    if (!activeSession || isStopping) {
+    if (!activeSession || sessionBusy) {
       return;
     }
-    setIsStopping(true);
-    try {
-      await stopSession();
-      await completeTalkSessionAction(activeSession.sessionId);
-      onSessionStopped();
-    } finally {
-      setIsStopping(false);
-    }
-  }, [activeSession, isStopping, onSessionStopped, stopSession]);
+
+    await onStopSession();
+  }, [activeSession, onStopSession, sessionBusy]);
 
   const handleLeave = useCallback(async () => {
-    setIsLeaving(true);
-    try {
-      if (activeSession) {
-        await stopSession();
-        await completeTalkSessionAction(activeSession.sessionId);
-      }
-    } finally {
-      router.push("/dashboard/employees");
+    if (sessionBusy) {
+      return;
     }
-  }, [activeSession, router, stopSession]);
 
-  const sessionBusy = isStarting || isStopping || isLeaving;
+    await onLeaveSession();
+  }, [onLeaveSession, sessionBusy]);
+
+  const controlsDisabled = sessionBusy || isStarting;
 
   return (
     <div className="flex flex-col items-center gap-2 py-4">
@@ -133,7 +122,7 @@ function TalkControlsBar({
         {!activeSession ? (
           <Button
             type="button"
-            disabled={sessionBusy}
+            disabled={controlsDisabled}
             className="h-11 rounded-full px-5 text-sm"
             onClick={() => {
               void handleStart();
@@ -148,7 +137,7 @@ function TalkControlsBar({
               ariaLabel={
                 micMuted ? t("controls.unmuteMic") : t("controls.muteMic")
               }
-              disabled={!isLive || sessionBusy}
+              disabled={!isLive || controlsDisabled}
               onClick={toggleMic}
             >
               {micMuted ? (
@@ -163,7 +152,7 @@ function TalkControlsBar({
                   ? t("controls.turnOffCamera")
                   : t("controls.turnOnCamera")
               }
-              disabled={sessionBusy}
+              disabled={controlsDisabled}
               onClick={onCameraToggle}
             >
               {cameraEnabled ? (
@@ -174,7 +163,7 @@ function TalkControlsBar({
             </TalkIconControl>
             <Button
               type="button"
-              disabled={sessionBusy}
+              disabled={controlsDisabled}
               variant="outline"
               className="h-11 rounded-full border-white/12 bg-white/4 px-5 text-sm text-white hover:bg-white/8"
               onClick={() => {
@@ -182,7 +171,7 @@ function TalkControlsBar({
               }}
             >
               <Square className="size-4" />
-              {isStopping ? t("stopping") : t("stopSession")}
+              {sessionBusy ? t("stopping") : t("stopSession")}
             </Button>
           </>
         )}
@@ -214,6 +203,9 @@ export type EmployeeTalkRoomProps = EmployeeTalkSessionInputProps & {
   employeeName: string;
   activeSession: ActiveTalkSession | null;
   onActiveSessionChange: (session: ActiveTalkSession | null) => void;
+  onStopSession: () => Promise<void>;
+  onLeaveSession: () => Promise<void>;
+  sessionBusy: boolean;
 };
 
 function TalkRoomLayout({
@@ -223,6 +215,9 @@ function TalkRoomLayout({
   avatarPreviewUrl,
   activeSession,
   onActiveSessionChange,
+  onStopSession,
+  onLeaveSession,
+  sessionBusy,
 }: EmployeeTalkRoomProps) {
   const [cameraEnabled, setCameraEnabled] = useState(false);
 
@@ -249,7 +244,9 @@ function TalkRoomLayout({
             employeeId={employeeId}
             activeSession={activeSession}
             onSessionStarted={onActiveSessionChange}
-            onSessionStopped={() => onActiveSessionChange(null)}
+            onStopSession={onStopSession}
+            onLeaveSession={onLeaveSession}
+            sessionBusy={sessionBusy}
             onCameraToggle={() => setCameraEnabled((current) => !current)}
           />
         </div>

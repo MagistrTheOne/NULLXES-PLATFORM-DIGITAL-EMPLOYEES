@@ -30,6 +30,7 @@ export async function activateTalkSessionAction(sessionId: string): Promise<void
 
 export async function completeTalkSessionAction(
   sessionId: string,
+  satisfactionRating?: number,
   startedAtIso?: string,
 ): Promise<void> {
   const { organizationId, userId } = await resolveWorkspaceContext();
@@ -38,6 +39,7 @@ export async function completeTalkSessionAction(
     organizationId,
     userId,
     startedAt: startedAtIso ? new Date(startedAtIso) : undefined,
+    satisfactionRating,
   });
 
   if (isInngestEnabledForSend()) {
@@ -65,6 +67,9 @@ export async function completeTalkSessionAction(
         durationSeconds: result.durationSeconds,
         status: result.status,
         limitExceeded: result.limitExceeded,
+        ...(satisfactionRating !== undefined
+          ? { satisfactionRating }
+          : {}),
       },
     });
   }

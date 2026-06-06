@@ -281,6 +281,15 @@
         "database": "Could not reach the database to verify your session. Check your network and DATABASE_URL (Neon), then try again.",
         "tryAgain": "Try again",
         "backToEmployees": "Back to employees"
+      },
+      "rating": {
+        "title": "Rate this session",
+        "description": "How was your conversation with {name}?",
+        "starsLabel": "Session rating",
+        "star": "{value} stars",
+        "skip": "Skip",
+        "submit": "Submit rating",
+        "submitting": "Saving…"
       }
     },
     "knowledge": {

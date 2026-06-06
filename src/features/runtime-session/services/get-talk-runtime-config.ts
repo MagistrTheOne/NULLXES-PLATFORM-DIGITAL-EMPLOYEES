@@ -1,4 +1,5 @@
 import { getEmployeeDetail } from "@/features/employees/services/get-employee-detail";
+import { composeTalkSystemPrompt } from "@/features/employees/lib/build-system-prompt";
 import {
   resolveTalkVoiceMode,
   type TalkVoiceMode,
@@ -26,9 +27,11 @@ export async function getTalkRuntimeConfig(
 
   return {
     model: employee.brainModel ?? "gpt-4o",
-    systemPrompt:
-      employee.systemPrompt.trim() ||
-      `You are ${employee.name}, a ${employee.role}. Respond naturally and concisely in conversation.`,
+    systemPrompt: composeTalkSystemPrompt({
+      name: employee.name,
+      role: employee.role,
+      storedPrompt: employee.systemPrompt,
+    }),
     temperature: 0.7,
     maxTokens: 1024,
     voiceMode: resolveTalkVoiceMode(employee),

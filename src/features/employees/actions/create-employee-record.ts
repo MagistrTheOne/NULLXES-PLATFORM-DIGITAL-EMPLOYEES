@@ -12,6 +12,7 @@ import {
 } from "@/features/billing/services/check-plan-limits";
 import type { BillingPlanId } from "@/features/billing/config/plans";
 import { requireWorkspacePermissionOrThrowMessage } from "@/features/workspace";
+import { buildEmployeeSystemPrompt } from "@/features/employees/lib/build-system-prompt";
 import { recordLifecycleEvent } from "@/features/employee/services/record-lifecycle-event";
 import { recordAuditEvent } from "@/features/security/services/record-audit-event";
 import { resolveOrganizationBrainModel } from "@/features/settings/services/resolve-organization-brain-model";
@@ -21,10 +22,6 @@ import { dbWithTransactions } from "@/shared/db/pool-client";
 export type CreateEmployeeRecordResult =
   | { ok: true; employeeId: string }
   | { ok: false; message: string };
-
-function buildSystemPrompt(name: string, role: string): string {
-  return `You are ${name}, a ${role}. Operate professionally within your organization's digital workforce.`;
-}
 
 export async function createEmployeeRecord(
   input: CreateEmployeeWizardInput,
@@ -85,7 +82,7 @@ export async function createEmployeeRecord(
           employeeId: employee.id,
           brainProvider: input.brainProvider,
           avatarProvider,
-          systemPrompt: buildSystemPrompt(name, role),
+          systemPrompt: buildEmployeeSystemPrompt(name, role),
           temperature: 0.7,
           maxTokens: 4096,
           sessionLimitSeconds,

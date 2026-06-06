@@ -1,5 +1,6 @@
 "use server";
 
+import { buildEmployeeSystemPrompt } from "@/features/employees/lib/build-system-prompt";
 import { requireWorkspacePermissionOrThrowMessage } from "@/features/workspace";
 import { createAnamAvatarFromFile } from "@/features/employees/studio/anam-create-avatar-from-file";
 import { resolveAnamPersonaVoiceId } from "@/features/employees/studio/resolve-anam-persona-voice";
@@ -43,10 +44,6 @@ type AnamPersonaResponse = {
   id?: string;
 };
 
-function buildSystemPrompt(name: string, role: string): string {
-  return `You are ${name}, a ${role}. Operate professionally within your organization's digital workforce.`;
-}
-
 async function createAnamPersona(input: {
   name: string;
   role: string;
@@ -70,7 +67,7 @@ async function createAnamPersona(input: {
       avatarId: input.avatarId,
       voiceId: input.anamVoiceId,
       llmId: ANAM_EXTERNAL_LLM_ID,
-      systemPrompt: buildSystemPrompt(input.name, input.role),
+      systemPrompt: buildEmployeeSystemPrompt(input.name, input.role),
     }),
   });
 

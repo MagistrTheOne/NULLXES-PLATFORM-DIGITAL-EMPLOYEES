@@ -5,6 +5,12 @@ import { db } from "@/shared/db/client";
 import { applySessionDurationLimit } from "./enforce-session-limit";
 import { getEmployeeSessionLimitSeconds } from "./get-employee-session-limit";
 
+function assertValidSatisfactionRating(rating: number): void {
+  if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
+    throw new Error("Satisfaction rating must be an integer from 1 to 5");
+  }
+}
+
 async function assertSessionOwnership(
   sessionId: string,
   organizationId: string,
@@ -87,7 +93,12 @@ export async function completeEmployeeSession(input: {
   organizationId: string;
   userId: string;
   startedAt?: Date;
+  satisfactionRating?: number;
 }): Promise<CompleteEmployeeSessionResult | null> {
+  if (input.satisfactionRating !== undefined) {
+    assertValidSatisfactionRating(input.satisfactionRating);
+  }
+
   const row = await assertSessionOwnership(
     input.sessionId,
     input.organizationId,
@@ -113,6 +124,9 @@ export async function completeEmployeeSession(input: {
       status: limited.status,
       endedAt,
       durationSeconds: limited.durationSeconds,
+      ...(input.satisfactionRating !== undefined
+        ? { satisfactionRating: String(input.satisfactionRating) }
+        : {}),
     })
     .where(eq(employeeSession.id, input.sessionId));
 

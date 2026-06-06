@@ -12,6 +12,7 @@ import { knowledgeSource } from "@/entities/knowledge/schema";
 import { employeeProviderConfig } from "@/entities/provider-config/schema";
 import { employeeRuntime } from "@/entities/runtime/schema";
 import { requireWorkspacePermissionOrThrowMessage } from "@/features/workspace";
+import { buildEmployeeSystemPrompt } from "@/features/employees/lib/build-system-prompt";
 import { recordLifecycleEvent } from "@/features/employee/services/record-lifecycle-event";
 import { resolveOrganizationBrainModel } from "@/features/settings/services/resolve-organization-brain-model";
 import { enqueueEmployeeProvisioning } from "@/features/provider-provisioning/orchestrator/enqueue-employee-provisioning";
@@ -26,10 +27,6 @@ import type {
 export type PersistDigitalEmployeeResult = {
   employeeId: string;
 };
-
-function buildSystemPrompt(name: string, role: string): string {
-  return `You are ${name}, a ${role}. Operate professionally within your organization's digital workforce.`;
-}
 
 function mapKnowledgeItem(item: KnowledgeDraftItem): {
   type: "file" | "url" | "text";
@@ -83,7 +80,7 @@ export async function persistDigitalEmployeeFromDraft(
       throw new Error("Failed to create digital employee");
     }
 
-    const systemPrompt = buildSystemPrompt(
+    const systemPrompt = buildEmployeeSystemPrompt(
       draft.identity.name,
       draft.identity.role,
     );
