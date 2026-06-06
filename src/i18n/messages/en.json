@@ -527,12 +527,14 @@
       "created": "Created",
       "usageOverview": "Usage Overview",
       "usageOverviewDesc": "Selected analytics period",
+      "usageSummary": "{sessions} sessions · {messages} messages",
       "sessions": "Sessions",
       "talkTime": "Talk Time",
       "messages": "Messages",
       "knowledgeSources": "Knowledge Sources",
       "trendVsPrevious": "{trend} vs previous period",
       "teamMembers": "Team Members",
+      "teamSummary": "{count} member(s)",
       "noTeamMembers": "No team members found."
     },
     "ai": {

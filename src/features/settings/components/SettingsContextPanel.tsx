@@ -1,13 +1,47 @@
 "use client";
 
-import { formatOrganizationDate } from "@/shared/i18n/format-organization-date";
+import { useState } from "react";
+import { ChevronDown } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { BILLING_PLANS } from "@/features/billing/config/plans";
 import { resolveBillingPlanId } from "@/features/billing/lib/resolve-billing-plan";
 import { formatDurationSeconds } from "@/features/analytics/lib/format-duration";
+import { formatOrganizationDate } from "@/shared/i18n/format-organization-date";
 import { formatNumber } from "@/shared/i18n/format-number";
+import { cn } from "@/lib/utils";
 import type { OrganizationProfileDto, SettingsContextPanel as ContextPanel } from "../types";
 import { SettingsCard } from "./settings-card";
+
+function SummaryRow({
+  label,
+  value,
+  className,
+}: {
+  label: string;
+  value: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={cn("flex items-center justify-between gap-3 text-sm", className)}>
+      <span className="text-muted-foreground">{label}</span>
+      <span className="text-right text-foreground">{value}</span>
+    </div>
+  );
+}
+
+function InlineMetric({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg border border-border/70 bg-background/30 px-2.5 py-2">
+      <p className="text-[11px] text-muted-foreground">{label}</p>
+      <p className="mt-0.5 text-sm font-medium tabular-nums text-foreground">{value}</p>
+    </div>
+  );
+}
 
 function formatTrend(value: number | null): string | null {
   if (value === null) {
@@ -16,28 +50,6 @@ function formatTrend(value: number | null): string | null {
 
   const sign = value > 0 ? "+" : "";
   return `${sign}${value}%`;
-}
-
-function UsageMetric({
-  label,
-  value,
-  trend,
-  trendLabel,
-}: {
-  label: string;
-  value: string;
-  trend: string | null;
-  trendLabel: (trend: string) => string;
-}) {
-  return (
-    <div className="rounded-xl border border-border bg-background/40 px-4 py-3">
-      <p className="text-xs text-muted-foreground">{label}</p>
-      <p className="mt-2 text-xl font-medium tabular-nums text-foreground">{value}</p>
-      {trend ? (
-        <p className="mt-1 text-xs text-muted-foreground">{trendLabel(trend)}</p>
-      ) : null}
-    </div>
-  );
 }
 
 export function SettingsContextPanel({
@@ -51,6 +63,8 @@ export function SettingsContextPanel({
 }) {
   const t = useTranslations("settings.context");
   const locale = useLocale();
+  const [usageOpen, setUsageOpen] = useState(false);
+  const [teamOpen, setTeamOpen] = useState(false);
   const billingPlan = BILLING_PLANS[resolveBillingPlanId(organization.billingPlan)];
   const chunkLimit = 32_000;
   const chunkPercent =
@@ -58,108 +72,143 @@ export function SettingsContextPanel({
       ? Math.min(100, Math.round((context.totalChunks / chunkLimit) * 1000) / 10)
       : 0;
 
+  const usageSummary = t("usageSummary", {
+    sessions: context.usage.totalSessions,
+    messages: formatNumber(context.usage.totalMessages, locale),
+  });
+
+  const teamSummary = t("teamSummary", {
+    count: context.teamMembers.length,
+  });
+
   return (
-    <div className="flex flex-col gap-6">
-      <SettingsCard title={t("orgSummary")}>
-        <dl className="space-y-3 text-sm">
-          <div className="flex items-center justify-between gap-3">
-            <dt className="text-muted-foreground">{t("plan")}</dt>
-            <dd className="text-foreground">
-              {billingPlan.name}
-              <span className="text-muted-foreground"> · {billingPlan.priceLabel}</span>
-            </dd>
-          </div>
-          <div className="flex items-center justify-between gap-3">
-            <dt className="text-muted-foreground">{t("members")}</dt>
-            <dd className="tabular-nums text-foreground">{context.memberCount}</dd>
-          </div>
-          <div className="flex items-center justify-between gap-3">
-            <dt className="text-muted-foreground">{t("digitalEmployees")}</dt>
-            <dd className="tabular-nums text-foreground">{context.employeeCount}</dd>
-          </div>
-          <div className="flex items-center justify-between gap-3">
-            <dt className="text-muted-foreground">{t("activeNow")}</dt>
-            <dd className="tabular-nums text-foreground">{context.activeNow}</dd>
-          </div>
-          <div className="space-y-2 border-t border-border pt-4">
-            <div className="flex items-center justify-between gap-3">
-              <dt className="text-muted-foreground">{t("indexedChunks")}</dt>
-              <dd className="tabular-nums text-foreground">
-                {formatNumber(context.totalChunks, locale)} / {formatNumber(chunkLimit, locale)}
-              </dd>
-            </div>
-            <div className="h-1.5 overflow-hidden rounded-full bg-white/8">
+    <SettingsCard title={t("orgSummary")} className="xl:sticky xl:top-6">
+      <div className="space-y-4">
+        <div className="grid grid-cols-3 gap-2">
+          <InlineMetric label={t("members")} value={String(context.memberCount)} />
+          <InlineMetric
+            label={t("digitalEmployees")}
+            value={String(context.employeeCount)}
+          />
+          <InlineMetric label={t("activeNow")} value={String(context.activeNow)} />
+        </div>
+
+        <div className="space-y-2.5 border-t border-border pt-3">
+          <SummaryRow
+            label={t("plan")}
+            value={
+              <>
+                {billingPlan.name}
+                <span className="text-muted-foreground"> · {billingPlan.priceLabel}</span>
+              </>
+            }
+          />
+          <div className="space-y-1.5">
+            <SummaryRow
+              label={t("indexedChunks")}
+              value={`${formatNumber(context.totalChunks, locale)} / ${formatNumber(chunkLimit, locale)}`}
+            />
+            <div className="h-1 overflow-hidden rounded-full bg-white/8">
               <div
                 className="h-full rounded-full bg-white/55"
-                style={{ width: `${Math.max(chunkPercent, context.totalChunks > 0 ? 4 : 0)}%` }}
+                style={{
+                  width: `${Math.max(chunkPercent, context.totalChunks > 0 ? 4 : 0)}%`,
+                }}
               />
             </div>
           </div>
-          <div className="flex items-center justify-between gap-3 border-t border-border pt-4">
-            <dt className="text-muted-foreground">{t("created")}</dt>
-            <dd className="text-foreground">
-              {formatOrganizationDate(organization.createdAt, {
-                dateFormat,
-                locale,
-              })}
-            </dd>
-          </div>
-        </dl>
-      </SettingsCard>
-
-      <SettingsCard title={t("usageOverview")} description={t("usageOverviewDesc")}>
-        <div className="grid grid-cols-2 gap-3">
-          <UsageMetric
-            label={t("sessions")}
-            value={String(context.usage.totalSessions)}
-            trend={formatTrend(context.usage.sessionTrendPercent)}
-            trendLabel={(trend) => t("trendVsPrevious", { trend })}
-          />
-          <UsageMetric
-            label={t("talkTime")}
-            value={formatDurationSeconds(context.usage.totalConversationSeconds)}
-            trend={formatTrend(context.usage.conversationTrendPercent)}
-            trendLabel={(trend) => t("trendVsPrevious", { trend })}
-          />
-          <UsageMetric
-            label={t("messages")}
-            value={formatNumber(context.usage.totalMessages, locale)}
-            trend={formatTrend(context.usage.messagesTrendPercent)}
-            trendLabel={(trend) => t("trendVsPrevious", { trend })}
-          />
-          <UsageMetric
-            label={t("knowledgeSources")}
-            value={String(context.usage.totalKnowledgeSources)}
-            trend={formatTrend(context.usage.knowledgeTrendPercent)}
-            trendLabel={(trend) => t("trendVsPrevious", { trend })}
+          <SummaryRow
+            label={t("created")}
+            value={formatOrganizationDate(organization.createdAt, {
+              dateFormat,
+              locale,
+            })}
           />
         </div>
-      </SettingsCard>
 
-      <SettingsCard title={t("teamMembers")}>
-        <ul className="space-y-3">
-          {context.teamMembers.length === 0 ? (
-            <li className="text-sm text-muted-foreground">{t("noTeamMembers")}</li>
-          ) : (
-            context.teamMembers.map((member) => (
-              <li
-                key={member.id}
-                className="flex items-center justify-between gap-3 rounded-xl border border-border bg-background/40 px-4 py-3"
-              >
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-medium text-foreground">
-                    {member.name}
-                  </p>
-                  <p className="truncate text-xs text-muted-foreground">{member.email}</p>
-                </div>
-                <span className="shrink-0 text-xs capitalize text-muted-foreground">
-                  {member.role}
-                </span>
-              </li>
-            ))
-          )}
-        </ul>
-      </SettingsCard>
-    </div>
+        <Collapsible open={usageOpen} onOpenChange={setUsageOpen}>
+          <CollapsibleTrigger className="flex w-full items-center justify-between gap-2 rounded-lg border border-border/70 bg-background/30 px-3 py-2.5 text-left transition-colors hover:bg-background/50">
+            <div className="min-w-0">
+              <p className="text-xs font-medium text-foreground">{t("usageOverview")}</p>
+              <p className="truncate text-[11px] text-muted-foreground">{usageSummary}</p>
+            </div>
+            <ChevronDown
+              className={cn(
+                "size-3.5 shrink-0 text-muted-foreground transition-transform",
+                usageOpen && "rotate-180",
+              )}
+            />
+          </CollapsibleTrigger>
+          <CollapsibleContent className="pt-2">
+            <div className="grid grid-cols-2 gap-2">
+              <InlineMetric
+                label={t("sessions")}
+                value={String(context.usage.totalSessions)}
+              />
+              <InlineMetric
+                label={t("talkTime")}
+                value={formatDurationSeconds(context.usage.totalConversationSeconds)}
+              />
+              <InlineMetric
+                label={t("messages")}
+                value={formatNumber(context.usage.totalMessages, locale)}
+              />
+              <InlineMetric
+                label={t("knowledgeSources")}
+                value={String(context.usage.totalKnowledgeSources)}
+              />
+            </div>
+            {formatTrend(context.usage.sessionTrendPercent) ? (
+              <p className="mt-2 text-[11px] text-muted-foreground">
+                {t("trendVsPrevious", {
+                  trend: formatTrend(context.usage.sessionTrendPercent)!,
+                })}
+              </p>
+            ) : null}
+          </CollapsibleContent>
+        </Collapsible>
+
+        <Collapsible open={teamOpen} onOpenChange={setTeamOpen}>
+          <CollapsibleTrigger className="flex w-full items-center justify-between gap-2 rounded-lg border border-border/70 bg-background/30 px-3 py-2.5 text-left transition-colors hover:bg-background/50">
+            <div className="min-w-0">
+              <p className="text-xs font-medium text-foreground">{t("teamMembers")}</p>
+              <p className="truncate text-[11px] text-muted-foreground">{teamSummary}</p>
+            </div>
+            <ChevronDown
+              className={cn(
+                "size-3.5 shrink-0 text-muted-foreground transition-transform",
+                teamOpen && "rotate-180",
+              )}
+            />
+          </CollapsibleTrigger>
+          <CollapsibleContent className="pt-2">
+            <ul className="space-y-1.5">
+              {context.teamMembers.length === 0 ? (
+                <li className="text-xs text-muted-foreground">{t("noTeamMembers")}</li>
+              ) : (
+                context.teamMembers.map((member) => (
+                  <li
+                    key={member.id}
+                    className="flex items-center justify-between gap-2 rounded-lg border border-border/70 bg-background/30 px-2.5 py-2"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate text-xs font-medium text-foreground">
+                        {member.name}
+                      </p>
+                      <p className="truncate text-[11px] text-muted-foreground">
+                        {member.email}
+                      </p>
+                    </div>
+                    <span className="shrink-0 text-[11px] capitalize text-muted-foreground">
+                      {member.role}
+                    </span>
+                  </li>
+                ))
+              )}
+            </ul>
+          </CollapsibleContent>
+        </Collapsible>
+      </div>
+    </SettingsCard>
   );
 }

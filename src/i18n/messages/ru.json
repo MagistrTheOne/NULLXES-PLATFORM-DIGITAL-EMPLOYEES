@@ -527,12 +527,14 @@
       "created": "Создано",
       "usageOverview": "Обзор использования",
       "usageOverviewDesc": "Выбранный период аналитики",
+      "usageSummary": "{sessions} сессий · {messages} сообщений",
       "sessions": "Сессии",
       "talkTime": "Время разговоров",
       "messages": "Сообщения",
       "knowledgeSources": "Источники знаний",
       "trendVsPrevious": "{trend} к прошлому периоду",
       "teamMembers": "Участники команды",
+      "teamSummary": "{count} участник(ов)",
       "noTeamMembers": "Участники не найдены."
     },
     "ai": {
