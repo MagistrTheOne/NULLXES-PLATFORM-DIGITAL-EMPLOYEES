@@ -1,8 +1,25 @@
 import { createHash } from "node:crypto";
 
 function readOptionalEnv(name: string): string | undefined {
-  const value = process.env[name]?.trim();
+  const value = sanitizeEnvValue(process.env[name]);
   return value && value.length > 0 ? value : undefined;
+}
+
+/** Strip wrapping quotes Vercel users often paste from `.env` files. */
+export function sanitizeEnvValue(value: string | undefined): string | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  const trimmed = value.trim();
+  if (
+    (trimmed.startsWith('"') && trimmed.endsWith('"')) ||
+    (trimmed.startsWith("'") && trimmed.endsWith("'"))
+  ) {
+    return trimmed.slice(1, -1).trim();
+  }
+
+  return trimmed;
 }
 
 function stripTrailingSlash(url: string): string {
@@ -74,7 +91,7 @@ export function resolveAppBaseUrl(): string {
 }
 
 export function getDatabaseUrl(): string {
-  const url = process.env.DATABASE_URL;
+  const url = sanitizeEnvValue(process.env.DATABASE_URL);
   if (!url) {
     throw new Error("DATABASE_URL is not set");
   }
@@ -82,7 +99,7 @@ export function getDatabaseUrl(): string {
 }
 
 export function getBetterAuthSecret(): string {
-  const secret = process.env.BETTER_AUTH_SECRET;
+  const secret = sanitizeEnvValue(process.env.BETTER_AUTH_SECRET);
   if (!secret) {
     throw new Error("BETTER_AUTH_SECRET is not set");
   }

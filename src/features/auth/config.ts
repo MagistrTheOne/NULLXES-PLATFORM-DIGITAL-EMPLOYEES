@@ -23,6 +23,11 @@ export function createAuthConfig(): BetterAuthOptions {
     secret: getBetterAuthSecret(),
     baseURL,
     trustedOrigins,
+    advanced: {
+      ipAddress: {
+        ipAddressHeaders: ["x-forwarded-for", "x-real-ip"],
+      },
+    },
     ...(socialProviders ? { socialProviders } : {}),
     database: drizzleAdapter(db, {
       provider: "pg",

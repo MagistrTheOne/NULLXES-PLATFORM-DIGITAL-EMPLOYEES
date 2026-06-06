@@ -50,6 +50,10 @@ This document outlines deployment considerations for Russia (RU) data residency 
 
 Provider keys to copy as-is: `OPENAI_API_KEY`, `ANAM_API_KEY`, `ELEVENLABS_API_KEY`, `STREAM_API_KEY`, `STREAM_SECRET_KEY`, `POLAR_*`, `DATABASE_URL`.
 
+Paste values **without** surrounding quotes. After changing env vars, trigger a **Redeploy** in Vercel.
+
+Verify database connectivity: `GET /api/health/db` should return `{"ok":true}`.
+
 ## Post-deploy verification
 
 1. Apply migrations `drizzle/0016_sturdy_rafael_vega.sql` and `drizzle/0017_funny_natasha_romanoff.sql`.

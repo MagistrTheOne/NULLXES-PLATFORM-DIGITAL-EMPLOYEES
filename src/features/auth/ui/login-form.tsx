@@ -17,7 +17,6 @@ import { acceptOrganizationInviteAction } from "@/features/team/actions/accept-o
 import type { OrganizationInvitePreview } from "@/features/team/services/lookup-organization-invite";
 import type { OAuthProviderId } from "../lib/oauth-providers";
 import { authClient } from "../client";
-import { ensureWorkspace } from "../services/ensure-workspace";
 import { InviteAuthBanner } from "./invite-auth-banner";
 import { OAuthSignInButtons } from "./oauth-sign-in-buttons";
 
@@ -41,48 +40,43 @@ export function LoginForm({
     setError(null);
     setIsSubmitting(true);
 
-    const { data, error: signInError } = await authClient.signIn.email({
-      email,
-      password,
-      rememberMe: true,
-    });
-
-    if (signInError) {
-      setIsSubmitting(false);
-      setError(signInError.message ?? "Unable to sign in");
-      return;
-    }
-
-    const userId = data?.user?.id;
-    if (!userId) {
-      setIsSubmitting(false);
-      setError("Signed in without a user identifier");
-      return;
-    }
-
     try {
+      const { data, error: signInError } = await authClient.signIn.email({
+        email,
+        password,
+        rememberMe: true,
+      });
+
+      if (signInError) {
+        setError(signInError.message ?? "Unable to sign in");
+        return;
+      }
+
+      if (data && "twoFactorRedirect" in data && data.twoFactorRedirect) {
+        router.push("/login/verify-2fa");
+        router.refresh();
+        return;
+      }
+
       if (inviteToken) {
         const accepted = await acceptOrganizationInviteAction(inviteToken);
         if (!accepted.ok) {
-          throw new Error(accepted.message);
+          setError(accepted.message);
+          return;
         }
-      } else {
-        await ensureWorkspace(userId, data.user?.name ?? email);
       }
-    } catch (provisionError: unknown) {
-      setIsSubmitting(false);
+
+      router.push("/dashboard");
+      router.refresh();
+    } catch (submitError: unknown) {
       const message =
-        provisionError instanceof Error
-          ? provisionError.message
-          : "Unable to prepare workspace";
+        submitError instanceof Error
+          ? submitError.message
+          : "Unable to sign in";
       setError(message);
-      return;
+    } finally {
+      setIsSubmitting(false);
     }
-
-    setIsSubmitting(false);
-
-    router.push("/dashboard");
-    router.refresh();
   }
 
   return (
