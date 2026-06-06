@@ -1,8 +1,8 @@
 "use client";
 
-import { suppressAnamClientMetricsFetch } from "@/features/runtime-session/lib/suppress-anam-client-metrics";
+import { patchAnamBrowserFetch } from "@/features/runtime-session/lib/patch-anam-browser-fetch";
 
-suppressAnamClientMetricsFetch();
+patchAnamBrowserFetch();
 
 import {
   createContext,

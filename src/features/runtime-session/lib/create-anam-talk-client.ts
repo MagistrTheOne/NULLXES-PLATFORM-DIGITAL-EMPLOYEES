@@ -1,14 +1,14 @@
 import { createClient, type AnamClient } from "@anam-ai/js-sdk";
-import { suppressAnamClientMetricsFetch } from "./suppress-anam-client-metrics";
+import { patchAnamBrowserFetch } from "./patch-anam-browser-fetch";
 
-suppressAnamClientMetricsFetch();
+patchAnamBrowserFetch();
 
 /**
- * Browser telemetry hits api.anam.ai/v1/metrics/client without CORS headers for
- * custom app origins — disable it; Talk does not depend on client metrics.
+ * Anam browser SDK calls are patched to use /api/anam (see patch-anam-browser-fetch).
+ * Client metrics are dropped; session start is proxied server-side to avoid CORS.
  */
 export function createAnamTalkClient(sessionToken: string): AnamClient {
-  suppressAnamClientMetricsFetch();
+  patchAnamBrowserFetch();
 
   return createClient(sessionToken, {
     metrics: {
