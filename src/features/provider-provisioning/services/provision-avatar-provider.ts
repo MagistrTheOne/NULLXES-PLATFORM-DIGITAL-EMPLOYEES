@@ -5,12 +5,12 @@ import {
   hasAnamCredentials,
 } from "@/shared/config/provider-env";
 import { resolveAvatarProvider } from "@/shared/providers";
+import { buildAnamPersonaCreatePayload } from "@/features/runtime-session/lib/build-anam-talk-persona-config";
 import type {
   ProvisionAvatarProviderInput,
   ProvisionProviderResult,
 } from "../types";
 import { ANAM_EXTERNAL_LLM_ID } from "../types";
-import { ANAM_AVATAR_ONLY_SYSTEM_PROMPT } from "@/features/runtime-session/lib/build-anam-talk-persona-config";
 import { getProviderConfigRow, mergeProviderConfig } from "./update-provider-config";
 
 type AnamListResponse<T> = {
@@ -171,15 +171,13 @@ export async function provisionAvatarProvider(
 
     const persona = await fetchAnamJson<AnamPersonaResponse>("/personas", {
       method: "POST",
-      body: JSON.stringify({
-        name: input.employeeName,
-        description: `${input.employeeName} NULLXES digital employee persona`,
-        avatarId,
-        voiceId,
-        llmId: ANAM_EXTERNAL_LLM_ID,
-        skipGreeting: true,
-        systemPrompt: ANAM_AVATAR_ONLY_SYSTEM_PROMPT,
-      }),
+      body: JSON.stringify(
+        buildAnamPersonaCreatePayload({
+          name: input.employeeName,
+          avatarId,
+          voiceId,
+        }),
+      ),
     });
 
     if (!persona.id) {

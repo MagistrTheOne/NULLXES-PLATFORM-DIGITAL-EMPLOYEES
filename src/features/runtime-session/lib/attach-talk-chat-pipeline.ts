@@ -2,6 +2,12 @@ import type { AnamClient } from "@anam-ai/js-sdk";
 import type { Channel as StreamChannel, Event } from "stream-chat";
 import { playTalkVoiceReply } from "./play-talk-voice-reply";
 import { streamTalkBrainReply } from "./stream-talk-brain-client";
+import {
+  buildTalkTurnKey,
+  completeTalkTurn,
+  failTalkTurn,
+  tryBeginTalkTurn,
+} from "./talk-pipeline-coordinator";
 import { postTalkEmployeeChatReply } from "./talk-reply-bridge";
 import type { TalkVoiceMode } from "../services/resolve-talk-voice-mode";
 
@@ -50,6 +56,11 @@ export function attachTalkChatPipeline(input: {
       return;
     }
 
+    const turnKey = buildTalkTurnKey(message.text.trim());
+    if (!tryBeginTalkTurn(turnKey)) {
+      return;
+    }
+
     lastHandledMessageId = message.id;
     processing = true;
 
@@ -72,10 +83,14 @@ export function attachTalkChatPipeline(input: {
             voiceMode: input.voiceMode,
           });
         }
+
+        completeTalkTurn(turnKey, replyText);
       } catch {
-        await postTalkEmployeeChatReply(
-          "I could not process that message right now. Please try again.",
-        );
+        failTalkTurn();
+        const fallback =
+          "I could not process that message right now. Please try again.";
+        await postTalkEmployeeChatReply(fallback);
+        completeTalkTurn(turnKey, fallback);
       } finally {
         processing = false;
       }

@@ -4,14 +4,18 @@ import type { Message } from "@anam-ai/js-sdk";
 import type { TalkVoiceMode } from "../services/resolve-talk-voice-mode";
 import { playTalkVoiceReply } from "./play-talk-voice-reply";
 import { streamTalkBrainReply } from "./stream-talk-brain-client";
+import {
+  buildTalkTurnKey,
+  completeTalkTurn,
+  failTalkTurn,
+  isLikelyAssistantEcho,
+  resetTalkPipelineCoordinator,
+  tryBeginTalkTurn,
+} from "./talk-pipeline-coordinator";
 import { postTalkEmployeeChatReply } from "./talk-reply-bridge";
 
 const USER_MESSAGE_DEBOUNCE_MS = 750;
 const MIN_USER_MESSAGE_LENGTH = 3;
-
-function normalizeUserText(text: string): string {
-  return text.trim().toLowerCase().replace(/\s+/g, " ");
-}
 
 function isSubstantiveUserMessage(text: string): boolean {
   const trimmed = text.trim();
@@ -27,9 +31,9 @@ export function attachTalkVoicePipeline(input: {
   employeeId: string;
   voiceMode: TalkVoiceMode;
 }): () => void {
+  resetTalkPipelineCoordinator();
+
   let processing = false;
-  let lastHandledMessageId: string | null = null;
-  const handledUserTexts = new Set<string>();
   let debounceTimer: ReturnType<typeof setTimeout> | null = null;
   let pendingHistory: Message[] | null = null;
   let pendingMessage: Message | null = null;
@@ -44,21 +48,13 @@ export function attachTalkVoicePipeline(input: {
       return;
     }
 
-    const normalizedContent = normalizeUserText(content);
-    if (
-      userMessage.id === lastHandledMessageId ||
-      handledUserTexts.has(normalizedContent)
-    ) {
+    if (isLikelyAssistantEcho(content)) {
       return;
     }
 
-    lastHandledMessageId = userMessage.id;
-    handledUserTexts.add(normalizedContent);
-    if (handledUserTexts.size > 24) {
-      const oldest = handledUserTexts.values().next().value;
-      if (oldest) {
-        handledUserTexts.delete(oldest);
-      }
+    const turnKey = buildTalkTurnKey(content);
+    if (!tryBeginTalkTurn(turnKey)) {
+      return;
     }
 
     processing = true;
@@ -97,11 +93,14 @@ export function attachTalkVoicePipeline(input: {
         }
 
         await postTalkEmployeeChatReply(replyText);
+        completeTalkTurn(turnKey, replyText);
       } catch {
+        failTalkTurn();
         const fallback =
           "Something went wrong while generating a response. Please try again.";
         await input.anamClient.talk(fallback);
         await postTalkEmployeeChatReply(fallback);
+        completeTalkTurn(turnKey, fallback);
       } finally {
         processing = false;
       }
@@ -139,6 +138,7 @@ export function attachTalkVoicePipeline(input: {
 
   const onInterrupted = () => {
     processing = false;
+    failTalkTurn();
   };
 
   input.anamClient.addListener(

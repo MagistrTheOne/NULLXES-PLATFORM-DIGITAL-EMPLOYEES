@@ -7,8 +7,7 @@ import {
   getStudioVoiceById,
   type StudioVoiceProvider,
 } from "@/features/employees/studio/voice/voice-catalog";
-import { ANAM_EXTERNAL_LLM_ID } from "@/features/provider-provisioning/types";
-import { ANAM_AVATAR_ONLY_SYSTEM_PROMPT } from "@/features/runtime-session/lib/build-anam-talk-persona-config";
+import { buildAnamPersonaCreatePayload } from "@/features/runtime-session/lib/build-anam-talk-persona-config";
 import {
   getAnamApiBaseUrl,
   getAnamApiKey,
@@ -61,15 +60,13 @@ async function createAnamPersona(input: {
       Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({
-      name: input.name,
-      description: `${input.name} NULLXES digital employee persona`,
-      avatarId: input.avatarId,
-      voiceId: input.anamVoiceId,
-      llmId: ANAM_EXTERNAL_LLM_ID,
-      skipGreeting: true,
-      systemPrompt: ANAM_AVATAR_ONLY_SYSTEM_PROMPT,
-    }),
+    body: JSON.stringify(
+      buildAnamPersonaCreatePayload({
+        name: input.name,
+        avatarId: input.avatarId,
+        voiceId: input.anamVoiceId,
+      }),
+    ),
   });
 
   if (!response.ok) {

@@ -28,6 +28,7 @@ import type { TalkChatCredentials } from "../services/create-talk-chat-session";
 import { attachTalkChatPipeline } from "../lib/attach-talk-chat-pipeline";
 import { useTalkAnam } from "../context/talk-anam-context";
 import { registerTalkChatBridge, resetTalkChatReplyDedup } from "../lib/talk-reply-bridge";
+import { resetTalkPipelineCoordinator } from "../lib/talk-pipeline-coordinator";
 import type { TalkVoiceMode } from "../services/resolve-talk-voice-mode";
 import {
   connectTalkChatSession,
@@ -248,6 +249,7 @@ export function EmployeeTalkChat({
         hard_delete: true,
       });
       resetTalkChatReplyDedup();
+      resetTalkPipelineCoordinator();
     } catch (clearError: unknown) {
       console.error("Failed to clear talk chat history", clearError);
     } finally {

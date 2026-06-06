@@ -110,6 +110,11 @@ export async function getEmployeeDetail(
     avatarProvisioningStatus === "ready" &&
     Boolean(avatarConfig?.personaId && avatarConfig?.previewUrl);
 
+  const anamVoiceId =
+    typeof avatarConfig?.providerMetadata?.anamPersonaVoiceId === "string"
+      ? avatarConfig.providerMetadata.anamPersonaVoiceId
+      : null;
+
   return {
     id: employee.id,
     name: employee.name,
@@ -126,6 +131,7 @@ export async function getEmployeeDetail(
     canTalk: avatarReady && sessionProvisioningStatus === "ready",
     avatarId: avatarConfig?.avatarId ?? null,
     personaId: avatarConfig?.personaId ?? null,
+    anamVoiceId,
     studioVoiceId: sessionConfig?.studioVoiceId ?? null,
     voiceId: sessionConfig?.voiceId ?? null,
     brainModel: brainConfig?.model ?? null,

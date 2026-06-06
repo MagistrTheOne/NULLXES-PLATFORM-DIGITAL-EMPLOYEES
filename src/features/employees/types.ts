@@ -47,6 +47,7 @@ export type EmployeeDetail = EmployeeListItem & {
   description: string | null;
   avatarId: string | null;
   personaId: string | null;
+  anamVoiceId: string | null;
   studioVoiceId: string | null;
   voiceId: string | null;
   brainModel: string | null;

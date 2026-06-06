@@ -71,7 +71,6 @@ export async function provisionEmployeeProviders(
     provisionAvatarProvider({
       employeeId: input.employeeId,
       employeeName: context.name,
-      systemPrompt: context.systemPrompt,
       voiceId: context.voiceId,
     }).catch((error: unknown) => ({
       status: "failed" as const,

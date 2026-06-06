@@ -1,6 +1,6 @@
 import { getEmployeeDetail } from "@/features/employees/services/get-employee-detail";
 import { syncAnamPersonaExternalBrain } from "@/features/provider-provisioning/services/sync-anam-persona-external-brain";
-import { buildAnamTalkSessionPersonaConfig } from "@/features/runtime-session/lib/build-anam-talk-persona-config";
+import { buildAnamTalkEphemeralPersonaConfig } from "@/features/runtime-session/lib/build-anam-talk-persona-config";
 import { resolveTalkVoiceMode } from "@/features/runtime-session/services/resolve-talk-voice-mode";
 import { getAnamApiBaseUrl, getAnamApiKey } from "@/shared/config/provider-env";
 
@@ -18,10 +18,10 @@ export async function createAnamTalkSessionTokenForEmployee(
     return { ok: false, message: "Employee not found" };
   }
 
-  if (!employee.personaId) {
+  if (!employee.avatarId || !employee.anamVoiceId) {
     return {
       ok: false,
-      message: "Anam persona is not ready for this employee yet.",
+      message: "Anam avatar or voice is not ready for this employee yet.",
     };
   }
 
@@ -30,15 +30,19 @@ export async function createAnamTalkSessionTokenForEmployee(
     return { ok: false, message: "ANAM_API_KEY is not configured" };
   }
 
-  try {
-    await syncAnamPersonaExternalBrain(employee.personaId);
-  } catch (syncError: unknown) {
-    console.warn("Anam persona external-brain sync failed", syncError);
+  if (employee.personaId) {
+    try {
+      await syncAnamPersonaExternalBrain(employee.personaId);
+    } catch (syncError: unknown) {
+      console.warn("Anam persona external-brain sync failed", syncError);
+    }
   }
 
   const voiceMode = resolveTalkVoiceMode(employee);
-  const personaConfig = buildAnamTalkSessionPersonaConfig({
-    personaId: employee.personaId,
+  const personaConfig = buildAnamTalkEphemeralPersonaConfig({
+    name: employee.name,
+    avatarId: employee.avatarId,
+    voiceId: employee.anamVoiceId,
     enableAudioPassthrough: voiceMode === "elevenlabs",
   });
 
@@ -51,6 +55,11 @@ export async function createAnamTalkSessionTokenForEmployee(
     body: JSON.stringify({
       clientLabel: "nullxes-digital-employees",
       personaConfig,
+      sessionOptions: {
+        sessionReplay: {
+          enableSessionReplay: false,
+        },
+      },
     }),
   });
 

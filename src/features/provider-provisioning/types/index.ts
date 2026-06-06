@@ -14,13 +14,14 @@ export type ProvisionProviderResult = {
 export type ProvisionBrainProviderInput = {
   employeeId: string;
   employeeName: string;
+  /** Stored in OpenAI assistant instructions and employee_runtime at talk time. */
   systemPrompt: string;
 };
 
+/** Anam avatar provisioning — no employee systemPrompt; brain is OpenAI via CUSTOMER_CLIENT_V1. */
 export type ProvisionAvatarProviderInput = {
   employeeId: string;
   employeeName: string;
-  systemPrompt: string;
   voiceId?: string;
 };
 
