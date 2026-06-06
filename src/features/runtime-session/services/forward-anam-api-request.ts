@@ -1,39 +1,4 @@
-const ANAM_API_HOST_SUFFIX = ".anam.ai";
-
-const BLOCKED_TARGET_PATHS = ["/v1/auth/session-token", "/v1/metrics/client"];
-
-const ALLOWED_TARGET_PATHS = ["/v1/engine/session", "/talk"];
-
-function isAllowedAnamTargetUrl(targetUrl: string): boolean {
-  let parsed: URL;
-  try {
-    parsed = new URL(targetUrl);
-  } catch {
-    return false;
-  }
-
-  const hostname = parsed.hostname.toLowerCase();
-  const isAnamHost =
-    hostname === "anam.ai" || hostname.endsWith(ANAM_API_HOST_SUFFIX);
-
-  if (!isAnamHost || parsed.protocol !== "https:") {
-    return false;
-  }
-
-  const pathWithQuery = `${parsed.pathname}${parsed.search}`;
-
-  if (
-    BLOCKED_TARGET_PATHS.some((blockedPath) =>
-      pathWithQuery.startsWith(blockedPath),
-    )
-  ) {
-    return false;
-  }
-
-  return ALLOWED_TARGET_PATHS.some((allowedPath) =>
-    parsed.pathname.endsWith(allowedPath),
-  );
-}
+import { isAllowedAnamProxyTarget } from "@/features/runtime-session/lib/anam-proxy-target";
 
 export async function forwardAnamApiRequest(
   request: Request,
@@ -47,7 +12,7 @@ export async function forwardAnamApiRequest(
     );
   }
 
-  if (!isAllowedAnamTargetUrl(targetUrl)) {
+  if (!isAllowedAnamProxyTarget(targetUrl)) {
     return Response.json({ error: "Target URL is not allowed" }, { status: 403 });
   }
 

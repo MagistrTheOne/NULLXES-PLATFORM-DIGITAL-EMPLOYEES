@@ -1,6 +1,9 @@
-const ANAM_API_ORIGIN = "https://api.anam.ai";
+import {
+  buildAnamProxyUrl,
+  shouldProxyAnamBrowserFetch,
+} from "./anam-proxy-target";
+
 const ANAM_CLIENT_METRICS_SUFFIX = "/v1/metrics/client";
-const ANAM_PROXY_PREFIX = "/api/anam";
 
 let installed = false;
 
@@ -16,17 +19,11 @@ function resolveFetchUrl(input: RequestInfo | URL): string {
   return input.url;
 }
 
-function buildProxyUrl(targetUrl: string): string {
-  const pathAndQuery = targetUrl.slice(ANAM_API_ORIGIN.length);
-  return `${window.location.origin}${ANAM_PROXY_PREFIX}${pathAndQuery}`;
-}
-
 /**
- * The Anam JS SDK calls api.anam.ai from the browser. That origin does not
- * expose CORS headers for custom deployments, so session start fails.
- *
- * Route those requests through our same-origin /api/anam proxy instead.
- * Metrics are dropped — Talk does not depend on client telemetry.
+ * The Anam JS SDK calls *.anam.ai from the browser (api.anam.ai for session
+ * start, engine hosts for /talk). Those origins do not expose CORS for custom
+ * deployments — route all SDK HTTP through our same-origin /api/anam proxy.
+ * Metrics are dropped; WebRTC / WebSocket signalling stay direct.
  */
 export function patchAnamBrowserFetch(): void {
   if (installed || typeof window === "undefined") {
@@ -45,13 +42,14 @@ export function patchAnamBrowserFetch(): void {
       return Promise.resolve(new Response(null, { status: 204 }));
     }
 
-    if (url.startsWith(ANAM_API_ORIGIN)) {
+    if (shouldProxyAnamBrowserFetch(url)) {
       const headers = new Headers(init?.headers);
       headers.set("X-Anam-Target-Url", url);
 
-      return nativeFetch(buildProxyUrl(url), {
+      return nativeFetch(buildAnamProxyUrl(url, window.location.origin), {
         ...init,
         headers,
+        credentials: init?.credentials ?? "include",
       });
     }
 
