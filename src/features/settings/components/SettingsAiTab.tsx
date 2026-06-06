@@ -1,22 +1,27 @@
-import { getTranslations } from "next-intl/server";
+"use client";
+
+import { useTranslations } from "next-intl";
 import type { BrainProvider } from "@/entities/digital-employee";
 import type { OrganizationSettingsDto } from "../types";
 import { SettingsCard } from "./settings-card";
 
-const BRAIN_OPTION_KEYS: Record<BrainProvider, "brainOpenai" | "brainAnthropic" | "brainGoogle" | "brainNullxes"> = {
+const BRAIN_OPTION_KEYS: Record<
+  BrainProvider,
+  "brainOpenai" | "brainAnthropic" | "brainGoogle" | "brainNullxes"
+> = {
   openai: "brainOpenai",
   anthropic: "brainAnthropic",
   google: "brainGoogle",
   nullxes: "brainNullxes",
 };
 
-export async function SettingsAiTab({
+export function SettingsAiTab({
   settings,
 }: {
   settings: OrganizationSettingsDto;
 }) {
-  const t = await getTranslations("settings.ai");
-  const tOptions = await getTranslations("settings.options");
+  const t = useTranslations("settings.ai");
+  const tOptions = useTranslations("settings.options");
 
   return (
     <SettingsCard title={t("title")} description={t("description")}>

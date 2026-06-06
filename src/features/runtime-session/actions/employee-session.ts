@@ -5,6 +5,8 @@ import { ensureWorkspace } from "@/features/auth/services/ensure-workspace";
 import { dispatchOrganizationWebhook } from "@/features/public-api/services/dispatch-outbound-webhook";
 import { inngest } from "@/inngest/client";
 import { createAnamTalkSessionTokenForEmployee } from "../services/create-anam-talk-session";
+import { resolveTalkVoiceMode } from "../services/resolve-talk-voice-mode";
+import { getEmployeeDetail } from "@/features/employees/services/get-employee-detail";
 import {
   activateEmployeeSession,
   completeEmployeeSession,
@@ -68,13 +70,23 @@ export async function failTalkSessionAction(sessionId: string): Promise<void> {
 }
 
 export type StartTalkSessionResult =
-  | { ok: true; sessionId: string; sessionToken: string }
+  | {
+      ok: true;
+      sessionId: string;
+      sessionToken: string;
+      voiceMode: "elevenlabs" | "anam";
+    }
   | { ok: false; message: string };
 
 export async function startTalkSessionAction(
   employeeId: string,
 ): Promise<StartTalkSessionResult> {
   const { organizationId, userId } = await resolveWorkspaceContext();
+
+  const employee = await getEmployeeDetail(organizationId, employeeId);
+  if (!employee) {
+    return { ok: false, message: "Employee not found" };
+  }
 
   const anamToken = await createAnamTalkSessionTokenForEmployee(
     organizationId,
@@ -94,5 +106,6 @@ export async function startTalkSessionAction(
     ok: true,
     sessionId,
     sessionToken: anamToken.sessionToken,
+    voiceMode: resolveTalkVoiceMode(employee),
   };
 }

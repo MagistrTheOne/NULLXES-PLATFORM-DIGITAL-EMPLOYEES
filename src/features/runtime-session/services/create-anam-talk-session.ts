@@ -1,4 +1,5 @@
 import { getEmployeeDetail } from "@/features/employees/services/get-employee-detail";
+import { resolveTalkVoiceMode } from "@/features/runtime-session/services/resolve-talk-voice-mode";
 import { getAnamApiBaseUrl, getAnamApiKey } from "@/shared/config/provider-env";
 
 export type AnamTalkSessionTokenResult =
@@ -37,6 +38,9 @@ export async function createAnamTalkSessionTokenForEmployee(
       clientLabel: "nullxes-digital-employees",
       personaConfig: {
         personaId: employee.personaId,
+        ...(resolveTalkVoiceMode(employee) === "elevenlabs"
+          ? { enableAudioPassthrough: true }
+          : {}),
       },
     }),
   });

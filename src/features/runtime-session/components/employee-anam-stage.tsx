@@ -9,21 +9,27 @@ import {
   failTalkSessionAction,
 } from "@/features/runtime-session/actions/employee-session";
 import { useTalkAnam } from "@/features/runtime-session/context/talk-anam-context";
+import { attachTalkVoicePipeline } from "@/features/runtime-session/lib/attach-talk-voice-pipeline";
+import type { TalkVoiceMode } from "@/features/runtime-session/services/resolve-talk-voice-mode";
 import { AvatarIdlePreview } from "@/features/employees/components/avatar-idle-preview";
 import { TalkStageChrome } from "./talk-stage-chrome";
 
 const ANAM_VIDEO_ELEMENT_ID = "nullxes-anam-persona-video";
 
 export function EmployeeAnamStage({
+  employeeId,
   employeeName,
   employeeSessionId,
   avatarPreviewUrl,
   sessionToken,
+  voiceMode,
 }: {
+  employeeId: string;
   employeeName: string;
   employeeSessionId: string;
   avatarPreviewUrl: string | null;
   sessionToken: string | null;
+  voiceMode: TalkVoiceMode;
 }) {
   const t = useTranslations("employees.talk");
   const { registerClient, setIsLive, isStoppingIntentionally } = useTalkAnam();
@@ -43,6 +49,7 @@ export function EmployeeAnamStage({
 
     const token = sessionToken;
     let disposed = false;
+    let detachVoicePipeline: (() => void) | null = null;
 
     async function startAnamSession(): Promise<void> {
       setStatus("connecting");
@@ -71,6 +78,13 @@ export function EmployeeAnamStage({
 
       try {
         await anamClient.streamToVideoElement(ANAM_VIDEO_ELEMENT_ID);
+        if (!disposed) {
+          detachVoicePipeline = attachTalkVoicePipeline({
+            anamClient,
+            employeeId,
+            voiceMode,
+          });
+        }
       } catch (error: unknown) {
         if (!disposed && !isStoppingIntentionally()) {
           setStatus("error");
@@ -87,15 +101,18 @@ export function EmployeeAnamStage({
 
     return () => {
       disposed = true;
+      detachVoicePipeline?.();
       registerClient(null);
     };
   }, [
+    employeeId,
     employeeSessionId,
     isStoppingIntentionally,
     registerClient,
     sessionToken,
     setIsLive,
     t,
+    voiceMode,
   ]);
 
   const showPhotoPlaceholder =

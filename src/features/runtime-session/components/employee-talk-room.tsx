@@ -12,6 +12,7 @@ import {
   completeTalkSessionAction,
   startTalkSessionAction,
 } from "../actions/employee-session";
+import type { TalkVoiceMode } from "../services/resolve-talk-voice-mode";
 import { EmployeeAnamStage } from "./employee-anam-stage";
 import { EmployeeTalkChat } from "./employee-talk-chat";
 import { TalkLocalCameraPip } from "./talk-local-camera-pip";
@@ -21,6 +22,7 @@ import "./employee-talk-theme.css";
 export type ActiveTalkSession = {
   sessionId: string;
   sessionToken: string;
+  voiceMode: TalkVoiceMode;
 };
 
 function TalkIconControl({
@@ -85,6 +87,7 @@ function TalkControlsBar({
       onSessionStarted({
         sessionId: result.sessionId,
         sessionToken: result.sessionToken,
+        voiceMode: result.voiceMode,
       });
     } finally {
       setIsStarting(false);
@@ -229,10 +232,12 @@ function TalkRoomLayout({
         <div className="employee-talk-primary flex min-h-0 min-w-0 flex-col">
           <div className="employee-talk-stage-wrap relative min-h-0 w-full">
             <EmployeeAnamStage
+              employeeId={employeeId}
               employeeName={employeeName}
               employeeSessionId={activeSession?.sessionId ?? ""}
               avatarPreviewUrl={avatarPreviewUrl}
               sessionToken={activeSession?.sessionToken ?? null}
+              voiceMode={activeSession?.voiceMode ?? "anam"}
             />
             <TalkLocalCameraPip
               enabled={cameraEnabled}

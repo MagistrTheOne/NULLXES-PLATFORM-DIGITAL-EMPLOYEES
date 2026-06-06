@@ -1,10 +1,12 @@
-import { getTranslations } from "next-intl/server";
+"use client";
+
+import { useTranslations } from "next-intl";
 import type { SystemStatusItem } from "@/features/overview/types";
 import { SettingsCard } from "./settings-card";
 
 function statusLabel(
   status: SystemStatusItem["status"],
-  t: Awaited<ReturnType<typeof getTranslations<"settings.integrations">>>,
+  t: ReturnType<typeof useTranslations<"settings.integrations">>,
 ): string {
   switch (status) {
     case "operational":
@@ -16,12 +18,12 @@ function statusLabel(
   }
 }
 
-export async function SettingsIntegrationsTab({
+export function SettingsIntegrationsTab({
   integrations,
 }: {
   integrations: SystemStatusItem[];
 }) {
-  const t = await getTranslations("settings.integrations");
+  const t = useTranslations("settings.integrations");
 
   return (
     <SettingsCard title={t("title")} description={t("description")}>
