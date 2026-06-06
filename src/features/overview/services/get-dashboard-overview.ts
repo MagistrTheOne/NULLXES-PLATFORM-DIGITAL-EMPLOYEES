@@ -6,6 +6,7 @@ import { listOrganizationEmployees } from "@/features/employees/services/list-or
 import { withDatabaseRetry } from "@/shared/db/with-database-retry";
 import { getActiveSessionCount } from "../queries/get-active-session-count";
 import { getEmployeeSessionSummaries } from "../queries/get-employee-session-summaries";
+import { getOvernightWorkEvents } from "../queries/get-overnight-work-events";
 import { getLiveSessions } from "../queries/get-live-sessions";
 import type { DashboardOverview, OverviewEmployee } from "../types";
 import { getSystemStatus } from "./get-system-status";
@@ -41,6 +42,7 @@ export async function getDashboardOverview(
       liveSessions,
       activeNow,
       recentActivity,
+      overnightWork,
     ] = await Promise.all([
       getWorkspaceAnalytics(organizationId, range),
       listOrganizationEmployees(organizationId),
@@ -48,6 +50,7 @@ export async function getDashboardOverview(
       getLiveSessions(organizationId),
       getActiveSessionCount(organizationId),
       getRecentLifecycleEvents(organizationId),
+      getOvernightWorkEvents(organizationId),
     ]);
 
     return {
@@ -66,6 +69,7 @@ export async function getDashboardOverview(
       employees: mergeEmployees(employees, sessionSummaries),
       liveSessions,
       recentActivity,
+      overnightWork,
       systemStatus: getSystemStatus(),
     };
   });

@@ -1,3 +1,13 @@
+import * as agentApprovalRelations from "@/entities/agent-approval/relations";
+import * as agentApprovalSchema from "@/entities/agent-approval/schema";
+import * as employeeHandoffRelations from "@/entities/employee-handoff/relations";
+import * as employeeHandoffSchema from "@/entities/employee-handoff/schema";
+import * as sessionMessageRelations from "@/entities/session-message/relations";
+import * as sessionMessageSchema from "@/entities/session-message/schema";
+import * as taskRelations from "@/entities/task/relations";
+import * as taskSchema from "@/entities/task/schema";
+import * as workEventRelations from "@/entities/work-event/relations";
+import * as workEventSchema from "@/entities/work-event/schema";
 import * as auditRelations from "@/entities/audit/relations";
 import * as auditSchema from "@/entities/audit/schema";
 import * as digitalEmployeeRelations from "@/entities/digital-employee/relations";
@@ -62,6 +72,16 @@ export const drizzleSchema = {
   ...runtimeRelations,
   ...employeeSessionSchema,
   ...employeeSessionRelations,
+  ...sessionMessageSchema,
+  ...sessionMessageRelations,
+  ...taskSchema,
+  ...taskRelations,
+  ...workEventSchema,
+  ...workEventRelations,
+  ...agentApprovalSchema,
+  ...agentApprovalRelations,
+  ...employeeHandoffSchema,
+  ...employeeHandoffRelations,
   ...employeeLifecycleSchema,
   ...employeeLifecycleRelations,
   ...providerConfigSchema,

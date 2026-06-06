@@ -2,6 +2,7 @@ import type { AnamClient } from "@anam-ai/js-sdk";
 import { AnamEvent, MessageRole } from "@anam-ai/js-sdk";
 import type { Message } from "@anam-ai/js-sdk";
 import type { TalkVoiceMode } from "../services/resolve-talk-voice-mode";
+import { appendSessionMessageAction } from "../actions/employee-session";
 import { playTalkVoiceReply } from "./play-talk-voice-reply";
 import { streamTalkBrainReply } from "./stream-talk-brain-client";
 import {
@@ -26,6 +27,7 @@ function isSubstantiveUserMessage(text: string): boolean {
 export function attachTalkVoicePipeline(input: {
   anamClient: AnamClient;
   employeeId: string;
+  employeeSessionId?: string;
   voiceMode: TalkVoiceMode;
 }): () => void {
   const coordinator = getTalkPipelineCoordinator(input.employeeId);
@@ -68,6 +70,17 @@ export function attachTalkVoicePipeline(input: {
           content: message.content,
         })) as Array<{ role: "user" | "persona"; content: string }>;
 
+        if (input.employeeSessionId) {
+          const lastUser = pipelineMessages.at(-1);
+          if (lastUser?.role === "user") {
+            await appendSessionMessageAction({
+              sessionId: input.employeeSessionId,
+              role: "user",
+              content: lastUser.content,
+            });
+          }
+        }
+
         const talkStream =
           input.voiceMode === "anam"
             ? input.anamClient.createTalkMessageStream()
@@ -75,6 +88,7 @@ export function attachTalkVoicePipeline(input: {
 
         const replyText = await streamTalkBrainReply({
           employeeId: input.employeeId,
+          sessionId: input.employeeSessionId,
           messages: pipelineMessages,
           onChunk: async (chunk) => {
             if (talkStream?.isActive()) {
@@ -95,6 +109,13 @@ export function attachTalkVoicePipeline(input: {
         }
 
         await postTalkEmployeeChatReply(replyText);
+        if (input.employeeSessionId) {
+          await appendSessionMessageAction({
+            sessionId: input.employeeSessionId,
+            role: "assistant",
+            content: replyText,
+          });
+        }
         pipelineCoordinator.completeTalkTurn(turnKey, replyText);
       } catch {
         pipelineCoordinator.failTalkTurn();

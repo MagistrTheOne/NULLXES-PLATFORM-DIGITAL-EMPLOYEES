@@ -12,7 +12,9 @@ import { revokeApiKeyAction } from "@/features/security/actions/revoke-api-key";
 import { updateApiSecuritySettingsAction } from "@/features/security/actions/update-api-security-settings";
 import { updateOutboundWebhookSettingsAction } from "@/features/security/actions/update-outbound-webhook-settings";
 import { updateSecuritySettingsAction } from "@/features/security/actions/update-security-settings";
+import type { PendingApprovalRow } from "@/features/agent-approval/queries/list-pending-approvals";
 import type { SecuritySnapshot } from "../types";
+import { SettingsApprovalsSection } from "./SettingsApprovalsSection";
 import { SettingsCard } from "./settings-card";
 
 function StatusRow({ label, value }: { label: string; value: string }) {
@@ -31,9 +33,11 @@ type TwoFactorSetup = {
 
 export function SettingsSecurityTab({
   security,
+  pendingApprovals,
   canManageOrganization,
 }: {
   security: SecuritySnapshot;
+  pendingApprovals: PendingApprovalRow[];
   canManageOrganization: boolean;
 }) {
   const t = useTranslations("settings.security");
@@ -382,6 +386,11 @@ export function SettingsSecurityTab({
           {message ? <p className="text-xs text-muted-foreground">{message}</p> : null}
         </div>
       </SettingsCard>
+
+      <SettingsApprovalsSection
+        approvals={pendingApprovals}
+        canManageOrganization={canManageOrganization}
+      />
     </div>
   );
 }

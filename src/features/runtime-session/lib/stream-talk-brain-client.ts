@@ -2,6 +2,7 @@ import type { TalkPipelineMessage } from "../actions/talk-voice-pipeline";
 
 export async function streamTalkBrainReply(input: {
   employeeId: string;
+  sessionId?: string;
   messages: TalkPipelineMessage[];
   onChunk?: (chunk: string) => void | Promise<void>;
   signal?: AbortSignal;
@@ -11,6 +12,7 @@ export async function streamTalkBrainReply(input: {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       employeeId: input.employeeId,
+      sessionId: input.sessionId,
       messages: input.messages,
     }),
     signal: input.signal,

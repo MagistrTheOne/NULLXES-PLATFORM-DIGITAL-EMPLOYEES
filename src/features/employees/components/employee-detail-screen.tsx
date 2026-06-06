@@ -11,6 +11,7 @@ import {
 import type { EmployeeDetail } from "../types";
 import { AvatarIdlePreview } from "./avatar-idle-preview";
 import { EmployeeDetailTabs, TabsContent } from "./employee-detail-tabs";
+import { EmployeeHandoffsPanel } from "./employee-handoffs-panel";
 import { EmployeeKnowledgePanel } from "./employee-knowledge-panel";
 import { EmployeeLifecyclePanel } from "./employee-lifecycle-panel";
 import { EmployeeProviderBadge } from "./employee-provider-badge";
@@ -231,11 +232,12 @@ export async function EmployeeDetailScreen({
             />
           </TabsContent>
 
-          <TabsContent value="lifecycle" className="mt-4">
+          <TabsContent value="lifecycle" className="mt-4 space-y-4">
             <EmployeeLifecyclePanel
               items={employee.lifecycle}
               displayPreferences={displayPreferences}
             />
+            <EmployeeHandoffsPanel items={employee.handoffs} />
           </TabsContent>
         </EmployeeDetailTabs>
       </div>

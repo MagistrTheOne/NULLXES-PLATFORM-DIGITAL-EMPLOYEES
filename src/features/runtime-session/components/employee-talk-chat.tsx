@@ -125,11 +125,13 @@ class TalkChatErrorBoundary extends Component<
 export function EmployeeTalkChat({
   chatSession,
   employeeId,
+  employeeSessionId,
   isSessionLive,
   voiceMode,
 }: {
   chatSession: TalkChatCredentials;
   employeeId: string;
+  employeeSessionId?: string;
   isSessionLive: boolean;
   voiceMode: TalkVoiceMode;
 }) {
@@ -223,6 +225,7 @@ export function EmployeeTalkChat({
     const detach = attachTalkChatPipeline({
       channel,
       employeeId,
+      employeeSessionId,
       actorUserId: chatSession.userId,
       isSessionLive,
       voiceMode,
@@ -237,6 +240,7 @@ export function EmployeeTalkChat({
     channel,
     chatSession.userId,
     employeeId,
+    employeeSessionId,
     getClient,
     isSessionLive,
     uiState,

@@ -102,6 +102,7 @@ export function SettingsScreen({ data }: { data: SettingsPageData }) {
             <TabsContent value="security">
               <SettingsSecurityTab
                 security={data.security}
+                pendingApprovals={data.pendingApprovals}
                 canManageOrganization={data.canManageOrganization}
               />
             </TabsContent>

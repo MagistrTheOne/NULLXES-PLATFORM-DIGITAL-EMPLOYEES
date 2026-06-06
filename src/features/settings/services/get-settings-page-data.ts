@@ -5,6 +5,7 @@ import { getDefaultAnalyticsRange } from "@/features/analytics/lib/date-range";
 import { getWorkspaceAnalytics } from "@/features/analytics/queries/get-workspace-analytics";
 import { getActiveSessionCount } from "@/features/overview/queries/get-active-session-count";
 import { getWorkspaceIntegrations } from "@/features/integrations/queries/get-workspace-integrations";
+import { listPendingApprovals } from "@/features/agent-approval/queries/list-pending-approvals";
 import { listAuditEvents } from "@/features/security/queries/list-audit-events";
 import { getSecuritySnapshot } from "../queries/get-security-snapshot";
 import type { WorkspaceContext } from "@/features/workspace";
@@ -60,6 +61,7 @@ export async function getSettingsPageData(
       pendingInvites,
       security,
       auditEvents,
+      pendingApprovals,
     ] = await Promise.all([
       ensureOrganizationSettings(organizationId),
       db
@@ -75,6 +77,7 @@ export async function getSettingsPageData(
         organizationId,
       }),
       listAuditEvents({ organizationId, limit: 50 }),
+      listPendingApprovals(organizationId),
     ]);
 
     const memberCount = Number(memberCountRow[0]?.total ?? 0);
@@ -124,6 +127,7 @@ export async function getSettingsPageData(
         resourceId: event.resourceId,
         createdAt: event.createdAt,
       })),
+      pendingApprovals,
     };
   });
 }

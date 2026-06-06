@@ -13,3 +13,4 @@ export {
   markKnowledgeReady,
   startKnowledgeProcessing,
 } from "./use-cases";
+export { enqueueKnowledgeProcessing } from "./services/enqueue-knowledge-processing";

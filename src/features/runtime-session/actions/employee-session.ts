@@ -80,6 +80,26 @@ export async function failTalkSessionAction(sessionId: string): Promise<void> {
   await failEmployeeSession({ sessionId, organizationId, userId });
 }
 
+export async function appendSessionMessageAction(input: {
+  sessionId: string;
+  role: "user" | "assistant" | "system";
+  content: string;
+  streamMessageId?: string;
+}): Promise<void> {
+  const { organizationId, userId } = await resolveWorkspaceContext();
+  const { appendSessionMessage } = await import(
+    "../services/append-session-message"
+  );
+  await appendSessionMessage({
+    sessionId: input.sessionId,
+    organizationId,
+    userId,
+    role: input.role,
+    content: input.content,
+    streamMessageId: input.streamMessageId,
+  });
+}
+
 export type StartTalkSessionResult =
   | {
       ok: true;

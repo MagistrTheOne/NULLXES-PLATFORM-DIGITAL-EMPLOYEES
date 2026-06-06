@@ -255,6 +255,7 @@ function TalkRoomLayout({
           <EmployeeTalkChat
             chatSession={chatSession}
             employeeId={employeeId}
+            employeeSessionId={activeSession?.sessionId}
             isSessionLive={Boolean(activeSession)}
             voiceMode={activeSession?.voiceMode ?? "anam"}
           />

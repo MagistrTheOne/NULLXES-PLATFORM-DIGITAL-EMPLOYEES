@@ -12,6 +12,7 @@ import { OverviewEmployeeCarousel } from "./OverviewEmployeeCarousel";
 import { OverviewHeader } from "./OverviewHeader";
 import { OverviewKnowledgePanel } from "./OverviewKnowledgePanel";
 import { OverviewLiveSessions } from "./OverviewLiveSessions";
+import { OverviewOvernightWork } from "./OverviewOvernightWork";
 import { OverviewRecentActivity } from "./OverviewRecentActivity";
 import { OverviewSystemStatus } from "./OverviewSystemStatus";
 
@@ -121,7 +122,10 @@ export function OverviewScreen({ data }: { data: DashboardOverview }) {
           <div className="xl:col-span-4">
             <OverviewRecentActivity events={data.recentActivity} />
           </div>
-          <div className="xl:col-span-8">
+          <div className="xl:col-span-4">
+            <OverviewOvernightWork events={data.overnightWork} />
+          </div>
+          <div className="xl:col-span-4">
             <OverviewLiveSessions sessions={data.liveSessions} />
           </div>
         </section>

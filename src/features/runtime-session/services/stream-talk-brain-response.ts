@@ -1,3 +1,8 @@
+import {
+  AGENT_TOOL_DEFINITIONS,
+  executeAgentTool,
+  type AgentToolExecutionContext,
+} from "@/features/agent-tools";
 import { getOpenAiApiBaseUrl, getOpenAiApiKey } from "@/shared/config/provider-env";
 import type { TalkBrainMessage } from "./generate-talk-brain-response";
 
@@ -9,19 +14,42 @@ type OpenAiStreamChunk = {
   }>;
 };
 
-export async function* streamTalkBrainResponse(input: {
+type OpenAiToolCall = {
+  id: string;
+  type: "function";
+  function: {
+    name: string;
+    arguments: string;
+  };
+};
+
+type OpenAiCompletionMessage = {
+  role: "assistant";
+  content: string | null;
+  tool_calls?: OpenAiToolCall[];
+};
+
+type OpenAiChatMessage =
+  | { role: "system" | "user" | "assistant"; content: string }
+  | { role: "assistant"; content: string | null; tool_calls?: OpenAiToolCall[] }
+  | { role: "tool"; tool_call_id: string; content: string };
+
+const MAX_TOOL_ITERATIONS = 3;
+
+async function callOpenAiChat(input: {
   model: string;
-  systemPrompt: string;
-  messages: TalkBrainMessage[];
+  messages: OpenAiChatMessage[];
   temperature?: number;
   maxTokens?: number;
-}): AsyncGenerator<string> {
+  tools?: typeof AGENT_TOOL_DEFINITIONS;
+  stream?: boolean;
+}): Promise<Response> {
   const apiKey = getOpenAiApiKey();
   if (!apiKey) {
     throw new Error("OPENAI_API_KEY is not configured");
   }
 
-  const response = await fetch(`${getOpenAiApiBaseUrl()}/chat/completions`, {
+  return fetch(`${getOpenAiApiBaseUrl()}/chat/completions`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${apiKey}`,
@@ -31,12 +59,101 @@ export async function* streamTalkBrainResponse(input: {
       model: input.model,
       temperature: input.temperature ?? 0.7,
       max_tokens: input.maxTokens ?? 1024,
-      stream: true,
-      messages: [
-        { role: "system", content: input.systemPrompt },
-        ...input.messages,
-      ],
+      stream: input.stream ?? false,
+      messages: input.messages,
+      ...(input.tools ? { tools: input.tools } : {}),
     }),
+  });
+}
+
+async function runToolLoop(input: {
+  model: string;
+  systemPrompt: string;
+  messages: TalkBrainMessage[];
+  temperature?: number;
+  maxTokens?: number;
+  toolContext?: AgentToolExecutionContext;
+}): Promise<OpenAiChatMessage[]> {
+  const conversation: OpenAiChatMessage[] = [
+    { role: "system", content: input.systemPrompt },
+    ...input.messages.map(
+      (message): OpenAiChatMessage => ({
+        role: message.role,
+        content: message.content,
+      }),
+    ),
+  ];
+
+  if (!input.toolContext) {
+    return conversation;
+  }
+
+  for (let iteration = 0; iteration < MAX_TOOL_ITERATIONS; iteration += 1) {
+    const response = await callOpenAiChat({
+      model: input.model,
+      messages: conversation,
+      temperature: input.temperature,
+      maxTokens: input.maxTokens,
+      tools: AGENT_TOOL_DEFINITIONS,
+      stream: false,
+    });
+
+    if (!response.ok) {
+      throw new Error(`OpenAI tool loop failed with status ${response.status}`);
+    }
+
+    const payload = (await response.json()) as {
+      choices?: Array<{ message?: OpenAiCompletionMessage; finish_reason?: string }>;
+    };
+
+    const message = payload.choices?.[0]?.message;
+    if (!message) {
+      break;
+    }
+
+    if (!message.tool_calls?.length) {
+      break;
+    }
+
+    conversation.push({
+      role: "assistant",
+      content: message.content,
+      tool_calls: message.tool_calls,
+    });
+
+    for (const toolCall of message.tool_calls) {
+      const result = await executeAgentTool({
+        toolName: toolCall.function.name,
+        argumentsJson: toolCall.function.arguments,
+        context: input.toolContext,
+      });
+
+      conversation.push({
+        role: "tool",
+        tool_call_id: toolCall.id,
+        content: result.content,
+      });
+    }
+  }
+
+  return conversation;
+}
+
+export async function* streamTalkBrainResponse(input: {
+  model: string;
+  systemPrompt: string;
+  messages: TalkBrainMessage[];
+  temperature?: number;
+  maxTokens?: number;
+  toolContext?: AgentToolExecutionContext;
+}): AsyncGenerator<string> {
+  const conversation = await runToolLoop(input);
+  const response = await callOpenAiChat({
+    model: input.model,
+    messages: conversation,
+    temperature: input.temperature,
+    maxTokens: input.maxTokens,
+    stream: true,
   });
 
   if (!response.ok || !response.body) {

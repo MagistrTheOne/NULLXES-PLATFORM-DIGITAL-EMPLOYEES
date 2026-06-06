@@ -9,6 +9,7 @@ export function buildAnamTalkEphemeralPersonaConfig(input: {
   name: string;
   avatarId: string;
   voiceId: string;
+  languageCode?: string;
   enableAudioPassthrough?: boolean;
 }): Record<string, unknown> {
   return {
@@ -18,7 +19,7 @@ export function buildAnamTalkEphemeralPersonaConfig(input: {
     llmId: ANAM_EXTERNAL_LLM_ID,
     skipGreeting: true,
     systemPrompt: ANAM_AVATAR_ONLY_SYSTEM_PROMPT,
-    languageCode: "ru",
+    languageCode: input.languageCode ?? "en",
     ...(input.enableAudioPassthrough ? { enableAudioPassthrough: true } : {}),
   };
 }

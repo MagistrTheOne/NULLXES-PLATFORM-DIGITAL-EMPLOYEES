@@ -28,6 +28,14 @@ export type EmployeeLifecycleItem = {
   createdAt: Date;
 };
 
+export type EmployeeHandoffItem = {
+  id: string;
+  direction: "incoming" | "outgoing";
+  counterpartName: string;
+  status: string;
+  createdAt: Date;
+};
+
 export type EmployeeListItem = {
   id: string;
   name: string;
@@ -56,4 +64,5 @@ export type EmployeeDetail = EmployeeListItem & {
   systemPrompt: string;
   knowledge: EmployeeKnowledgeItem[];
   lifecycle: EmployeeLifecycleItem[];
+  handoffs: EmployeeHandoffItem[];
 };

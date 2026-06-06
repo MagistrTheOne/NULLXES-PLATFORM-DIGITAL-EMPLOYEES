@@ -1,10 +1,11 @@
-import { count, desc, eq, sql } from "drizzle-orm";
+import { count, desc, eq, inArray, or, sql } from "drizzle-orm";
 import type {
   AvatarProviderConfigPayload,
   BrainProviderConfigPayload,
   SessionProviderConfigPayload,
 } from "@/entities/provider-config";
 import { digitalEmployee } from "@/entities/digital-employee/schema";
+import { employeeHandoff } from "@/entities/employee-handoff/schema";
 import { employeeLifecycleEvent } from "@/entities/employee-lifecycle/schema";
 import { employeeProviderConfig } from "@/entities/provider-config/schema";
 import { knowledgeChunk, knowledgeSource } from "@/entities/knowledge/schema";
@@ -89,6 +90,40 @@ export async function getEmployeeDetail(
     .where(eq(employeeLifecycleEvent.employeeId, employeeId))
     .orderBy(desc(employeeLifecycleEvent.createdAt));
 
+  const handoffRows = await db
+    .select()
+    .from(employeeHandoff)
+    .where(
+      or(
+        eq(employeeHandoff.fromEmployeeId, employeeId),
+        eq(employeeHandoff.toEmployeeId, employeeId),
+      ),
+    )
+    .orderBy(desc(employeeHandoff.createdAt))
+    .limit(20);
+
+  const counterpartIds = [
+    ...new Set(
+      handoffRows.flatMap((row) =>
+        row.fromEmployeeId === employeeId
+          ? [row.toEmployeeId]
+          : [row.fromEmployeeId],
+      ),
+    ),
+  ];
+
+  const counterpartRows =
+    counterpartIds.length > 0
+      ? await db
+          .select({ id: digitalEmployee.id, name: digitalEmployee.name })
+          .from(digitalEmployee)
+          .where(inArray(digitalEmployee.id, counterpartIds))
+      : [];
+
+  const counterpartNameById = new Map(
+    counterpartRows.map((row) => [row.id, row.name]),
+  );
+
   const avatarConfig = configs.find((row) => row.providerType === "avatar")
     ?.config as AvatarProviderConfigPayload | undefined;
   const brainConfig = configs.find((row) => row.providerType === "brain")
@@ -154,5 +189,17 @@ export async function getEmployeeDetail(
       actorName: row.actorName,
       createdAt: row.createdAt,
     })),
+    handoffs: handoffRows.map((row) => {
+      const outgoing = row.fromEmployeeId === employeeId;
+      const counterpartId = outgoing ? row.toEmployeeId : row.fromEmployeeId;
+      return {
+        id: row.id,
+        direction: outgoing ? ("outgoing" as const) : ("incoming" as const),
+        counterpartName:
+          counterpartNameById.get(counterpartId) ?? counterpartId,
+        status: row.status,
+        createdAt: row.createdAt,
+      };
+    }),
   };
 }

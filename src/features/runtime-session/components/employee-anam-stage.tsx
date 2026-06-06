@@ -82,6 +82,7 @@ export function EmployeeAnamStage({
           detachVoicePipeline = attachTalkVoicePipeline({
             anamClient,
             employeeId,
+            employeeSessionId,
             voiceMode,
           });
         }

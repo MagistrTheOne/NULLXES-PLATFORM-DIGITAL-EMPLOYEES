@@ -7,11 +7,13 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 import { digitalEmployee } from "@/entities/digital-employee/schema";
+import { vector1536 } from "@/shared/db/vector";
 
 export const knowledgeSourceTypeEnum = pgEnum("knowledge_source_type", [
   "file",
   "url",
   "text",
+  "session_summary",
 ]);
 
 export const knowledgeSourceStatusEnum = pgEnum("knowledge_source_status", [
@@ -46,6 +48,9 @@ export const knowledgeChunk = pgTable("knowledge_chunk", {
     .references(() => knowledgeSource.id, { onDelete: "cascade" }),
   content: text("content").notNull(),
   chunkIndex: integer("chunk_index").notNull(),
+  embedding: vector1536("embedding"),
+  embeddingModel: text("embedding_model").default("text-embedding-3-small"),
+  tokenCount: integer("token_count"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),

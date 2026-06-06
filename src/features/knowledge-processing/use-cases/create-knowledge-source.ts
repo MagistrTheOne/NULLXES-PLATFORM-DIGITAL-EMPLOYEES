@@ -1,5 +1,6 @@
 import { knowledgeChunk, knowledgeSource } from "@/entities/knowledge/schema";
 import { dbWithTransactions } from "@/shared/db/pool-client";
+import { enqueueKnowledgeProcessing } from "../services/enqueue-knowledge-processing";
 import type {
   CreateKnowledgeSourceInput,
   CreateKnowledgeSourceResult,
@@ -12,7 +13,7 @@ export async function createKnowledgeSource(
     throw new Error("Knowledge source requires at least one chunk");
   }
 
-  return dbWithTransactions.transaction(async (tx) => {
+  const result = await dbWithTransactions.transaction(async (tx) => {
     const [source] = await tx
       .insert(knowledgeSource)
       .values({
@@ -45,4 +46,7 @@ export async function createKnowledgeSource(
       lifecycleStatus: source.status,
     };
   });
+
+  await enqueueKnowledgeProcessing(result.source.id);
+  return result;
 }

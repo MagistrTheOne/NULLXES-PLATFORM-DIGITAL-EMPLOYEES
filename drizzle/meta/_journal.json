@@ -127,6 +127,13 @@
       "when": 1780747980092,
       "tag": "0017_funny_natasha_romanoff",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1780834380000,
+      "tag": "0018_digital_employees_v2",
+      "breakpoints": true
     }
   ]
 }

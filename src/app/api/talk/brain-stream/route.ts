@@ -2,13 +2,14 @@ import { NextResponse } from "next/server";
 import { ensureWorkspace } from "@/features/auth/services/ensure-workspace";
 import { getCurrentSession } from "@/features/auth/services/get-current-session";
 import type { TalkPipelineMessage } from "@/features/runtime-session/actions/talk-voice-pipeline";
-import { getTalkRuntimeConfig } from "@/features/runtime-session/services/get-talk-runtime-config";
+import { buildTalkBrainRequest } from "@/features/runtime-session/services/build-talk-brain-request";
 import { streamTalkBrainResponse } from "@/features/runtime-session/services/stream-talk-brain-response";
 
 export const runtime = "nodejs";
 
 type BrainStreamRequest = {
   employeeId?: string;
+  sessionId?: string;
   messages?: TalkPipelineMessage[];
 };
 
@@ -26,6 +27,7 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   const employeeId = body.employeeId?.trim();
+  const sessionId = body.sessionId?.trim();
   const messages = body.messages;
 
   if (!employeeId || !Array.isArray(messages) || messages.length === 0) {
@@ -44,7 +46,14 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   const workspace = await ensureWorkspace(session.user.id, session.user.name);
-  const config = await getTalkRuntimeConfig(workspace.organization.id, employeeId);
+  const config = await buildTalkBrainRequest({
+    organizationId: workspace.organization.id,
+    employeeId,
+    messages: messages.map((message) => ({
+      role: message.role === "user" ? "user" : "assistant",
+      content: message.content,
+    })),
+  });
 
   if (!config) {
     return NextResponse.json({ error: "Employee not found" }, { status: 404 });
@@ -67,6 +76,11 @@ export async function POST(request: Request): Promise<Response> {
           messages: openAiMessages,
           temperature: config.temperature,
           maxTokens: config.maxTokens,
+          toolContext: {
+            organizationId: workspace.organization.id,
+            employeeId,
+            sessionId: sessionId || undefined,
+          },
         })) {
           controller.enqueue(
             encoder.encode(`${JSON.stringify({ content })}\n`),

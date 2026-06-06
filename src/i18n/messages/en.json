@@ -73,6 +73,24 @@
       "knowledgeUpdated": "{name} knowledge was updated",
       "generic": "{name} lifecycle event"
     },
+    "overnight": {
+      "title": "Overnight Work",
+      "description": "What your digital employees did while you were away",
+      "event": "Work",
+      "when": "When",
+      "empty": "No autonomous work recorded in the last 12 hours.",
+      "types": {
+        "task_received": "Task received",
+        "task_completed": "Task completed",
+        "followup_executed": "Follow-up executed",
+        "knowledge_updated": "Knowledge updated",
+        "session_summarized": "Session summarized",
+        "api_response_sent": "API response sent",
+        "handoff_created": "Handoff created",
+        "approval_requested": "Approval requested",
+        "approval_resolved": "Approval resolved"
+      }
+    },
     "sessions": {
       "title": "Live Sessions",
       "description": "Active conversations right now",
@@ -165,6 +183,13 @@
       "voiceId": "Voice ID",
       "model": "Model",
       "systemPrompt": "System prompt",
+      "handoffs": {
+        "title": "Handoffs",
+        "description": "Work transferred to or from other digital employees",
+        "empty": "No handoffs recorded yet.",
+        "outgoing": "Outgoing",
+        "incoming": "Incoming"
+      },
       "actions": {
         "edit": "Edit",
         "delete": "Delete",
@@ -524,6 +549,13 @@
       "allowlistSaved": "IP allowlist saved.",
       "revokeKey": "Revoke",
       "keyRevoked": "API key revoked."
+    },
+    "approvals": {
+      "title": "Agent approvals",
+      "description": "Review destructive actions requested by digital employees",
+      "empty": "No pending approval requests.",
+      "approve": "Approve",
+      "reject": "Reject"
     },
     "audit": {
       "title": "Audit log",

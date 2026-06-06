@@ -9,6 +9,7 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 import { digitalEmployee } from "@/entities/digital-employee/schema";
+import { knowledgeSource } from "@/entities/knowledge/schema";
 import { user } from "@/entities/user/schema";
 
 export const employeeSessionStatusEnum = pgEnum("employee_session_status", [
@@ -39,6 +40,11 @@ export const employeeSession = pgTable("employee_session", {
   resolved: boolean("resolved").notNull().default(false),
   escalated: boolean("escalated").notNull().default(false),
   primaryTopic: text("primary_topic"),
+  summary: text("summary"),
+  summaryKnowledgeSourceId: uuid("summary_knowledge_source_id").references(
+    () => knowledgeSource.id,
+    { onDelete: "set null" },
+  ),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),

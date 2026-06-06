@@ -1,5 +1,6 @@
 import type { AnamClient } from "@anam-ai/js-sdk";
 import type { Channel as StreamChannel, Event } from "stream-chat";
+import { appendSessionMessageAction } from "../actions/employee-session";
 import { playTalkVoiceReply } from "./play-talk-voice-reply";
 import { streamTalkBrainReply } from "./stream-talk-brain-client";
 import {
@@ -31,6 +32,7 @@ function buildPipelineMessages(
 export function attachTalkChatPipeline(input: {
   channel: StreamChannel;
   employeeId: string;
+  employeeSessionId?: string;
   actorUserId: string;
   isSessionLive: boolean;
   voiceMode: TalkVoiceMode;
@@ -65,11 +67,29 @@ export function attachTalkChatPipeline(input: {
 
     void (async () => {
       try {
+        if (input.employeeSessionId) {
+          await appendSessionMessageAction({
+            sessionId: input.employeeSessionId,
+            role: "user",
+            content: message.text!.trim(),
+            streamMessageId: message.id,
+          });
+        }
+
         const pipelineMessages = buildPipelineMessages(input.channel, botUserId);
         const replyText = await streamTalkBrainReply({
           employeeId: input.employeeId,
+          sessionId: input.employeeSessionId,
           messages: pipelineMessages,
         });
+
+        if (input.employeeSessionId) {
+          await appendSessionMessageAction({
+            sessionId: input.employeeSessionId,
+            role: "assistant",
+            content: replyText,
+          });
+        }
 
         await postTalkEmployeeChatReply(replyText);
 

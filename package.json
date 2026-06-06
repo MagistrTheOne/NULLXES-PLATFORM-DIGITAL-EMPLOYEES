@@ -45,7 +45,9 @@
     "polar:setup": "node --env-file=.env --import tsx scripts/setup-polar-products.ts",
     "polar:webhook": "node --env-file=.env --import tsx scripts/setup-polar-webhook.ts",
     "crypto:keygen": "node --import tsx scripts/generate-data-encryption-key.ts",
-    "secrets:migrate": "node --env-file=.env --import tsx scripts/migrate-encrypt-secrets.ts"
+    "secrets:migrate": "node --env-file=.env --import tsx scripts/migrate-encrypt-secrets.ts",
+    "knowledge:backfill-embeddings": "node --env-file=.env --import tsx scripts/backfill-knowledge-embeddings.ts",
+    "knowledge-retrieval:verify": "node --env-file=.env --import tsx src/features/knowledge-retrieval/verify-knowledge-retrieval.ts"
   },
   "dependencies": {
     "@anam-ai/js-sdk": "^4.15.0",

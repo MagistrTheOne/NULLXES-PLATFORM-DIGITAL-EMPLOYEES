@@ -67,6 +67,29 @@ paths:
       responses:
         "200":
           description: Deleted
+  /employees/{id}/tasks:
+    post:
+      summary: Queue async task for digital employee
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title, message]
+              properties:
+                title: { type: string }
+                message: { type: string }
+                dueAt: { type: string, format: date-time }
+                callbackUrl: { type: string, format: uri }
+      responses:
+        "200":
+          description: Task queued
   /sessions:
     get:
       summary: List talk sessions

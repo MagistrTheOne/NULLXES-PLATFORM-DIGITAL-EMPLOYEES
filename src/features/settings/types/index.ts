@@ -1,4 +1,5 @@
 import type { BrainProvider } from "@/entities/digital-employee";
+import type { PendingApprovalRow } from "@/features/agent-approval/queries/list-pending-approvals";
 import type { MembershipRole } from "@/features/workspace/types";
 import type { SystemStatusItem } from "@/features/overview/types";
 
@@ -117,4 +118,5 @@ export type SettingsPageData = {
   integrations: SystemStatusItem[];
   security: SecuritySnapshot;
   auditEvents: AuditEventListItem[];
+  pendingApprovals: PendingApprovalRow[];
 };

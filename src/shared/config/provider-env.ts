@@ -23,6 +23,14 @@ export function hasOpenAiCredentials(): boolean {
   return Boolean(getOpenAiApiKey());
 }
 
+export function getOpenAiEmbeddingModel(): string {
+  return process.env.OPENAI_EMBEDDING_MODEL?.trim() || "text-embedding-3-small";
+}
+
+export function getOpenAiEmbeddingDimensions(): number {
+  return 1536;
+}
+
 export function hasAnamCredentials(): boolean {
   return Boolean(getAnamApiKey());
 }

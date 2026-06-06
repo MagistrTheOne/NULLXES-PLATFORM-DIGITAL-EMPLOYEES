@@ -1,4 +1,5 @@
 import type { AnalyticsDateRange, AnalyticsTrends } from "@/features/analytics";
+import type { OvernightWorkEventRow } from "@/features/overview/queries/get-overnight-work-events";
 import type {
   ConversationMetrics,
   KnowledgeMetrics,
@@ -54,5 +55,6 @@ export type DashboardOverview = {
   employees: OverviewEmployee[];
   liveSessions: LiveSessionRow[];
   recentActivity: RecentLifecycleEventRow[];
+  overnightWork: OvernightWorkEventRow[];
   systemStatus: SystemStatusItem[];
 };
