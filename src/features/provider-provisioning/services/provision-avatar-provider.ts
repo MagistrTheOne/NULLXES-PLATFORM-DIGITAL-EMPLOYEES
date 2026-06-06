@@ -188,6 +188,7 @@ export async function provisionAvatarProvider(
       provisionedAt: new Date().toISOString(),
       resourceType: "anam_persona",
       avatarId,
+      anamPersonaVoiceId: voiceId,
       voiceId,
       llmId: ANAM_EXTERNAL_LLM_ID,
     };

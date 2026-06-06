@@ -7,6 +7,7 @@ import { digitalEmployee } from "@/entities/digital-employee/schema";
 import { employeeProviderConfig } from "@/entities/provider-config/schema";
 import { knowledgeSource } from "@/entities/knowledge/schema";
 import { db } from "@/shared/db/client";
+import { isAnamAvatarTalkReady } from "../lib/resolve-anam-avatar-talk-readiness";
 import type { EmployeeListItem } from "../types";
 
 function readProvisioningStatus(
@@ -85,9 +86,7 @@ export async function listOrganizationEmployees(
     const avatarProvisioningStatus = readProvisioningStatus(
       avatarConfig?.provisioningStatus,
     );
-    const avatarReady =
-      avatarProvisioningStatus === "ready" &&
-      Boolean(avatarConfig?.personaId && avatarConfig?.previewUrl);
+    const avatarReady = isAnamAvatarTalkReady(avatarConfig);
     const sessionReady = readProvisioningStatus(
       sessionConfig?.provisioningStatus,
     ) === "ready";

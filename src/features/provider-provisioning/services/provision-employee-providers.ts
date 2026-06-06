@@ -1,3 +1,4 @@
+import type { AvatarProviderConfigPayload } from "@/entities/provider-config";
 import { eq } from "drizzle-orm";
 import { digitalEmployee } from "@/entities/digital-employee/schema";
 import { employeeRuntime } from "@/entities/runtime/schema";
@@ -9,6 +10,7 @@ import type {
 import { provisionAvatarProvider } from "./provision-avatar-provider";
 import { provisionBrainProvider } from "./provision-brain-provider";
 import { provisionVoiceProvider } from "./provision-voice-provider";
+import { resolveAnamPersonaVoiceId } from "@/features/employees/lib/resolve-anam-avatar-talk-readiness";
 import { getProviderConfigRow } from "./update-provider-config";
 
 async function loadEmployeeContext(employeeId: string): Promise<{
@@ -33,22 +35,16 @@ async function loadEmployeeContext(employeeId: string): Promise<{
     .limit(1);
 
   const avatarConfig = await getProviderConfigRow(employeeId, "avatar");
-  const avatarPayload =
-    avatarConfig?.config && typeof avatarConfig.config === "object"
-      ? (avatarConfig.config as {
-          providerMetadata?: { anamPersonaVoiceId?: string };
-        })
-      : undefined;
-
-  const anamPersonaVoiceId =
-    avatarPayload?.providerMetadata?.anamPersonaVoiceId;
+  const anamPersonaVoiceId = resolveAnamPersonaVoiceId(
+    avatarConfig?.config as AvatarProviderConfigPayload | undefined,
+  );
 
   return {
     name: employee.name,
     systemPrompt:
       runtime?.systemPrompt ??
       `You are ${employee.name}, a ${employee.role ?? "digital employee"}.`,
-    voiceId: anamPersonaVoiceId,
+    voiceId: anamPersonaVoiceId ?? undefined,
   };
 }
 

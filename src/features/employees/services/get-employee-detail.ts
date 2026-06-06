@@ -12,6 +12,10 @@ import { knowledgeChunk, knowledgeSource } from "@/entities/knowledge/schema";
 import { employeeRuntime } from "@/entities/runtime/schema";
 import { user } from "@/entities/user/schema";
 import { db } from "@/shared/db/client";
+import {
+  isAnamAvatarTalkReady,
+  resolveAnamPersonaVoiceId,
+} from "../lib/resolve-anam-avatar-talk-readiness";
 import type { EmployeeDetail } from "../types";
 
 function readProvisioningStatus(
@@ -131,9 +135,7 @@ export async function getEmployeeDetail(
   const sessionConfig = configs.find((row) => row.providerType === "session")
     ?.config as SessionProviderConfigPayload | undefined;
 
-  const avatarProvisioningStatus = readProvisioningStatus(
-    avatarConfig?.provisioningStatus,
-  );
+  const avatarReady = isAnamAvatarTalkReady(avatarConfig);
   const sessionProvisioningStatus = readProvisioningStatus(
     sessionConfig?.provisioningStatus,
   );
@@ -141,14 +143,7 @@ export async function getEmployeeDetail(
     brainConfig?.provisioningStatus,
   );
 
-  const avatarReady =
-    avatarProvisioningStatus === "ready" &&
-    Boolean(avatarConfig?.personaId && avatarConfig?.previewUrl);
-
-  const anamVoiceId =
-    typeof avatarConfig?.providerMetadata?.anamPersonaVoiceId === "string"
-      ? avatarConfig.providerMetadata.anamPersonaVoiceId
-      : null;
+  const anamVoiceId = resolveAnamPersonaVoiceId(avatarConfig);
 
   return {
     id: employee.id,
@@ -161,7 +156,9 @@ export async function getEmployeeDetail(
     knowledgeSourcesCount: Number(knowledgeRow?.knowledgeSourcesCount ?? 0),
     createdAt: employee.createdAt,
     avatarPreviewUrl: avatarConfig?.previewUrl ?? null,
-    avatarProvisioningStatus,
+    avatarProvisioningStatus: readProvisioningStatus(
+      avatarConfig?.provisioningStatus,
+    ),
     sessionVoiceProvider: sessionConfig?.voiceProvider ?? null,
     canTalk: avatarReady && sessionProvisioningStatus === "ready",
     avatarId: avatarConfig?.avatarId ?? null,

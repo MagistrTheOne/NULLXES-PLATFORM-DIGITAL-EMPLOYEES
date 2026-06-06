@@ -1,3 +1,6 @@
+import {
+  describeAnamAvatarTalkReadiness,
+} from "@/features/employees/lib/resolve-anam-avatar-talk-readiness";
 import { getEmployeeDetail } from "@/features/employees/services/get-employee-detail";
 import { syncAnamPersonaExternalBrain } from "@/features/provider-provisioning/services/sync-anam-persona-external-brain";
 import { buildAnamTalkEphemeralPersonaConfig } from "@/features/runtime-session/lib/build-anam-talk-persona-config";
@@ -22,7 +25,15 @@ export async function createAnamTalkSessionTokenForEmployee(
   if (!employee.avatarId || !employee.anamVoiceId) {
     return {
       ok: false,
-      message: "Anam avatar or voice is not ready for this employee yet.",
+      message: describeAnamAvatarTalkReadiness({
+        avatarId: employee.avatarId ?? undefined,
+        personaId: employee.personaId ?? undefined,
+        previewUrl: employee.avatarPreviewUrl ?? undefined,
+        provisioningStatus: employee.avatarProvisioningStatus,
+        providerMetadata: employee.anamVoiceId
+          ? { anamPersonaVoiceId: employee.anamVoiceId }
+          : undefined,
+      }),
     };
   }
 
