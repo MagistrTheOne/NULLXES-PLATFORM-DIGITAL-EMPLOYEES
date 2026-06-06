@@ -18,6 +18,9 @@ export const organizationSettings = pgTable("organization_settings", {
   defaultBrainProvider: brainProviderEnum("default_brain_provider")
     .notNull()
     .default("openai"),
+  defaultBrainModel: text("default_brain_model")
+    .notNull()
+    .default("gpt-4.1-mini"),
   knowledgeProcessing: text("knowledge_processing").notNull().default("auto"),
   sessionRetentionDays: integer("session_retention_days").notNull().default(90),
   retentionPolicyDays: integer("retention_policy_days").notNull().default(90),

@@ -14,15 +14,9 @@ import type { BillingPlanId } from "@/features/billing/config/plans";
 import { ensureWorkspace } from "@/features/auth/services/ensure-workspace";
 import { requireAuth } from "@/features/auth/services/require-auth";
 import { recordLifecycleEvent } from "@/features/employee/services/record-lifecycle-event";
+import { resolveOrganizationBrainModel } from "@/features/settings/services/resolve-organization-brain-model";
 import type { CreateEmployeeWizardInput } from "@/features/employees/create/wizard-intake";
 import { dbWithTransactions } from "@/shared/db/pool-client";
-
-const BRAIN_MODEL_DEFAULTS = {
-  openai: "gpt-4.1-mini",
-  anthropic: "claude-sonnet-4-20250514",
-  google: "gemini-2.0-flash",
-  nullxes: "nullxes-brain-v1",
-} as const;
 
 export type CreateEmployeeRecordResult =
   | { ok: true; employeeId: string }
@@ -66,6 +60,10 @@ export async function createEmployeeRecord(
 
     const sessionLimitSeconds = getSessionLimitSecondsForPlan(billingPlan);
     const avatarProvider: AvatarProvider = "anam";
+    const brainModel = await resolveOrganizationBrainModel(
+      workspace.organization.id,
+      input.brainProvider,
+    );
 
     const employeeId = await dbWithTransactions.transaction(async (tx) => {
       const [employee] = await tx
@@ -137,7 +135,7 @@ export async function createEmployeeRecord(
           providerType: "brain",
           providerId: input.brainProvider,
           config: {
-            model: BRAIN_MODEL_DEFAULTS[input.brainProvider],
+            model: brainModel,
             provisioningStatus: "pending",
           },
         },

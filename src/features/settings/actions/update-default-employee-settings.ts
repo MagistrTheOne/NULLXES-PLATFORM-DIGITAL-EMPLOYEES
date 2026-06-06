@@ -7,9 +7,11 @@ import {
   parseBrainProvider,
   updateOrganizationSettings,
 } from "../services/update-organization-settings";
+import { resolveBrainModelForProvider } from "../lib/brain-model-defaults";
 
 export type UpdateDefaultEmployeeSettingsInput = {
   defaultBrainProvider: string;
+  defaultBrainModel: string;
   knowledgeProcessing: string;
   sessionRetentionDays: number;
 };
@@ -45,10 +47,16 @@ export async function updateDefaultEmployeeSettingsAction(
     return { ok: false, message: "Session retention must be between 7 and 365 days." };
   }
 
+  const defaultBrainModel = resolveBrainModelForProvider(
+    defaultBrainProvider,
+    input.defaultBrainModel,
+  );
+
   const result = await updateOrganizationSettings({
     organizationId: workspace.organization.id,
     settings: {
       defaultBrainProvider,
+      defaultBrainModel,
       knowledgeProcessing: input.knowledgeProcessing,
       sessionRetentionDays: input.sessionRetentionDays,
     },

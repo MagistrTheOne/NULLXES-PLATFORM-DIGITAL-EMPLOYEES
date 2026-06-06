@@ -27,6 +27,7 @@ function toSettingsDto(
     defaultTimeRangeDays: settings.defaultTimeRangeDays,
     compactMode: settings.compactMode,
     defaultBrainProvider: settings.defaultBrainProvider,
+    defaultBrainModel: settings.defaultBrainModel,
     knowledgeProcessing: settings.knowledgeProcessing,
     sessionRetentionDays: settings.sessionRetentionDays,
     retentionPolicyDays: settings.retentionPolicyDays,

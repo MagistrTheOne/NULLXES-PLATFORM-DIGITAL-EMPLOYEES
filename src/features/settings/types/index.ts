@@ -13,6 +13,7 @@ export type OrganizationSettingsDto = {
   defaultTimeRangeDays: number;
   compactMode: boolean;
   defaultBrainProvider: BrainProvider;
+  defaultBrainModel: string;
   knowledgeProcessing: string;
   sessionRetentionDays: number;
   retentionPolicyDays: number;

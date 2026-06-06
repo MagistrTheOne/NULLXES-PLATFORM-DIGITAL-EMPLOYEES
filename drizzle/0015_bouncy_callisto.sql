@@ -1,0 +1,1 @@
+ALTER TABLE "organization_settings" ADD COLUMN "default_brain_model" text DEFAULT 'gpt-4.1-mini' NOT NULL;

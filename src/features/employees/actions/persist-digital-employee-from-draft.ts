@@ -14,6 +14,7 @@ import { employeeRuntime } from "@/entities/runtime/schema";
 import { ensureWorkspace } from "@/features/auth/services/ensure-workspace";
 import { requireAuth } from "@/features/auth/services/require-auth";
 import { recordLifecycleEvent } from "@/features/employee/services/record-lifecycle-event";
+import { resolveOrganizationBrainModel } from "@/features/settings/services/resolve-organization-brain-model";
 import { enqueueEmployeeProvisioning } from "@/features/provider-provisioning/orchestrator/enqueue-employee-provisioning";
 import { inngest } from "@/inngest/client";
 import { db } from "@/shared/db/client";
@@ -22,13 +23,6 @@ import type {
   CreateEmployeeDraftPayload,
   KnowledgeDraftItem,
 } from "../create/types";
-
-const BRAIN_MODEL_DEFAULTS: Record<BrainProvider, string> = {
-  openai: "gpt-4.1-mini",
-  anthropic: "claude-sonnet-4-20250514",
-  google: "gemini-2.0-flash",
-  nullxes: "nullxes-brain-v1",
-};
 
 export type PersistDigitalEmployeeResult = {
   employeeId: string;
@@ -65,6 +59,10 @@ export async function persistDigitalEmployeeFromDraft(
 
   const avatarProvider = draft.avatar.provider as AvatarProvider;
   const brainProvider = draft.brain.provider;
+  const brainModel = await resolveOrganizationBrainModel(
+    workspace.organization.id,
+    brainProvider,
+  );
   const studioProvisionedAt = new Date().toISOString();
 
   const employeeId = await dbWithTransactions.transaction(async (tx) => {
@@ -146,7 +144,7 @@ export async function persistDigitalEmployeeFromDraft(
         providerType: "brain",
         providerId: brainProvider,
         config: {
-          model: BRAIN_MODEL_DEFAULTS[brainProvider],
+          model: brainModel,
           provisioningStatus: "pending",
         },
       },

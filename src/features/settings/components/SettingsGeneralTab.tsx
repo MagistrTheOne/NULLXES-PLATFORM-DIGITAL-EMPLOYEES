@@ -15,6 +15,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { updateDataPrivacySettingsAction } from "../actions/update-data-privacy-settings";
 import { updateDefaultEmployeeSettingsAction } from "../actions/update-default-employee-settings";
+import { DefaultBrainModelField } from "./DefaultBrainModelField";
 import { updateOrganizationPreferencesAction } from "../actions/update-organization-preferences";
 import { updateOrganizationProfileAction } from "../actions/update-organization-profile";
 import { BRAIN_PROVIDER_OPTIONS } from "../lib/brain-provider-labels";
@@ -95,6 +96,7 @@ export function SettingsGeneralTab({
 
   const [defaults, setDefaults] = useState({
     defaultBrainProvider: settings.defaultBrainProvider,
+    defaultBrainModel: settings.defaultBrainModel,
     knowledgeProcessing: settings.knowledgeProcessing,
     sessionRetentionDays: settings.sessionRetentionDays,
   });
@@ -369,6 +371,18 @@ export function SettingsGeneralTab({
                 </SelectContent>
               </Select>
             </Field>
+            {defaults.defaultBrainProvider === "openai" ? (
+              <DefaultBrainModelField
+                value={defaults.defaultBrainModel}
+                disabled={!canManageOrganization}
+                onValueChange={(value) =>
+                  setDefaults((current) => ({
+                    ...current,
+                    defaultBrainModel: value,
+                  }))
+                }
+              />
+            ) : null}
             <Field label={t("knowledgeProcessing")}>
               <Select
                 value={defaults.knowledgeProcessing}
