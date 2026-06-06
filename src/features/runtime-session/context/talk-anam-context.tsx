@@ -13,6 +13,7 @@ import type { AnamClient } from "@anam-ai/js-sdk";
 
 type TalkAnamContextValue = {
   registerClient: (client: AnamClient | null) => void;
+  getClient: () => AnamClient | null;
   micMuted: boolean;
   toggleMic: () => void;
   stopSession: () => Promise<void>;
@@ -71,9 +72,12 @@ export function TalkAnamProvider({ children }: { children: ReactNode }) {
     [],
   );
 
+  const getClient = useCallback(() => client, [client]);
+
   const value = useMemo(
     () => ({
       registerClient,
+      getClient,
       micMuted,
       toggleMic,
       stopSession,
@@ -83,6 +87,7 @@ export function TalkAnamProvider({ children }: { children: ReactNode }) {
     }),
     [
       registerClient,
+      getClient,
       micMuted,
       toggleMic,
       stopSession,

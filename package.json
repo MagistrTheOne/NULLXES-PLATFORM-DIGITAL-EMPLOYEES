@@ -40,6 +40,7 @@
     "stream:verify": "node --env-file=.env --import tsx src/features/runtime-session/verify-stream-credentials.ts",
     "inngest:sync": "node --env-file=.env --import tsx scripts/sync-inngest.ts",
     "inngest:dev": "npx --yes inngest-cli@latest dev -u http://localhost:3000/api/inngest",
+    "dev:inngest": "npm run inngest:dev",
     "tunnel:ngrok": "ngrok http 3000",
     "polar:setup": "node --env-file=.env --import tsx scripts/setup-polar-products.ts",
     "polar:webhook": "node --env-file=.env --import tsx scripts/setup-polar-webhook.ts"

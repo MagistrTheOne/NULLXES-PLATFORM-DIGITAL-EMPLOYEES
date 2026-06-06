@@ -3,7 +3,8 @@
 import { requireAuth } from "@/features/auth/services/require-auth";
 import { ensureWorkspace } from "@/features/auth/services/ensure-workspace";
 import { getEmployeeDetail } from "@/features/employees/services/get-employee-detail";
-import { generateTalkBrainResponse } from "../services/generate-talk-brain-response";
+import { collectTalkBrainResponse } from "../services/stream-talk-brain-response";
+import { getTalkRuntimeConfig } from "../services/get-talk-runtime-config";
 import {
   resolveTalkVoiceMode,
   type TalkVoiceMode,
@@ -24,15 +25,45 @@ export type ProcessTalkTurnResult =
     }
   | { ok: false; message: string };
 
+export type SynthesizeTalkVoiceResult =
+  | { ok: true; pcmBase64: string }
+  | { ok: false; message: string };
+
+export async function synthesizeTalkVoiceAction(
+  employeeId: string,
+  replyText: string,
+): Promise<SynthesizeTalkVoiceResult> {
+  const session = await requireAuth();
+  const workspace = await ensureWorkspace(session.user.id, session.user.name);
+  const employee = await getEmployeeDetail(workspace.organization.id, employeeId);
+
+  if (!employee?.voiceId) {
+    return { ok: false, message: "Employee voice is not configured" };
+  }
+
+  if (resolveTalkVoiceMode(employee) !== "elevenlabs") {
+    return { ok: false, message: "ElevenLabs voice is not enabled for this employee" };
+  }
+
+  try {
+    const pcm = await synthesizeTalkVoicePcm(employee.voiceId, replyText);
+    return { ok: true, pcmBase64: Buffer.from(pcm).toString("base64") };
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "ElevenLabs synthesis failed";
+    return { ok: false, message };
+  }
+}
+
 export async function processTalkTurnAction(
   employeeId: string,
   messages: TalkPipelineMessage[],
 ): Promise<ProcessTalkTurnResult> {
   const session = await requireAuth();
   const workspace = await ensureWorkspace(session.user.id, session.user.name);
-  const employee = await getEmployeeDetail(workspace.organization.id, employeeId);
+  const config = await getTalkRuntimeConfig(workspace.organization.id, employeeId);
 
-  if (!employee) {
+  if (!config) {
     return { ok: false, message: "Employee not found" };
   }
 
@@ -40,12 +71,6 @@ export async function processTalkTurnAction(
   if (!lastMessage || lastMessage.role !== "user") {
     return { ok: false, message: "No user message to process" };
   }
-
-  const voiceMode = resolveTalkVoiceMode(employee);
-  const model = employee.brainModel ?? "gpt-4o";
-  const systemPrompt =
-    employee.systemPrompt.trim() ||
-    `You are ${employee.name}, a ${employee.role}. Respond naturally and concisely in conversation.`;
 
   try {
     const openAiMessages = messages.map((message) => ({
@@ -55,22 +80,24 @@ export async function processTalkTurnAction(
       content: message.content,
     }));
 
-    const replyText = await generateTalkBrainResponse({
-      model,
-      systemPrompt,
+    const replyText = await collectTalkBrainResponse({
+      model: config.model,
+      systemPrompt: config.systemPrompt,
       messages: openAiMessages,
+      temperature: config.temperature,
+      maxTokens: config.maxTokens,
     });
 
     let pcmBase64: string | null = null;
-    if (voiceMode === "elevenlabs" && employee.voiceId) {
-      const pcm = await synthesizeTalkVoicePcm(employee.voiceId, replyText);
+    if (config.voiceMode === "elevenlabs" && config.voiceId) {
+      const pcm = await synthesizeTalkVoicePcm(config.voiceId, replyText);
       pcmBase64 = Buffer.from(pcm).toString("base64");
     }
 
     return {
       ok: true,
       replyText,
-      voiceMode,
+      voiceMode: config.voiceMode,
       pcmBase64,
     };
   } catch (error) {

@@ -255,7 +255,12 @@ function TalkRoomLayout({
         </div>
 
         <div className="employee-talk-chat-panel flex min-h-[320px] flex-col overflow-hidden rounded-xl border border-white/10 bg-[#0a0a0a] lg:min-h-0 lg:self-stretch">
-          <EmployeeTalkChat chatSession={chatSession} />
+          <EmployeeTalkChat
+            chatSession={chatSession}
+            employeeId={employeeId}
+            isSessionLive={Boolean(activeSession)}
+            voiceMode={activeSession?.voiceMode ?? "anam"}
+          />
         </div>
       </div>
     </div>

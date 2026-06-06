@@ -3,7 +3,7 @@
 import { requireAuth } from "@/features/auth/services/require-auth";
 import { ensureWorkspace } from "@/features/auth/services/ensure-workspace";
 import { dispatchOrganizationWebhook } from "@/features/public-api/services/dispatch-outbound-webhook";
-import { inngest } from "@/inngest/client";
+import { inngest, isInngestEnabledForSend } from "@/inngest/client";
 import { createAnamTalkSessionTokenForEmployee } from "../services/create-anam-talk-session";
 import { resolveTalkVoiceMode } from "../services/resolve-talk-voice-mode";
 import { getEmployeeDetail } from "@/features/employees/services/get-employee-detail";
@@ -40,13 +40,19 @@ export async function completeTalkSessionAction(
     startedAt: startedAtIso ? new Date(startedAtIso) : undefined,
   });
 
-  try {
-    await inngest.send({
-      name: "employee/session.completed",
-      data: { sessionId, organizationId },
-    });
-  } catch (error) {
-    console.error("[completeTalkSessionAction] Inngest send failed:", error);
+  if (isInngestEnabledForSend()) {
+    try {
+      await inngest.send({
+        name: "employee/session.completed",
+        data: { sessionId, organizationId },
+      });
+    } catch (error) {
+      console.error("[completeTalkSessionAction] Inngest send failed:", error);
+    }
+  } else if (process.env.NODE_ENV === "development") {
+    console.warn(
+      "[completeTalkSessionAction] Inngest event skipped. Set INNGEST_DEV=1 and run npm run inngest:dev for local background jobs.",
+    );
   }
 
   if (result) {

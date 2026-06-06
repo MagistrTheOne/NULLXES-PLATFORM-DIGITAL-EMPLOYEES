@@ -14,6 +14,10 @@ import {
   Window,
 } from "stream-chat-react";
 import type { TalkChatCredentials } from "../services/create-talk-chat-session";
+import { attachTalkChatPipeline } from "../lib/attach-talk-chat-pipeline";
+import { useTalkAnam } from "../context/talk-anam-context";
+import { registerTalkChatBridge } from "../lib/talk-reply-bridge";
+import type { TalkVoiceMode } from "../services/resolve-talk-voice-mode";
 import {
   connectTalkChatSession,
   releaseTalkChatMount,
@@ -108,11 +112,18 @@ class TalkChatErrorBoundary extends Component<
 
 export function EmployeeTalkChat({
   chatSession,
+  employeeId,
+  isSessionLive,
+  voiceMode,
 }: {
   chatSession: TalkChatCredentials;
+  employeeId: string;
+  isSessionLive: boolean;
+  voiceMode: TalkVoiceMode;
 }) {
   const t = useTranslations("employees.talk.chat");
   const tTalk = useTranslations("employees.talk");
+  const { getClient } = useTalkAnam();
   const [client, setClient] = useState<StreamChat | null>(null);
   const [channel, setChannel] = useState<StreamChannel | null>(null);
   const [uiState, setUiState] = useState<TalkChatUiState>("connecting");
@@ -180,6 +191,38 @@ export function EmployeeTalkChat({
       textarea.setAttribute("placeholder", t("placeholder"));
     }
   }, [uiState, t]);
+
+  useEffect(() => {
+    if (uiState !== "ready" || !channel) {
+      registerTalkChatBridge({ channel: null, botUserId: "" });
+      return;
+    }
+
+    const botUserId = `digital-employee-${employeeId}`;
+    registerTalkChatBridge({ channel, botUserId });
+
+    const detach = attachTalkChatPipeline({
+      channel,
+      employeeId,
+      actorUserId: chatSession.userId,
+      isSessionLive,
+      voiceMode,
+      getAnamClient: getClient,
+    });
+
+    return () => {
+      detach();
+      registerTalkChatBridge({ channel: null, botUserId: "" });
+    };
+  }, [
+    channel,
+    chatSession.userId,
+    employeeId,
+    getClient,
+    isSessionLive,
+    uiState,
+    voiceMode,
+  ]);
 
   if (uiState !== "ready" || !client || !channel) {
     return (

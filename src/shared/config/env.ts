@@ -87,6 +87,10 @@ export function getInngestEventKey(): string | undefined {
   return readOptionalEnv("INNGEST_EVENT_KEY");
 }
 
+export function isInngestDevMode(): boolean {
+  return readOptionalEnv("INNGEST_DEV") === "1";
+}
+
 export function getNgrokUrl(): string | undefined {
   return readOptionalEnv("NGROK_URL");
 }
