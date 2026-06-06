@@ -10,36 +10,41 @@ import { completeTalkSessionAction } from "../actions/employee-session";
 import { TalkAnamProvider, useTalkAnam } from "../context/talk-anam-context";
 import {
   EmployeeTalkRoom,
-  type EmployeeTalkRoomProps,
+  type ActiveTalkSession,
+  type EmployeeTalkSessionInputProps,
 } from "./employee-talk-room";
 import { TalkSessionMeta } from "./talk-session-meta";
 
 function TalkSessionShell({
   employeeName,
   sessionLimitSeconds,
-  employeeSessionId,
   ...roomProps
-}: EmployeeTalkRoomProps & { employeeName: string }) {
+}: EmployeeTalkSessionInputProps & { employeeName: string }) {
   const t = useTranslations("employees.talk");
   const tCommon = useTranslations("common.actions");
   const router = useRouter();
   const { stopSession } = useTalkAnam();
+  const [activeSession, setActiveSession] = useState<ActiveTalkSession | null>(
+    null,
+  );
   const [isLimitLeaving, setIsLimitLeaving] = useState(false);
   const limitHandledRef = useRef(false);
 
   const handleSessionLimitReached = useCallback(async () => {
-    if (limitHandledRef.current || isLimitLeaving) {
+    if (limitHandledRef.current || isLimitLeaving || !activeSession) {
       return;
     }
     limitHandledRef.current = true;
     setIsLimitLeaving(true);
     try {
       await stopSession();
-      await completeTalkSessionAction(employeeSessionId);
+      await completeTalkSessionAction(activeSession.sessionId);
+      setActiveSession(null);
     } finally {
+      setIsLimitLeaving(false);
       router.push("/dashboard/employees");
     }
-  }, [employeeSessionId, isLimitLeaving, router, stopSession]);
+  }, [activeSession, isLimitLeaving, router, stopSession]);
 
   return (
     <div className="mx-auto flex w-full max-w-[1280px] flex-col gap-5 px-4 pb-8">
@@ -70,10 +75,11 @@ function TalkSessionShell({
         />
       </div>
       <EmployeeTalkRoom
-        employeeName={employeeName}
-        employeeSessionId={employeeSessionId}
-        sessionLimitSeconds={sessionLimitSeconds}
         {...roomProps}
+        employeeName={employeeName}
+        sessionLimitSeconds={sessionLimitSeconds}
+        activeSession={activeSession}
+        onActiveSessionChange={setActiveSession}
       />
     </div>
   );
@@ -82,7 +88,7 @@ function TalkSessionShell({
 export function EmployeeTalkSession({
   employeeName,
   ...roomProps
-}: EmployeeTalkRoomProps & { employeeName: string }) {
+}: EmployeeTalkSessionInputProps & { employeeName: string }) {
   return (
     <TalkAnamProvider>
       <TalkSessionShell employeeName={employeeName} {...roomProps} />

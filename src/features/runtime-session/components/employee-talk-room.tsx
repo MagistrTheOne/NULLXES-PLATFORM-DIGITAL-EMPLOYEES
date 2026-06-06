@@ -3,19 +3,25 @@
 import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Mic, MicOff, PhoneOff, Video, VideoOff } from "lucide-react";
+import { Mic, MicOff, PhoneOff, Play, Square, Video, VideoOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { TalkChatCredentials } from "../services/create-talk-chat-session";
 import { useTalkAnam } from "../context/talk-anam-context";
 import {
   completeTalkSessionAction,
+  startTalkSessionAction,
 } from "../actions/employee-session";
 import { EmployeeAnamStage } from "./employee-anam-stage";
 import { EmployeeTalkChat } from "./employee-talk-chat";
 import { TalkLocalCameraPip } from "./talk-local-camera-pip";
 import "stream-chat-react/css/index.css";
 import "./employee-talk-theme.css";
+
+export type ActiveTalkSession = {
+  sessionId: string;
+  sessionToken: string;
+};
 
 function TalkIconControl({
   ariaLabel,
@@ -47,86 +53,173 @@ function TalkIconControl({
 function TalkControlsBar({
   cameraEnabled,
   onCameraToggle,
-  employeeSessionId,
+  employeeId,
+  activeSession,
+  onSessionStarted,
+  onSessionStopped,
 }: {
   cameraEnabled: boolean;
   onCameraToggle: () => void;
-  employeeSessionId: string;
+  employeeId: string;
+  activeSession: ActiveTalkSession | null;
+  onSessionStarted: (session: ActiveTalkSession) => void;
+  onSessionStopped: () => void;
 }) {
   const t = useTranslations("employees.talk");
   const router = useRouter();
   const { micMuted, toggleMic, stopSession, isLive } = useTalkAnam();
+  const [isStarting, setIsStarting] = useState(false);
+  const [isStopping, setIsStopping] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
+  const [startError, setStartError] = useState<string | null>(null);
+
+  const handleStart = useCallback(async () => {
+    setIsStarting(true);
+    setStartError(null);
+    try {
+      const result = await startTalkSessionAction(employeeId);
+      if (!result.ok) {
+        setStartError(result.message);
+        return;
+      }
+      onSessionStarted({
+        sessionId: result.sessionId,
+        sessionToken: result.sessionToken,
+      });
+    } finally {
+      setIsStarting(false);
+    }
+  }, [employeeId, onSessionStarted]);
+
+  const handleStop = useCallback(async () => {
+    if (!activeSession || isStopping) {
+      return;
+    }
+    setIsStopping(true);
+    try {
+      await stopSession();
+      await completeTalkSessionAction(activeSession.sessionId);
+      onSessionStopped();
+    } finally {
+      setIsStopping(false);
+    }
+  }, [activeSession, isStopping, onSessionStopped, stopSession]);
 
   const handleLeave = useCallback(async () => {
     setIsLeaving(true);
     try {
-      await stopSession();
-      await completeTalkSessionAction(employeeSessionId);
+      if (activeSession) {
+        await stopSession();
+        await completeTalkSessionAction(activeSession.sessionId);
+      }
     } finally {
       router.push("/dashboard/employees");
     }
-  }, [employeeSessionId, router, stopSession]);
+  }, [activeSession, router, stopSession]);
+
+  const sessionBusy = isStarting || isStopping || isLeaving;
 
   return (
-    <div className="flex items-center justify-center gap-3 py-4">
-      <TalkIconControl
-        ariaLabel={micMuted ? t("controls.unmuteMic") : t("controls.muteMic")}
-        disabled={!isLive || isLeaving}
-        onClick={toggleMic}
-      >
-        {micMuted ? (
-          <MicOff className="size-4 stroke-[1.5]" />
+    <div className="flex flex-col items-center gap-2 py-4">
+      {startError ? (
+        <p className="max-w-md text-center text-xs text-white/55" role="alert">
+          {startError}
+        </p>
+      ) : null}
+      <div className="flex flex-wrap items-center justify-center gap-3">
+        {!activeSession ? (
+          <Button
+            type="button"
+            disabled={sessionBusy}
+            className="h-11 rounded-full px-5 text-sm"
+            onClick={() => {
+              void handleStart();
+            }}
+          >
+            <Play className="size-4" />
+            {isStarting ? t("starting") : t("startSession")}
+          </Button>
         ) : (
-          <Mic className="size-4 stroke-[1.5]" />
+          <>
+            <TalkIconControl
+              ariaLabel={
+                micMuted ? t("controls.unmuteMic") : t("controls.muteMic")
+              }
+              disabled={!isLive || sessionBusy}
+              onClick={toggleMic}
+            >
+              {micMuted ? (
+                <MicOff className="size-4 stroke-[1.5]" />
+              ) : (
+                <Mic className="size-4 stroke-[1.5]" />
+              )}
+            </TalkIconControl>
+            <TalkIconControl
+              ariaLabel={
+                cameraEnabled
+                  ? t("controls.turnOffCamera")
+                  : t("controls.turnOnCamera")
+              }
+              disabled={sessionBusy}
+              onClick={onCameraToggle}
+            >
+              {cameraEnabled ? (
+                <Video className="size-4 stroke-[1.5]" />
+              ) : (
+                <VideoOff className="size-4 stroke-[1.5]" />
+              )}
+            </TalkIconControl>
+            <Button
+              type="button"
+              disabled={sessionBusy}
+              variant="outline"
+              className="h-11 rounded-full border-white/12 bg-white/4 px-5 text-sm text-white hover:bg-white/8"
+              onClick={() => {
+                void handleStop();
+              }}
+            >
+              <Square className="size-4" />
+              {isStopping ? t("stopping") : t("stopSession")}
+            </Button>
+          </>
         )}
-      </TalkIconControl>
-      <TalkIconControl
-        ariaLabel={
-          cameraEnabled ? t("controls.turnOffCamera") : t("controls.turnOnCamera")
-        }
-        disabled={isLeaving}
-        onClick={onCameraToggle}
-      >
-        {cameraEnabled ? (
-          <Video className="size-4 stroke-[1.5]" />
-        ) : (
-          <VideoOff className="size-4 stroke-[1.5]" />
-        )}
-      </TalkIconControl>
-      <Button
-        type="button"
-        disabled={isLeaving}
-        variant="destructive"
-        className="h-11 rounded-full px-5 text-sm"
-        onClick={() => {
-          void handleLeave();
-        }}
-      >
-        <PhoneOff className="size-4" />
-        {t("leave")}
-      </Button>
+        <Button
+          type="button"
+          disabled={sessionBusy}
+          variant="destructive"
+          className="h-11 rounded-full px-5 text-sm"
+          onClick={() => {
+            void handleLeave();
+          }}
+        >
+          <PhoneOff className="size-4" />
+          {t("leave")}
+        </Button>
+      </div>
     </div>
   );
 }
 
-export type EmployeeTalkRoomProps = {
+export type EmployeeTalkSessionInputProps = {
   chatSession: TalkChatCredentials;
-  anamSessionToken: string;
-  employeeName: string;
   employeeId: string;
-  employeeSessionId: string;
   avatarPreviewUrl: string | null;
   sessionLimitSeconds: number;
+};
+
+export type EmployeeTalkRoomProps = EmployeeTalkSessionInputProps & {
+  employeeName: string;
+  activeSession: ActiveTalkSession | null;
+  onActiveSessionChange: (session: ActiveTalkSession | null) => void;
 };
 
 function TalkRoomLayout({
   chatSession,
   employeeName,
   employeeId,
-  employeeSessionId,
   avatarPreviewUrl,
-  anamSessionToken,
+  activeSession,
+  onActiveSessionChange,
 }: EmployeeTalkRoomProps) {
   const [cameraEnabled, setCameraEnabled] = useState(false);
 
@@ -136,11 +229,10 @@ function TalkRoomLayout({
         <div className="employee-talk-primary flex min-h-0 min-w-0 flex-col">
           <div className="employee-talk-stage-wrap relative min-h-0 w-full">
             <EmployeeAnamStage
-              employeeId={employeeId}
               employeeName={employeeName}
-              employeeSessionId={employeeSessionId}
+              employeeSessionId={activeSession?.sessionId ?? ""}
               avatarPreviewUrl={avatarPreviewUrl}
-              sessionToken={anamSessionToken}
+              sessionToken={activeSession?.sessionToken ?? null}
             />
             <TalkLocalCameraPip
               enabled={cameraEnabled}
@@ -149,7 +241,10 @@ function TalkRoomLayout({
           </div>
           <TalkControlsBar
             cameraEnabled={cameraEnabled}
-            employeeSessionId={employeeSessionId}
+            employeeId={employeeId}
+            activeSession={activeSession}
+            onSessionStarted={onActiveSessionChange}
+            onSessionStopped={() => onActiveSessionChange(null)}
             onCameraToggle={() => setCameraEnabled((current) => !current)}
           />
         </div>

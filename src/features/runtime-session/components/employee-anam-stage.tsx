@@ -15,26 +15,33 @@ import { TalkStageChrome } from "./talk-stage-chrome";
 const ANAM_VIDEO_ELEMENT_ID = "nullxes-anam-persona-video";
 
 export function EmployeeAnamStage({
-  employeeId,
   employeeName,
   employeeSessionId,
   avatarPreviewUrl,
   sessionToken,
 }: {
-  employeeId: string;
   employeeName: string;
   employeeSessionId: string;
   avatarPreviewUrl: string | null;
-  sessionToken: string;
+  sessionToken: string | null;
 }) {
   const t = useTranslations("employees.talk");
-  const { registerClient, setIsLive } = useTalkAnam();
+  const { registerClient, setIsLive, isStoppingIntentionally } = useTalkAnam();
   const [status, setStatus] = useState<
     "idle" | "connecting" | "live" | "error"
   >("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!sessionToken) {
+      setStatus("idle");
+      setErrorMessage(null);
+      setIsLive(false);
+      registerClient(null);
+      return;
+    }
+
+    const token = sessionToken;
     let disposed = false;
 
     async function startAnamSession(): Promise<void> {
@@ -42,7 +49,7 @@ export function EmployeeAnamStage({
       setErrorMessage(null);
       setIsLive(false);
 
-      const anamClient = createClient(sessionToken);
+      const anamClient = createClient(token);
       registerClient(anamClient);
 
       anamClient.addListener(AnamEvent.VIDEO_PLAY_STARTED, () => {
@@ -54,7 +61,7 @@ export function EmployeeAnamStage({
       });
 
       anamClient.addListener(AnamEvent.CONNECTION_CLOSED, () => {
-        if (!disposed) {
+        if (!disposed && !isStoppingIntentionally()) {
           setStatus("error");
           setIsLive(false);
           setErrorMessage(t("stage.anamClosed"));
@@ -65,7 +72,7 @@ export function EmployeeAnamStage({
       try {
         await anamClient.streamToVideoElement(ANAM_VIDEO_ELEMENT_ID);
       } catch (error: unknown) {
-        if (!disposed) {
+        if (!disposed && !isStoppingIntentionally()) {
           setStatus("error");
           setIsLive(false);
           setErrorMessage(
@@ -82,7 +89,14 @@ export function EmployeeAnamStage({
       disposed = true;
       registerClient(null);
     };
-  }, [employeeId, employeeSessionId, registerClient, sessionToken, setIsLive]);
+  }, [
+    employeeSessionId,
+    isStoppingIntentionally,
+    registerClient,
+    sessionToken,
+    setIsLive,
+    t,
+  ]);
 
   const showPhotoPlaceholder =
     status !== "live" && Boolean(avatarPreviewUrl);

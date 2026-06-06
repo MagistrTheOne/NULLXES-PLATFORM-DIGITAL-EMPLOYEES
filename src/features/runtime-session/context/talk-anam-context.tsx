@@ -5,6 +5,7 @@ import {
   useCallback,
   useContext,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -17,6 +18,7 @@ type TalkAnamContextValue = {
   stopSession: () => Promise<void>;
   isLive: boolean;
   setIsLive: (live: boolean) => void;
+  isStoppingIntentionally: () => boolean;
 };
 
 const TalkAnamContext = createContext<TalkAnamContextValue | null>(null);
@@ -25,8 +27,12 @@ export function TalkAnamProvider({ children }: { children: ReactNode }) {
   const [client, setClient] = useState<AnamClient | null>(null);
   const [micMuted, setMicMuted] = useState(false);
   const [isLive, setIsLive] = useState(false);
+  const stoppingIntentionallyRef = useRef(false);
 
   const registerClient = useCallback((next: AnamClient | null) => {
+    if (next) {
+      stoppingIntentionallyRef.current = false;
+    }
     setClient(next);
     if (!next) {
       setMicMuted(false);
@@ -51,6 +57,7 @@ export function TalkAnamProvider({ children }: { children: ReactNode }) {
 
   const stopSession = useCallback(async () => {
     const active = client;
+    stoppingIntentionallyRef.current = true;
     setClient(null);
     setMicMuted(false);
     setIsLive(false);
@@ -58,6 +65,11 @@ export function TalkAnamProvider({ children }: { children: ReactNode }) {
       await active.stopStreaming().catch(() => undefined);
     }
   }, [client]);
+
+  const isStoppingIntentionally = useCallback(
+    () => stoppingIntentionallyRef.current,
+    [],
+  );
 
   const value = useMemo(
     () => ({
@@ -67,8 +79,16 @@ export function TalkAnamProvider({ children }: { children: ReactNode }) {
       stopSession,
       isLive,
       setIsLive,
+      isStoppingIntentionally,
     }),
-    [registerClient, micMuted, toggleMic, stopSession, isLive],
+    [
+      registerClient,
+      micMuted,
+      toggleMic,
+      stopSession,
+      isLive,
+      isStoppingIntentionally,
+    ],
   );
 
   return (

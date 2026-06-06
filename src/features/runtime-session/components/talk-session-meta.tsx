@@ -59,7 +59,7 @@ export function TalkSessionMeta({
             {t("live")}
           </span>
         ) : (
-          <span className="text-white/40">{t("connecting")}</span>
+          <span className="text-white/40">{t("idle")}</span>
         )}
         <span className="text-white/55">{formatElapsed(elapsedSeconds)}</span>
       </div>
