@@ -72,14 +72,17 @@ export function SettingsContextPanel({
       ? Math.min(100, Math.round((context.totalChunks / chunkLimit) * 1000) / 10)
       : 0;
 
-  const usageSummary = t("usageSummary", {
-    sessions: context.usage.totalSessions,
-    messages: formatNumber(context.usage.totalMessages, locale),
-  });
+  const usageSummary = [
+    `${context.usage.totalSessions} ${t("sessions").toLowerCase()}`,
+    `${formatNumber(context.usage.totalMessages, locale)} ${t("messages").toLowerCase()}`,
+  ].join(" · ");
 
-  const teamSummary = t("teamSummary", {
-    count: context.teamMembers.length,
-  });
+  const teamSummary =
+    context.teamMembers.length === 0
+      ? t("noTeamMembers")
+      : context.teamMembers.length === 1
+        ? context.teamMembers[0]!.name
+        : `${context.teamMembers.length} ${t("members").toLowerCase()}`;
 
   return (
     <SettingsCard title={t("orgSummary")} className="xl:sticky xl:top-6">
