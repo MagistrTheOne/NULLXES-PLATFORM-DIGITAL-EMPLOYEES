@@ -79,21 +79,21 @@ export function EmployeeCard({ employee }: { employee: EmployeeListItem }) {
         </div>
         <div className="mt-auto flex items-center justify-between gap-3">
           <Button
-              type="button"
-              disabled={!employee.canTalk}
-              variant="outline"
-              className="border-white/10 bg-transparent text-white hover:bg-white/5 disabled:opacity-40"
-              asChild={employee.canTalk}
-            >
-              {employee.canTalk ? (
-                <Link href={`/dashboard/employees/${employee.id}/talk`}>
-                  {tActions("talk")}
-                </Link>
-              ) : (
-                <span>{tActions("talk")}</span>
-              )}
-            </Button>
-            <span className="text-xs text-white/50">{createdLabel}</span>
+            type="button"
+            disabled={!employee.canTalk}
+            variant="outline"
+            className="border-white/10 bg-transparent text-white hover:bg-white/5 disabled:opacity-40"
+            asChild={employee.canTalk}
+          >
+            {employee.canTalk ? (
+              <Link href={`/dashboard/employees/${employee.id}/talk`}>
+                {tActions("talk")}
+              </Link>
+            ) : (
+              <span>{tActions("talk")}</span>
+            )}
+          </Button>
+          <span className="text-xs text-white/50">{createdLabel}</span>
         </div>
       </CardContent>
     </Card>
