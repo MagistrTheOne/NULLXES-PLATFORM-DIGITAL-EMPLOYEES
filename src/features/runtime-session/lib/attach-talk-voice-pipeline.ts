@@ -10,6 +10,7 @@ import {
   getTalkPipelineCoordinator,
   type TalkPipelineCoordinator,
 } from "./talk-pipeline-coordinator";
+import { playTalkVoiceReply } from "./play-talk-voice-reply";
 import { postTalkEmployeeChatReply } from "./talk-reply-bridge";
 
 const USER_MESSAGE_DEBOUNCE_MS = 750;
@@ -83,24 +84,42 @@ export function attachTalkVoicePipeline(input: {
           }
         }
 
-        const talkStream = input.anamClient.createTalkMessageStream();
+        let replyText: string;
 
-        const replyText = await streamTalkBrainReply({
-          employeeId: input.employeeId,
-          sessionId: input.employeeSessionId,
-          messages: pipelineMessages,
-          onChunk: async (chunk) => {
-            if (chunk.trim()) {
-              input.setPipelineState("speaking");
-            }
-            if (talkStream.isActive()) {
-              await talkStream.streamMessageChunk(chunk, false);
-            }
-          },
-        });
+        if (input.voiceMode === "elevenlabs") {
+          replyText = await streamTalkBrainReply({
+            employeeId: input.employeeId,
+            sessionId: input.employeeSessionId,
+            messages: pipelineMessages,
+          });
 
-        if (talkStream.isActive()) {
-          await talkStream.endMessage();
+          input.setPipelineState("speaking");
+          await playTalkVoiceReply({
+            anamClient: input.anamClient,
+            employeeId: input.employeeId,
+            replyText,
+            voiceMode: input.voiceMode,
+          });
+        } else {
+          const talkStream = input.anamClient.createTalkMessageStream();
+
+          replyText = await streamTalkBrainReply({
+            employeeId: input.employeeId,
+            sessionId: input.employeeSessionId,
+            messages: pipelineMessages,
+            onChunk: async (chunk) => {
+              if (chunk.trim()) {
+                input.setPipelineState("speaking");
+              }
+              if (talkStream.isActive()) {
+                await talkStream.streamMessageChunk(chunk, false);
+              }
+            },
+          });
+
+          if (talkStream.isActive()) {
+            await talkStream.endMessage();
+          }
         }
 
         await postTalkEmployeeChatReply(replyText);
@@ -118,7 +137,12 @@ export function attachTalkVoicePipeline(input: {
         const fallback =
           "Something went wrong while generating a response. Please try again.";
         input.setPipelineState("speaking");
-        await input.anamClient.talk(fallback);
+        await playTalkVoiceReply({
+          anamClient: input.anamClient,
+          employeeId: input.employeeId,
+          replyText: fallback,
+          voiceMode: input.voiceMode,
+        });
         await postTalkEmployeeChatReply(fallback);
         pipelineCoordinator.completeTalkTurn(turnKey, fallback);
         input.setPipelineState("idle");
