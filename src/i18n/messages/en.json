@@ -255,6 +255,7 @@
       "remaining": "{remaining} remaining · limit {limit}",
       "chat": {
         "title": "Session chat",
+        "brainNote": "OpenAI brain · Anam avatar only",
         "empty": "Send a message to start the conversation",
         "placeholder": "Send a message...",
         "unavailable": "Conversation unavailable",

@@ -282,9 +282,12 @@ export function EmployeeTalkChat({
             <Window>
               <div className="employee-talk-chat-header border-b border-white/10 px-4 py-3">
                 <div className="employee-talk-chat-header-actions">
-                  <span className="text-[11px] font-medium tracking-[0.12em] text-white/50 uppercase">
-                    {t("title")}
-                  </span>
+                  <div className="min-w-0">
+                    <span className="text-[11px] font-medium tracking-[0.12em] text-white/50 uppercase">
+                      {t("title")}
+                    </span>
+                    <p className="mt-0.5 text-[10px] text-white/35">{t("brainNote")}</p>
+                  </div>
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <Button

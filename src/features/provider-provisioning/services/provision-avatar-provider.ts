@@ -10,6 +10,7 @@ import type {
   ProvisionProviderResult,
 } from "../types";
 import { ANAM_EXTERNAL_LLM_ID } from "../types";
+import { ANAM_AVATAR_ONLY_SYSTEM_PROMPT } from "@/features/runtime-session/lib/build-anam-talk-persona-config";
 import { getProviderConfigRow, mergeProviderConfig } from "./update-provider-config";
 
 type AnamListResponse<T> = {
@@ -176,7 +177,8 @@ export async function provisionAvatarProvider(
         avatarId,
         voiceId,
         llmId: ANAM_EXTERNAL_LLM_ID,
-        systemPrompt: input.systemPrompt,
+        skipGreeting: true,
+        systemPrompt: ANAM_AVATAR_ONLY_SYSTEM_PROMPT,
       }),
     });
 

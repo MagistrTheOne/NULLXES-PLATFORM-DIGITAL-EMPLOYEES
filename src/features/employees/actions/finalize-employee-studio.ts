@@ -1,6 +1,5 @@
 "use server";
 
-import { buildEmployeeSystemPrompt } from "@/features/employees/lib/build-system-prompt";
 import { requireWorkspacePermissionOrThrowMessage } from "@/features/workspace";
 import { createAnamAvatarFromFile } from "@/features/employees/studio/anam-create-avatar-from-file";
 import { resolveAnamPersonaVoiceId } from "@/features/employees/studio/resolve-anam-persona-voice";
@@ -9,6 +8,7 @@ import {
   type StudioVoiceProvider,
 } from "@/features/employees/studio/voice/voice-catalog";
 import { ANAM_EXTERNAL_LLM_ID } from "@/features/provider-provisioning/types";
+import { ANAM_AVATAR_ONLY_SYSTEM_PROMPT } from "@/features/runtime-session/lib/build-anam-talk-persona-config";
 import {
   getAnamApiBaseUrl,
   getAnamApiKey,
@@ -67,7 +67,8 @@ async function createAnamPersona(input: {
       avatarId: input.avatarId,
       voiceId: input.anamVoiceId,
       llmId: ANAM_EXTERNAL_LLM_ID,
-      systemPrompt: buildEmployeeSystemPrompt(input.name, input.role),
+      skipGreeting: true,
+      systemPrompt: ANAM_AVATAR_ONLY_SYSTEM_PROMPT,
     }),
   });
 

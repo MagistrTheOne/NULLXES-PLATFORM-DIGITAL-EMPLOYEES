@@ -1,4 +1,6 @@
 import { getEmployeeDetail } from "@/features/employees/services/get-employee-detail";
+import { syncAnamPersonaExternalBrain } from "@/features/provider-provisioning/services/sync-anam-persona-external-brain";
+import { buildAnamTalkSessionPersonaConfig } from "@/features/runtime-session/lib/build-anam-talk-persona-config";
 import { resolveTalkVoiceMode } from "@/features/runtime-session/services/resolve-talk-voice-mode";
 import { getAnamApiBaseUrl, getAnamApiKey } from "@/shared/config/provider-env";
 
@@ -28,6 +30,18 @@ export async function createAnamTalkSessionTokenForEmployee(
     return { ok: false, message: "ANAM_API_KEY is not configured" };
   }
 
+  try {
+    await syncAnamPersonaExternalBrain(employee.personaId);
+  } catch (syncError: unknown) {
+    console.warn("Anam persona external-brain sync failed", syncError);
+  }
+
+  const voiceMode = resolveTalkVoiceMode(employee);
+  const personaConfig = buildAnamTalkSessionPersonaConfig({
+    personaId: employee.personaId,
+    enableAudioPassthrough: voiceMode === "elevenlabs",
+  });
+
   const response = await fetch(`${getAnamApiBaseUrl()}/auth/session-token`, {
     method: "POST",
     headers: {
@@ -36,12 +50,7 @@ export async function createAnamTalkSessionTokenForEmployee(
     },
     body: JSON.stringify({
       clientLabel: "nullxes-digital-employees",
-      personaConfig: {
-        personaId: employee.personaId,
-        ...(resolveTalkVoiceMode(employee) === "elevenlabs"
-          ? { enableAudioPassthrough: true }
-          : {}),
-      },
+      personaConfig,
     }),
   });
 
