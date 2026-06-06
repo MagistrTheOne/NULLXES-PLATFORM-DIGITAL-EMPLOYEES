@@ -1,5 +1,8 @@
 import { eq } from "drizzle-orm";
-import { isMissingRelationError } from "@/shared/errors/is-missing-relation-error";
+import {
+  isMissingRelationError,
+  isPendingOrganizationSettingsMigrationError,
+} from "@/shared/errors/is-missing-relation-error";
 import { db } from "@/shared/db/client";
 import { organizationSettings } from "./schema";
 
@@ -9,6 +12,15 @@ export class OrganizationSettingsTableMissingError extends Error {
       "organization_settings table is missing. Run npm run db:migrate to apply pending migrations.",
     );
     this.name = "OrganizationSettingsTableMissingError";
+  }
+}
+
+export class OrganizationSettingsMigrationPendingError extends Error {
+  constructor() {
+    super(
+      "organization_settings schema is out of date. Run npm run db:migrate, then restart npm run dev.",
+    );
+    this.name = "OrganizationSettingsMigrationPendingError";
   }
 }
 
@@ -26,6 +38,10 @@ export async function ensureOrganizationSettings(
   } catch (error: unknown) {
     if (isMissingRelationError(error)) {
       throw new OrganizationSettingsTableMissingError();
+    }
+
+    if (isPendingOrganizationSettingsMigrationError(error)) {
+      throw new OrganizationSettingsMigrationPendingError();
     }
 
     throw error;
