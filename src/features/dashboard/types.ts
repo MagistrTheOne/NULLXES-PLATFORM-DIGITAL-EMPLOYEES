@@ -1,3 +1,4 @@
+import type { OrganizationDisplayPreferences } from "@/features/workspace/types/display-preferences";
 import type { ReactNode } from "react";
 import type { UserBillingSnapshot } from "@/features/billing/services/get-user-billing-snapshot";
 
@@ -19,5 +20,6 @@ export type DashboardShellWorkspace = {
 export type DashboardLayoutProps = {
   user: DashboardShellUser;
   workspace: DashboardShellWorkspace;
+  displayPreferences: OrganizationDisplayPreferences;
   children: ReactNode;
 };

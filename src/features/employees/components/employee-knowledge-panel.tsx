@@ -1,12 +1,15 @@
-import { format } from "date-fns";
+import { formatOrganizationDate } from "@/shared/i18n/format-organization-date";
+import type { OrganizationDisplayPreferences } from "@/features/workspace/types/display-preferences";
 import { getTranslations } from "next-intl/server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { EmployeeKnowledgeItem } from "../types";
 
 export async function EmployeeKnowledgePanel({
   items,
+  displayPreferences,
 }: {
   items: EmployeeKnowledgeItem[];
+  displayPreferences: OrganizationDisplayPreferences;
 }) {
   const t = await getTranslations("employees.knowledge");
 
@@ -48,7 +51,12 @@ export async function EmployeeKnowledgePanel({
             </div>
             <div className="flex shrink-0 flex-col items-start gap-1 text-xs text-white/50 sm:items-end">
               <span>{t("chunks", { count: item.chunkCount })}</span>
-              <span>{format(item.createdAt, "MMM d, yyyy")}</span>
+              <span>
+                {formatOrganizationDate(item.createdAt, {
+                  dateFormat: displayPreferences.dateFormat,
+                  locale: displayPreferences.language,
+                })}
+              </span>
             </div>
           </div>
         ))}

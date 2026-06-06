@@ -4,6 +4,8 @@ import {
   getSessionLimitSecondsForPlan,
 } from "@/features/billing/services/check-plan-limits";
 import { createDigitalEmployee } from "@/features/employee/use-cases/create-digital-employee";
+import { insertDefaultEmployeeProviderConfigs } from "@/features/employee/services/insert-default-employee-provider-configs";
+import { ensureOrganizationSettings } from "@/entities/organization-settings";
 import { organization } from "@/entities/organization/schema";
 import { eq } from "drizzle-orm";
 import { db } from "@/shared/db/client";
@@ -46,6 +48,9 @@ export async function createApiEmployee(input: {
   }
 
   const sessionLimitSeconds = getSessionLimitSecondsForPlan(billingPlan);
+  const settings = await ensureOrganizationSettings(input.organizationId);
+  const brainProvider = settings.defaultBrainProvider;
+
   const result = await createDigitalEmployee({
     organizationId: input.organizationId,
     actorUserId: input.actorUserId,
@@ -53,10 +58,16 @@ export async function createApiEmployee(input: {
     role,
     description: input.description?.trim() || `${role} digital employee`,
     avatarProvider: "anam",
-    brainProvider: "openai",
+    brainProvider,
     systemPrompt: `You are ${name}, a ${role}. Operate professionally within your organization's digital workforce.`,
     sessionLimitSeconds,
     reason: "Created via Public API",
+  });
+
+  await insertDefaultEmployeeProviderConfigs({
+    employeeId: result.employee.id,
+    organizationId: input.organizationId,
+    brainProvider,
   });
 
   return { ok: true, employeeId: result.employee.id };

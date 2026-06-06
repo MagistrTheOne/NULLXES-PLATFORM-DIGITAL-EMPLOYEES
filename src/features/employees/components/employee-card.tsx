@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { format } from "date-fns";
 import { useTranslations } from "next-intl";
+import { useFormatOrganizationDate } from "@/features/workspace/components/workspace-display-preferences-provider";
 import { Loader2, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -33,7 +33,8 @@ function provisioningLabel(
 export function EmployeeCard({ employee }: { employee: EmployeeListItem }) {
   const t = useTranslations("employees.card");
   const tActions = useTranslations("common.actions");
-  const createdLabel = format(employee.createdAt, "MMM d, yyyy");
+  const { formatDate } = useFormatOrganizationDate();
+  const createdLabel = formatDate(employee.createdAt);
   const isProvisioning =
     employee.avatarProvisioningStatus === "pending" ||
     employee.avatarProvisioningStatus === "provisioning";

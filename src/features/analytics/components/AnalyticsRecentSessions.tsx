@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useTranslations } from "next-intl";
+import { useFormatOrganizationDate } from "@/features/workspace/components/workspace-display-preferences-provider";
 import {
   Table,
   TableBody,
@@ -22,22 +23,13 @@ function formatSatisfaction(rating: number | null): string {
   return `${rating.toFixed(1)} / 5`;
 }
 
-function formatStartedAt(date: Date): string {
-  return new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-    timeZone: "UTC",
-  }).format(date);
-}
-
 export function AnalyticsRecentSessions({
   sessions,
 }: {
   sessions: RecentSessionRow[];
 }) {
   const t = useTranslations("analytics.recent");
+  const { formatDateTime } = useFormatOrganizationDate();
 
   return (
     <AnalyticsCard title={t("sessions")} description={t("sessionsDesc")}>
@@ -91,7 +83,7 @@ export function AnalyticsRecentSessions({
                     {formatSatisfaction(session.satisfactionRating)}
                   </TableCell>
                   <TableCell className="text-right text-muted-foreground">
-                    {formatStartedAt(session.startedAt)}
+                    {formatDateTime(session.startedAt)}
                   </TableCell>
                 </TableRow>
               ))

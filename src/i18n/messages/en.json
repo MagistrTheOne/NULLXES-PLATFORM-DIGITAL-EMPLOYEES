@@ -378,6 +378,7 @@
       "defaultTimeRange": "Default Time Range",
       "defaultLlm": "Default LLM",
       "defaultModel": "Default model",
+      "defaultModelProviderNote": "This provider uses the platform default model.",
       "modelsLoading": "Loading OpenAI models…",
       "modelsLoadFailed": "Could not load OpenAI models.",
       "pricingUnavailable": "Pricing unavailable for this model.",

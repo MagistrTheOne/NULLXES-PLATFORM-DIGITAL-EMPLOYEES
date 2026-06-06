@@ -1,9 +1,13 @@
 import Link from "next/link";
-import { format } from "date-fns";
 import { ArrowLeft, Loader2, UserRound } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import type { OrganizationDisplayPreferences } from "@/features/workspace/types/display-preferences";
+import {
+  formatOrganizationDate,
+  formatOrganizationDateTime,
+} from "@/shared/i18n/format-organization-date";
 import type { EmployeeDetail } from "../types";
 import { AvatarIdlePreview } from "./avatar-idle-preview";
 import { EmployeeDetailTabs, TabsContent } from "./employee-detail-tabs";
@@ -41,8 +45,10 @@ function SectionCard({
 
 export async function EmployeeDetailScreen({
   employee,
+  displayPreferences,
 }: {
   employee: EmployeeDetail;
+  displayPreferences: OrganizationDisplayPreferences;
 }) {
   const t = await getTranslations("employees.detail");
   const tCommon = await getTranslations("common.actions");
@@ -132,7 +138,10 @@ export async function EmployeeDetailScreen({
               />
               <DetailRow
                 label={t("created")}
-                value={format(employee.createdAt, "MMM d, yyyy")}
+                value={formatOrganizationDate(employee.createdAt, {
+                  dateFormat: displayPreferences.dateFormat,
+                  locale: displayPreferences.language,
+                })}
               />
               <DetailRow
                 label={t("knowledgeSources")}
@@ -216,11 +225,17 @@ export async function EmployeeDetailScreen({
           </TabsContent>
 
           <TabsContent value="knowledge" className="mt-4">
-            <EmployeeKnowledgePanel items={employee.knowledge} />
+            <EmployeeKnowledgePanel
+              items={employee.knowledge}
+              displayPreferences={displayPreferences}
+            />
           </TabsContent>
 
           <TabsContent value="lifecycle" className="mt-4">
-            <EmployeeLifecyclePanel items={employee.lifecycle} />
+            <EmployeeLifecyclePanel
+              items={employee.lifecycle}
+              displayPreferences={displayPreferences}
+            />
           </TabsContent>
         </EmployeeDetailTabs>
       </div>

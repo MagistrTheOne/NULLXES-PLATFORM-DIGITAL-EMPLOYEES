@@ -2,6 +2,7 @@
 
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { WorkspaceDisplayPreferencesProvider } from "@/features/workspace/components/workspace-display-preferences-provider";
 import { dashboardSidebarCssVars } from "../constants";
 import type { DashboardLayoutProps } from "../types";
 import { DashboardSidebar } from "./dashboard-sidebar";
@@ -10,10 +11,12 @@ import { DashboardTopbar } from "./dashboard-topbar";
 export function DashboardLayout({
   user,
   workspace,
+  displayPreferences,
   children,
 }: DashboardLayoutProps) {
   return (
-    <TooltipProvider delayDuration={0}>
+    <WorkspaceDisplayPreferencesProvider preferences={displayPreferences}>
+      <TooltipProvider delayDuration={0}>
       <SidebarProvider
         defaultOpen
         style={dashboardSidebarCssVars}
@@ -28,5 +31,6 @@ export function DashboardLayout({
         </SidebarInset>
       </SidebarProvider>
     </TooltipProvider>
+    </WorkspaceDisplayPreferencesProvider>
   );
 }

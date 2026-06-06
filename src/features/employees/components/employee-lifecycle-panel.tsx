@@ -1,12 +1,17 @@
-import { format } from "date-fns";
+import {
+  formatOrganizationDateTime,
+} from "@/shared/i18n/format-organization-date";
+import type { OrganizationDisplayPreferences } from "@/features/workspace/types/display-preferences";
 import { getTranslations } from "next-intl/server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { EmployeeLifecycleItem } from "../types";
 
 export async function EmployeeLifecyclePanel({
   items,
+  displayPreferences,
 }: {
   items: EmployeeLifecycleItem[];
+  displayPreferences: OrganizationDisplayPreferences;
 }) {
   const t = await getTranslations("employees.lifecycle");
 
@@ -35,7 +40,12 @@ export async function EmployeeLifecyclePanel({
                   {t(`events.${item.eventType}`)}
                 </p>
                 <p className="text-xs text-white/50">
-                  {item.actorName} · {format(item.createdAt, "MMM d, yyyy HH:mm")}
+                  {item.actorName} ·{" "}
+                  {formatOrganizationDateTime(item.createdAt, {
+                    dateFormat: displayPreferences.dateFormat,
+                    timeFormat: displayPreferences.timeFormat,
+                    locale: displayPreferences.language,
+                  })}
                 </p>
                 {item.reason ? (
                   <p className="text-sm text-white/60">{item.reason}</p>

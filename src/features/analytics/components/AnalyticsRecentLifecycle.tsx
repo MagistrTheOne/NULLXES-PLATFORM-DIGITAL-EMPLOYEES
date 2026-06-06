@@ -1,7 +1,7 @@
 "use client";
 
-import { format } from "date-fns";
 import { useTranslations } from "next-intl";
+import { useFormatOrganizationDate } from "@/features/workspace/components/workspace-display-preferences-provider";
 import type { RecentLifecycleEventRow } from "../types";
 import { AnalyticsCard } from "./analytics-card";
 
@@ -11,6 +11,7 @@ export function AnalyticsRecentLifecycle({
   events: RecentLifecycleEventRow[];
 }) {
   const t = useTranslations("analytics.recent");
+  const { formatDateTime } = useFormatOrganizationDate();
 
   return (
     <AnalyticsCard title={t("activity")} description={t("activityDesc")}>
@@ -35,7 +36,7 @@ export function AnalyticsRecentLifecycle({
                   </p>
                 </div>
                 <p className="shrink-0 text-xs tabular-nums text-muted-foreground">
-                  {format(event.createdAt, "MMM d, HH:mm")}
+                  {formatDateTime(event.createdAt)}
                 </p>
               </div>
             ))}

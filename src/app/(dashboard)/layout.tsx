@@ -6,6 +6,7 @@ import type {
   DashboardShellWorkspace,
 } from "@/features/dashboard/types";
 import { ensureWorkspace } from "@/features/auth/services/ensure-workspace";
+import { getOrganizationDisplayPreferences } from "@/features/workspace/services/get-organization-display-preferences";
 import { loadMessages } from "@/i18n/load-messages";
 import { getRequestLocale } from "@/i18n/request";
 import { IntlProvider } from "@/shared/i18n/intl-provider";
@@ -43,10 +44,17 @@ export default async function DashboardRouteLayout({
 
   const locale = await getRequestLocale();
   const messages = loadMessages(locale);
+  const displayPreferences = await getOrganizationDisplayPreferences(
+    workspace.organization.id,
+  );
 
   return (
     <IntlProvider locale={locale} messages={messages}>
-      <DashboardLayout user={user} workspace={workspaceShell}>
+      <DashboardLayout
+        user={user}
+        workspace={workspaceShell}
+        displayPreferences={displayPreferences}
+      >
         {children}
       </DashboardLayout>
     </IntlProvider>

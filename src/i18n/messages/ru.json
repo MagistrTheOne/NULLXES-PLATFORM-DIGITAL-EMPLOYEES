@@ -378,6 +378,7 @@
       "defaultTimeRange": "Период аналитики",
       "defaultLlm": "LLM по умолчанию",
       "defaultModel": "Модель по умолчанию",
+      "defaultModelProviderNote": "Для этого провайдера используется модель платформы по умолчанию.",
       "modelsLoading": "Загрузка моделей OpenAI…",
       "modelsLoadFailed": "Не удалось загрузить модели OpenAI.",
       "pricingUnavailable": "Стоимость для этой модели недоступна.",

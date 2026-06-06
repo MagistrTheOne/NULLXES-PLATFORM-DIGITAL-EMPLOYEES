@@ -395,7 +395,14 @@ export function SettingsGeneralTab({
                   }))
                 }
               />
-            ) : null}
+            ) : (
+              <Field label={t("defaultModel")}>
+                <Input value={defaults.defaultBrainModel} disabled readOnly />
+                <p className="text-xs text-muted-foreground">
+                  {t("defaultModelProviderNote")}
+                </p>
+              </Field>
+            )}
             <Field label={t("knowledgeProcessing")}>
               <Select
                 value={defaults.knowledgeProcessing}
