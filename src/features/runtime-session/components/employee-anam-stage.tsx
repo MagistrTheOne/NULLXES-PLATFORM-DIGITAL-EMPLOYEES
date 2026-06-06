@@ -60,27 +60,39 @@ export function EmployeeAnamStage({
 
     const token = sessionToken;
     let disposed = false;
+    let startGeneration = 0;
+    let activeClient: ReturnType<typeof createAnamTalkClient> | null = null;
     let detachVoicePipeline: (() => void) | null = null;
     let detachSessionEvents: (() => void) | null = null;
 
     async function startAnamSession(): Promise<void> {
+      const generation = ++startGeneration;
+
       setStatus("connecting");
       setErrorMessage(null);
       setIsLive(false);
       setPipelineState("idle");
 
       const anamClient = createAnamTalkClient(token);
+      if (disposed || generation !== startGeneration) {
+        await anamClient.stopStreaming().catch(() => undefined);
+        return;
+      }
+
+      activeClient = anamClient;
       registerClient(anamClient);
 
       anamClient.addListener(AnamEvent.VIDEO_PLAY_STARTED, () => {
-        if (!disposed) {
-          setStatus("live");
-          setIsLive(true);
-          setPipelineState("idle");
-          ensureMicActive();
-          syncMicFromClient();
-          void activateTalkSessionAction(employeeSessionId);
+        if (disposed || generation !== startGeneration) {
+          return;
         }
+
+        setStatus("live");
+        setIsLive(true);
+        setPipelineState("idle");
+        ensureMicActive();
+        syncMicFromClient();
+        void activateTalkSessionAction(employeeSessionId);
       });
 
       detachSessionEvents = attachTalkAnamSessionEvents({
@@ -90,7 +102,11 @@ export function EmployeeAnamStage({
         syncMicFromClient,
         ensureMicActive,
         onConnectionClosed: (reason, details) => {
-          if (disposed || isStoppingIntentionally()) {
+          if (
+            disposed ||
+            generation !== startGeneration ||
+            isStoppingIntentionally()
+          ) {
             return;
           }
 
@@ -119,7 +135,11 @@ export function EmployeeAnamStage({
       try {
         await anamClient.streamToVideoElement(ANAM_VIDEO_ELEMENT_ID);
       } catch (error: unknown) {
-        if (!disposed && !isStoppingIntentionally()) {
+        if (
+          !disposed &&
+          generation === startGeneration &&
+          !isStoppingIntentionally()
+        ) {
           setStatus("error");
           setIsLive(false);
           setErrorMessage(
@@ -134,21 +154,24 @@ export function EmployeeAnamStage({
 
     return () => {
       disposed = true;
+      startGeneration += 1;
       detachVoicePipeline?.();
       detachSessionEvents?.();
+      const client = activeClient;
+      activeClient = null;
       registerClient(null);
+      if (client) {
+        void client.stopStreaming().catch(() => undefined);
+      }
     };
   }, [
     employeeId,
     employeeSessionId,
-    ensureMicActive,
     isStoppingIntentionally,
     registerClient,
     sessionToken,
     setIsLive,
-    setMicPermission,
     setPipelineState,
-    syncMicFromClient,
     t,
     voiceMode,
   ]);

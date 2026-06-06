@@ -39,6 +39,7 @@ const TalkAnamContext = createContext<TalkAnamContextValue | null>(null);
 
 export function TalkAnamProvider({ children }: { children: ReactNode }) {
   const [client, setClient] = useState<AnamClient | null>(null);
+  const clientRef = useRef<AnamClient | null>(null);
   const [micMuted, setMicMuted] = useState(false);
   const [micPermission, setMicPermission] =
     useState<TalkMicPermission>("unknown");
@@ -49,11 +50,15 @@ export function TalkAnamProvider({ children }: { children: ReactNode }) {
   const userMutedMicRef = useRef(false);
 
   const registerClient = useCallback((next: AnamClient | null) => {
+    clientRef.current = next;
+
     if (next) {
       stoppingIntentionallyRef.current = false;
       userMutedMicRef.current = false;
     }
+
     setClient(next);
+
     if (!next) {
       setMicMuted(false);
       setMicPermission("unknown");
@@ -63,54 +68,58 @@ export function TalkAnamProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const syncMicFromClient = useCallback(() => {
-    if (!client) {
+    const active = clientRef.current;
+    if (!active) {
       return;
     }
 
     try {
-      const state = client.getInputAudioState();
+      const state = active.getInputAudioState();
       setMicMuted(state.isMuted);
       userMutedMicRef.current = state.isMuted;
     } catch {
       // ignore SDK state read errors
     }
-  }, [client]);
+  }, []);
 
   const ensureMicActive = useCallback(() => {
-    if (!client || userMutedMicRef.current) {
+    const active = clientRef.current;
+    if (!active || userMutedMicRef.current) {
       return;
     }
 
     try {
-      const state = client.getInputAudioState();
+      const state = active.getInputAudioState();
       if (state.isMuted) {
-        client.unmuteInputAudio();
+        active.unmuteInputAudio();
       }
       setMicMuted(false);
     } catch {
       // ignore SDK mic activation errors
     }
-  }, [client]);
+  }, []);
 
   const toggleMic = useCallback(() => {
-    if (!client) {
+    const active = clientRef.current;
+    if (!active) {
       return;
     }
 
-    const state = client.getInputAudioState();
+    const state = active.getInputAudioState();
     if (state.isMuted) {
-      client.unmuteInputAudio();
+      active.unmuteInputAudio();
       userMutedMicRef.current = false;
       setMicMuted(false);
     } else {
-      client.muteInputAudio();
+      active.muteInputAudio();
       userMutedMicRef.current = true;
       setMicMuted(true);
     }
-  }, [client]);
+  }, []);
 
   const stopSession = useCallback(async () => {
-    const active = client;
+    const active = clientRef.current;
+    clientRef.current = null;
     stoppingIntentionallyRef.current = true;
     setClient(null);
     setMicMuted(false);
@@ -121,7 +130,7 @@ export function TalkAnamProvider({ children }: { children: ReactNode }) {
     if (active) {
       await active.stopStreaming().catch(() => undefined);
     }
-  }, [client]);
+  }, []);
 
   const isStoppingIntentionally = useCallback(
     () => stoppingIntentionallyRef.current,
