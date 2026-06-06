@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import type { EmployeeListItem } from "../types";
 import { AvatarIdlePreview } from "./avatar-idle-preview";
-import { EmployeeProviderBadge } from "./employee-provider-badge";
 import { EmployeeStatusBadge } from "./employee-status-badge";
 
 function provisioningLabel(
@@ -78,22 +77,8 @@ export function EmployeeCard({ employee }: { employee: EmployeeListItem }) {
           </div>
           <EmployeeStatusBadge status={employee.status} />
         </div>
-        <div className="mt-auto flex flex-col gap-3">
-          <div className="flex flex-col gap-2">
-            <EmployeeProviderBadge
-              kind="Avatar"
-              provider={employee.avatarProvider}
-            />
-            <EmployeeProviderBadge kind="Brain" provider={employee.brainProvider} />
-            {employee.sessionVoiceProvider ? (
-              <EmployeeProviderBadge
-                kind="Voice"
-                provider={employee.sessionVoiceProvider}
-              />
-            ) : null}
-          </div>
-          <div className="flex items-center justify-between gap-3">
-            <Button
+        <div className="mt-auto flex items-center justify-between gap-3">
+          <Button
               type="button"
               disabled={!employee.canTalk}
               variant="outline"
@@ -109,7 +94,6 @@ export function EmployeeCard({ employee }: { employee: EmployeeListItem }) {
               )}
             </Button>
             <span className="text-xs text-white/50">{createdLabel}</span>
-          </div>
         </div>
       </CardContent>
     </Card>
