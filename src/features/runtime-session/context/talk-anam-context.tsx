@@ -1,5 +1,9 @@
 "use client";
 
+import { suppressAnamClientMetricsFetch } from "@/features/runtime-session/lib/suppress-anam-client-metrics";
+
+suppressAnamClientMetricsFetch();
+
 import {
   createContext,
   useCallback,
