@@ -54,6 +54,7 @@ export default async function DashboardRouteLayout({
     <DashboardLayout
       user={user}
       workspace={workspaceShell}
+      permissions={workspace.permissions}
       displayPreferences={displayPreferences}
     >
       {children}

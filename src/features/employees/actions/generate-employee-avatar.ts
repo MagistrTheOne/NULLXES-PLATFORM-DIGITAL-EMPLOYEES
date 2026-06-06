@@ -1,6 +1,6 @@
 "use server";
 
-import { requireAuth } from "@/features/auth/services/require-auth";
+import { requireWorkspacePermissionOrThrowMessage } from "@/features/workspace";
 import { createAnamAvatarFromFile } from "@/features/employees/studio/anam-create-avatar-from-file";
 
 export type GenerateEmployeeAvatarSuccess = {
@@ -22,7 +22,14 @@ export type GenerateEmployeeAvatarResult =
 export async function generateEmployeeAvatar(
   formData: FormData,
 ): Promise<GenerateEmployeeAvatarResult> {
-  await requireAuth();
+  try {
+    await requireWorkspacePermissionOrThrowMessage("canManageEmployees");
+  } catch (error: unknown) {
+    return {
+      status: "failed",
+      message: error instanceof Error ? error.message : "Access denied",
+    };
+  }
 
   const file = formData.get("file");
   const displayName = String(formData.get("displayName") ?? "").trim();

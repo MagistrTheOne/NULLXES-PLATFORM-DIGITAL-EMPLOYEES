@@ -5,6 +5,7 @@ import {
   text,
   timestamp,
 } from "drizzle-orm/pg-core";
+import { dataRegionEnum } from "@/entities/organization/schema";
 
 export const userStatusEnum = pgEnum("user_status", [
   "active",
@@ -21,6 +22,7 @@ export const user = pgTable("user", {
   image: text("image"),
   status: userStatusEnum("status").notNull().default("active"),
   twoFactorEnabled: boolean("two_factor_enabled").notNull().default(false),
+  dataRegion: dataRegionEnum("data_region"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),

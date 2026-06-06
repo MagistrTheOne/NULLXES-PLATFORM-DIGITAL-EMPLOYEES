@@ -19,6 +19,8 @@ export const organizationBillingPlanEnum = pgEnum("organization_billing_plan", [
   "government",
 ]);
 
+export const dataRegionEnum = pgEnum("data_region", ["global", "ru"]);
+
 export const organization = pgTable("organization", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
@@ -29,6 +31,7 @@ export const organization = pgTable("organization", {
   billingPlan: organizationBillingPlanEnum("billing_plan")
     .notNull()
     .default("free"),
+  dataRegion: dataRegionEnum("data_region").notNull().default("global"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),

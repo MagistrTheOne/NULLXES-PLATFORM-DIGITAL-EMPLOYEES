@@ -1,7 +1,6 @@
 "use server";
 
-import { requireAuth } from "@/features/auth/services/require-auth";
-import { ensureWorkspace } from "@/features/auth/services/ensure-workspace";
+import { requireWorkspacePermissionOrThrowMessage } from "@/features/workspace";
 import { dispatchOrganizationWebhook } from "@/features/public-api/services/dispatch-outbound-webhook";
 import { inngest, isInngestEnabledForSend } from "@/inngest/client";
 import { createAnamTalkSessionTokenForEmployee } from "../services/create-anam-talk-session";
@@ -15,11 +14,12 @@ import {
 } from "../services/record-employee-session";
 
 async function resolveWorkspaceContext() {
-  const session = await requireAuth();
-  const workspace = await ensureWorkspace(session.user.id, session.user.name);
+  const workspace = await requireWorkspacePermissionOrThrowMessage(
+    "canOperateEmployees",
+  );
   return {
     organizationId: workspace.organization.id,
-    userId: session.user.id,
+    userId: workspace.user.id,
   };
 }
 
@@ -87,7 +87,8 @@ export type StartTalkSessionResult =
 export async function startTalkSessionAction(
   employeeId: string,
 ): Promise<StartTalkSessionResult> {
-  const { organizationId, userId } = await resolveWorkspaceContext();
+  try {
+    const { organizationId, userId } = await resolveWorkspaceContext();
 
   const employee = await getEmployeeDetail(organizationId, employeeId);
   if (!employee) {
@@ -114,4 +115,10 @@ export async function startTalkSessionAction(
     sessionToken: anamToken.sessionToken,
     voiceMode: resolveTalkVoiceMode(employee),
   };
+  } catch (error: unknown) {
+    return {
+      ok: false,
+      message: error instanceof Error ? error.message : "Access denied",
+    };
+  }
 }

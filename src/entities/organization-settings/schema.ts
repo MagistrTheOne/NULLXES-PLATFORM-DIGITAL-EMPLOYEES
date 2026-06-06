@@ -30,6 +30,11 @@ export const organizationSettings = pgTable("organization_settings", {
   notifyWeeklyDigest: boolean("notify_weekly_digest").notNull().default(false),
   outboundWebhookUrl: text("outbound_webhook_url"),
   outboundWebhookSecret: text("outbound_webhook_secret"),
+  requireTwoFactorForAdmins: boolean("require_two_factor_for_admins")
+    .notNull()
+    .default(false),
+  apiIpAllowlist: text("api_ip_allowlist"),
+  lastRetentionRunAt: timestamp("last_retention_run_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),

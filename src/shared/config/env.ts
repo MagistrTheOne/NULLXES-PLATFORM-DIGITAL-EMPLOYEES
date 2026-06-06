@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+
 export function isDevelopmentRuntime(): boolean {
   return process.env.NODE_ENV === "development";
 }
@@ -116,4 +118,20 @@ export function getInngestServeUrl(): string {
   }
 
   return `${getBetterAuthUrl().replace(/\/$/, "")}/api/inngest`;
+}
+
+/** AES-256 key (32 bytes, base64) for field-level encryption. */
+export function getDataEncryptionKey(): string {
+  const configured = readOptionalEnv("DATA_ENCRYPTION_KEY");
+  if (configured) {
+    return configured;
+  }
+
+  if (isDevelopmentRuntime()) {
+    return createHash("sha256")
+      .update(getBetterAuthSecret())
+      .digest("base64");
+  }
+
+  throw new Error("DATA_ENCRYPTION_KEY is not set");
 }

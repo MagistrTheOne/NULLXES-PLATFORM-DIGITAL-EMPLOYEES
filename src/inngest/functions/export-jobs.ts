@@ -1,5 +1,6 @@
 import { eq } from "drizzle-orm";
 import { exportJob } from "@/entities/export-job/schema";
+import { encryptField } from "@/shared/crypto/field-encryption";
 import { db } from "@/shared/db/client";
 import { inngest } from "../client";
 
@@ -19,12 +20,14 @@ export const processExportJob = inngest.createFunction(
     });
 
     await step.run("build-export", async () => {
+      const downloadToken = crypto.randomUUID();
+
       await db
         .update(exportJob)
         .set({
           status: "ready",
           completedAt: new Date(),
-          downloadToken: crypto.randomUUID(),
+          downloadToken: encryptField(downloadToken),
           downloadExpiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24),
         })
         .where(eq(exportJob.id, jobId));

@@ -1,4 +1,5 @@
 import { db } from "@/shared/db/client";
+import { getDefaultDataRegion } from "@/shared/config/deployment-profile";
 import {
   organization,
   type organizationStatusEnum,
@@ -20,6 +21,7 @@ export async function createOrganization(input: CreateOrganizationInput) {
       slug: input.slug,
       type: input.type,
       status: input.status ?? "active",
+      dataRegion: getDefaultDataRegion(),
     })
     .returning();
 

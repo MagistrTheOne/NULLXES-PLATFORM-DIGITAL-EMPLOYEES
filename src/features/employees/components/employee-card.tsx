@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useTranslations } from "next-intl";
+import { useWorkspacePermissions } from "@/features/workspace/components/workspace-permissions-provider";
 import { useFormatOrganizationDate } from "@/features/workspace/components/workspace-display-preferences-provider";
 import { Loader2, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -32,7 +33,9 @@ function provisioningLabel(
 export function EmployeeCard({ employee }: { employee: EmployeeListItem }) {
   const t = useTranslations("employees.card");
   const tActions = useTranslations("common.actions");
+  const permissions = useWorkspacePermissions();
   const { formatDate } = useFormatOrganizationDate();
+  const canTalk = employee.canTalk && permissions.canOperateEmployees;
   const createdLabel = formatDate(employee.createdAt);
   const isProvisioning =
     employee.avatarProvisioningStatus === "pending" ||
@@ -80,12 +83,12 @@ export function EmployeeCard({ employee }: { employee: EmployeeListItem }) {
         <div className="mt-auto flex items-center justify-between gap-3">
           <Button
             type="button"
-            disabled={!employee.canTalk}
+            disabled={!canTalk}
             variant="outline"
             className="border-white/10 bg-transparent text-white hover:bg-white/5 disabled:opacity-40"
-            asChild={employee.canTalk}
+            asChild={canTalk}
           >
-            {employee.canTalk ? (
+            {canTalk ? (
               <Link href={`/dashboard/employees/${employee.id}/talk`}>
                 {tActions("talk")}
               </Link>

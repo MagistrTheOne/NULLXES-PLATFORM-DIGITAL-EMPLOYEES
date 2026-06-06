@@ -483,6 +483,17 @@ export function SettingsGeneralTab({
             <StatusRow label={t("dataExport")} value={t("dataExportValue")} />
             <StatusRow label={t("deleteSessions")} value={t("deleteSessionsValue")} />
             <StatusRow label={t("anonymizeData")} value={t("anonymizeDataValue")} />
+            <StatusRow
+              label={t("lastRetentionRun")}
+              value={
+                settings.lastRetentionRunAt
+                  ? new Intl.DateTimeFormat(undefined, {
+                      dateStyle: "medium",
+                      timeStyle: "short",
+                    }).format(new Date(settings.lastRetentionRunAt))
+                  : t("lastRetentionNever")
+              }
+            />
           </div>
         </SettingsCard>
         ) : null}

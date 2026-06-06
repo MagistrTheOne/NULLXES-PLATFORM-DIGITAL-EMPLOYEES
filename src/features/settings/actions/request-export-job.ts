@@ -4,6 +4,10 @@ import { requireAuth } from "@/features/auth/services/require-auth";
 import { ensureWorkspace } from "@/features/auth/services/ensure-workspace";
 import { exportJob } from "@/entities/export-job/schema";
 import { inngest } from "@/inngest/client";
+import {
+  assertTwoFactorForSensitiveAction,
+  TwoFactorRequiredError,
+} from "@/features/security/services/assert-two-factor-for-sensitive-action";
 import { db } from "@/shared/db/client";
 
 export async function requestExportJobAction(): Promise<
@@ -14,6 +18,19 @@ export async function requestExportJobAction(): Promise<
 
   if (!workspace.permissions.canManageOrganization) {
     return { ok: false, message: "Only organization owners can request exports." };
+  }
+
+  try {
+    await assertTwoFactorForSensitiveAction({
+      userId: session.user.id,
+      role: workspace.membership.role,
+      organizationId: workspace.organization.id,
+    });
+  } catch (error: unknown) {
+    if (error instanceof TwoFactorRequiredError) {
+      return { ok: false, message: error.message };
+    }
+    throw error;
   }
 
   const [job] = await db

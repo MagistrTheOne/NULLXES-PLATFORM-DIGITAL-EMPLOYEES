@@ -11,8 +11,7 @@ import { employeeLifecycleEvent } from "@/entities/employee-lifecycle/schema";
 import { knowledgeSource } from "@/entities/knowledge/schema";
 import { employeeProviderConfig } from "@/entities/provider-config/schema";
 import { employeeRuntime } from "@/entities/runtime/schema";
-import { ensureWorkspace } from "@/features/auth/services/ensure-workspace";
-import { requireAuth } from "@/features/auth/services/require-auth";
+import { requireWorkspacePermissionOrThrowMessage } from "@/features/workspace";
 import { recordLifecycleEvent } from "@/features/employee/services/record-lifecycle-event";
 import { resolveOrganizationBrainModel } from "@/features/settings/services/resolve-organization-brain-model";
 import { enqueueEmployeeProvisioning } from "@/features/provider-provisioning/orchestrator/enqueue-employee-provisioning";
@@ -54,8 +53,9 @@ function mapKnowledgeItem(item: KnowledgeDraftItem): {
 export async function persistDigitalEmployeeFromDraft(
   draft: CreateEmployeeDraftPayload,
 ): Promise<PersistDigitalEmployeeResult> {
-  const session = await requireAuth();
-  const workspace = await ensureWorkspace(session.user.id, session.user.name);
+  const workspace = await requireWorkspacePermissionOrThrowMessage(
+    "canManageEmployees",
+  );
 
   const avatarProvider = draft.avatar.provider as AvatarProvider;
   const brainProvider = draft.brain.provider;
@@ -108,7 +108,7 @@ export async function persistDigitalEmployeeFromDraft(
 
     await recordLifecycleEvent(tx, {
       employeeId: employee.id,
-      actorUserId: session.user.id,
+      actorUserId: workspace.user.id,
       eventType: "created",
       reason: "Created from dashboard",
       metadata: {

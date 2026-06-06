@@ -349,6 +349,7 @@
       "billing": "Оплата",
       "integrations": "Интеграции",
       "security": "Безопасность",
+      "audit": "Аудит",
       "ai": "ИИ и голос",
       "notifications": "Уведомления",
       "advanced": "Дополнительно"
@@ -389,7 +390,9 @@
       "deleteSessions": "Удаление сессий",
       "deleteSessionsValue": "По политике хранения",
       "anonymizeData": "Анонимизация",
-      "anonymizeDataValue": "Свяжитесь с администратором"
+      "anonymizeDataValue": "Свяжитесь с администратором",
+      "lastRetentionRun": "Последняя очистка по политике хранения",
+      "lastRetentionNever": "Ещё не выполнялась"
     },
     "notifications": {
       "title": "Уведомления",
@@ -475,7 +478,43 @@
       "copyKeyNow": "Скопируйте ключ сейчас. Он больше не будет показан.",
       "passwordPrompt": "Подтвердите пароль для включения 2FA:",
       "enable2faFailed": "Не удалось включить 2FA.",
-      "totpSetup": "Отсканируйте TOTP URI в приложении-аутентификаторе."
+      "totpSetup": "Отсканируйте TOTP URI в приложении-аутентификаторе.",
+      "scanTotp": "Отсканируйте URI ниже, затем введите код подтверждения.",
+      "totpUriLabel": "URI для настройки аутентификатора",
+      "backupCodesLabel": "Резервные коды (храните в безопасном месте)",
+      "verifyCode": "Код подтверждения",
+      "verifyAndEnable": "Подтвердить и включить",
+      "verifyFailed": "Неверный код подтверждения.",
+      "twoFactorEnabled": "Двухфакторная аутентификация включена.",
+      "disable2fa": "Отключить 2FA",
+      "disable2faFailed": "Не удалось отключить 2FA.",
+      "twoFactorDisabled": "Двухфакторная аутентификация отключена.",
+      "orgPolicy": "Политика организации",
+      "orgPolicyDesc": "Требования безопасности для администраторов",
+      "require2faAdmins": "Требовать 2FA для администраторов",
+      "require2faAdminsDesc": "Владельцы и администраторы должны включить 2FA для чувствительных действий.",
+      "orgPolicySaved": "Политика безопасности сохранена.",
+      "webhooks": "Исходящие вебхуки",
+      "webhooksDesc": "Подписанная доставка событий на ваш endpoint",
+      "webhookUrl": "URL вебхука",
+      "webhookSecret": "Секрет подписи",
+      "webhookSecretPlaceholder": "Введите новый секрет подписи",
+      "webhookSecretConfigured": "Оставьте пустым, чтобы сохранить текущий секрет",
+      "saveWebhook": "Сохранить настройки вебхука",
+      "webhookSaved": "Настройки вебхука сохранены.",
+      "ipAllowlistEnabled": "Включён",
+      "ipAllowlistInput": "Разрешённые IP-адреса (через запятую или с новой строки)",
+      "saveAllowlist": "Сохранить белый список IP",
+      "allowlistSaved": "Белый список IP сохранён.",
+      "revokeKey": "Отозвать",
+      "keyRevoked": "API-ключ отозван."
+    },
+    "audit": {
+      "title": "Журнал аудита",
+      "description": "Недавние события безопасности и администрирования",
+      "empty": "События аудита пока не записаны.",
+      "unknownResource": "ресурс",
+      "actor": "Роль: {role}"
     },
     "integrations": {
       "title": "Подключённые сервисы",

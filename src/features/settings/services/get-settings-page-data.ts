@@ -5,6 +5,7 @@ import { getDefaultAnalyticsRange } from "@/features/analytics/lib/date-range";
 import { getWorkspaceAnalytics } from "@/features/analytics/queries/get-workspace-analytics";
 import { getActiveSessionCount } from "@/features/overview/queries/get-active-session-count";
 import { getWorkspaceIntegrations } from "@/features/integrations/queries/get-workspace-integrations";
+import { listAuditEvents } from "@/features/security/queries/list-audit-events";
 import { getSecuritySnapshot } from "../queries/get-security-snapshot";
 import type { WorkspaceContext } from "@/features/workspace";
 import { db } from "@/shared/db/client";
@@ -35,6 +36,11 @@ function toSettingsDto(
     notifyEmployeeCreated: settings.notifyEmployeeCreated,
     notifyKnowledgeFailed: settings.notifyKnowledgeFailed,
     notifyWeeklyDigest: settings.notifyWeeklyDigest,
+    requireTwoFactorForAdmins: settings.requireTwoFactorForAdmins,
+    outboundWebhookUrl: settings.outboundWebhookUrl,
+    outboundWebhookConfigured: Boolean(settings.outboundWebhookUrl?.trim()),
+    apiIpAllowlist: settings.apiIpAllowlist,
+    lastRetentionRunAt: settings.lastRetentionRunAt,
   };
 }
 
@@ -53,6 +59,7 @@ export async function getSettingsPageData(
       teamMembers,
       pendingInvites,
       security,
+      auditEvents,
     ] = await Promise.all([
       ensureOrganizationSettings(organizationId),
       db
@@ -67,6 +74,7 @@ export async function getSettingsPageData(
         userId: workspace.user.id,
         organizationId,
       }),
+      listAuditEvents({ organizationId, limit: 50 }),
     ]);
 
     const memberCount = Number(memberCountRow[0]?.total ?? 0);
@@ -107,6 +115,15 @@ export async function getSettingsPageData(
       pendingInvites,
       integrations: await getWorkspaceIntegrations(organizationId),
       security,
+      auditEvents: auditEvents.map((event) => ({
+        id: event.id,
+        action: event.action,
+        actorUserId: event.actorUserId,
+        actorRole: event.actorRole,
+        resourceType: event.resourceType,
+        resourceId: event.resourceId,
+        createdAt: event.createdAt,
+      })),
     };
   });
 }

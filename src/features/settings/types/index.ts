@@ -21,12 +21,30 @@ export type OrganizationSettingsDto = {
   notifyEmployeeCreated: boolean;
   notifyKnowledgeFailed: boolean;
   notifyWeeklyDigest: boolean;
+  requireTwoFactorForAdmins: boolean;
+  outboundWebhookUrl: string | null;
+  outboundWebhookConfigured: boolean;
+  apiIpAllowlist: string | null;
+  lastRetentionRunAt: Date | null;
+};
+
+export type ApiKeyListItem = {
+  id: string;
+  name: string;
+  keyPrefix: string;
+  lastUsedAt: Date | null;
+  createdAt: Date;
 };
 
 export type SecuritySnapshot = {
   activeAuthSessions: number;
   apiKeysConfigured: boolean;
   twoFactorEnabled: boolean;
+  requireTwoFactorForAdmins: boolean;
+  outboundWebhookUrl: string | null;
+  outboundWebhookConfigured: boolean;
+  apiIpAllowlist: string | null;
+  apiKeys: ApiKeyListItem[];
 };
 
 export type OrganizationProfileDto = {
@@ -77,6 +95,16 @@ export type SettingsContextPanel = {
   teamMembers: TeamMemberRow[];
 };
 
+export type AuditEventListItem = {
+  id: string;
+  action: string;
+  actorUserId: string | null;
+  actorRole: string | null;
+  resourceType: string | null;
+  resourceId: string | null;
+  createdAt: Date;
+};
+
 export type SettingsPageData = {
   canManageOrganization: boolean;
   canManageMembers: boolean;
@@ -88,4 +116,5 @@ export type SettingsPageData = {
   pendingInvites: TeamInviteRow[];
   integrations: SystemStatusItem[];
   security: SecuritySnapshot;
+  auditEvents: AuditEventListItem[];
 };

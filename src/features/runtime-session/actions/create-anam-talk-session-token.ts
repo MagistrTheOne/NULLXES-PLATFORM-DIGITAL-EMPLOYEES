@@ -1,7 +1,6 @@
 "use server";
 
-import { requireAuth } from "@/features/auth/services/require-auth";
-import { ensureWorkspace } from "@/features/auth/services/ensure-workspace";
+import { requireWorkspacePermissionOrThrowMessage } from "@/features/workspace";
 import {
   createAnamTalkSessionTokenForEmployee,
   type AnamTalkSessionTokenResult,
@@ -12,11 +11,19 @@ export type CreateAnamTalkSessionTokenResult = AnamTalkSessionTokenResult;
 export async function createAnamTalkSessionToken(
   employeeId: string,
 ): Promise<CreateAnamTalkSessionTokenResult> {
-  const session = await requireAuth();
-  const workspace = await ensureWorkspace(session.user.id, session.user.name);
+  try {
+    const workspace = await requireWorkspacePermissionOrThrowMessage(
+      "canOperateEmployees",
+    );
 
-  return createAnamTalkSessionTokenForEmployee(
-    workspace.organization.id,
-    employeeId,
-  );
+    return createAnamTalkSessionTokenForEmployee(
+      workspace.organization.id,
+      employeeId,
+    );
+  } catch (error: unknown) {
+    return {
+      ok: false,
+      message: error instanceof Error ? error.message : "Access denied",
+    };
+  }
 }

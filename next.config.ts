@@ -12,6 +12,7 @@ const betterAuthUrl =
   "http://localhost:3000";
 
 const nextConfig: NextConfig = {
+  poweredByHeader: false,
   env: {
     NEXT_PUBLIC_BETTER_AUTH_URL: betterAuthUrl,
   },

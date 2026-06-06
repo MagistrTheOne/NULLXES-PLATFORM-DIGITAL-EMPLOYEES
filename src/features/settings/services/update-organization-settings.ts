@@ -4,18 +4,29 @@ import { organizationSettings } from "@/entities/organization-settings/schema";
 import { db } from "@/shared/db/client";
 import type { OrganizationSettingsDto } from "../types";
 
+export type OrganizationSettingsPatch = Partial<
+  Omit<OrganizationSettingsDto, "outboundWebhookConfigured">
+> & {
+  outboundWebhookSecret?: string | null;
+};
+
 export type UpdateOrganizationSettingsInput = {
   organizationId: string;
-  settings: Partial<OrganizationSettingsDto>;
+  settings: OrganizationSettingsPatch;
 };
 
 export async function updateOrganizationSettings(
   input: UpdateOrganizationSettingsInput,
 ): Promise<{ ok: true } | { ok: false; message: string }> {
+  const { outboundWebhookConfigured: _ignored, ...patch } =
+    input.settings as OrganizationSettingsPatch & {
+      outboundWebhookConfigured?: boolean;
+    };
+
   const [updated] = await db
     .update(organizationSettings)
     .set({
-      ...input.settings,
+      ...patch,
       updatedAt: new Date(),
     })
     .where(eq(organizationSettings.organizationId, input.organizationId))

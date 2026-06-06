@@ -18,6 +18,8 @@ export default defineConfig({
     "./src/entities/organization-invite/relations.ts",
     "./src/entities/api-key/schema.ts",
     "./src/entities/api-key/relations.ts",
+    "./src/entities/audit/schema.ts",
+    "./src/entities/audit/relations.ts",
     "./src/entities/export-job/schema.ts",
     "./src/entities/export-job/relations.ts",
     "./src/entities/integration-connection/schema.ts",

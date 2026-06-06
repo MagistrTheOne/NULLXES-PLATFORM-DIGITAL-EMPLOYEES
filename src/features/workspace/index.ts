@@ -10,4 +10,8 @@ export {
   hasWorkspaceAccess,
   resolveWorkspace,
   resolveWorkspacePermissions,
+  requireWorkspacePermission,
+  requireWorkspacePermissionOrThrowMessage,
+  workspaceAccessDeniedMessage,
+  WorkspaceAccessDeniedError,
 } from "./services";

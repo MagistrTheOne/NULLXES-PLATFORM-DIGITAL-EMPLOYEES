@@ -18,5 +18,5 @@ function resolveAuthClientBaseUrl(): string {
 
 export const authClient = createAuthClient({
   baseURL: resolveAuthClientBaseUrl(),
-  plugins: [twoFactorClient()],
+  plugins: [twoFactorClient({ twoFactorPage: "/login/verify-2fa" })],
 });

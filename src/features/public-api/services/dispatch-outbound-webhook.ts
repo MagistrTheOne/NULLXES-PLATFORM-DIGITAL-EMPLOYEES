@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { organizationSettings } from "@/entities/organization-settings/schema";
 import { db } from "@/shared/db/client";
+import { decryptField } from "@/shared/crypto/field-encryption";
 import { signOutboundWebhookPayload } from "../lib/sign-outbound-webhook";
 
 export async function dispatchOrganizationWebhook(input: {
@@ -27,7 +28,7 @@ export async function dispatchOrganizationWebhook(input: {
     created_at: new Date().toISOString(),
     data: input.data,
   });
-  const secret = settings.secret?.trim() ?? "";
+  const secret = decryptField(settings.secret)?.trim() ?? "";
   const signature = secret
     ? signOutboundWebhookPayload({ secret, timestamp, body })
     : "";

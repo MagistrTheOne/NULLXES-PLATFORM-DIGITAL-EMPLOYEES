@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { EmployeeStatus } from "@/entities/digital-employee";
+import { useWorkspacePermissions } from "@/features/workspace/components/workspace-permissions-provider";
 import { revalidateEmployeePaths } from "@/features/employees/actions/revalidate-employee-paths";
 import { CreateEmployeeDialog } from "@/features/employees/create";
 import type { EmployeeListItem } from "../types";
@@ -30,6 +31,7 @@ export function EmployeesScreen({
   employees: EmployeeListItem[];
 }) {
   const router = useRouter();
+  const permissions = useWorkspacePermissions();
   const t = useTranslations("employees.list");
   const tCommon = useTranslations("common");
   const [searchQuery, setSearchQuery] = useState("");
@@ -83,6 +85,7 @@ export function EmployeesScreen({
               onSearchQueryChange={setSearchQuery}
               onStatusFilterChange={setStatusFilter}
               onCreateClick={() => setCreateDialogOpen(true)}
+              canCreate={permissions.canManageEmployees}
             />
             {filteredEmployees.length > 0 ? (
               <EmployeeGrid employees={filteredEmployees} />
@@ -93,7 +96,10 @@ export function EmployeesScreen({
             )}
           </>
         ) : (
-          <EmployeeEmptyState onCreateClick={() => setCreateDialogOpen(true)} />
+          <EmployeeEmptyState
+            onCreateClick={() => setCreateDialogOpen(true)}
+            canCreate={permissions.canManageEmployees}
+          />
         )}
       </div>
 

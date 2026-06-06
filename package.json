@@ -43,7 +43,9 @@
     "dev:inngest": "npm run inngest:dev",
     "tunnel:ngrok": "ngrok http 3000",
     "polar:setup": "node --env-file=.env --import tsx scripts/setup-polar-products.ts",
-    "polar:webhook": "node --env-file=.env --import tsx scripts/setup-polar-webhook.ts"
+    "polar:webhook": "node --env-file=.env --import tsx scripts/setup-polar-webhook.ts",
+    "crypto:keygen": "node --import tsx scripts/generate-data-encryption-key.ts",
+    "secrets:migrate": "node --env-file=.env --import tsx scripts/migrate-encrypt-secrets.ts"
   },
   "dependencies": {
     "@anam-ai/js-sdk": "^4.15.0",

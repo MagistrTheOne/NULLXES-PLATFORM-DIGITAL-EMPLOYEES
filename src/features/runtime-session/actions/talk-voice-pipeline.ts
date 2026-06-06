@@ -1,7 +1,6 @@
 "use server";
 
-import { requireAuth } from "@/features/auth/services/require-auth";
-import { ensureWorkspace } from "@/features/auth/services/ensure-workspace";
+import { requireWorkspacePermissionOrThrowMessage } from "@/features/workspace";
 import { getEmployeeDetail } from "@/features/employees/services/get-employee-detail";
 import { collectTalkBrainResponse } from "../services/stream-talk-brain-response";
 import { getTalkRuntimeConfig } from "../services/get-talk-runtime-config";
@@ -33,9 +32,11 @@ export async function synthesizeTalkVoiceAction(
   employeeId: string,
   replyText: string,
 ): Promise<SynthesizeTalkVoiceResult> {
-  const session = await requireAuth();
-  const workspace = await ensureWorkspace(session.user.id, session.user.name);
-  const employee = await getEmployeeDetail(workspace.organization.id, employeeId);
+  try {
+    const workspace = await requireWorkspacePermissionOrThrowMessage(
+      "canOperateEmployees",
+    );
+    const employee = await getEmployeeDetail(workspace.organization.id, employeeId);
 
   if (!employee?.voiceId) {
     return { ok: false, message: "Employee voice is not configured" };
@@ -53,15 +54,23 @@ export async function synthesizeTalkVoiceAction(
       error instanceof Error ? error.message : "ElevenLabs synthesis failed";
     return { ok: false, message };
   }
+  } catch (error: unknown) {
+    return {
+      ok: false,
+      message: error instanceof Error ? error.message : "Access denied",
+    };
+  }
 }
 
 export async function processTalkTurnAction(
   employeeId: string,
   messages: TalkPipelineMessage[],
 ): Promise<ProcessTalkTurnResult> {
-  const session = await requireAuth();
-  const workspace = await ensureWorkspace(session.user.id, session.user.name);
-  const config = await getTalkRuntimeConfig(workspace.organization.id, employeeId);
+  try {
+    const workspace = await requireWorkspacePermissionOrThrowMessage(
+      "canOperateEmployees",
+    );
+    const config = await getTalkRuntimeConfig(workspace.organization.id, employeeId);
 
   if (!config) {
     return { ok: false, message: "Employee not found" };
@@ -104,5 +113,11 @@ export async function processTalkTurnAction(
     const message =
       error instanceof Error ? error.message : "Talk voice pipeline failed";
     return { ok: false, message };
+  }
+  } catch (error: unknown) {
+    return {
+      ok: false,
+      message: error instanceof Error ? error.message : "Access denied",
+    };
   }
 }

@@ -1,8 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireAuth } from "@/features/auth/services/require-auth";
-import { ensureWorkspace } from "@/features/auth/services/ensure-workspace";
+import { requireWorkspacePermissionOrThrowMessage } from "@/features/workspace";
+import { recordAuditEvent } from "@/features/security/services/record-audit-event";
 import { deleteEmployee } from "../services/delete-employee";
 
 export type DeleteEmployeeActionResult =
@@ -12,14 +12,30 @@ export type DeleteEmployeeActionResult =
 export async function deleteEmployeeAction(
   employeeId: string,
 ): Promise<DeleteEmployeeActionResult> {
-  const session = await requireAuth();
-  const workspace = await ensureWorkspace(session.user.id, session.user.name);
+  try {
+    const workspace = await requireWorkspacePermissionOrThrowMessage(
+      "canManageEmployees",
+    );
 
-  const result = await deleteEmployee(workspace.organization.id, employeeId);
+    const result = await deleteEmployee(workspace.organization.id, employeeId);
 
-  if (result.ok) {
-    revalidatePath("/dashboard/employees");
+    if (result.ok) {
+      recordAuditEvent({
+        organizationId: workspace.organization.id,
+        actorUserId: workspace.user.id,
+        actorRole: workspace.membership.role,
+        action: "employee.deleted",
+        resourceType: "digital_employee",
+        resourceId: employeeId,
+      });
+      revalidatePath("/dashboard/employees");
+    }
+
+    return result;
+  } catch (error: unknown) {
+    return {
+      ok: false,
+      message: error instanceof Error ? error.message : "Access denied",
+    };
   }
-
-  return result;
 }

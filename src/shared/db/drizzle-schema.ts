@@ -1,3 +1,5 @@
+import * as auditRelations from "@/entities/audit/relations";
+import * as auditSchema from "@/entities/audit/schema";
 import * as digitalEmployeeRelations from "@/entities/digital-employee/relations";
 import * as digitalEmployeeSchema from "@/entities/digital-employee/schema";
 import * as employeeLifecycleRelations from "@/entities/employee-lifecycle/relations";
@@ -34,6 +36,8 @@ export const drizzleSchema = {
   ...sharedSchema,
   ...authSchema,
   ...authRelations,
+  ...auditSchema,
+  ...auditRelations,
   ...userSchema,
   ...userRelations,
   ...organizationSchema,

@@ -1,6 +1,6 @@
 "use server";
 
-import { requireAuth } from "@/features/auth/services/require-auth";
+import { requireWorkspacePermissionOrThrowMessage } from "@/features/workspace";
 import { createAnamAvatarFromFile } from "@/features/employees/studio/anam-create-avatar-from-file";
 import { resolveAnamPersonaVoiceId } from "@/features/employees/studio/resolve-anam-persona-voice";
 import {
@@ -96,7 +96,14 @@ async function createAnamPersona(input: {
 export async function finalizeEmployeeStudio(
   formData: FormData,
 ): Promise<FinalizeEmployeeStudioResult> {
-  await requireAuth();
+  try {
+    await requireWorkspacePermissionOrThrowMessage("canManageEmployees");
+  } catch (error: unknown) {
+    return {
+      status: "failed",
+      message: error instanceof Error ? error.message : "Access denied",
+    };
+  }
 
   if (!hasAnamCredentials()) {
     return { status: "failed", message: "ANAM_API_KEY is not configured" };

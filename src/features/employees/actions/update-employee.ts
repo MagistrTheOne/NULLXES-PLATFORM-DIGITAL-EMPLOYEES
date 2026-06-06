@@ -1,7 +1,6 @@
 "use server";
 
-import { requireAuth } from "@/features/auth/services/require-auth";
-import { ensureWorkspace } from "@/features/auth/services/ensure-workspace";
+import { requireWorkspacePermissionOrThrowMessage } from "@/features/workspace";
 import type { EmployeeStatus } from "@/entities/digital-employee";
 import { updateEmployee } from "../services/update-employee";
 import { revalidateEmployeePaths } from "./revalidate-employee-paths";
@@ -22,23 +21,31 @@ export type UpdateEmployeeActionResult =
 export async function updateEmployeeAction(
   input: UpdateEmployeeActionInput,
 ): Promise<UpdateEmployeeActionResult> {
-  const session = await requireAuth();
-  const workspace = await ensureWorkspace(session.user.id, session.user.name);
+  try {
+    const workspace = await requireWorkspacePermissionOrThrowMessage(
+      "canManageEmployees",
+    );
 
-  const result = await updateEmployee({
-    organizationId: workspace.organization.id,
-    employeeId: input.employeeId,
-    actorUserId: session.user.id,
-    name: input.name,
-    role: input.role,
-    description: input.description.trim() || null,
-    status: input.status,
-    systemPrompt: input.systemPrompt,
-  });
+    const result = await updateEmployee({
+      organizationId: workspace.organization.id,
+      employeeId: input.employeeId,
+      actorUserId: workspace.user.id,
+      name: input.name,
+      role: input.role,
+      description: input.description.trim() || null,
+      status: input.status,
+      systemPrompt: input.systemPrompt,
+    });
 
-  if (result.ok) {
-    await revalidateEmployeePaths(input.employeeId);
+    if (result.ok) {
+      await revalidateEmployeePaths(input.employeeId);
+    }
+
+    return result;
+  } catch (error: unknown) {
+    return {
+      ok: false,
+      message: error instanceof Error ? error.message : "Access denied",
+    };
   }
-
-  return result;
 }

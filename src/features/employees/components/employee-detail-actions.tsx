@@ -34,6 +34,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Textarea } from "@/components/ui/textarea";
+import { useWorkspacePermissions } from "@/features/workspace/components/workspace-permissions-provider";
 import { deleteEmployeeAction } from "../actions/delete-employee";
 import { updateEmployeeAction } from "../actions/update-employee";
 import type { EmployeeDetail } from "../types";
@@ -50,6 +51,8 @@ export function EmployeeDetailActions({ employee }: { employee: EmployeeDetail }
   const t = useTranslations("employees.detail.actions");
   const tCommon = useTranslations("common.actions");
   const tStatus = useTranslations("employees.status");
+  const permissions = useWorkspacePermissions();
+  const canManage = permissions.canManageEmployees;
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -113,6 +116,10 @@ export function EmployeeDetailActions({ employee }: { employee: EmployeeDetail }
       router.push("/dashboard/employees");
       router.refresh();
     });
+  }
+
+  if (!canManage) {
+    return null;
   }
 
   return (

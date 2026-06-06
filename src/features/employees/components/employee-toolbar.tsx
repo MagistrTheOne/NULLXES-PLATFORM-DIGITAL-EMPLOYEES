@@ -19,12 +19,14 @@ export function EmployeeToolbar({
   onSearchQueryChange,
   onStatusFilterChange,
   onCreateClick,
+  canCreate = true,
 }: {
   searchQuery: string;
   statusFilter: "all" | EmployeeStatus;
   onSearchQueryChange: (value: string) => void;
   onStatusFilterChange: (value: "all" | EmployeeStatus) => void;
   onCreateClick: () => void;
+  canCreate?: boolean;
 }) {
   const t = useTranslations("employees");
   const tCommon = useTranslations("common.actions");
@@ -75,14 +77,16 @@ export function EmployeeToolbar({
           </SelectContent>
         </Select>
       </div>
-      <Button
-        type="button"
-        onClick={onCreateClick}
-        className="shrink-0 bg-white text-black hover:bg-white/90"
-      >
-        <Plus />
-        {tCommon("createEmployee")}
-      </Button>
+      {canCreate ? (
+        <Button
+          type="button"
+          onClick={onCreateClick}
+          className="shrink-0 bg-white text-black hover:bg-white/90"
+        >
+          <Plus />
+          {tCommon("createEmployee")}
+        </Button>
+      ) : null}
     </div>
   );
 }

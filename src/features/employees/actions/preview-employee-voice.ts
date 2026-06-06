@@ -1,7 +1,7 @@
 "use server";
 
 import { ElevenLabsClient } from "@elevenlabs/elevenlabs-js";
-import { requireAuth } from "@/features/auth/services/require-auth";
+import { requireWorkspacePermissionOrThrowMessage } from "@/features/workspace";
 import { ELEVENLABS_VOICE_MODEL_ID } from "@/features/provider-provisioning/types";
 import { STUDIO_VOICE_PREVIEW_TEXT } from "@/features/employees/studio/voice/voice-catalog";
 import {
@@ -94,7 +94,14 @@ async function readAudioToBase64(audio: unknown): Promise<string> {
 export async function previewEmployeeVoice(
   voiceId: string,
 ): Promise<PreviewEmployeeVoiceResult> {
-  await requireAuth();
+  try {
+    await requireWorkspacePermissionOrThrowMessage("canManageEmployees");
+  } catch (error: unknown) {
+    return {
+      status: "failed",
+      message: error instanceof Error ? error.message : "Access denied",
+    };
+  }
 
   if (!voiceId.trim()) {
     return { status: "failed", message: "Voice ID is required" };

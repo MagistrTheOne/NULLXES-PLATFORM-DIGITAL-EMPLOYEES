@@ -3,6 +3,7 @@
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { WorkspaceDisplayPreferencesProvider } from "@/features/workspace/components/workspace-display-preferences-provider";
+import { WorkspacePermissionsProvider } from "@/features/workspace/components/workspace-permissions-provider";
 import { dashboardSidebarCssVars } from "../constants";
 import type { DashboardLayoutProps } from "../types";
 import { DashboardSidebar } from "./dashboard-sidebar";
@@ -11,11 +12,13 @@ import { DashboardTopbar } from "./dashboard-topbar";
 export function DashboardLayout({
   user,
   workspace,
+  permissions,
   displayPreferences,
   children,
 }: DashboardLayoutProps) {
   return (
-    <WorkspaceDisplayPreferencesProvider preferences={displayPreferences}>
+    <WorkspacePermissionsProvider permissions={permissions}>
+      <WorkspaceDisplayPreferencesProvider preferences={displayPreferences}>
       <TooltipProvider delayDuration={0}>
       <SidebarProvider
         defaultOpen
@@ -32,5 +35,6 @@ export function DashboardLayout({
       </SidebarProvider>
     </TooltipProvider>
     </WorkspaceDisplayPreferencesProvider>
+    </WorkspacePermissionsProvider>
   );
 }

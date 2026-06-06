@@ -1,5 +1,6 @@
 import { getSessionCookie } from "better-auth/cookies";
 import { NextRequest, NextResponse } from "next/server";
+import { applySecurityHeaders } from "@/shared/security/apply-security-headers";
 
 const PROTECTED_PREFIXES = [
   "/dashboard",
@@ -26,14 +27,16 @@ export function proxy(request: NextRequest) {
   if (isProtectedRoute(pathname) && !sessionCookie) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("next", pathname);
-    return NextResponse.redirect(loginUrl);
+    return applySecurityHeaders(NextResponse.redirect(loginUrl));
   }
 
   if (isAuthRoute(pathname) && sessionCookie) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
+    return applySecurityHeaders(
+      NextResponse.redirect(new URL("/dashboard", request.url)),
+    );
   }
 
-  return NextResponse.next();
+  return applySecurityHeaders(NextResponse.next());
 }
 
 export const config = {

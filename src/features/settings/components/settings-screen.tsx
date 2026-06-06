@@ -11,6 +11,7 @@ import { SettingsGeneralTab } from "./SettingsGeneralTab";
 import { SettingsIntegrationsTab } from "./SettingsIntegrationsTab";
 import { SettingsNotificationsTab } from "./SettingsNotificationsTab";
 import { SettingsOrganizationTab } from "./SettingsOrganizationTab";
+import { SettingsAuditTab } from "./SettingsAuditTab";
 import { SettingsSecurityTab } from "./SettingsSecurityTab";
 import { SettingsTeamTab } from "./SettingsTeamTab";
 
@@ -21,6 +22,7 @@ const TAB_IDS = [
   "billing",
   "integrations",
   "security",
+  "audit",
   "ai",
   "notifications",
   "advanced",
@@ -102,6 +104,10 @@ export function SettingsScreen({ data }: { data: SettingsPageData }) {
                 security={data.security}
                 canManageOrganization={data.canManageOrganization}
               />
+            </TabsContent>
+
+            <TabsContent value="audit">
+              <SettingsAuditTab events={data.auditEvents} />
             </TabsContent>
 
             <TabsContent value="ai">

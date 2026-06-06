@@ -349,6 +349,7 @@
       "billing": "Billing",
       "integrations": "Integrations",
       "security": "Security",
+      "audit": "Audit",
       "ai": "AI & Voice",
       "notifications": "Notifications",
       "advanced": "Advanced"
@@ -389,7 +390,9 @@
       "deleteSessions": "Delete Sessions",
       "deleteSessionsValue": "Managed by retention policy",
       "anonymizeData": "Anonymize Data",
-      "anonymizeDataValue": "Contact administrator"
+      "anonymizeDataValue": "Contact administrator",
+      "lastRetentionRun": "Last retention purge",
+      "lastRetentionNever": "Not yet run"
     },
     "notifications": {
       "title": "Notification Preferences",
@@ -475,7 +478,43 @@
       "copyKeyNow": "Copy this key now. It will not be shown again.",
       "passwordPrompt": "Confirm your password to enable 2FA:",
       "enable2faFailed": "Failed to enable 2FA.",
-      "totpSetup": "Scan the TOTP URI in your authenticator app to finish setup."
+      "totpSetup": "Scan the TOTP URI in your authenticator app to finish setup.",
+      "scanTotp": "Scan the QR URI below, then enter a verification code.",
+      "totpUriLabel": "Authenticator setup URI",
+      "backupCodesLabel": "Backup codes (store securely)",
+      "verifyCode": "Verification code",
+      "verifyAndEnable": "Verify and enable",
+      "verifyFailed": "Invalid verification code.",
+      "twoFactorEnabled": "Two-factor authentication enabled.",
+      "disable2fa": "Disable 2FA",
+      "disable2faFailed": "Failed to disable 2FA.",
+      "twoFactorDisabled": "Two-factor authentication disabled.",
+      "orgPolicy": "Organization policy",
+      "orgPolicyDesc": "Security requirements for administrators",
+      "require2faAdmins": "Require 2FA for admins",
+      "require2faAdminsDesc": "Owners and admins must enable 2FA before sensitive actions.",
+      "orgPolicySaved": "Security policy saved.",
+      "webhooks": "Outbound webhooks",
+      "webhooksDesc": "Signed event delivery to your endpoint",
+      "webhookUrl": "Webhook URL",
+      "webhookSecret": "Signing secret",
+      "webhookSecretPlaceholder": "Enter a new signing secret",
+      "webhookSecretConfigured": "Leave blank to keep existing secret",
+      "saveWebhook": "Save webhook settings",
+      "webhookSaved": "Webhook settings saved.",
+      "ipAllowlistEnabled": "Enabled",
+      "ipAllowlistInput": "Allowed IP addresses (comma or newline separated)",
+      "saveAllowlist": "Save IP allowlist",
+      "allowlistSaved": "IP allowlist saved.",
+      "revokeKey": "Revoke",
+      "keyRevoked": "API key revoked."
+    },
+    "audit": {
+      "title": "Audit log",
+      "description": "Recent security and administrative events",
+      "empty": "No audit events recorded yet.",
+      "unknownResource": "resource",
+      "actor": "Actor role: {role}"
     },
     "integrations": {
       "title": "Connected Services",

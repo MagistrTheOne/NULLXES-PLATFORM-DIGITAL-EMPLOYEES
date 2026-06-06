@@ -11,9 +11,9 @@ import {
   getSessionLimitSecondsForPlan,
 } from "@/features/billing/services/check-plan-limits";
 import type { BillingPlanId } from "@/features/billing/config/plans";
-import { ensureWorkspace } from "@/features/auth/services/ensure-workspace";
-import { requireAuth } from "@/features/auth/services/require-auth";
+import { requireWorkspacePermissionOrThrowMessage } from "@/features/workspace";
 import { recordLifecycleEvent } from "@/features/employee/services/record-lifecycle-event";
+import { recordAuditEvent } from "@/features/security/services/record-audit-event";
 import { resolveOrganizationBrainModel } from "@/features/settings/services/resolve-organization-brain-model";
 import type { CreateEmployeeWizardInput } from "@/features/employees/create/wizard-intake";
 import { dbWithTransactions } from "@/shared/db/pool-client";
@@ -29,8 +29,6 @@ function buildSystemPrompt(name: string, role: string): string {
 export async function createEmployeeRecord(
   input: CreateEmployeeWizardInput,
 ): Promise<CreateEmployeeRecordResult> {
-  await requireAuth();
-
   const name = input.name.trim();
   const role = input.role.trim();
 
@@ -43,10 +41,8 @@ export async function createEmployeeRecord(
   }
 
   try {
-    const authSession = await requireAuth();
-    const workspace = await ensureWorkspace(
-      authSession.user.id,
-      authSession.user.name,
+    const workspace = await requireWorkspacePermissionOrThrowMessage(
+      "canManageEmployees",
     );
     const billingPlan = workspace.organization.billingPlan as BillingPlanId;
     const employeeLimit = await assertCanCreateEmployee(
@@ -103,7 +99,7 @@ export async function createEmployeeRecord(
 
       await recordLifecycleEvent(tx, {
         employeeId: employee.id,
-        actorUserId: authSession.user.id,
+        actorUserId: workspace.user.id,
         eventType: "created",
         reason: "Created from dashboard wizard",
         metadata: {
@@ -172,6 +168,16 @@ export async function createEmployeeRecord(
       }
 
       return employee.id;
+    });
+
+    recordAuditEvent({
+      organizationId: workspace.organization.id,
+      actorUserId: workspace.user.id,
+      actorRole: workspace.membership.role,
+      action: "employee.created",
+      resourceType: "digital_employee",
+      resourceId: employeeId,
+      metadata: { name, role },
     });
 
     revalidatePath("/dashboard/employees");

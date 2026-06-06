@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { requireAuth } from "@/features/auth/services/require-auth";
 import { ensureWorkspace } from "@/features/auth/services/ensure-workspace";
 import { setLocaleCookie } from "@/shared/i18n/set-locale-cookie";
+import { recordAuditEvent } from "@/features/security/services/record-audit-event";
 import { updateOrganizationSettings } from "../services/update-organization-settings";
 
 export type UpdateOrganizationPreferencesInput = {
@@ -42,6 +43,22 @@ export async function updateOrganizationPreferencesAction(
   });
 
   if (result.ok) {
+    recordAuditEvent({
+      organizationId: workspace.organization.id,
+      actorUserId: session.user.id,
+      actorRole: workspace.membership.role,
+      action: "settings.updated",
+      resourceType: "organization_preferences",
+      resourceId: workspace.organization.id,
+      metadata: {
+        language: input.language,
+        theme: input.theme,
+        dateFormat: input.dateFormat,
+        timeFormat: input.timeFormat,
+        defaultTimeRangeDays: input.defaultTimeRangeDays,
+        compactMode: input.compactMode,
+      },
+    });
     await setLocaleCookie(input.language);
     revalidatePath("/settings");
     revalidatePath("/dashboard");
