@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
+import { formatDateFormatPreview, getOrganizationDateFormat } from "@/shared/i18n/format-organization-date";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,6 +20,7 @@ import { DefaultBrainModelField } from "./DefaultBrainModelField";
 import { updateOrganizationPreferencesAction } from "../actions/update-organization-preferences";
 import { updateOrganizationProfileAction } from "../actions/update-organization-profile";
 import { BRAIN_PROVIDER_OPTIONS } from "../lib/brain-provider-labels";
+import { getDefaultBrainModelForProvider } from "../lib/brain-model-defaults";
 import { optionLabel } from "../lib/translated-option-label";
 import {
   DATE_FORMAT_OPTIONS,
@@ -74,6 +76,7 @@ export function SettingsGeneralTab({
   const t = useTranslations("settings.general");
   const tSettings = useTranslations("settings");
   const tOptions = useTranslations("settings.options");
+  const locale = useLocale();
   const show = (section: SettingsSection) => sections.includes(section);
   const [message, setMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -265,11 +268,19 @@ export function SettingsGeneralTab({
                 <SelectContent>
                   {DATE_FORMAT_OPTIONS.map((option) => (
                     <SelectItem key={option.value} value={option.value}>
-                      {optionLabel(tOptions, option.labelKey)}
+                      {formatDateFormatPreview(option.value, locale)}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+              <p className="text-xs text-muted-foreground">
+                {t("dateFormatPreview", {
+                  example: formatDateFormatPreview(
+                    getOrganizationDateFormat(preferences.dateFormat),
+                    locale,
+                  ),
+                })}
+              </p>
             </Field>
             <Field label={t("timeFormat")}>
               <Select
@@ -352,12 +363,14 @@ export function SettingsGeneralTab({
               <Select
                 value={defaults.defaultBrainProvider}
                 disabled={!canManageOrganization}
-                onValueChange={(value) =>
+                onValueChange={(value) => {
+                  const provider = value as BrainProvider;
                   setDefaults((current) => ({
                     ...current,
-                    defaultBrainProvider: value as BrainProvider,
-                  }))
-                }
+                    defaultBrainProvider: provider,
+                    defaultBrainModel: getDefaultBrainModelForProvider(provider),
+                  }));
+                }}
               >
                 <SelectTrigger className="w-full">
                   <SelectValue />

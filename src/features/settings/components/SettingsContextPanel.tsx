@@ -1,6 +1,6 @@
 "use client";
 
-import { format } from "date-fns";
+import { formatOrganizationDate } from "@/shared/i18n/format-organization-date";
 import { useLocale, useTranslations } from "next-intl";
 import { BILLING_PLANS } from "@/features/billing/config/plans";
 import { resolveBillingPlanId } from "@/features/billing/lib/resolve-billing-plan";
@@ -43,9 +43,11 @@ function UsageMetric({
 export function SettingsContextPanel({
   organization,
   context,
+  dateFormat,
 }: {
   organization: OrganizationProfileDto;
   context: ContextPanel;
+  dateFormat: string;
 }) {
   const t = useTranslations("settings.context");
   const locale = useLocale();
@@ -96,7 +98,10 @@ export function SettingsContextPanel({
           <div className="flex items-center justify-between gap-3 border-t border-border pt-4">
             <dt className="text-muted-foreground">{t("created")}</dt>
             <dd className="text-foreground">
-              {format(organization.createdAt, "MMM d, yyyy")}
+              {formatOrganizationDate(organization.createdAt, {
+                dateFormat,
+                locale,
+              })}
             </dd>
           </div>
         </dl>

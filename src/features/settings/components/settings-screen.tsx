@@ -81,6 +81,7 @@ export function SettingsScreen({ data }: { data: SettingsPageData }) {
                 canManageMembers={data.canManageMembers}
                 currentUserId={data.currentUserId}
                 actorRole={data.actorRole}
+                dateFormat={data.settings.dateFormat}
               />
             </TabsContent>
 
@@ -127,6 +128,7 @@ export function SettingsScreen({ data }: { data: SettingsPageData }) {
           <SettingsContextPanel
             organization={data.organization}
             context={data.context}
+            dateFormat={data.settings.dateFormat}
           />
         </aside>
       </div>

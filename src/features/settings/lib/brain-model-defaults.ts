@@ -12,15 +12,20 @@ export function resolveBrainModelForProvider(
   configuredModel: string | null | undefined,
 ): string {
   const fallback = BRAIN_MODEL_DEFAULTS[provider];
-  const model = configuredModel?.trim();
 
-  if (!model) {
+  if (provider !== "openai") {
     return fallback;
   }
 
-  if (provider === "openai" && !/^[a-z0-9.-]+$/i.test(model)) {
+  const model = configuredModel?.trim();
+
+  if (!model || !/^[a-z0-9.-]+$/i.test(model)) {
     return fallback;
   }
 
   return model;
+}
+
+export function getDefaultBrainModelForProvider(provider: BrainProvider): string {
+  return BRAIN_MODEL_DEFAULTS[provider];
 }

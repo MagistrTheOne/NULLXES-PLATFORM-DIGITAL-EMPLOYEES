@@ -1,9 +1,9 @@
 "use client";
 
-import { format } from "date-fns";
+import { formatOrganizationDate } from "@/shared/i18n/format-organization-date";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -33,14 +33,17 @@ export function SettingsTeamTab({
   canManageMembers,
   currentUserId,
   actorRole,
+  dateFormat,
 }: {
   members: TeamMemberRow[];
   pendingInvites: TeamInviteRow[];
   canManageMembers: boolean;
   currentUserId: string;
   actorRole: MembershipRole;
+  dateFormat: string;
 }) {
   const t = useTranslations("settings.team");
+  const locale = useLocale();
   const router = useRouter();
   const [message, setMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -114,7 +117,10 @@ export function SettingsTeamTab({
                     {t("invitedBy", { name: invite.invitedByName })}
                     {" · "}
                     {t("expires", {
-                      date: format(invite.expiresAt, "MMM d, yyyy"),
+                      date: formatOrganizationDate(invite.expiresAt, {
+                        dateFormat,
+                        locale,
+                      }),
                     })}
                   </p>
                 </div>
@@ -199,7 +205,10 @@ export function SettingsTeamTab({
                   )}
                   <p className="hidden text-xs text-muted-foreground sm:block">
                     {t("joined", {
-                      date: format(member.createdAt, "MMM d, yyyy"),
+                      date: formatOrganizationDate(member.createdAt, {
+                        dateFormat,
+                        locale,
+                      }),
                     })}
                   </p>
                   {canEditMember ? (
