@@ -3,14 +3,33 @@
 import { createAuthClient } from "better-auth/react";
 import { twoFactorClient } from "better-auth/client/plugins";
 
+function isLocalhostUrl(url: string): boolean {
+  try {
+    const { hostname } = new URL(url);
+    return hostname === "localhost" || hostname === "127.0.0.1";
+  } catch {
+    return false;
+  }
+}
+
 function resolveAuthClientBaseUrl(): string {
-  const configured = process.env.NEXT_PUBLIC_BETTER_AUTH_URL?.trim();
-  if (configured) {
-    return configured;
+  if (typeof window !== "undefined") {
+    const pageOrigin = window.location.origin;
+    const configured = process.env.NEXT_PUBLIC_BETTER_AUTH_URL?.trim();
+
+    if (configured) {
+      const normalized = configured.replace(/\/$/, "");
+      if (!isLocalhostUrl(normalized) || isLocalhostUrl(pageOrigin)) {
+        return normalized;
+      }
+    }
+
+    return pageOrigin;
   }
 
-  if (typeof window !== "undefined") {
-    return window.location.origin;
+  const configured = process.env.NEXT_PUBLIC_BETTER_AUTH_URL?.trim();
+  if (configured) {
+    return configured.replace(/\/$/, "");
   }
 
   return "http://localhost:3000";

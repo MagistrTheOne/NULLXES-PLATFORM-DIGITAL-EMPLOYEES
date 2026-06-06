@@ -1,7 +1,76 @@
 import { createHash } from "node:crypto";
 
+function readOptionalEnv(name: string): string | undefined {
+  const value = process.env[name]?.trim();
+  return value && value.length > 0 ? value : undefined;
+}
+
+function stripTrailingSlash(url: string): string {
+  return url.replace(/\/$/, "");
+}
+
+function normalizeHttpsUrl(url: string): string {
+  const trimmed = url.trim();
+  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+    return stripTrailingSlash(trimmed);
+  }
+
+  return stripTrailingSlash(`https://${trimmed}`);
+}
+
+export function isLocalhostUrl(url: string): boolean {
+  try {
+    const { hostname } = new URL(url);
+    return hostname === "localhost" || hostname === "127.0.0.1";
+  } catch {
+    return false;
+  }
+}
+
 export function isDevelopmentRuntime(): boolean {
   return process.env.NODE_ENV === "development";
+}
+
+/** Vercel injects these at build and runtime — used when local URLs are copied to prod env. */
+export function getVercelDeploymentUrl(): string | undefined {
+  const production = readOptionalEnv("VERCEL_PROJECT_PRODUCTION_URL");
+  if (production) {
+    return normalizeHttpsUrl(production);
+  }
+
+  const deployment = readOptionalEnv("VERCEL_URL");
+  if (deployment) {
+    return normalizeHttpsUrl(deployment);
+  }
+
+  return undefined;
+}
+
+/** Canonical app origin for auth, webhooks, and invite links. */
+export function resolveAppBaseUrl(): string {
+  const configured =
+    readOptionalEnv("BETTER_AUTH_URL") ??
+    readOptionalEnv("NEXT_PUBLIC_BETTER_AUTH_URL");
+
+  if (configured) {
+    const normalized = stripTrailingSlash(configured);
+    if (!(process.env.NODE_ENV === "production" && isLocalhostUrl(normalized))) {
+      return normalized;
+    }
+  }
+
+  const vercelUrl = getVercelDeploymentUrl();
+  if (vercelUrl) {
+    return vercelUrl;
+  }
+
+  if (isDevelopmentRuntime()) {
+    return "http://localhost:3000";
+  }
+
+  throw new Error(
+    "App base URL is not configured. Set BETTER_AUTH_URL or deploy on Vercel.",
+  );
 }
 
 export function getDatabaseUrl(): string {
@@ -21,35 +90,20 @@ export function getBetterAuthSecret(): string {
 }
 
 export function getBetterAuthUrl(): string {
-  const url = process.env.BETTER_AUTH_URL;
-  if (!url) {
-    throw new Error("BETTER_AUTH_URL is not set");
-  }
-  return url;
+  return resolveAppBaseUrl();
 }
 
 /** Client-side auth base URL — set NEXT_PUBLIC_BETTER_AUTH_URL in .env (e.g. http://localhost:3000) */
 export function getPublicBetterAuthUrl(): string {
-  const publicUrl = process.env.NEXT_PUBLIC_BETTER_AUTH_URL?.trim();
+  const publicUrl = readOptionalEnv("NEXT_PUBLIC_BETTER_AUTH_URL");
   if (publicUrl) {
-    return publicUrl;
+    const normalized = stripTrailingSlash(publicUrl);
+    if (!(process.env.NODE_ENV === "production" && isLocalhostUrl(normalized))) {
+      return normalized;
+    }
   }
 
-  const serverUrl = process.env.BETTER_AUTH_URL?.trim();
-  if (serverUrl) {
-    return serverUrl;
-  }
-
-  if (process.env.NODE_ENV === "development") {
-    return "http://localhost:3000";
-  }
-
-  throw new Error("NEXT_PUBLIC_BETTER_AUTH_URL or BETTER_AUTH_URL is not set");
-}
-
-function readOptionalEnv(name: string): string | undefined {
-  const value = process.env[name]?.trim();
-  return value && value.length > 0 ? value : undefined;
+  return resolveAppBaseUrl();
 }
 
 /** OpenAI — https://developers.openai.com/api/docs/ */
@@ -94,30 +148,33 @@ export function getInngestEventKey(): string | undefined {
 }
 
 export function isInngestDevMode(): boolean {
+  if (process.env.NODE_ENV === "production") {
+    return false;
+  }
+
   return readOptionalEnv("INNGEST_DEV") === "1";
 }
 
 export function getNgrokUrl(): string | undefined {
+  if (!isDevelopmentRuntime()) {
+    return undefined;
+  }
+
   return readOptionalEnv("NGROK_URL");
 }
 
-/** Public HTTPS base URL — ngrok in local dev, BETTER_AUTH_URL in production. */
+/** Public HTTPS base URL — ngrok in local dev, deployment URL in production. */
 export function getPublicAppUrl(): string {
   const ngrokUrl = getNgrokUrl();
   if (ngrokUrl) {
-    return ngrokUrl.replace(/\/$/, "");
+    return stripTrailingSlash(ngrokUrl);
   }
 
-  return getBetterAuthUrl().replace(/\/$/, "");
+  return resolveAppBaseUrl();
 }
 
 export function getInngestServeUrl(): string {
-  const ngrokUrl = getNgrokUrl();
-  if (ngrokUrl) {
-    return `${ngrokUrl.replace(/\/$/, "")}/api/inngest`;
-  }
-
-  return `${getBetterAuthUrl().replace(/\/$/, "")}/api/inngest`;
+  return `${resolveAppBaseUrl()}/api/inngest`;
 }
 
 /** AES-256 key (32 bytes, base64) for field-level encryption. */

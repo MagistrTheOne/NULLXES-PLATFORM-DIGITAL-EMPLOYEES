@@ -35,8 +35,20 @@ This document outlines deployment considerations for Russia (RU) data residency 
 | Database | Neon PostgreSQL in RF-approved region |
 | `DATA_ENCRYPTION_KEY` | Required in production |
 | `BETTER_AUTH_SECRET` | Strong random secret |
-| Inngest | Signing key + event key for retention cron; local dev: `INNGEST_DEV=1` + `npm run inngest:dev` |
+| `BETTER_AUTH_URL` | Production origin, e.g. `https://nullxes-digital-employees.vercel.app` (or omit — Vercel URL is auto-detected) |
+| `NEXT_PUBLIC_BETTER_AUTH_URL` | Same as `BETTER_AUTH_URL` in production |
+| Inngest | `INNGEST_EVENT_KEY` + `INNGEST_SIGNING_KEY`; register app URL `https://<domain>/api/inngest` in Inngest Cloud |
 | Public trust page | `/trust` — no authentication required |
+
+### Do not copy from local `.env` to Vercel
+
+| Variable | Local only |
+|----------|------------|
+| `INNGEST_DEV=1` | Yes — never set in production |
+| `NGROK_URL` | Yes — breaks Polar webhooks and invite links if set in prod |
+| `BETTER_AUTH_URL=http://localhost:3000` | Yes — login will fail (CSP blocks localhost fetch) |
+
+Provider keys to copy as-is: `OPENAI_API_KEY`, `ANAM_API_KEY`, `ELEVENLABS_API_KEY`, `STREAM_API_KEY`, `STREAM_SECRET_KEY`, `POLAR_*`, `DATABASE_URL`.
 
 ## Post-deploy verification
 

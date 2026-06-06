@@ -5,6 +5,7 @@ import { user } from "@/entities/user/schema";
 import {
   getBetterAuthSecret,
   getBetterAuthUrl,
+  getVercelDeploymentUrl,
 } from "@/shared/config/env";
 import { db } from "@/shared/db/client";
 import { account, session, twoFactor as twoFactorTable, verification } from "./schema";
@@ -12,12 +13,16 @@ import { buildOAuthSocialProviders } from "./lib/oauth-providers";
 
 export function createAuthConfig(): BetterAuthOptions {
   const baseURL = getBetterAuthUrl();
+  const deploymentUrl = getVercelDeploymentUrl();
+  const trustedOrigins = Array.from(
+    new Set([baseURL, deploymentUrl].filter(Boolean) as string[]),
+  );
   const socialProviders = buildOAuthSocialProviders();
 
   return {
     secret: getBetterAuthSecret(),
     baseURL,
-    trustedOrigins: [baseURL],
+    trustedOrigins,
     ...(socialProviders ? { socialProviders } : {}),
     database: drizzleAdapter(db, {
       provider: "pg",
