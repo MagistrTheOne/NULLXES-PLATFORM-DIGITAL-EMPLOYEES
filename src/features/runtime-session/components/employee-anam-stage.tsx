@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { AnamEvent, ConnectionClosedCode, createClient } from "@anam-ai/js-sdk";
+import { AnamEvent, ConnectionClosedCode } from "@anam-ai/js-sdk";
 import { Loader2 } from "lucide-react";
 import {
   activateTalkSessionAction,
@@ -11,6 +11,7 @@ import {
 import { useTalkAnam } from "@/features/runtime-session/context/talk-anam-context";
 import { attachTalkAnamSessionEvents } from "@/features/runtime-session/lib/attach-talk-anam-session-events";
 import { attachTalkVoicePipeline } from "@/features/runtime-session/lib/attach-talk-voice-pipeline";
+import { createAnamTalkClient } from "@/features/runtime-session/lib/create-anam-talk-client";
 import type { TalkVoiceMode } from "@/features/runtime-session/services/resolve-talk-voice-mode";
 import { AvatarIdlePreview } from "@/features/employees/components/avatar-idle-preview";
 import { TalkStageChrome } from "./talk-stage-chrome";
@@ -68,7 +69,7 @@ export function EmployeeAnamStage({
       setIsLive(false);
       setPipelineState("idle");
 
-      const anamClient = createClient(token);
+      const anamClient = createAnamTalkClient(token);
       registerClient(anamClient);
 
       anamClient.addListener(AnamEvent.VIDEO_PLAY_STARTED, () => {
