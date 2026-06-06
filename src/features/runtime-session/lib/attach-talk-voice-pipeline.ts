@@ -6,11 +6,8 @@ import { playTalkVoiceReply } from "./play-talk-voice-reply";
 import { streamTalkBrainReply } from "./stream-talk-brain-client";
 import {
   buildTalkTurnKey,
-  completeTalkTurn,
-  failTalkTurn,
-  isLikelyAssistantEcho,
-  resetTalkPipelineCoordinator,
-  tryBeginTalkTurn,
+  getTalkPipelineCoordinator,
+  type TalkPipelineCoordinator,
 } from "./talk-pipeline-coordinator";
 import { postTalkEmployeeChatReply } from "./talk-reply-bridge";
 
@@ -31,14 +28,19 @@ export function attachTalkVoicePipeline(input: {
   employeeId: string;
   voiceMode: TalkVoiceMode;
 }): () => void {
-  resetTalkPipelineCoordinator();
+  const coordinator = getTalkPipelineCoordinator(input.employeeId);
+  coordinator.reset();
 
   let processing = false;
   let debounceTimer: ReturnType<typeof setTimeout> | null = null;
   let pendingHistory: Message[] | null = null;
   let pendingMessage: Message | null = null;
 
-  const processUserMessage = (messageHistory: Message[], userMessage: Message) => {
+  const processUserMessage = (
+    messageHistory: Message[],
+    userMessage: Message,
+    pipelineCoordinator: TalkPipelineCoordinator,
+  ) => {
     if (processing) {
       return;
     }
@@ -48,12 +50,12 @@ export function attachTalkVoicePipeline(input: {
       return;
     }
 
-    if (isLikelyAssistantEcho(content)) {
+    if (pipelineCoordinator.isLikelyAssistantEcho(content)) {
       return;
     }
 
     const turnKey = buildTalkTurnKey(content);
-    if (!tryBeginTalkTurn(turnKey)) {
+    if (!pipelineCoordinator.tryBeginTalkTurn(turnKey)) {
       return;
     }
 
@@ -93,14 +95,14 @@ export function attachTalkVoicePipeline(input: {
         }
 
         await postTalkEmployeeChatReply(replyText);
-        completeTalkTurn(turnKey, replyText);
+        pipelineCoordinator.completeTalkTurn(turnKey, replyText);
       } catch {
-        failTalkTurn();
+        pipelineCoordinator.failTalkTurn();
         const fallback =
           "Something went wrong while generating a response. Please try again.";
         await input.anamClient.talk(fallback);
         await postTalkEmployeeChatReply(fallback);
-        completeTalkTurn(turnKey, fallback);
+        pipelineCoordinator.completeTalkTurn(turnKey, fallback);
       } finally {
         processing = false;
       }
@@ -130,7 +132,7 @@ export function attachTalkVoicePipeline(input: {
         return;
       }
 
-      processUserMessage(pendingHistory, pendingMessage);
+      processUserMessage(pendingHistory, pendingMessage, coordinator);
       pendingHistory = null;
       pendingMessage = null;
     }, USER_MESSAGE_DEBOUNCE_MS);
@@ -138,7 +140,7 @@ export function attachTalkVoicePipeline(input: {
 
   const onInterrupted = () => {
     processing = false;
-    failTalkTurn();
+    coordinator.failTalkTurn();
   };
 
   input.anamClient.addListener(

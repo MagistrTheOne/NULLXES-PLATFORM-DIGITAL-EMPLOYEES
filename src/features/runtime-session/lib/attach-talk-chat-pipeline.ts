@@ -4,9 +4,7 @@ import { playTalkVoiceReply } from "./play-talk-voice-reply";
 import { streamTalkBrainReply } from "./stream-talk-brain-client";
 import {
   buildTalkTurnKey,
-  completeTalkTurn,
-  failTalkTurn,
-  tryBeginTalkTurn,
+  getTalkPipelineCoordinator,
 } from "./talk-pipeline-coordinator";
 import { postTalkEmployeeChatReply } from "./talk-reply-bridge";
 import type { TalkVoiceMode } from "../services/resolve-talk-voice-mode";
@@ -38,6 +36,7 @@ export function attachTalkChatPipeline(input: {
   voiceMode: TalkVoiceMode;
   getAnamClient: () => AnamClient | null;
 }): () => void {
+  const coordinator = getTalkPipelineCoordinator(input.employeeId);
   const botUserId = digitalEmployeeChatUserId(input.employeeId);
   let processing = false;
   let lastHandledMessageId: string | null = null;
@@ -57,7 +56,7 @@ export function attachTalkChatPipeline(input: {
     }
 
     const turnKey = buildTalkTurnKey(message.text.trim());
-    if (!tryBeginTalkTurn(turnKey)) {
+    if (!coordinator.tryBeginTalkTurn(turnKey)) {
       return;
     }
 
@@ -84,13 +83,13 @@ export function attachTalkChatPipeline(input: {
           });
         }
 
-        completeTalkTurn(turnKey, replyText);
+        coordinator.completeTalkTurn(turnKey, replyText);
       } catch {
-        failTalkTurn();
+        coordinator.failTalkTurn();
         const fallback =
           "I could not process that message right now. Please try again.";
         await postTalkEmployeeChatReply(fallback);
-        completeTalkTurn(turnKey, fallback);
+        coordinator.completeTalkTurn(turnKey, fallback);
       } finally {
         processing = false;
       }

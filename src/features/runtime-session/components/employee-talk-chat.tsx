@@ -28,7 +28,7 @@ import type { TalkChatCredentials } from "../services/create-talk-chat-session";
 import { attachTalkChatPipeline } from "../lib/attach-talk-chat-pipeline";
 import { useTalkAnam } from "../context/talk-anam-context";
 import { registerTalkChatBridge, resetTalkChatReplyDedup } from "../lib/talk-reply-bridge";
-import { resetTalkPipelineCoordinator } from "../lib/talk-pipeline-coordinator";
+import { resetTalkPipelineCoordinator, releaseTalkPipelineCoordinator } from "../lib/talk-pipeline-coordinator";
 import type { TalkVoiceMode } from "../services/resolve-talk-voice-mode";
 import {
   connectTalkChatSession,
@@ -144,6 +144,12 @@ export function EmployeeTalkChat({
   const connectGenerationRef = useRef(0);
 
   useEffect(() => {
+    return () => {
+      releaseTalkPipelineCoordinator(employeeId);
+    };
+  }, [employeeId]);
+
+  useEffect(() => {
     let cancelled = false;
     const generation = connectGenerationRef.current + 1;
     connectGenerationRef.current = generation;
@@ -249,13 +255,13 @@ export function EmployeeTalkChat({
         hard_delete: true,
       });
       resetTalkChatReplyDedup();
-      resetTalkPipelineCoordinator();
+      resetTalkPipelineCoordinator(employeeId);
     } catch (clearError: unknown) {
       console.error("Failed to clear talk chat history", clearError);
     } finally {
       setIsClearingHistory(false);
     }
-  }, [channel, chatSession.userId, isClearingHistory]);
+  }, [channel, chatSession.userId, employeeId, isClearingHistory]);
 
   if (uiState !== "ready" || !client || !channel) {
     return (

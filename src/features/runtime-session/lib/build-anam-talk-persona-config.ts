@@ -1,4 +1,5 @@
 import { ANAM_EXTERNAL_LLM_ID } from "@/features/provider-provisioning/types";
+import type { AppLocale } from "@/i18n/config";
 
 /** Anam-side prompt when brain is handled by NULLXES OpenAI (avatar + TTS only). */
 export const ANAM_AVATAR_ONLY_SYSTEM_PROMPT =
@@ -15,6 +16,7 @@ export function buildAnamTalkEphemeralPersonaConfig(input: {
   name: string;
   avatarId: string;
   voiceId: string;
+  languageCode: AppLocale;
   enableAudioPassthrough?: boolean;
 }): Record<string, unknown> {
   return {
@@ -24,7 +26,7 @@ export function buildAnamTalkEphemeralPersonaConfig(input: {
     llmId: ANAM_EXTERNAL_LLM_ID,
     skipGreeting: true,
     systemPrompt: ANAM_AVATAR_ONLY_SYSTEM_PROMPT,
-    languageCode: "ru",
+    languageCode: input.languageCode,
     ...(input.enableAudioPassthrough ? { enableAudioPassthrough: true } : {}),
   };
 }
