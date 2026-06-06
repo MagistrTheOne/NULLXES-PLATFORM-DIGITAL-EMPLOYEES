@@ -1,9 +1,20 @@
 "use client";
 
-import { Component, type ReactNode, useEffect, useRef, useState } from "react";
+import { Component, type ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Loader2, MessageSquare, RotateCcw } from "lucide-react";
+import { Loader2, MessageSquare, RotateCcw, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import type { Channel as StreamChannel } from "stream-chat";
 import type { StreamChat } from "stream-chat";
 import {
@@ -16,7 +27,7 @@ import {
 import type { TalkChatCredentials } from "../services/create-talk-chat-session";
 import { attachTalkChatPipeline } from "../lib/attach-talk-chat-pipeline";
 import { useTalkAnam } from "../context/talk-anam-context";
-import { registerTalkChatBridge } from "../lib/talk-reply-bridge";
+import { registerTalkChatBridge, resetTalkChatReplyDedup } from "../lib/talk-reply-bridge";
 import type { TalkVoiceMode } from "../services/resolve-talk-voice-mode";
 import {
   connectTalkChatSession,
@@ -128,6 +139,7 @@ export function EmployeeTalkChat({
   const [channel, setChannel] = useState<StreamChannel | null>(null);
   const [uiState, setUiState] = useState<TalkChatUiState>("connecting");
   const [connectAttempt, setConnectAttempt] = useState(0);
+  const [isClearingHistory, setIsClearingHistory] = useState(false);
   const connectGenerationRef = useRef(0);
 
   useEffect(() => {
@@ -224,6 +236,25 @@ export function EmployeeTalkChat({
     voiceMode,
   ]);
 
+  const handleClearHistory = useCallback(async () => {
+    if (!channel || isClearingHistory) {
+      return;
+    }
+
+    setIsClearingHistory(true);
+    try {
+      await channel.truncate({
+        user_id: chatSession.userId,
+        hard_delete: true,
+      });
+      resetTalkChatReplyDedup();
+    } catch (clearError: unknown) {
+      console.error("Failed to clear talk chat history", clearError);
+    } finally {
+      setIsClearingHistory(false);
+    }
+  }, [channel, chatSession.userId, isClearingHistory]);
+
   if (uiState !== "ready" || !client || !channel) {
     return (
       <TalkChatFallback
@@ -249,8 +280,47 @@ export function EmployeeTalkChat({
         <Chat client={client} theme="str-chat__theme-dark">
           <Channel channel={channel}>
             <Window>
-              <div className="employee-talk-chat-header border-b border-white/10 px-4 py-3 text-[11px] font-medium tracking-[0.12em] text-white/50 uppercase">
-                {t("title")}
+              <div className="employee-talk-chat-header border-b border-white/10 px-4 py-3">
+                <div className="employee-talk-chat-header-actions">
+                  <span className="text-[11px] font-medium tracking-[0.12em] text-white/50 uppercase">
+                    {t("title")}
+                  </span>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        disabled={isClearingHistory}
+                        className="h-7 gap-1.5 px-2 text-[11px] text-white/45 hover:bg-white/6 hover:text-white/70"
+                      >
+                        <Trash2 className="size-3.5" />
+                        {t("clearHistory")}
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent className="border-white/10 bg-[#111111] text-white">
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>{t("clearHistoryTitle")}</AlertDialogTitle>
+                        <AlertDialogDescription className="text-white/60">
+                          {t("clearHistoryDescription")}
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel className="border-white/12 bg-transparent text-white/70 hover:bg-white/6 hover:text-white">
+                          {t("clearHistoryCancel")}
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                          className="bg-white text-black hover:bg-white/90"
+                          onClick={() => {
+                            void handleClearHistory();
+                          }}
+                        >
+                          {isClearingHistory ? t("clearHistoryClearing") : t("clearHistoryConfirm")}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
               </div>
               <div className="employee-talk-chat-messages relative min-h-0 flex-1">
                 <TalkChatEmptyOverlay channel={channel} emptyMessage={t("empty")} />

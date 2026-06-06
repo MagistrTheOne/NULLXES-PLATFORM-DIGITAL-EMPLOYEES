@@ -1,5 +1,6 @@
-import { getEmployeeDetail } from "@/features/employees/services/get-employee-detail";
 import { composeTalkSystemPrompt } from "@/features/employees/lib/build-system-prompt";
+import { resolveEmployeePersonaGender } from "@/features/employees/lib/resolve-employee-persona-gender";
+import { getEmployeeDetail } from "@/features/employees/services/get-employee-detail";
 import {
   resolveTalkVoiceMode,
   type TalkVoiceMode,
@@ -31,6 +32,10 @@ export async function getTalkRuntimeConfig(
       name: employee.name,
       role: employee.role,
       storedPrompt: employee.systemPrompt,
+      personaGender: resolveEmployeePersonaGender({
+        studioVoiceId: employee.studioVoiceId,
+        voiceId: employee.voiceId,
+      }),
     }),
     temperature: 0.7,
     maxTokens: 1024,

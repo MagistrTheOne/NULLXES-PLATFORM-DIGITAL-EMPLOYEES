@@ -4,6 +4,7 @@
 
 .employee-talk-grid {
   width: 100%;
+  min-height: 0;
 }
 
 .employee-talk-stage-wrap {
@@ -25,12 +26,22 @@
 }
 
 .employee-talk-chat-panel {
+  height: clamp(320px, 42vh, 480px);
+  max-height: clamp(320px, 42vh, 480px);
   min-height: 320px;
+}
+
+@media (min-width: 1024px) {
+  .employee-talk-chat-panel {
+    height: auto;
+    max-height: none;
+    min-height: 0;
+  }
 }
 
 .employee-talk-chat-panel .str-chat {
   height: 100%;
-  min-height: 320px;
+  min-height: 0;
 }
 
 .employee-talk-chat-panel .str-chat__channel {
@@ -57,6 +68,8 @@
 .employee-talk-chat-panel .str-chat__list {
   flex: 1;
   min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   background: #0a0a0a;
 }
 
@@ -101,4 +114,11 @@
 
 .employee-talk-chat-header {
   flex-shrink: 0;
+}
+
+.employee-talk-chat-header-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
 }

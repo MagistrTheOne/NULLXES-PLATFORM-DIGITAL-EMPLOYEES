@@ -258,7 +258,13 @@
         "empty": "Отправьте сообщение, чтобы начать разговор",
         "placeholder": "Отправьте сообщение...",
         "unavailable": "Чат недоступен",
-        "retry": "Повторить"
+        "retry": "Повторить",
+        "clearHistory": "Очистить",
+        "clearHistoryTitle": "Очистить историю чата?",
+        "clearHistoryDescription": "Все сообщения в чате этой сессии будут удалены без возможности восстановления.",
+        "clearHistoryCancel": "Отмена",
+        "clearHistoryConfirm": "Очистить",
+        "clearHistoryClearing": "Очистка…"
       },
       "controls": {
         "muteMic": "Выключить микрофон",

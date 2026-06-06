@@ -258,7 +258,13 @@
         "empty": "Send a message to start the conversation",
         "placeholder": "Send a message...",
         "unavailable": "Conversation unavailable",
-        "retry": "Retry"
+        "retry": "Retry",
+        "clearHistory": "Clear",
+        "clearHistoryTitle": "Clear chat history?",
+        "clearHistoryDescription": "All messages in this session chat will be permanently removed.",
+        "clearHistoryCancel": "Cancel",
+        "clearHistoryConfirm": "Clear history",
+        "clearHistoryClearing": "Clearing…"
       },
       "controls": {
         "muteMic": "Mute microphone",

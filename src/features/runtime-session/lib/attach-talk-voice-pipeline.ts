@@ -6,6 +6,22 @@ import { playTalkVoiceReply } from "./play-talk-voice-reply";
 import { streamTalkBrainReply } from "./stream-talk-brain-client";
 import { postTalkEmployeeChatReply } from "./talk-reply-bridge";
 
+const USER_MESSAGE_DEBOUNCE_MS = 750;
+const MIN_USER_MESSAGE_LENGTH = 3;
+
+function normalizeUserText(text: string): string {
+  return text.trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+function isSubstantiveUserMessage(text: string): boolean {
+  const trimmed = text.trim();
+  if (trimmed.length < MIN_USER_MESSAGE_LENGTH) {
+    return false;
+  }
+
+  return /[\p{L}\p{N}]/u.test(trimmed);
+}
+
 export function attachTalkVoicePipeline(input: {
   anamClient: AnamClient;
   employeeId: string;
@@ -13,21 +29,38 @@ export function attachTalkVoicePipeline(input: {
 }): () => void {
   let processing = false;
   let lastHandledMessageId: string | null = null;
+  const handledUserTexts = new Set<string>();
+  let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+  let pendingHistory: Message[] | null = null;
+  let pendingMessage: Message | null = null;
 
-  const handleMessageHistory = (messageHistory: Message[]) => {
-    if (processing || messageHistory.length === 0) {
+  const processUserMessage = (messageHistory: Message[], userMessage: Message) => {
+    if (processing) {
       return;
     }
 
-    const lastMessage = messageHistory[messageHistory.length - 1];
+    const content = userMessage.content?.trim() ?? "";
+    if (!isSubstantiveUserMessage(content)) {
+      return;
+    }
+
+    const normalizedContent = normalizeUserText(content);
     if (
-      lastMessage.role !== MessageRole.USER ||
-      lastMessage.id === lastHandledMessageId
+      userMessage.id === lastHandledMessageId ||
+      handledUserTexts.has(normalizedContent)
     ) {
       return;
     }
 
-    lastHandledMessageId = lastMessage.id;
+    lastHandledMessageId = userMessage.id;
+    handledUserTexts.add(normalizedContent);
+    if (handledUserTexts.size > 24) {
+      const oldest = handledUserTexts.values().next().value;
+      if (oldest) {
+        handledUserTexts.delete(oldest);
+      }
+    }
+
     processing = true;
 
     void (async () => {
@@ -75,6 +108,35 @@ export function attachTalkVoicePipeline(input: {
     })();
   };
 
+  const handleMessageHistory = (messageHistory: Message[]) => {
+    if (processing || messageHistory.length === 0) {
+      return;
+    }
+
+    const lastMessage = messageHistory[messageHistory.length - 1];
+    if (lastMessage.role !== MessageRole.USER) {
+      return;
+    }
+
+    pendingHistory = messageHistory;
+    pendingMessage = lastMessage;
+
+    if (debounceTimer) {
+      clearTimeout(debounceTimer);
+    }
+
+    debounceTimer = setTimeout(() => {
+      debounceTimer = null;
+      if (!pendingHistory || !pendingMessage) {
+        return;
+      }
+
+      processUserMessage(pendingHistory, pendingMessage);
+      pendingHistory = null;
+      pendingMessage = null;
+    }, USER_MESSAGE_DEBOUNCE_MS);
+  };
+
   const onInterrupted = () => {
     processing = false;
   };
@@ -86,6 +148,10 @@ export function attachTalkVoicePipeline(input: {
   input.anamClient.addListener(AnamEvent.TALK_STREAM_INTERRUPTED, onInterrupted);
 
   return () => {
+    if (debounceTimer) {
+      clearTimeout(debounceTimer);
+    }
+
     input.anamClient.removeListener(
       AnamEvent.MESSAGE_HISTORY_UPDATED,
       handleMessageHistory,

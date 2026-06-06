@@ -223,7 +223,7 @@ function TalkRoomLayout({
 
   return (
     <div className="employee-talk-workspace w-full">
-      <div className="employee-talk-grid grid gap-4 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-stretch">
+      <div className="employee-talk-grid grid min-h-0 gap-4 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-stretch">
         <div className="employee-talk-primary flex min-h-0 min-w-0 flex-col">
           <div className="employee-talk-stage-wrap relative min-h-0 w-full">
             <EmployeeAnamStage
