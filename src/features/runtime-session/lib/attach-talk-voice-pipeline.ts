@@ -1,9 +1,9 @@
 import type { AnamClient } from "@anam-ai/js-sdk";
 import { AnamEvent, MessageRole } from "@anam-ai/js-sdk";
 import type { Message } from "@anam-ai/js-sdk";
+import type { TalkPipelineState } from "../context/talk-anam-context";
 import type { TalkVoiceMode } from "../services/resolve-talk-voice-mode";
 import { appendSessionMessageAction } from "../actions/employee-session";
-import { playTalkVoiceReply } from "./play-talk-voice-reply";
 import { streamTalkBrainReply } from "./stream-talk-brain-client";
 import {
   buildTalkTurnKey,
@@ -29,6 +29,7 @@ export function attachTalkVoicePipeline(input: {
   employeeId: string;
   employeeSessionId?: string;
   voiceMode: TalkVoiceMode;
+  setPipelineState: (state: TalkPipelineState) => void;
 }): () => void {
   const coordinator = getTalkPipelineCoordinator(input.employeeId);
   coordinator.reset();
@@ -62,6 +63,7 @@ export function attachTalkVoicePipeline(input: {
     }
 
     processing = true;
+    input.setPipelineState("thinking");
 
     void (async () => {
       try {
@@ -81,31 +83,24 @@ export function attachTalkVoicePipeline(input: {
           }
         }
 
-        const talkStream =
-          input.voiceMode === "anam"
-            ? input.anamClient.createTalkMessageStream()
-            : null;
+        const talkStream = input.anamClient.createTalkMessageStream();
 
         const replyText = await streamTalkBrainReply({
           employeeId: input.employeeId,
           sessionId: input.employeeSessionId,
           messages: pipelineMessages,
           onChunk: async (chunk) => {
-            if (talkStream?.isActive()) {
+            if (chunk.trim()) {
+              input.setPipelineState("speaking");
+            }
+            if (talkStream.isActive()) {
               await talkStream.streamMessageChunk(chunk, false);
             }
           },
         });
 
-        if (talkStream?.isActive()) {
+        if (talkStream.isActive()) {
           await talkStream.endMessage();
-        } else if (input.voiceMode === "elevenlabs") {
-          await playTalkVoiceReply({
-            anamClient: input.anamClient,
-            employeeId: input.employeeId,
-            replyText,
-            voiceMode: input.voiceMode,
-          });
         }
 
         await postTalkEmployeeChatReply(replyText);
@@ -117,13 +112,16 @@ export function attachTalkVoicePipeline(input: {
           });
         }
         pipelineCoordinator.completeTalkTurn(turnKey, replyText);
+        input.setPipelineState("idle");
       } catch {
         pipelineCoordinator.failTalkTurn();
         const fallback =
           "Something went wrong while generating a response. Please try again.";
+        input.setPipelineState("speaking");
         await input.anamClient.talk(fallback);
         await postTalkEmployeeChatReply(fallback);
         pipelineCoordinator.completeTalkTurn(turnKey, fallback);
+        input.setPipelineState("idle");
       } finally {
         processing = false;
       }
@@ -162,6 +160,7 @@ export function attachTalkVoicePipeline(input: {
   const onInterrupted = () => {
     processing = false;
     coordinator.failTalkTurn();
+    input.setPipelineState("idle");
   };
 
   input.anamClient.addListener(

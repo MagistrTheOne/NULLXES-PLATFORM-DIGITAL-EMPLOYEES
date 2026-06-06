@@ -35,19 +35,24 @@ async function streamReplyWithAnamVoice(
 async function playReplyWithElevenLabsVoice(
   anamClient: AnamClient,
   pcmBase64: string,
-): Promise<void> {
-  const audioInputStream = anamClient.createAgentAudioInputStream({
-    encoding: "pcm_s16le",
-    sampleRate: 16000,
-    channels: 1,
-  });
+): Promise<boolean> {
+  try {
+    const audioInputStream = anamClient.createAgentAudioInputStream({
+      encoding: "pcm_s16le",
+      sampleRate: 16000,
+      channels: 1,
+    });
 
-  const bytes = base64ToUint8Array(pcmBase64);
-  for (let offset = 0; offset < bytes.length; offset += PCM_CHUNK_BYTES) {
-    audioInputStream.sendAudioChunk(bytes.slice(offset, offset + PCM_CHUNK_BYTES));
+    const bytes = base64ToUint8Array(pcmBase64);
+    for (let offset = 0; offset < bytes.length; offset += PCM_CHUNK_BYTES) {
+      audioInputStream.sendAudioChunk(bytes.slice(offset, offset + PCM_CHUNK_BYTES));
+    }
+
+    audioInputStream.endSequence();
+    return true;
+  } catch {
+    return false;
   }
-
-  audioInputStream.endSequence();
 }
 
 export async function playTalkVoiceReply(input: {
@@ -68,7 +73,12 @@ export async function playTalkVoiceReply(input: {
     await playReplyWithElevenLabsVoice(
       input.anamClient,
       synthesized.pcmBase64,
-    );
+    ).then((played) => {
+      if (!played) {
+        return streamReplyWithAnamVoice(input.anamClient, input.replyText);
+      }
+      return undefined;
+    });
     return;
   }
 

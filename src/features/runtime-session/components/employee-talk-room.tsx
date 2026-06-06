@@ -70,7 +70,7 @@ function TalkControlsBar({
   sessionBusy: boolean;
 }) {
   const t = useTranslations("employees.talk");
-  const { micMuted, toggleMic, isLive } = useTalkAnam();
+  const { micMuted, micPermission, toggleMic, isLive } = useTalkAnam();
   const [isStarting, setIsStarting] = useState(false);
   const [startError, setStartError] = useState<string | null>(null);
 
@@ -118,6 +118,16 @@ function TalkControlsBar({
           {startError}
         </p>
       ) : null}
+      {activeSession && micPermission === "denied" ? (
+        <p className="max-w-md text-center text-xs text-red-300/80" role="alert">
+          {t("stage.micPermissionDenied")}
+        </p>
+      ) : null}
+      {activeSession && micPermission === "pending" ? (
+        <p className="max-w-md text-center text-xs text-white/55">
+          {t("stage.micPermissionPending")}
+        </p>
+      ) : null}
       <div className="flex flex-wrap items-center justify-center gap-3">
         {!activeSession ? (
           <Button
@@ -140,11 +150,26 @@ function TalkControlsBar({
               disabled={!isLive || controlsDisabled}
               onClick={toggleMic}
             >
-              {micMuted ? (
-                <MicOff className="size-4 stroke-[1.5]" />
-              ) : (
-                <Mic className="size-4 stroke-[1.5]" />
-              )}
+              <span className="relative flex items-center justify-center">
+                {micMuted ? (
+                  <MicOff className="size-4 stroke-[1.5]" />
+                ) : (
+                  <Mic className="size-4 stroke-[1.5]" />
+                )}
+                {!micMuted && isLive ? (
+                  <span
+                    className={cn(
+                      "absolute -top-1 -right-1 size-2 rounded-full",
+                      micPermission === "granted"
+                        ? "bg-emerald-300"
+                        : micPermission === "pending"
+                          ? "bg-amber-300"
+                          : "bg-red-400",
+                    )}
+                    aria-hidden
+                  />
+                ) : null}
+              </span>
             </TalkIconControl>
             <TalkIconControl
               ariaLabel={

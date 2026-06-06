@@ -5,7 +5,6 @@ import { getEmployeeDetail } from "@/features/employees/services/get-employee-de
 import { syncAnamPersonaExternalBrain } from "@/features/provider-provisioning/services/sync-anam-persona-external-brain";
 import { buildAnamTalkEphemeralPersonaConfig } from "@/features/runtime-session/lib/build-anam-talk-persona-config";
 import { resolveTalkSpeechLanguageCode } from "@/features/runtime-session/services/resolve-talk-speech-language";
-import { resolveTalkVoiceMode } from "@/features/runtime-session/services/resolve-talk-voice-mode";
 import { getAnamApiBaseUrl, getAnamApiKey } from "@/shared/config/provider-env";
 
 export type AnamTalkSessionTokenResult =
@@ -50,14 +49,11 @@ export async function createAnamTalkSessionTokenForEmployee(
     }
   }
 
-  const voiceMode = resolveTalkVoiceMode(employee);
-  const languageCode = await resolveTalkSpeechLanguageCode(organizationId);
   const personaConfig = buildAnamTalkEphemeralPersonaConfig({
     name: employee.name,
     avatarId: employee.avatarId,
     voiceId: employee.anamVoiceId,
     languageCode,
-    enableAudioPassthrough: voiceMode === "elevenlabs",
   });
 
   const response = await fetch(`${getAnamApiBaseUrl()}/auth/session-token`, {

@@ -305,7 +305,15 @@
         "you": "Вы",
         "anamClosed": "Соединение с Anam закрыто",
         "anamStreamFailed": "Не удалось запустить поток Anam",
-        "anamUnavailable": "Сессия Anam недоступна"
+        "anamUnavailable": "Сессия Anam недоступна",
+        "micPermissionPending": "Разрешите доступ к микрофону в окне браузера",
+        "micPermissionDenied": "Микрофон заблокирован. Включите его в настройках браузера и обновите страницу.",
+        "pipeline": {
+          "idle": "Молчит",
+          "listening": "Слушает",
+          "thinking": "Думает",
+          "speaking": "Говорит"
+        }
       },
       "error": {
         "title": "Сессия Talk недоступна",

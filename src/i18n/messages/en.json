@@ -305,7 +305,15 @@
         "you": "You",
         "anamClosed": "Anam connection closed",
         "anamStreamFailed": "Failed to start Anam stream",
-        "anamUnavailable": "Anam session unavailable"
+        "anamUnavailable": "Anam session unavailable",
+        "micPermissionPending": "Allow microphone access in the browser prompt",
+        "micPermissionDenied": "Microphone access is blocked. Enable it in browser settings and reload.",
+        "pipeline": {
+          "idle": "Idle",
+          "listening": "Listening",
+          "thinking": "Thinking",
+          "speaking": "Speaking"
+        }
       },
       "error": {
         "title": "Talk session unavailable",

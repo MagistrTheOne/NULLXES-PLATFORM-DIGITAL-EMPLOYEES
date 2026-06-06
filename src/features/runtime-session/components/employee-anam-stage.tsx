@@ -2,13 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { AnamEvent, createClient } from "@anam-ai/js-sdk";
+import { AnamEvent, ConnectionClosedCode, createClient } from "@anam-ai/js-sdk";
 import { Loader2 } from "lucide-react";
 import {
   activateTalkSessionAction,
   failTalkSessionAction,
 } from "@/features/runtime-session/actions/employee-session";
 import { useTalkAnam } from "@/features/runtime-session/context/talk-anam-context";
+import { attachTalkAnamSessionEvents } from "@/features/runtime-session/lib/attach-talk-anam-session-events";
 import { attachTalkVoicePipeline } from "@/features/runtime-session/lib/attach-talk-voice-pipeline";
 import type { TalkVoiceMode } from "@/features/runtime-session/services/resolve-talk-voice-mode";
 import { AvatarIdlePreview } from "@/features/employees/components/avatar-idle-preview";
@@ -32,7 +33,15 @@ export function EmployeeAnamStage({
   voiceMode: TalkVoiceMode;
 }) {
   const t = useTranslations("employees.talk");
-  const { registerClient, setIsLive, isStoppingIntentionally } = useTalkAnam();
+  const {
+    registerClient,
+    setIsLive,
+    setPipelineState,
+    setMicPermission,
+    syncMicFromClient,
+    ensureMicActive,
+    isStoppingIntentionally,
+  } = useTalkAnam();
   const [status, setStatus] = useState<
     "idle" | "connecting" | "live" | "error"
   >("idle");
@@ -43,6 +52,7 @@ export function EmployeeAnamStage({
       setStatus("idle");
       setErrorMessage(null);
       setIsLive(false);
+      setPipelineState("idle");
       registerClient(null);
       return;
     }
@@ -50,11 +60,13 @@ export function EmployeeAnamStage({
     const token = sessionToken;
     let disposed = false;
     let detachVoicePipeline: (() => void) | null = null;
+    let detachSessionEvents: (() => void) | null = null;
 
     async function startAnamSession(): Promise<void> {
       setStatus("connecting");
       setErrorMessage(null);
       setIsLive(false);
+      setPipelineState("idle");
 
       const anamClient = createClient(token);
       registerClient(anamClient);
@@ -63,29 +75,48 @@ export function EmployeeAnamStage({
         if (!disposed) {
           setStatus("live");
           setIsLive(true);
+          setPipelineState("idle");
+          ensureMicActive();
+          syncMicFromClient();
           void activateTalkSessionAction(employeeSessionId);
         }
       });
 
-      anamClient.addListener(AnamEvent.CONNECTION_CLOSED, () => {
-        if (!disposed && !isStoppingIntentionally()) {
+      detachSessionEvents = attachTalkAnamSessionEvents({
+        anamClient,
+        setPipelineState,
+        setMicPermission,
+        syncMicFromClient,
+        ensureMicActive,
+        onConnectionClosed: (reason, details) => {
+          if (disposed || isStoppingIntentionally()) {
+            return;
+          }
+
+          if (reason === ConnectionClosedCode.MICROPHONE_PERMISSION_DENIED) {
+            setErrorMessage(t("stage.micPermissionDenied"));
+          } else {
+            setErrorMessage(
+              details?.trim() ? details : t("stage.anamClosed"),
+            );
+          }
+
           setStatus("error");
           setIsLive(false);
-          setErrorMessage(t("stage.anamClosed"));
           void failTalkSessionAction(employeeSessionId);
-        }
+        },
+      });
+
+      detachVoicePipeline = attachTalkVoicePipeline({
+        anamClient,
+        employeeId,
+        employeeSessionId,
+        voiceMode,
+        setPipelineState,
       });
 
       try {
         await anamClient.streamToVideoElement(ANAM_VIDEO_ELEMENT_ID);
-        if (!disposed) {
-          detachVoicePipeline = attachTalkVoicePipeline({
-            anamClient,
-            employeeId,
-            employeeSessionId,
-            voiceMode,
-          });
-        }
       } catch (error: unknown) {
         if (!disposed && !isStoppingIntentionally()) {
           setStatus("error");
@@ -103,15 +134,20 @@ export function EmployeeAnamStage({
     return () => {
       disposed = true;
       detachVoicePipeline?.();
+      detachSessionEvents?.();
       registerClient(null);
     };
   }, [
     employeeId,
     employeeSessionId,
+    ensureMicActive,
     isStoppingIntentionally,
     registerClient,
     sessionToken,
     setIsLive,
+    setMicPermission,
+    setPipelineState,
+    syncMicFromClient,
     t,
     voiceMode,
   ]);
