@@ -8,16 +8,11 @@ const PROTECTED_PREFIXES = [
   "/analytics",
   "/settings",
 ];
-const AUTH_ROUTES = ["/login", "/register"];
 
 function isProtectedRoute(pathname: string): boolean {
   return PROTECTED_PREFIXES.some(
     (route) => pathname === route || pathname.startsWith(`${route}/`),
   );
-}
-
-function isAuthRoute(pathname: string): boolean {
-  return AUTH_ROUTES.includes(pathname);
 }
 
 export function proxy(request: NextRequest) {
@@ -28,12 +23,6 @@ export function proxy(request: NextRequest) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("next", pathname);
     return applySecurityHeaders(NextResponse.redirect(loginUrl));
-  }
-
-  if (isAuthRoute(pathname) && sessionCookie) {
-    return applySecurityHeaders(
-      NextResponse.redirect(new URL("/dashboard", request.url)),
-    );
   }
 
   return applySecurityHeaders(NextResponse.next());
