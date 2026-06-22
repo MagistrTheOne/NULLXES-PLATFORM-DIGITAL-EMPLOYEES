@@ -1,5 +1,6 @@
 "use client";
 
+import "stream-chat-react/css/index.css";
 import { Component, type ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Loader2, MessageSquare, RotateCcw, Trash2 } from "lucide-react";

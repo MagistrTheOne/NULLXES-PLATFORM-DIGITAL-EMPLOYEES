@@ -2,7 +2,6 @@ import { requireAuth } from "@/features/auth/services/require-auth";
 import { ensureWorkspace } from "@/features/auth/services/ensure-workspace";
 import { getEmployeeTalkContext } from "@/features/runtime-session/services/get-employee-talk-context";
 import { EmployeeTalkSession } from "@/features/runtime-session/components/employee-talk-session";
-import { getEmployeeSessionLimitSeconds } from "@/features/runtime-session/services/get-employee-session-limit";
 import { notFound, redirect } from "next/navigation";
 
 export default async function EmployeeTalkPage({
@@ -23,8 +22,6 @@ export default async function EmployeeTalkPage({
     redirect(`/dashboard/employees/${id}`);
   }
 
-  const sessionLimitSeconds = await getEmployeeSessionLimitSeconds(employee.id);
-
   return (
     <EmployeeTalkSession
       employeeName={employee.name}
@@ -33,7 +30,7 @@ export default async function EmployeeTalkPage({
       actorUserName={session.user.name}
       employeeId={employee.id}
       avatarPreviewUrl={employee.avatarPreviewUrl}
-      sessionLimitSeconds={sessionLimitSeconds}
+      sessionLimitSeconds={employee.sessionLimitSeconds}
     />
   );
 }

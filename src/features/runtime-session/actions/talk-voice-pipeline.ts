@@ -1,7 +1,7 @@
 "use server";
 
 import { requireWorkspacePermissionOrThrowMessage } from "@/features/workspace";
-import { getEmployeeDetail } from "@/features/employees/services/get-employee-detail";
+import { getEmployeeTalkContext } from "../services/get-employee-talk-context";
 import { collectTalkBrainResponse } from "../services/stream-talk-brain-response";
 import { getTalkRuntimeConfig } from "../services/get-talk-runtime-config";
 import {
@@ -36,7 +36,10 @@ export async function synthesizeTalkVoiceAction(
     const workspace = await requireWorkspacePermissionOrThrowMessage(
       "canOperateEmployees",
     );
-    const employee = await getEmployeeDetail(workspace.organization.id, employeeId);
+    const employee = await getEmployeeTalkContext(
+      workspace.organization.id,
+      employeeId,
+    );
 
   if (!employee?.voiceId) {
     return { ok: false, message: "Employee voice is not configured" };

@@ -1,8 +1,9 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useCallback, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Mic, MicOff, PhoneOff, Play, Square, Video, VideoOff } from "lucide-react";
+import { Loader2, Mic, MicOff, PhoneOff, Play, Square, Video, VideoOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { TalkChatCredentials } from "../services/create-talk-chat-session";
@@ -12,10 +13,21 @@ import {
 } from "../actions/employee-session";
 import type { TalkVoiceMode } from "../services/resolve-talk-voice-mode";
 import { EmployeeAnamStage } from "./employee-anam-stage";
-import { EmployeeTalkChat } from "./employee-talk-chat";
 import { TalkLocalCameraPip } from "./talk-local-camera-pip";
-import "stream-chat-react/css/index.css";
 import "./employee-talk-theme.css";
+
+const EmployeeTalkChat = dynamic(
+  () =>
+    import("./employee-talk-chat").then((module) => module.EmployeeTalkChat),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="employee-talk-chat-fallback flex h-full items-center justify-center">
+        <Loader2 className="size-4 animate-spin text-white/50" />
+      </div>
+    ),
+  },
+);
 
 export type ActiveTalkSession = {
   sessionId: string;

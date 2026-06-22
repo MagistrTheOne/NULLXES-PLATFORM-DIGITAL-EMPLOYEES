@@ -1,10 +1,10 @@
 import { composeTalkSystemPrompt } from "@/features/employees/lib/build-system-prompt";
 import { resolveEmployeePersonaGender } from "@/features/employees/lib/resolve-employee-persona-gender";
-import { getEmployeeDetail } from "@/features/employees/services/get-employee-detail";
 import {
   resolveTalkVoiceMode,
   type TalkVoiceMode,
 } from "./resolve-talk-voice-mode";
+import { getEmployeeTalkContext } from "./get-employee-talk-context";
 
 export type TalkRuntimeConfig = {
   model: string;
@@ -20,7 +20,7 @@ export async function getTalkRuntimeConfig(
   organizationId: string,
   employeeId: string,
 ): Promise<TalkRuntimeConfig | null> {
-  const employee = await getEmployeeDetail(organizationId, employeeId);
+  const employee = await getEmployeeTalkContext(organizationId, employeeId);
 
   if (!employee) {
     return null;
@@ -37,8 +37,8 @@ export async function getTalkRuntimeConfig(
         voiceId: employee.voiceId,
       }),
     }),
-    temperature: 0.7,
-    maxTokens: 1024,
+    temperature: employee.temperature,
+    maxTokens: employee.maxTokens,
     voiceMode: resolveTalkVoiceMode(employee),
     voiceId: employee.voiceId,
     employeeName: employee.name,
