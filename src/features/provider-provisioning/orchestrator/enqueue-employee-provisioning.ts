@@ -7,11 +7,5 @@ import { provisionEmployeeProviders } from "../services/provision-employee-provi
  * Refresh the UI via revalidateEmployeePaths (server action) from the client.
  */
 export function enqueueEmployeeProvisioning(employeeId: string): void {
-  void provisionEmployeeProviders({ employeeId }).catch((error: unknown) => {
-    const message = error instanceof Error ? error.message : String(error);
-    console.error(
-      `Provider provisioning failed for employee ${employeeId}:`,
-      message,
-    );
-  });
+  void provisionEmployeeProviders({ employeeId }).catch(() => undefined);
 }

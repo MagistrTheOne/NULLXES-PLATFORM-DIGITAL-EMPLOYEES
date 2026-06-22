@@ -39,9 +39,7 @@ function persistUserSessionMessage(input: {
     role: "user",
     content: input.content,
     streamMessageId: input.streamMessageId,
-  }).catch((error: unknown) => {
-    console.error("Failed to persist user talk message", error);
-  });
+  }).catch(() => undefined);
 }
 
 export function attachTalkChatPipeline(input: {

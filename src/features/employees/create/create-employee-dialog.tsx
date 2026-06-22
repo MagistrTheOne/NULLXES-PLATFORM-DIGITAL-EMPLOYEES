@@ -292,9 +292,7 @@ export function CreateEmployeeDialog({
       handleOpenChange(false);
 
       void provisionEmployeeAvatarStudio(created.employeeId, avatarPayload).catch(
-        (provisionError: unknown) => {
-          console.error("Background avatar provisioning failed:", provisionError);
-        },
+        () => undefined,
       );
     } catch (submitError: unknown) {
       const message =

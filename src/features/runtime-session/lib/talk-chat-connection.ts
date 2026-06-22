@@ -55,10 +55,6 @@ async function withChatRetries<T>(label: string, task: () => Promise<T>): Promis
         throw error;
       }
 
-      console.warn(
-        `${label} failed (attempt ${attempt + 1}/${CHAT_CONNECT_ATTEMPTS}), retrying…`,
-        error,
-      );
       await pause(400 * (attempt + 1));
     }
   }

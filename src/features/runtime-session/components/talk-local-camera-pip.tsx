@@ -61,8 +61,7 @@ export function TalkLocalCameraPip({
           videoRef.current.srcObject = stream;
           await videoRef.current.play().catch(() => undefined);
         }
-      } catch (error: unknown) {
-        console.error("Local camera preview failed", error);
+      } catch {
         if (active) {
           setFailed(true);
         }

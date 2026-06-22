@@ -53,9 +53,6 @@ export async function syncAnamPersonaExternalBrain(input: {
     });
 
     if (!updateResponse.ok) {
-      console.warn(
-        `Anam persona ${personaId} external-brain sync failed (${updateResponse.status})`,
-      );
       return;
     }
   }
@@ -84,7 +81,7 @@ export async function syncAnamPersonaExternalBrain(input: {
         externalBrainLlmId: ANAM_EXTERNAL_LLM_ID,
       },
     });
-  } catch (error: unknown) {
-    console.warn("Failed to persist Anam external-brain sync flag", error);
+  } catch {
+    // Best-effort metadata persistence; talk start can retry sync later.
   }
 }

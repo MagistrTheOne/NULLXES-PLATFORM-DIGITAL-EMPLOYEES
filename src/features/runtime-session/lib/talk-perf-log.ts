@@ -1,9 +1,5 @@
 export function isTalkPerfLogEnabled(): boolean {
-  return (
-    process.env.TALK_PERF_LOG === "1" ||
-    (process.env.NODE_ENV === "development" &&
-      process.env.TALK_PERF_LOG !== "0")
-  );
+  return process.env.TALK_PERF_LOG === "1";
 }
 
 export function logTalkPerf(

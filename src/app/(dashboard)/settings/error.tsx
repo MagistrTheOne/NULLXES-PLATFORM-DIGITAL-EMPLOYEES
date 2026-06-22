@@ -1,8 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import {
+  organizationSettingsMigrationPendingMessage,
+  organizationSettingsTableMissingMessage,
+} from "@/entities/organization-settings/user-facing-errors";
 
 function getSettingsErrorMessage(error: Error): string {
   const needsMigration =
@@ -10,11 +13,15 @@ function getSettingsErrorMessage(error: Error): string {
     error.name === "OrganizationSettingsMigrationPendingError" ||
     error.message.includes("organization_settings");
 
-  if (process.env.NODE_ENV === "development" && needsMigration) {
-    return "The settings schema is not applied yet. Run npm run db:migrate, then reload this page.";
+  if (!needsMigration) {
+    return "Something went wrong while loading workspace settings.";
   }
 
-  return "Something went wrong while loading workspace settings.";
+  if (error.name === "OrganizationSettingsTableMissingError") {
+    return organizationSettingsTableMissingMessage();
+  }
+
+  return organizationSettingsMigrationPendingMessage();
 }
 
 export default function SettingsError({
@@ -24,10 +31,6 @@ export default function SettingsError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
-  useEffect(() => {
-    console.error("Settings page error", error);
-  }, [error]);
-
   return (
     <div className="mx-auto flex w-full max-w-lg flex-col gap-4 px-4 py-16 text-center">
       <h1 className="text-xl font-medium text-white">Settings unavailable</h1>

@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 
@@ -13,10 +12,6 @@ export default function EmployeeTalkError({
   reset: () => void;
 }) {
   const t = useTranslations("employees.talk.error");
-
-  useEffect(() => {
-    console.error("Employee Talk page error", error);
-  }, [error]);
 
   const isDatabaseUnavailable =
     error.message.toLowerCase().includes("failed to get session") ||

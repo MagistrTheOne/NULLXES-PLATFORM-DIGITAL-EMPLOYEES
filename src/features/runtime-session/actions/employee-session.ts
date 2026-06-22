@@ -49,13 +49,9 @@ export async function completeTalkSessionAction(
         name: "employee/session.completed",
         data: { sessionId, organizationId },
       });
-    } catch (error) {
-      console.error("[completeTalkSessionAction] Inngest send failed:", error);
+    } catch {
+      // Background job dispatch is best-effort; session completion already persisted.
     }
-  } else if (process.env.NODE_ENV === "development") {
-    console.warn(
-      "[completeTalkSessionAction] Inngest event skipped. Set INNGEST_DEV=1 and run npm run inngest:dev for local background jobs.",
-    );
   }
 
   if (result) {

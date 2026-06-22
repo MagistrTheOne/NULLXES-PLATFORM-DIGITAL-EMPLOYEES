@@ -61,8 +61,8 @@ export async function createAnamTalkSessionTokenForEmployee(
         personaId: employee.personaId,
         employeeId: employee.id,
       });
-    } catch (syncError: unknown) {
-      console.warn("Anam persona external-brain sync failed", syncError);
+    } catch {
+      // Best-effort sync; session token can still be requested.
     }
   }
 

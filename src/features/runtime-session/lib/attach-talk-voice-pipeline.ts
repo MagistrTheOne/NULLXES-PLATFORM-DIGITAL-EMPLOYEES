@@ -38,9 +38,7 @@ function persistUserSessionMessage(input: {
     sessionId: input.sessionId,
     role: "user",
     content: input.content,
-  }).catch((error: unknown) => {
-    console.error("Failed to persist user talk message", error);
-  });
+  }).catch(() => undefined);
 }
 
 function isSubstantiveUserMessage(text: string): boolean {

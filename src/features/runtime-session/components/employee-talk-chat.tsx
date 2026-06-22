@@ -103,8 +103,7 @@ class TalkChatErrorBoundary extends Component<
     return { hasError: true };
   }
 
-  componentDidCatch(error: unknown): void {
-    console.error("Talk chat UI error", error);
+  componentDidCatch(): void {
     this.props.onError();
   }
 
@@ -204,8 +203,7 @@ export function EmployeeTalkChat({
         setClient(session.client);
         setChannel(session.channel);
         setUiState("ready");
-      } catch (connectError: unknown) {
-        console.error("Talk chat connection failed", connectError);
+      } catch {
         if (cancelled || connectGenerationRef.current !== generation) {
           return;
         }
@@ -289,8 +287,8 @@ export function EmployeeTalkChat({
       });
       resetTalkChatReplyDedup();
       resetTalkPipelineCoordinator(employeeId);
-    } catch (clearError: unknown) {
-      console.error("Failed to clear talk chat history", clearError);
+    } catch {
+      // UI already reflects the failed clear attempt.
     } finally {
       setIsClearingHistory(false);
     }
