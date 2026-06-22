@@ -6,6 +6,7 @@ import {
 } from "@/shared/config/provider-env";
 import { resolveAvatarProvider } from "@/shared/providers";
 import { buildAnamPersonaCreatePayload } from "@/features/runtime-session/lib/build-anam-talk-persona-config";
+import { syncAnamPersonaExternalBrain } from "./sync-anam-persona-external-brain";
 import type {
   ProvisionAvatarProviderInput,
   ProvisionProviderResult,
@@ -199,6 +200,11 @@ export async function provisionAvatarProvider(
       avatarId,
       providerMetadata,
       failureReason: undefined,
+    });
+
+    await syncAnamPersonaExternalBrain({
+      personaId: persona.id,
+      employeeId: input.employeeId,
     });
 
     return {

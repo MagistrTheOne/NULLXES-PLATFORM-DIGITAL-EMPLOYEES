@@ -218,7 +218,9 @@ function TalkControlsBar({
 }
 
 export type EmployeeTalkSessionInputProps = {
-  chatSession: TalkChatCredentials;
+  chatSession: TalkChatCredentials | null;
+  actorUserId: string;
+  actorUserName: string;
   employeeId: string;
   avatarPreviewUrl: string | null;
   sessionLimitSeconds: number;
@@ -235,6 +237,7 @@ export type EmployeeTalkRoomProps = EmployeeTalkSessionInputProps & {
 
 function TalkRoomLayout({
   chatSession,
+  actorUserName,
   employeeName,
   employeeId,
   avatarPreviewUrl,
@@ -261,7 +264,7 @@ function TalkRoomLayout({
             />
             <TalkLocalCameraPip
               enabled={cameraEnabled}
-              userName={chatSession.userName}
+              userName={actorUserName}
             />
           </div>
           <TalkControlsBar

@@ -45,7 +45,7 @@ export async function forwardAnamApiRequest(
     responseHeaders.set("Content-Type", upstreamContentType);
   }
 
-  return new Response(await upstream.arrayBuffer(), {
+  return new Response(upstream.body, {
     status: upstream.status,
     headers: responseHeaders,
   });

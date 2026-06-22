@@ -29,12 +29,13 @@ import { attachTalkChatPipeline } from "../lib/attach-talk-chat-pipeline";
 import { useTalkAnam } from "../context/talk-anam-context";
 import { registerTalkChatBridge, resetTalkChatReplyDedup } from "../lib/talk-reply-bridge";
 import { resetTalkPipelineCoordinator, releaseTalkPipelineCoordinator } from "../lib/talk-pipeline-coordinator";
-import type { TalkVoiceMode } from "../services/resolve-talk-voice-mode";
+import { connectTalkChatSessionAction } from "../actions/connect-talk-chat-session";
 import {
   connectTalkChatSession,
   releaseTalkChatMount,
   retainTalkChatMount,
 } from "../lib/talk-chat-connection";
+import type { TalkVoiceMode } from "../services/resolve-talk-voice-mode";
 type TalkChatUiState = "connecting" | "ready" | "unavailable";
 
 function TalkChatEmptyState({ message }: { message: string }) {
@@ -129,7 +130,7 @@ export function EmployeeTalkChat({
   isSessionLive,
   voiceMode,
 }: {
-  chatSession: TalkChatCredentials;
+  chatSession: TalkChatCredentials | null;
   employeeId: string;
   employeeSessionId?: string;
   isSessionLive: boolean;
@@ -138,6 +139,8 @@ export function EmployeeTalkChat({
   const t = useTranslations("employees.talk.chat");
   const tTalk = useTranslations("employees.talk");
   const { getClient } = useTalkAnam();
+  const [activeChatSession, setActiveChatSession] =
+    useState<TalkChatCredentials | null>(chatSession);
   const [client, setClient] = useState<StreamChat | null>(null);
   const [channel, setChannel] = useState<StreamChannel | null>(null);
   const [uiState, setUiState] = useState<TalkChatUiState>("connecting");
@@ -152,7 +155,29 @@ export function EmployeeTalkChat({
   }, [employeeId]);
 
   useEffect(() => {
+    setActiveChatSession(chatSession);
+  }, [chatSession]);
+
+  useEffect(() => {
     let cancelled = false;
+
+    async function bootstrapChatSession(): Promise<TalkChatCredentials | null> {
+      if (activeChatSession) {
+        return activeChatSession;
+      }
+
+      const result = await connectTalkChatSessionAction(employeeId);
+      if (!result.ok) {
+        throw new Error(result.message);
+      }
+
+      if (!cancelled) {
+        setActiveChatSession(result.chatSession);
+      }
+
+      return result.chatSession;
+    }
+
     const generation = connectGenerationRef.current + 1;
     connectGenerationRef.current = generation;
 
@@ -164,7 +189,12 @@ export function EmployeeTalkChat({
       setChannel(null);
 
       try {
-        const session = await connectTalkChatSession(chatSession);
+        const sessionCredentials = await bootstrapChatSession();
+        if (!sessionCredentials) {
+          return;
+        }
+
+        const session = await connectTalkChatSession(sessionCredentials);
 
         if (cancelled || connectGenerationRef.current !== generation) {
           return;
@@ -189,15 +219,13 @@ export function EmployeeTalkChat({
 
     return () => {
       cancelled = true;
-      releaseTalkChatMount(chatSession.apiKey);
+      if (activeChatSession?.apiKey) {
+        releaseTalkChatMount(activeChatSession.apiKey);
+      }
     };
   }, [
-    chatSession.apiKey,
-    chatSession.channelId,
-    chatSession.channelType,
-    chatSession.token,
-    chatSession.userId,
-    chatSession.userName,
+    activeChatSession,
+    employeeId,
     connectAttempt,
   ]);
 
@@ -226,7 +254,7 @@ export function EmployeeTalkChat({
       channel,
       employeeId,
       employeeSessionId,
-      actorUserId: chatSession.userId,
+      actorUserId: activeChatSession!.userId,
       isSessionLive,
       voiceMode,
       getAnamClient: getClient,
@@ -237,8 +265,8 @@ export function EmployeeTalkChat({
       registerTalkChatBridge({ channel: null, botUserId: "" });
     };
   }, [
+    activeChatSession,
     channel,
-    chatSession.userId,
     employeeId,
     employeeSessionId,
     getClient,
@@ -248,14 +276,14 @@ export function EmployeeTalkChat({
   ]);
 
   const handleClearHistory = useCallback(async () => {
-    if (!channel || isClearingHistory) {
+    if (!channel || isClearingHistory || !activeChatSession) {
       return;
     }
 
     setIsClearingHistory(true);
     try {
       await channel.truncate({
-        user_id: chatSession.userId,
+        user_id: activeChatSession.userId,
         hard_delete: true,
       });
       resetTalkChatReplyDedup();
@@ -265,7 +293,7 @@ export function EmployeeTalkChat({
     } finally {
       setIsClearingHistory(false);
     }
-  }, [channel, chatSession.userId, employeeId, isClearingHistory]);
+  }, [activeChatSession, channel, employeeId, isClearingHistory]);
 
   if (uiState !== "ready" || !client || !channel) {
     return (

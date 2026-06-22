@@ -1,8 +1,10 @@
 import {
   AGENT_TOOL_DEFINITIONS,
+  TALK_AGENT_TOOL_DEFINITIONS,
   executeAgentTool,
   type AgentToolExecutionContext,
 } from "@/features/agent-tools";
+import { logTalkPerf } from "@/features/runtime-session/lib/talk-perf-log";
 import { getOpenAiApiBaseUrl, getOpenAiApiKey } from "@/shared/config/provider-env";
 import type { TalkBrainMessage } from "./generate-talk-brain-response";
 
@@ -35,6 +37,7 @@ type OpenAiChatMessage =
   | { role: "tool"; tool_call_id: string; content: string };
 
 const MAX_TOOL_ITERATIONS = 3;
+const MAX_TOOL_ITERATIONS_TALK = 1;
 
 async function callOpenAiChat(input: {
   model: string;
@@ -73,6 +76,7 @@ async function runToolLoop(input: {
   temperature?: number;
   maxTokens?: number;
   toolContext?: AgentToolExecutionContext;
+  mode?: "talk" | "default";
 }): Promise<OpenAiChatMessage[]> {
   const conversation: OpenAiChatMessage[] = [
     { role: "system", content: input.systemPrompt },
@@ -88,13 +92,21 @@ async function runToolLoop(input: {
     return conversation;
   }
 
-  for (let iteration = 0; iteration < MAX_TOOL_ITERATIONS; iteration += 1) {
+  const toolDefinitions =
+    input.mode === "talk"
+      ? TALK_AGENT_TOOL_DEFINITIONS
+      : AGENT_TOOL_DEFINITIONS;
+  const maxIterations =
+    input.mode === "talk" ? MAX_TOOL_ITERATIONS_TALK : MAX_TOOL_ITERATIONS;
+  const toolLoopStartedAt = performance.now();
+
+  for (let iteration = 0; iteration < maxIterations; iteration += 1) {
     const response = await callOpenAiChat({
       model: input.model,
       messages: conversation,
       temperature: input.temperature,
       maxTokens: input.maxTokens,
-      tools: AGENT_TOOL_DEFINITIONS,
+      tools: toolDefinitions,
       stream: false,
     });
 
@@ -136,6 +148,11 @@ async function runToolLoop(input: {
     }
   }
 
+  logTalkPerf("talk.brain.tool_loop", {
+    mode: input.mode ?? "default",
+    duration_ms: Math.round(performance.now() - toolLoopStartedAt),
+  });
+
   return conversation;
 }
 
@@ -146,8 +163,11 @@ export async function* streamTalkBrainResponse(input: {
   temperature?: number;
   maxTokens?: number;
   toolContext?: AgentToolExecutionContext;
+  mode?: "talk" | "default";
 }): AsyncGenerator<string> {
   const conversation = await runToolLoop(input);
+  const streamStartedAt = performance.now();
+  let firstTokenLogged = false;
   const response = await callOpenAiChat({
     model: input.model,
     messages: conversation,
@@ -188,6 +208,13 @@ export async function* streamTalkBrainResponse(input: {
       const chunk = JSON.parse(payload) as OpenAiStreamChunk;
       const content = chunk.choices?.[0]?.delta?.content;
       if (content) {
+        if (!firstTokenLogged) {
+          firstTokenLogged = true;
+          logTalkPerf("talk.brain.ttfb", {
+            mode: input.mode ?? "default",
+            duration_ms: Math.round(performance.now() - streamStartedAt),
+          });
+        }
         yield content;
       }
     }

@@ -13,8 +13,35 @@ import {
 import { playTalkVoiceReply } from "./play-talk-voice-reply";
 import { postTalkEmployeeChatReply } from "./talk-reply-bridge";
 
-const USER_MESSAGE_DEBOUNCE_MS = 750;
+const USER_MESSAGE_DEBOUNCE_MS = 400;
+const USER_MESSAGE_DEBOUNCE_SHORT_MS = 250;
+const SHORT_USER_MESSAGE_MAX_LENGTH = 20;
 const MIN_USER_MESSAGE_LENGTH = 3;
+
+function resolveUserMessageDebounceMs(content: string): number {
+  const trimmed = content.trim();
+  if (
+    trimmed.length > 0 &&
+    trimmed.length < SHORT_USER_MESSAGE_MAX_LENGTH
+  ) {
+    return USER_MESSAGE_DEBOUNCE_SHORT_MS;
+  }
+
+  return USER_MESSAGE_DEBOUNCE_MS;
+}
+
+function persistUserSessionMessage(input: {
+  sessionId: string;
+  content: string;
+}): void {
+  void appendSessionMessageAction({
+    sessionId: input.sessionId,
+    role: "user",
+    content: input.content,
+  }).catch((error: unknown) => {
+    console.error("Failed to persist user talk message", error);
+  });
+}
 
 function isSubstantiveUserMessage(text: string): boolean {
   const trimmed = text.trim();
@@ -76,9 +103,8 @@ export function attachTalkVoicePipeline(input: {
         if (input.employeeSessionId) {
           const lastUser = pipelineMessages.at(-1);
           if (lastUser?.role === "user") {
-            await appendSessionMessageAction({
+            persistUserSessionMessage({
               sessionId: input.employeeSessionId,
-              role: "user",
               content: lastUser.content,
             });
           }
@@ -178,7 +204,7 @@ export function attachTalkVoicePipeline(input: {
       processUserMessage(pendingHistory, pendingMessage, coordinator);
       pendingHistory = null;
       pendingMessage = null;
-    }, USER_MESSAGE_DEBOUNCE_MS);
+    }, resolveUserMessageDebounceMs(pendingMessage.content ?? ""));
   };
 
   const onInterrupted = () => {

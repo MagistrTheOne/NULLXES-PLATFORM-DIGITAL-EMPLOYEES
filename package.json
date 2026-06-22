@@ -38,6 +38,7 @@
     "provider-provisioning:verify": "node --import tsx src/features/provider-provisioning/verify-provider-provisioning.ts",
     "providers:status": "node --import tsx src/features/provider-provisioning/check-provider-status.ts",
     "stream:verify": "node --env-file=.env --import tsx src/features/runtime-session/verify-stream-credentials.ts",
+    "talk-context:verify": "node --env-file=.env --import tsx src/features/runtime-session/verify-talk-context.ts",
     "inngest:sync": "node --env-file=.env --import tsx scripts/sync-inngest.ts",
     "inngest:dev": "npx --yes inngest-cli@latest dev -u http://localhost:3000/api/inngest",
     "dev:inngest": "npm run inngest:dev",

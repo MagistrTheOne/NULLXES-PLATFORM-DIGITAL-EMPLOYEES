@@ -81,6 +81,7 @@ export async function POST(request: Request): Promise<Response> {
             employeeId,
             sessionId: sessionId || undefined,
           },
+          mode: "talk",
         })) {
           controller.enqueue(
             encoder.encode(`${JSON.stringify({ content })}\n`),

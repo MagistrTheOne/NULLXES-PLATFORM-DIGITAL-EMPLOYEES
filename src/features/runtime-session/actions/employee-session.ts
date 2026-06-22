@@ -5,7 +5,8 @@ import { dispatchOrganizationWebhook } from "@/features/public-api/services/disp
 import { inngest, isInngestEnabledForSend } from "@/inngest/client";
 import { createAnamTalkSessionTokenForEmployee } from "../services/create-anam-talk-session";
 import { resolveTalkVoiceMode } from "../services/resolve-talk-voice-mode";
-import { getEmployeeDetail } from "@/features/employees/services/get-employee-detail";
+import { getEmployeeTalkContext } from "../services/get-employee-talk-context";
+import { measureTalkPerf } from "../lib/talk-perf-log";
 import {
   activateEmployeeSession,
   completeEmployeeSession,
@@ -115,31 +116,40 @@ export async function startTalkSessionAction(
   try {
     const { organizationId, userId } = await resolveWorkspaceContext();
 
-  const employee = await getEmployeeDetail(organizationId, employeeId);
-  if (!employee) {
-    return { ok: false, message: "Employee not found" };
-  }
+    const employee = await getEmployeeTalkContext(organizationId, employeeId);
+    if (!employee) {
+      return { ok: false, message: "Employee not found" };
+    }
 
-  const anamToken = await createAnamTalkSessionTokenForEmployee(
-    organizationId,
-    employeeId,
-  );
-  if (!anamToken.ok) {
-    return { ok: false, message: anamToken.message };
-  }
+    return measureTalkPerf(
+      "talk.session.start",
+      async () => {
+        const [anamToken, sessionId] = await Promise.all([
+          createAnamTalkSessionTokenForEmployee(
+            organizationId,
+            employeeId,
+            employee,
+          ),
+          startEmployeeSession({
+            organizationId,
+            employeeId,
+            userId,
+          }),
+        ]);
 
-  const sessionId = await startEmployeeSession({
-    organizationId,
-    employeeId,
-    userId,
-  });
+        if (!anamToken.ok) {
+          return { ok: false, message: anamToken.message };
+        }
 
-  return {
-    ok: true,
-    sessionId,
-    sessionToken: anamToken.sessionToken,
-    voiceMode: resolveTalkVoiceMode(employee),
-  };
+        return {
+          ok: true,
+          sessionId,
+          sessionToken: anamToken.sessionToken,
+          voiceMode: resolveTalkVoiceMode(employee),
+        };
+      },
+      { employeeId },
+    );
   } catch (error: unknown) {
     return {
       ok: false,

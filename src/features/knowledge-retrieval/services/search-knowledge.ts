@@ -10,6 +10,10 @@ import {
 } from "@/shared/config/provider-env";
 import type { KnowledgeSearchResult, SearchKnowledgeInput } from "../types";
 import { embedTexts } from "./embed-text";
+import {
+  getCachedQueryEmbedding,
+  setCachedQueryEmbedding,
+} from "./session-embedding-cache";
 
 type RawSearchRow = {
   chunk_id: string;
@@ -28,7 +32,17 @@ export async function searchKnowledge(
     return [];
   }
 
-  const [queryEmbedding] = await embedTexts({ texts: [query] });
+  let queryEmbedding = input.useSessionCache
+    ? getCachedQueryEmbedding(input.employeeId, query)
+    : null;
+
+  if (!queryEmbedding) {
+    const embeddings = await embedTexts({ texts: [query] });
+    queryEmbedding = embeddings[0];
+    if (queryEmbedding && input.useSessionCache) {
+      setCachedQueryEmbedding(input.employeeId, query, queryEmbedding);
+    }
+  }
   if (!queryEmbedding) {
     return [];
   }

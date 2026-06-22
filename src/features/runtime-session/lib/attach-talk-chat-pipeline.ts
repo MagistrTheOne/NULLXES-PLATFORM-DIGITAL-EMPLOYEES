@@ -29,6 +29,21 @@ function buildPipelineMessages(
     }));
 }
 
+function persistUserSessionMessage(input: {
+  sessionId: string;
+  content: string;
+  streamMessageId?: string;
+}): void {
+  void appendSessionMessageAction({
+    sessionId: input.sessionId,
+    role: "user",
+    content: input.content,
+    streamMessageId: input.streamMessageId,
+  }).catch((error: unknown) => {
+    console.error("Failed to persist user talk message", error);
+  });
+}
+
 export function attachTalkChatPipeline(input: {
   channel: StreamChannel;
   employeeId: string;
@@ -68,9 +83,8 @@ export function attachTalkChatPipeline(input: {
     void (async () => {
       try {
         if (input.employeeSessionId) {
-          await appendSessionMessageAction({
+          persistUserSessionMessage({
             sessionId: input.employeeSessionId,
-            role: "user",
             content: message.text!.trim(),
             streamMessageId: message.id,
           });

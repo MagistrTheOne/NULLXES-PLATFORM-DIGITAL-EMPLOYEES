@@ -1,5 +1,6 @@
 "use server";
 
+import { cache } from "react";
 import { eq } from "drizzle-orm";
 import { membership } from "@/entities/membership/schema";
 import {
@@ -11,7 +12,7 @@ import type { WorkspaceContext } from "@/features/workspace";
 import { db } from "@/shared/db/client";
 import { provisionDefaultWorkspace } from "./provision-default-workspace";
 
-export async function ensureWorkspace(
+async function loadWorkspace(
   userId: string,
   displayName: string,
 ): Promise<WorkspaceContext> {
@@ -37,3 +38,5 @@ export async function ensureWorkspace(
 
   return workspace;
 }
+
+export const ensureWorkspace = cache(loadWorkspace);

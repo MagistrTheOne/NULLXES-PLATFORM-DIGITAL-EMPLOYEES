@@ -4,7 +4,8 @@ import {
   getStreamApiKey,
   getStreamSecretKey,
 } from "@/shared/config/env";
-import { getEmployeeDetail } from "@/features/employees/services/get-employee-detail";
+import type { EmployeeTalkContext } from "../types/employee-talk-context";
+import { getEmployeeTalkContext } from "./get-employee-talk-context";
 
 export type TalkChatCredentials = {
   apiKey: string;
@@ -24,8 +25,11 @@ export async function createTalkChatSession(
   employeeId: string,
   actorUserId: string,
   actorName: string,
+  talkContext?: EmployeeTalkContext | null,
 ): Promise<TalkChatCredentials | null> {
-  const employee = await getEmployeeDetail(organizationId, employeeId);
+  const employee =
+    talkContext ??
+    (await getEmployeeTalkContext(organizationId, employeeId));
 
   if (!employee?.canTalk) {
     return null;

@@ -1,21 +1,35 @@
 import {
   describeAnamAvatarTalkReadiness,
 } from "@/features/employees/lib/resolve-anam-avatar-talk-readiness";
-import { getEmployeeDetail } from "@/features/employees/services/get-employee-detail";
+import { ANAM_EXTERNAL_LLM_ID } from "@/features/provider-provisioning/types";
 import { syncAnamPersonaExternalBrain } from "@/features/provider-provisioning/services/sync-anam-persona-external-brain";
 import { buildAnamTalkEphemeralPersonaConfig } from "@/features/runtime-session/lib/build-anam-talk-persona-config";
 import { resolveTalkSpeechLanguageCode } from "@/features/runtime-session/services/resolve-talk-speech-language";
 import { getAnamApiBaseUrl, getAnamApiKey } from "@/shared/config/provider-env";
+import type { EmployeeTalkContext } from "../types/employee-talk-context";
+import { getEmployeeTalkContext } from "./get-employee-talk-context";
 
 export type AnamTalkSessionTokenResult =
   | { ok: true; sessionToken: string }
   | { ok: false; message: string };
 
+function isExternalBrainSynced(
+  metadata: Record<string, unknown> | null,
+): boolean {
+  return (
+    typeof metadata?.externalBrainSyncedAt === "string" &&
+    metadata.externalBrainLlmId === ANAM_EXTERNAL_LLM_ID
+  );
+}
+
 export async function createAnamTalkSessionTokenForEmployee(
   organizationId: string,
   employeeId: string,
+  talkContext?: EmployeeTalkContext | null,
 ): Promise<AnamTalkSessionTokenResult> {
-  const employee = await getEmployeeDetail(organizationId, employeeId);
+  const employee =
+    talkContext ??
+    (await getEmployeeTalkContext(organizationId, employeeId));
 
   if (!employee) {
     return { ok: false, message: "Employee not found" };
@@ -41,9 +55,12 @@ export async function createAnamTalkSessionTokenForEmployee(
     return { ok: false, message: "ANAM_API_KEY is not configured" };
   }
 
-  if (employee.personaId) {
+  if (employee.personaId && !isExternalBrainSynced(employee.avatarProviderMetadata)) {
     try {
-      await syncAnamPersonaExternalBrain(employee.personaId);
+      await syncAnamPersonaExternalBrain({
+        personaId: employee.personaId,
+        employeeId: employee.id,
+      });
     } catch (syncError: unknown) {
       console.warn("Anam persona external-brain sync failed", syncError);
     }

@@ -1,11 +1,17 @@
-import type { EmployeeDetail } from "@/features/employees/types";
+import type { EmployeeTalkContext } from "../types/employee-talk-context";
 
 export type TalkVoiceMode = "elevenlabs" | "anam";
 
-export function resolveTalkVoiceMode(employee: EmployeeDetail): TalkVoiceMode {
+export function resolveTalkVoiceMode(
+  employee: Pick<
+    EmployeeTalkContext,
+    "sessionVoiceProvider" | "voiceId" | "studioVoiceId"
+  >,
+): TalkVoiceMode {
   if (
     employee.sessionVoiceProvider === "elevenlabs" &&
-    Boolean(employee.voiceId)
+    Boolean(employee.voiceId) &&
+    Boolean(employee.studioVoiceId)
   ) {
     return "elevenlabs";
   }

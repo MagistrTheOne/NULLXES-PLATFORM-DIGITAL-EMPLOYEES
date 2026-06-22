@@ -65,6 +65,10 @@ export const AGENT_TOOL_DEFINITIONS = [
   },
 ];
 
+export const TALK_AGENT_TOOL_DEFINITIONS = AGENT_TOOL_DEFINITIONS.filter(
+  (tool) => tool.function.name !== "search_knowledge",
+);
+
 export type AgentToolExecutionContext = {
   organizationId: string;
   employeeId: string;

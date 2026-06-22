@@ -14,6 +14,7 @@ export type SearchKnowledgeInput = {
   employeeId: string;
   query: string;
   topK?: number;
+  useSessionCache?: boolean;
 };
 
 export type ChunkAndEmbedSourceInput = {

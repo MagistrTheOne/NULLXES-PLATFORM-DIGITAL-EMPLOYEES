@@ -3,6 +3,7 @@ import {
   buildAnamPersonaExternalBrainPayload,
 } from "@/features/runtime-session/lib/build-anam-talk-persona-config";
 import { ANAM_EXTERNAL_LLM_ID } from "../types";
+import { mergeProviderConfig, getProviderConfigRow } from "./update-provider-config";
 import { getAnamApiBaseUrl, getAnamApiKey } from "@/shared/config/provider-env";
 
 type AnamPersonaSnapshot = {
@@ -11,9 +12,11 @@ type AnamPersonaSnapshot = {
   systemPrompt?: string | null;
 };
 
-export async function syncAnamPersonaExternalBrain(
-  personaId: string,
-): Promise<void> {
+export async function syncAnamPersonaExternalBrain(input: {
+  personaId: string;
+  employeeId?: string;
+}): Promise<void> {
+  const { personaId, employeeId } = input;
   const apiKey = getAnamApiKey();
   if (!apiKey) {
     return;
@@ -42,19 +45,46 @@ export async function syncAnamPersonaExternalBrain(
     current?.skipGreeting === true &&
     current?.systemPrompt === ANAM_AVATAR_ONLY_SYSTEM_PROMPT;
 
-  if (alreadySynced) {
+  if (!alreadySynced) {
+    const updateResponse = await fetch(`${baseUrl}/personas/${personaId}`, {
+      method: "PUT",
+      headers,
+      body: JSON.stringify(buildAnamPersonaExternalBrainPayload()),
+    });
+
+    if (!updateResponse.ok) {
+      console.warn(
+        `Anam persona ${personaId} external-brain sync failed (${updateResponse.status})`,
+      );
+      return;
+    }
+  }
+
+  if (!employeeId) {
     return;
   }
 
-  const updateResponse = await fetch(`${baseUrl}/personas/${personaId}`, {
-    method: "PUT",
-    headers,
-    body: JSON.stringify(buildAnamPersonaExternalBrainPayload()),
-  });
+  try {
+    const row = await getProviderConfigRow(employeeId, "avatar");
+    const existingMetadata =
+      row?.config &&
+      typeof row.config === "object" &&
+      row.config !== null &&
+      "providerMetadata" in row.config &&
+      typeof (row.config as { providerMetadata?: unknown }).providerMetadata ===
+        "object"
+        ? ((row.config as { providerMetadata: Record<string, unknown> })
+            .providerMetadata ?? {})
+        : {};
 
-  if (!updateResponse.ok) {
-    console.warn(
-      `Anam persona ${personaId} external-brain sync failed (${updateResponse.status})`,
-    );
+    await mergeProviderConfig(employeeId, "avatar", {
+      providerMetadata: {
+        ...existingMetadata,
+        externalBrainSyncedAt: new Date().toISOString(),
+        externalBrainLlmId: ANAM_EXTERNAL_LLM_ID,
+      },
+    });
+  } catch (error: unknown) {
+    console.warn("Failed to persist Anam external-brain sync flag", error);
   }
 }
