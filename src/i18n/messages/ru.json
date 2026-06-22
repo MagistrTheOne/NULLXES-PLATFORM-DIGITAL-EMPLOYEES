@@ -280,7 +280,6 @@
       "remaining": "осталось {remaining} · лимит {limit}",
       "chat": {
         "title": "Чат сессии",
-        "brainNote": "OpenAI · только аватар Anam",
         "empty": "Отправьте сообщение, чтобы начать разговор",
         "placeholder": "Отправьте сообщение...",
         "unavailable": "Чат недоступен",

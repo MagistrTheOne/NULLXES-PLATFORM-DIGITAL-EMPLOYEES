@@ -288,7 +288,7 @@ export function EmployeeTalkChat({
       onError={() => setUiState("unavailable")}
       unavailableLabel={t("unavailable")}
     >
-      <div className="employee-talk-chat-surface relative h-full min-h-0">
+      <div className="employee-talk-chat-surface relative flex h-full min-h-0 flex-1 flex-col overflow-hidden">
         <Chat client={client} theme="str-chat__theme-dark">
           <Channel channel={channel}>
             <Window>
@@ -298,7 +298,6 @@ export function EmployeeTalkChat({
                     <span className="text-[11px] font-medium tracking-[0.12em] text-white/50 uppercase">
                       {t("title")}
                     </span>
-                    <p className="mt-0.5 text-[10px] text-white/35">{t("brainNote")}</p>
                   </div>
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
@@ -337,7 +336,7 @@ export function EmployeeTalkChat({
                   </AlertDialog>
                 </div>
               </div>
-              <div className="employee-talk-chat-messages relative min-h-0 flex-1">
+              <div className="employee-talk-chat-messages relative min-h-0 min-w-0 flex-1">
                 <TalkChatEmptyOverlay channel={channel} emptyMessage={t("empty")} />
                 <MessageList />
               </div>
