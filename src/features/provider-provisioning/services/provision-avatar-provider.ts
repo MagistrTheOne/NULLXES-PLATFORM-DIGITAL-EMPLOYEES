@@ -139,6 +139,11 @@ export async function provisionAvatarProvider(
   }
 
   if (config.provisioningStatus === "ready" && config.personaId) {
+    await syncAnamPersonaExternalBrain({
+      personaId: config.personaId,
+      employeeId: input.employeeId,
+    });
+
     return {
       status: "ready",
       providerResourceId: config.personaId,

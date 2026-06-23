@@ -12,7 +12,7 @@ import type { DashboardOverview, OverviewEmployee } from "../types";
 import { getSystemStatus } from "./get-system-status";
 
 function mergeEmployees(
-  employees: Awaited<ReturnType<typeof listOrganizationEmployees>>,
+  employees: Awaited<ReturnType<typeof listOrganizationEmployees>>["items"],
   summaries: Awaited<ReturnType<typeof getEmployeeSessionSummaries>>,
 ): OverviewEmployee[] {
   const summaryByEmployeeId = new Map(
@@ -45,7 +45,7 @@ export async function getDashboardOverview(
       overnightWork,
     ] = await Promise.all([
       getWorkspaceAnalytics(organizationId, range),
-      listOrganizationEmployees(organizationId),
+      listOrganizationEmployees(organizationId).then((page) => page.items),
       getEmployeeSessionSummaries(organizationId, range),
       getLiveSessions(organizationId),
       getActiveSessionCount(organizationId),

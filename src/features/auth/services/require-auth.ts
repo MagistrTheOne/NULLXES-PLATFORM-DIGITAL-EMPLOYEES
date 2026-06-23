@@ -1,7 +1,8 @@
+import { cache } from "react";
 import { redirect } from "next/navigation";
 import { getCurrentSession } from "./get-current-session";
 
-export async function requireAuth() {
+async function loadRequiredSession() {
   const session = await getCurrentSession();
 
   if (!session) {
@@ -10,3 +11,5 @@ export async function requireAuth() {
 
   return session;
 }
+
+export const requireAuth = cache(loadRequiredSession);

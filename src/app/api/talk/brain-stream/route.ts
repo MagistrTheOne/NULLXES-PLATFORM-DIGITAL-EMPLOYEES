@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
-import { ensureWorkspace } from "@/features/auth/services/ensure-workspace";
-import { getCurrentSession } from "@/features/auth/services/get-current-session";
 import type { TalkPipelineMessage } from "@/features/runtime-session/actions/talk-voice-pipeline";
+import { assertBrainStreamRateLimit } from "@/features/runtime-session/lib/brain-stream-rate-limit";
 import { buildTalkBrainRequest } from "@/features/runtime-session/services/build-talk-brain-request";
+import { resolveTalkBrainAuth } from "@/features/runtime-session/services/resolve-talk-brain-auth";
 import { streamTalkBrainResponse } from "@/features/runtime-session/services/stream-talk-brain-response";
+import { logServerEvent } from "@/shared/lib/server-log";
 
 export const runtime = "nodejs";
 
@@ -14,11 +15,6 @@ type BrainStreamRequest = {
 };
 
 export async function POST(request: Request): Promise<Response> {
-  const session = await getCurrentSession();
-  if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
   let body: BrainStreamRequest;
   try {
     body = (await request.json()) as BrainStreamRequest;
@@ -45,9 +41,29 @@ export async function POST(request: Request): Promise<Response> {
     );
   }
 
-  const workspace = await ensureWorkspace(session.user.id, session.user.name);
+  const authResult = await resolveTalkBrainAuth({
+    employeeId,
+    sessionId: sessionId || undefined,
+  });
+
+  if (!authResult.ok) {
+    return NextResponse.json(
+      { error: authResult.error },
+      { status: authResult.status },
+    );
+  }
+
+  const rateLimit = assertBrainStreamRateLimit({
+    userId: authResult.auth.userId,
+    employeeId,
+  });
+
+  if (!rateLimit.ok) {
+    return NextResponse.json({ error: rateLimit.error }, { status: 429 });
+  }
+
   const config = await buildTalkBrainRequest({
-    organizationId: workspace.organization.id,
+    organizationId: authResult.auth.organizationId,
     employeeId,
     messages: messages.map((message) => ({
       role: message.role === "user" ? "user" : "assistant",
@@ -77,7 +93,7 @@ export async function POST(request: Request): Promise<Response> {
           temperature: config.temperature,
           maxTokens: config.maxTokens,
           toolContext: {
-            organizationId: workspace.organization.id,
+            organizationId: authResult.auth.organizationId,
             employeeId,
             sessionId: sessionId || undefined,
           },
@@ -91,6 +107,11 @@ export async function POST(request: Request): Promise<Response> {
       } catch (error) {
         const message =
           error instanceof Error ? error.message : "Brain stream failed";
+        logServerEvent(
+          "talk.brain_stream.error",
+          { employeeId, message },
+          "error",
+        );
         controller.enqueue(
           encoder.encode(`${JSON.stringify({ error: message })}\n`),
         );

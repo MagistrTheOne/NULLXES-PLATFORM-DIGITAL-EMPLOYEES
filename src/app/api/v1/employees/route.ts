@@ -10,10 +10,10 @@ export async function GET(request: Request): Promise<Response> {
     return auth;
   }
 
-  const employees = await listOrganizationEmployees(auth.organizationId);
+  const page = await listOrganizationEmployees(auth.organizationId);
 
   return apiJson({
-    data: employees.map((employee) => ({
+    data: page.items.map((employee) => ({
       ...employee,
       createdAt: employee.createdAt.toISOString(),
     })),

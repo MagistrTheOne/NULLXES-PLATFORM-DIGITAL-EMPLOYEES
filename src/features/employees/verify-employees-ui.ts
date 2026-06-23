@@ -81,7 +81,7 @@ async function verifyEmployeesUi(): Promise<void> {
   const workspace = await resolveWorkspace({ userId: createdUser.id });
 
   const emptyEmployees = await listOrganizationEmployees(workspace.organization.id);
-  if (emptyEmployees.length !== 0) {
+  if (emptyEmployees.items.length !== 0) {
     throw new Error("Expected empty employee list before creation");
   }
   console.log("Empty state: no employees in workspace");
@@ -105,11 +105,11 @@ async function verifyEmployeesUi(): Promise<void> {
   });
 
   const employees = await listOrganizationEmployees(workspace.organization.id);
-  if (employees.length !== 1) {
-    throw new Error(`Expected 1 employee, received ${employees.length}`);
+  if (employees.items.length !== 1) {
+    throw new Error(`Expected 1 employee, received ${employees.items.length}`);
   }
 
-  const employee = employees[0]!;
+  const employee = employees.items[0]!;
   if (
     employee.name !== "Somnia" ||
     employee.status !== "draft" ||

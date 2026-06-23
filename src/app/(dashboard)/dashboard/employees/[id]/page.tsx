@@ -1,10 +1,10 @@
 import { notFound } from "next/navigation";
-import { requireAuth } from "@/features/auth/services/require-auth";
 import { ensureWorkspace } from "@/features/auth/services/ensure-workspace";
+import { requireAuth } from "@/features/auth/services/require-auth";
 import { getOrganizationDisplayPreferences } from "@/features/workspace/services/get-organization-display-preferences";
 import {
   EmployeeDetailScreen,
-  getEmployeeDetail,
+  getEmployeeDetailShell,
 } from "@/features/employees";
 
 export default async function EmployeeDetailPage({
@@ -16,7 +16,7 @@ export default async function EmployeeDetailPage({
   const session = await requireAuth();
   const workspace = await ensureWorkspace(session.user.id, session.user.name);
   const [employee, displayPreferences] = await Promise.all([
-    getEmployeeDetail(workspace.organization.id, id),
+    getEmployeeDetailShell(workspace.organization.id, id),
     getOrganizationDisplayPreferences(workspace.organization.id),
   ]);
 
@@ -27,6 +27,7 @@ export default async function EmployeeDetailPage({
   return (
     <EmployeeDetailScreen
       employee={employee}
+      organizationId={workspace.organization.id}
       displayPreferences={displayPreferences}
     />
   );

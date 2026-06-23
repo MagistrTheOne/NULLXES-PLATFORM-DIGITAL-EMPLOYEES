@@ -12,7 +12,11 @@ export { EmployeeEmptyState } from "./components/employee-empty-state";
 export { updateEmployeeAction } from "./actions/update-employee";
 export { deleteEmployeeAction } from "./actions/delete-employee";
 export { listOrganizationEmployees } from "./services/list-organization-employees";
-export { getEmployeeDetail } from "./services/get-employee-detail";
+export type { EmployeeListPage } from "./services/list-organization-employees";
+export {
+  getEmployeeDetail,
+  getEmployeeDetailShell,
+} from "./services/get-employee-detail";
 export { updateEmployee } from "./services/update-employee";
 export { deleteEmployee } from "./services/delete-employee";
 export { EmployeeDetailScreen } from "./components/employee-detail-screen";

@@ -16,6 +16,7 @@ import { buildEmployeeSystemPrompt } from "@/features/employees/lib/build-system
 import { recordLifecycleEvent } from "@/features/employee/services/record-lifecycle-event";
 import { recordAuditEvent } from "@/features/security/services/record-audit-event";
 import { resolveOrganizationBrainModel } from "@/features/settings/services/resolve-organization-brain-model";
+import { enqueuePendingKnowledgeForEmployee } from "@/features/knowledge-processing/services/enqueue-pending-knowledge-for-employee";
 import type { CreateEmployeeWizardInput } from "@/features/employees/create/wizard-intake";
 import { dbWithTransactions } from "@/shared/db/pool-client";
 
@@ -176,6 +177,8 @@ export async function createEmployeeRecord(
       resourceId: employeeId,
       metadata: { name, role },
     });
+
+    await enqueuePendingKnowledgeForEmployee(employeeId);
 
     revalidatePath("/dashboard/employees");
     return { ok: true, employeeId };

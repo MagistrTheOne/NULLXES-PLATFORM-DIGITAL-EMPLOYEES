@@ -48,6 +48,7 @@
     "crypto:keygen": "node --import tsx scripts/generate-data-encryption-key.ts",
     "secrets:migrate": "node --env-file=.env --import tsx scripts/migrate-encrypt-secrets.ts",
     "knowledge:backfill-embeddings": "node --env-file=.env --import tsx scripts/backfill-knowledge-embeddings.ts",
+    "anam:backfill-external-brain": "node --env-file=.env --import tsx scripts/backfill-anam-external-brain.ts",
     "knowledge-retrieval:verify": "node --env-file=.env --import tsx src/features/knowledge-retrieval/verify-knowledge-retrieval.ts"
   },
   "dependencies": {
@@ -57,6 +58,7 @@
     "@neondatabase/serverless": "^1.1.0",
     "@polar-sh/nextjs": "^0.9.6",
     "@polar-sh/sdk": "^0.48.0",
+    "@sentry/nextjs": "^10.59.0",
     "@stream-io/node-sdk": "^0.7.59",
     "@stream-io/video-react-sdk": "^1.37.4",
     "better-auth": "^1.6.14",

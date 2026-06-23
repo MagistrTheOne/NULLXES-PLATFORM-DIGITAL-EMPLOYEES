@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { ArrowLeft, Loader2, UserRound } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { Button } from "@/components/ui/button";
@@ -6,14 +7,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { OrganizationDisplayPreferences } from "@/features/workspace/types/display-preferences";
 import {
   formatOrganizationDate,
-  formatOrganizationDateTime,
 } from "@/shared/i18n/format-organization-date";
-import type { EmployeeDetail } from "../types";
+import { resolveTalkReadinessBlockers } from "../lib/resolve-talk-readiness";
+import { isAnamAvatarTalkReady } from "../lib/resolve-anam-avatar-talk-readiness";
+import type { EmployeeDetailShell } from "../types";
 import { AvatarIdlePreview } from "./avatar-idle-preview";
 import { EmployeeDetailTabs, TabsContent } from "./employee-detail-tabs";
-import { EmployeeHandoffsPanel } from "./employee-handoffs-panel";
-import { EmployeeKnowledgePanel } from "./employee-knowledge-panel";
-import { EmployeeLifecyclePanel } from "./employee-lifecycle-panel";
+import { EmployeeDetailKnowledgeTab } from "./employee-detail-knowledge-tab";
+import { EmployeeDetailLifecycleTab } from "./employee-detail-lifecycle-tab";
 import { EmployeeProviderBadge } from "./employee-provider-badge";
 import { EmployeeDetailActions } from "./employee-detail-actions";
 import { EmployeeStatusBadge } from "./employee-status-badge";
@@ -44,11 +45,19 @@ function SectionCard({
   );
 }
 
+function TabPanelSkeleton() {
+  return (
+    <div className="mt-4 h-64 animate-pulse rounded-xl border border-white/10 bg-white/3" />
+  );
+}
+
 export async function EmployeeDetailScreen({
   employee,
+  organizationId,
   displayPreferences,
 }: {
-  employee: EmployeeDetail;
+  employee: EmployeeDetailShell;
+  organizationId: string;
   displayPreferences: OrganizationDisplayPreferences;
 }) {
   const t = await getTranslations("employees.detail");
@@ -61,6 +70,21 @@ export async function EmployeeDetailScreen({
     employee.avatarProvisioningStatus === "provisioning";
   const showPreview =
     employee.avatarPreviewUrl && employee.avatarProvisioningStatus === "ready";
+
+  const provisioningFailed =
+    employee.avatarProvisioningStatus === "failed" ||
+    employee.sessionProvisioningStatus === "failed" ||
+    employee.brainProvisioningStatus === "failed";
+
+  const talkBlockers = resolveTalkReadinessBlockers({
+    avatarProvisioningStatus: employee.avatarProvisioningStatus,
+    sessionProvisioningStatus: employee.sessionProvisioningStatus,
+    avatarReady: isAnamAvatarTalkReady({
+      provisioningStatus: employee.avatarProvisioningStatus,
+      personaId: employee.personaId ?? undefined,
+      avatarId: employee.avatarId ?? undefined,
+    }),
+  });
 
   return (
     <div className="flex flex-col gap-6">
@@ -85,6 +109,36 @@ export async function EmployeeDetailScreen({
         </div>
         <EmployeeDetailActions employee={employee} />
       </div>
+
+      {provisioningFailed ? (
+        <div
+          className="rounded-xl border border-white/12 bg-white/4 px-4 py-3 text-sm text-white/75"
+          role="alert"
+        >
+          <p>{t("provisioningFailedBanner")}</p>
+          {employee.avatarProvisioningFailureReason ? (
+            <p className="mt-1 text-xs text-white/50">
+              {t("avatarFailure", {
+                reason: employee.avatarProvisioningFailureReason,
+              })}
+            </p>
+          ) : null}
+          {employee.sessionProvisioningFailureReason ? (
+            <p className="mt-1 text-xs text-white/50">
+              {t("sessionFailure", {
+                reason: employee.sessionProvisioningFailureReason,
+              })}
+            </p>
+          ) : null}
+          {employee.brainProvisioningFailureReason ? (
+            <p className="mt-1 text-xs text-white/50">
+              {t("brainFailure", {
+                reason: employee.brainProvisioningFailureReason,
+              })}
+            </p>
+          ) : null}
+        </div>
+      ) : null}
 
       <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
         <Card className="overflow-hidden border-white/10 bg-[#111111] py-0 text-white">
@@ -125,7 +179,12 @@ export async function EmployeeDetailScreen({
               )}
             </Button>
             {!employee.canTalk ? (
-              <p className="text-xs text-white/45">{t("talkLocked")}</p>
+              <div className="space-y-1 text-xs text-white/45">
+                <p>{t("talkLocked")}</p>
+                {talkBlockers.map((blocker) => (
+                  <p key={blocker}>{t(`talkBlocker.${blocker}`)}</p>
+                ))}
+              </div>
             ) : null}
           </CardContent>
         </Card>
@@ -226,18 +285,23 @@ export async function EmployeeDetailScreen({
           </TabsContent>
 
           <TabsContent value="knowledge" className="mt-4">
-            <EmployeeKnowledgePanel
-              items={employee.knowledge}
-              displayPreferences={displayPreferences}
-            />
+            <Suspense fallback={<TabPanelSkeleton />}>
+              <EmployeeDetailKnowledgeTab
+                organizationId={organizationId}
+                employeeId={employee.id}
+                displayPreferences={displayPreferences}
+              />
+            </Suspense>
           </TabsContent>
 
-          <TabsContent value="lifecycle" className="mt-4 space-y-4">
-            <EmployeeLifecyclePanel
-              items={employee.lifecycle}
-              displayPreferences={displayPreferences}
-            />
-            <EmployeeHandoffsPanel items={employee.handoffs} />
+          <TabsContent value="lifecycle" className="mt-4">
+            <Suspense fallback={<TabPanelSkeleton />}>
+              <EmployeeDetailLifecycleTab
+                organizationId={organizationId}
+                employeeId={employee.id}
+                displayPreferences={displayPreferences}
+              />
+            </Suspense>
           </TabsContent>
         </EmployeeDetailTabs>
       </div>

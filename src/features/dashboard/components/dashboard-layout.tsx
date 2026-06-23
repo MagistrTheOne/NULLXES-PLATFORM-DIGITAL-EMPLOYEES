@@ -28,7 +28,7 @@ export function DashboardLayout({
         <DashboardSidebar user={user} workspace={workspace} />
         <SidebarInset className="flex min-h-svh min-w-0 flex-1 flex-col bg-black">
           <DashboardTopbar />
-          <div className="mx-auto flex w-full max-w-[1760px] min-w-0 flex-1 flex-col gap-6 p-6 2xl:px-8">
+          <div className="mx-auto flex w-full max-w-[1760px] min-w-0 flex-1 flex-col gap-6 p-4 md:p-6 2xl:px-8">
             {children}
           </div>
         </SidebarInset>

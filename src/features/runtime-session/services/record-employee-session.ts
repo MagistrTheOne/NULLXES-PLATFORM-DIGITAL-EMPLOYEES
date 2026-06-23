@@ -32,6 +32,24 @@ async function assertSessionOwnership(
   return row;
 }
 
+export async function validateEmployeeSessionAccess(input: {
+  sessionId: string;
+  organizationId: string;
+  employeeId: string;
+  userId: string;
+}): Promise<boolean> {
+  try {
+    const row = await assertSessionOwnership(
+      input.sessionId,
+      input.organizationId,
+      input.userId,
+    );
+    return row.employeeId === input.employeeId;
+  } catch {
+    return false;
+  }
+}
+
 export async function startEmployeeSession(input: {
   organizationId: string;
   employeeId: string;

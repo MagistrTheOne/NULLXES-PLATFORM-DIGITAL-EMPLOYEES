@@ -16,11 +16,18 @@ import {
   isAnamAvatarTalkReady,
   resolveAnamPersonaVoiceId,
 } from "../lib/resolve-anam-avatar-talk-readiness";
-import type { EmployeeDetail } from "../types";
+import { readProviderFailureReason } from "../lib/resolve-talk-readiness";
+import type {
+  EmployeeDetail,
+  EmployeeDetailShell,
+  EmployeeHandoffItem,
+  EmployeeKnowledgeItem,
+  EmployeeLifecycleItem,
+} from "../types";
 
 function readProvisioningStatus(
   value: unknown,
-): EmployeeDetail["avatarProvisioningStatus"] {
+): EmployeeDetailShell["avatarProvisioningStatus"] {
   if (
     value === "pending" ||
     value === "provisioning" ||
@@ -33,10 +40,10 @@ function readProvisioningStatus(
   return "pending";
 }
 
-export async function getEmployeeDetail(
+export async function getEmployeeDetailShell(
   organizationId: string,
   employeeId: string,
-): Promise<EmployeeDetail | null> {
+): Promise<EmployeeDetailShell | null> {
   const [employee] = await db
     .select()
     .from(digitalEmployee)
@@ -47,23 +54,91 @@ export async function getEmployeeDetail(
     return null;
   }
 
-  const [runtime] = await db
-    .select()
-    .from(employeeRuntime)
-    .where(eq(employeeRuntime.employeeId, employeeId))
+  const [runtime, configs, knowledgeRow] = await Promise.all([
+    db
+      .select()
+      .from(employeeRuntime)
+      .where(eq(employeeRuntime.employeeId, employeeId))
+      .limit(1)
+      .then((rows) => rows[0] ?? null),
+    db
+      .select()
+      .from(employeeProviderConfig)
+      .where(eq(employeeProviderConfig.employeeId, employeeId)),
+    db
+      .select({ knowledgeSourcesCount: count() })
+      .from(knowledgeSource)
+      .where(eq(knowledgeSource.employeeId, employeeId))
+      .then((rows) => rows[0] ?? null),
+  ]);
+
+  const avatarConfig = configs.find((row) => row.providerType === "avatar")
+    ?.config as AvatarProviderConfigPayload | undefined;
+  const brainConfig = configs.find((row) => row.providerType === "brain")
+    ?.config as BrainProviderConfigPayload | undefined;
+  const sessionConfig = configs.find((row) => row.providerType === "session")
+    ?.config as SessionProviderConfigPayload | undefined;
+
+  const avatarReady = isAnamAvatarTalkReady(avatarConfig);
+  const sessionProvisioningStatus = readProvisioningStatus(
+    sessionConfig?.provisioningStatus,
+  );
+  const avatarProvisioningStatus = readProvisioningStatus(
+    avatarConfig?.provisioningStatus,
+  );
+
+  return {
+    id: employee.id,
+    name: employee.name,
+    role: employee.role,
+    status: employee.status,
+    description: employee.description,
+    avatarProvider: employee.avatarProvider,
+    brainProvider: employee.brainProvider,
+    knowledgeSourcesCount: Number(knowledgeRow?.knowledgeSourcesCount ?? 0),
+    createdAt: employee.createdAt,
+    avatarPreviewUrl: avatarConfig?.previewUrl ?? null,
+    avatarProvisioningStatus,
+    sessionProvisioningStatus,
+    avatarProvisioningFailureReason: readProviderFailureReason(
+      avatarConfig as Record<string, unknown> | undefined,
+    ),
+    sessionProvisioningFailureReason: readProviderFailureReason(
+      sessionConfig as Record<string, unknown> | undefined,
+    ),
+    sessionVoiceProvider: sessionConfig?.voiceProvider ?? null,
+    canTalk: avatarReady && sessionProvisioningStatus === "ready",
+    avatarId: avatarConfig?.avatarId ?? null,
+    personaId: avatarConfig?.personaId ?? null,
+    anamVoiceId: resolveAnamPersonaVoiceId(avatarConfig),
+    studioVoiceId: sessionConfig?.studioVoiceId ?? null,
+    voiceId: sessionConfig?.voiceId ?? null,
+    brainModel: brainConfig?.model ?? null,
+    brainProvisioningStatus: readProvisioningStatus(
+      brainConfig?.provisioningStatus,
+    ),
+    brainProvisioningFailureReason: readProviderFailureReason(
+      brainConfig as Record<string, unknown> | undefined,
+    ),
+    systemPrompt: runtime?.systemPrompt ?? "",
+  };
+}
+
+export async function getEmployeeDetailKnowledge(
+  organizationId: string,
+  employeeId: string,
+): Promise<EmployeeKnowledgeItem[]> {
+  const [employee] = await db
+    .select({ id: digitalEmployee.id })
+    .from(digitalEmployee)
+    .where(eq(digitalEmployee.id, employeeId))
     .limit(1);
 
-  const configs = await db
-    .select()
-    .from(employeeProviderConfig)
-    .where(eq(employeeProviderConfig.employeeId, employeeId));
+  if (!employee) {
+    return [];
+  }
 
-  const [knowledgeRow] = await db
-    .select({ knowledgeSourcesCount: count() })
-    .from(knowledgeSource)
-    .where(eq(knowledgeSource.employeeId, employeeId));
-
-  const knowledgeRows = await db
+  const rows = await db
     .select({
       id: knowledgeSource.id,
       type: knowledgeSource.type,
@@ -81,30 +156,59 @@ export async function getEmployeeDetail(
     .groupBy(knowledgeSource.id)
     .orderBy(desc(knowledgeSource.createdAt));
 
-  const lifecycleRows = await db
-    .select({
-      id: employeeLifecycleEvent.id,
-      eventType: employeeLifecycleEvent.eventType,
-      reason: employeeLifecycleEvent.reason,
-      createdAt: employeeLifecycleEvent.createdAt,
-      actorName: user.name,
-    })
-    .from(employeeLifecycleEvent)
-    .innerJoin(user, eq(employeeLifecycleEvent.actorUserId, user.id))
-    .where(eq(employeeLifecycleEvent.employeeId, employeeId))
-    .orderBy(desc(employeeLifecycleEvent.createdAt));
+  return rows.map((row) => ({
+    id: row.id,
+    type: row.type,
+    title: row.title,
+    status: row.status,
+    failureReason: row.failureReason,
+    chunkCount: row.chunkCount,
+    createdAt: row.createdAt,
+  }));
+}
 
-  const handoffRows = await db
-    .select()
-    .from(employeeHandoff)
-    .where(
-      or(
-        eq(employeeHandoff.fromEmployeeId, employeeId),
-        eq(employeeHandoff.toEmployeeId, employeeId),
-      ),
-    )
-    .orderBy(desc(employeeHandoff.createdAt))
-    .limit(20);
+export async function getEmployeeDetailLifecycle(
+  organizationId: string,
+  employeeId: string,
+): Promise<{
+  lifecycle: EmployeeLifecycleItem[];
+  handoffs: EmployeeHandoffItem[];
+}> {
+  const [employee] = await db
+    .select({ id: digitalEmployee.id })
+    .from(digitalEmployee)
+    .where(eq(digitalEmployee.id, employeeId))
+    .limit(1);
+
+  if (!employee) {
+    return { lifecycle: [], handoffs: [] };
+  }
+
+  const [lifecycleRows, handoffRows] = await Promise.all([
+    db
+      .select({
+        id: employeeLifecycleEvent.id,
+        eventType: employeeLifecycleEvent.eventType,
+        reason: employeeLifecycleEvent.reason,
+        createdAt: employeeLifecycleEvent.createdAt,
+        actorName: user.name,
+      })
+      .from(employeeLifecycleEvent)
+      .innerJoin(user, eq(employeeLifecycleEvent.actorUserId, user.id))
+      .where(eq(employeeLifecycleEvent.employeeId, employeeId))
+      .orderBy(desc(employeeLifecycleEvent.createdAt)),
+    db
+      .select()
+      .from(employeeHandoff)
+      .where(
+        or(
+          eq(employeeHandoff.fromEmployeeId, employeeId),
+          eq(employeeHandoff.toEmployeeId, employeeId),
+        ),
+      )
+      .orderBy(desc(employeeHandoff.createdAt))
+      .limit(20),
+  ]);
 
   const counterpartIds = [
     ...new Set(
@@ -128,57 +232,7 @@ export async function getEmployeeDetail(
     counterpartRows.map((row) => [row.id, row.name]),
   );
 
-  const avatarConfig = configs.find((row) => row.providerType === "avatar")
-    ?.config as AvatarProviderConfigPayload | undefined;
-  const brainConfig = configs.find((row) => row.providerType === "brain")
-    ?.config as BrainProviderConfigPayload | undefined;
-  const sessionConfig = configs.find((row) => row.providerType === "session")
-    ?.config as SessionProviderConfigPayload | undefined;
-
-  const avatarReady = isAnamAvatarTalkReady(avatarConfig);
-  const sessionProvisioningStatus = readProvisioningStatus(
-    sessionConfig?.provisioningStatus,
-  );
-  const brainProvisioningStatus = readProvisioningStatus(
-    brainConfig?.provisioningStatus,
-  );
-
-  const anamVoiceId = resolveAnamPersonaVoiceId(avatarConfig);
-
   return {
-    id: employee.id,
-    name: employee.name,
-    role: employee.role,
-    status: employee.status,
-    description: employee.description,
-    avatarProvider: employee.avatarProvider,
-    brainProvider: employee.brainProvider,
-    knowledgeSourcesCount: Number(knowledgeRow?.knowledgeSourcesCount ?? 0),
-    createdAt: employee.createdAt,
-    avatarPreviewUrl: avatarConfig?.previewUrl ?? null,
-    avatarProvisioningStatus: readProvisioningStatus(
-      avatarConfig?.provisioningStatus,
-    ),
-    sessionVoiceProvider: sessionConfig?.voiceProvider ?? null,
-    canTalk: avatarReady && sessionProvisioningStatus === "ready",
-    avatarId: avatarConfig?.avatarId ?? null,
-    personaId: avatarConfig?.personaId ?? null,
-    anamVoiceId,
-    studioVoiceId: sessionConfig?.studioVoiceId ?? null,
-    voiceId: sessionConfig?.voiceId ?? null,
-    brainModel: brainConfig?.model ?? null,
-    brainProvisioningStatus,
-    sessionProvisioningStatus,
-    systemPrompt: runtime?.systemPrompt ?? "",
-    knowledge: knowledgeRows.map((row) => ({
-      id: row.id,
-      type: row.type,
-      title: row.title,
-      status: row.status,
-      failureReason: row.failureReason,
-      chunkCount: row.chunkCount,
-      createdAt: row.createdAt,
-    })),
     lifecycle: lifecycleRows.map((row) => ({
       id: row.id,
       eventType: row.eventType,
@@ -198,5 +252,27 @@ export async function getEmployeeDetail(
         createdAt: row.createdAt,
       };
     }),
+  };
+}
+
+export async function getEmployeeDetail(
+  organizationId: string,
+  employeeId: string,
+): Promise<EmployeeDetail | null> {
+  const shell = await getEmployeeDetailShell(organizationId, employeeId);
+  if (!shell) {
+    return null;
+  }
+
+  const [knowledge, lifecycleBundle] = await Promise.all([
+    getEmployeeDetailKnowledge(organizationId, employeeId),
+    getEmployeeDetailLifecycle(organizationId, employeeId),
+  ]);
+
+  return {
+    ...shell,
+    knowledge,
+    lifecycle: lifecycleBundle.lifecycle,
+    handoffs: lifecycleBundle.handoffs,
   };
 }

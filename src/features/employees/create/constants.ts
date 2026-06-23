@@ -41,6 +41,8 @@ export function createInitialFormState(): CreateEmployeeFormState {
     avatarProvider: "anam",
     avatarGenerationStatus: "idle",
     avatarGenerationError: null,
+    avatarSource: "upload",
+    avatarPrompt: "",
     studioVoiceId: null,
     voiceId: null,
     voiceName: null,

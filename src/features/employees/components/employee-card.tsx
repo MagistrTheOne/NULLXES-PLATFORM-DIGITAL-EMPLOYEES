@@ -79,6 +79,18 @@ export function EmployeeCard({ employee }: { employee: EmployeeListItem }) {
             <p className="truncate text-sm text-white/60">{employee.role}</p>
           </div>
           <EmployeeStatusBadge status={employee.status} />
+          {employee.avatarProvisioningStatus === "failed" &&
+          employee.avatarProvisioningFailureReason ? (
+            <p className="text-xs text-white/50" role="alert">
+              {employee.avatarProvisioningFailureReason}
+            </p>
+          ) : null}
+          {employee.sessionProvisioningStatus === "failed" &&
+          employee.sessionProvisioningFailureReason ? (
+            <p className="text-xs text-white/50" role="alert">
+              {employee.sessionProvisioningFailureReason}
+            </p>
+          ) : null}
         </div>
         <div className="mt-auto flex items-center justify-between gap-3">
           <Button

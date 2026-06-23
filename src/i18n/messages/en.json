@@ -139,7 +139,9 @@
     "list": {
       "title": "Digital Employees",
       "empty": "No digital employees in this workspace.",
-      "noMatches": "No employees match your search or filters."
+      "noMatches": "No employees match your search or filters.",
+      "loadMore": "Load more",
+      "loadingMore": "Loading…"
     },
     "metrics": {
       "employees": "Employees",
@@ -166,6 +168,20 @@
     },
     "detail": {
       "talkLocked": "Talk unlocks when avatar and session providers are ready.",
+      "provisioningFailedBanner": "One or more providers failed to provision.",
+      "avatarFailure": "Avatar: {reason}",
+      "sessionFailure": "Session: {reason}",
+      "brainFailure": "Brain: {reason}",
+      "talkBlocker": {
+        "avatar_pending": "Avatar provisioning is queued.",
+        "avatar_provisioning": "Avatar is still provisioning.",
+        "avatar_failed": "Avatar provisioning failed.",
+        "avatar_not_ready": "Avatar is not ready for Talk.",
+        "session_pending": "Session provider is queued.",
+        "session_provisioning": "Session provider is still provisioning.",
+        "session_failed": "Session provider provisioning failed.",
+        "session_not_ready": "Session provider is not ready."
+      },
       "overview": "Overview",
       "avatar": "Avatar",
       "voice": "Voice",
@@ -225,7 +241,19 @@
         "rolePlaceholder": "Enterprise Sales Employee"
       },
       "avatar": {
-        "hint": "Avatar is generated on the final step after you choose a voice, so your ElevenLabs selection is not replaced by Anam defaults."
+        "hint": "Avatar is generated on the final step after you choose a voice, so your ElevenLabs selection is not replaced by Anam defaults.",
+        "tabUpload": "Upload",
+        "tabGenerate": "Generate",
+        "promptLabel": "Describe the avatar",
+        "promptPlaceholder": "Professional portrait, business attire, neutral studio background…",
+        "previewPlaceholder": "Generate a preview from your prompt",
+        "promptRequired": "Enter a prompt before generating.",
+        "nameRequiredForGenerate": "Enter the employee name on the Identity step first.",
+        "suggestions": {
+          "businessFormal": "business formal attire",
+          "friendly": "warm and approachable expression",
+          "studioPortrait": "studio portrait lighting"
+        }
       },
       "knowledge": {
         "uploadFiles": "Upload Files",
@@ -255,7 +283,8 @@
       "errors": {
         "nameRequired": "Employee name is required.",
         "roleRequired": "Role is required.",
-        "photoRequired": "Upload a photo before continuing.",
+        "photoRequired": "Upload a photo or generate one from a prompt before continuing.",
+        "avatarGenerating": "Wait for avatar generation to finish.",
         "voiceRequired": "Select a voice before continuing.",
         "customVoiceRequired": "Enter a custom ElevenLabs voice ID or pick a catalog voice.",
         "photoVoiceRequired": "Photo and voice are required.",
@@ -278,6 +307,8 @@
       "connecting": "Connecting…",
       "live": "Live",
       "remaining": "{remaining} remaining · limit {limit}",
+      "mobileTabStage": "Stage",
+      "mobileTabChat": "Chat",
       "chat": {
         "title": "Session chat",
         "empty": "Send a message to start the conversation",

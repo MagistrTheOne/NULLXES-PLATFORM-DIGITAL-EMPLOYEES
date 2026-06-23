@@ -48,7 +48,7 @@ This document outlines deployment considerations for Russia (RU) data residency 
 | `NGROK_URL` | Yes — breaks Polar webhooks and invite links if set in prod |
 | `BETTER_AUTH_URL=http://localhost:3000` | Yes — login will fail (CSP blocks localhost fetch) |
 
-Provider keys to copy as-is: `OPENAI_API_KEY`, `ANAM_API_KEY`, `ELEVENLABS_API_KEY`, `STREAM_API_KEY`, `STREAM_SECRET_KEY`, `POLAR_*`, `DATABASE_URL`.
+Provider keys to copy as-is: `OPENAI_API_KEY`, `ANAM_API_KEY`, `ELEVENLABS_API_KEY`, `STREAM_API_KEY`, `STREAM_SECRET_KEY`, `NEXT_PUBLIC_STREAM_API_KEY`, `POLAR_*`, `DATABASE_URL`.
 
 Paste values **without** surrounding quotes. After changing env vars, trigger a **Redeploy** in Vercel.
 
@@ -58,6 +58,7 @@ Verify database connectivity: `GET /api/health/db` should return `{"ok":true}`.
 
 1. Apply migrations `drizzle/0016_sturdy_rafael_vega.sql` and `drizzle/0017_funny_natasha_romanoff.sql`.
 2. Run secret encryption migration script on existing data.
-3. Confirm Inngest functions registered: `export-job-process`, `retention-purge-daily`.
-4. Enable 2FA on owner account and verify sensitive actions are blocked without it when policy is on.
-5. Create and revoke an API key; confirm audit events appear.
+3. Confirm Inngest functions registered: `export-job-process`, `retention-purge-daily`, `knowledge-ingestion-process-source`, `session-summary-completed`, `notifications-session-completed`, `notifications-knowledge-failed`.
+4. Run `npm run talk-context:verify` and `npm run anam:backfill-external-brain` on production-like data when upgrading existing employees.
+5. Enable 2FA on owner account and verify sensitive actions are blocked without it when policy is on.
+6. Create and revoke an API key; confirm audit events appear.

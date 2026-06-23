@@ -92,6 +92,12 @@ async function loadEmployeeTalkContext(
     sessionVoiceProvider: sessionConfig?.voiceProvider ?? null,
     voiceId: sessionConfig?.voiceId ?? null,
     studioVoiceId: sessionConfig?.studioVoiceId ?? null,
+    sessionProvisioningStatus,
+    sessionProviderMetadata:
+      sessionConfig?.providerMetadata &&
+      typeof sessionConfig.providerMetadata === "object"
+        ? (sessionConfig.providerMetadata as Record<string, unknown>)
+        : null,
     temperature: runtime?.temperature ?? 0.7,
     maxTokens: runtime?.maxTokens ?? 1024,
     sessionLimitSeconds: runtime?.sessionLimitSeconds ?? 3600,

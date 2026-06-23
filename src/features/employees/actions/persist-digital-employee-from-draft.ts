@@ -16,6 +16,7 @@ import { buildEmployeeSystemPrompt } from "@/features/employees/lib/build-system
 import { recordLifecycleEvent } from "@/features/employee/services/record-lifecycle-event";
 import { resolveOrganizationBrainModel } from "@/features/settings/services/resolve-organization-brain-model";
 import { enqueueEmployeeProvisioning } from "@/features/provider-provisioning/orchestrator/enqueue-employee-provisioning";
+import { enqueuePendingKnowledgeForEmployee } from "@/features/knowledge-processing/services/enqueue-pending-knowledge-for-employee";
 import { inngest } from "@/inngest/client";
 import { db } from "@/shared/db/client";
 import { dbWithTransactions } from "@/shared/db/pool-client";
@@ -183,6 +184,7 @@ export async function persistDigitalEmployeeFromDraft(
   });
 
   enqueueEmployeeProvisioning(employeeId);
+  await enqueuePendingKnowledgeForEmployee(employeeId);
 
   await inngest.send({
     name: "employee/created",

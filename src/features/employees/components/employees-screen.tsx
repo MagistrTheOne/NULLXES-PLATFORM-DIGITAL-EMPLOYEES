@@ -1,11 +1,13 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import type { EmployeeStatus } from "@/entities/digital-employee";
+import { Button } from "@/components/ui/button";
 import { useWorkspacePermissions } from "@/features/workspace/components/workspace-permissions-provider";
 import { revalidateEmployeePaths } from "@/features/employees/actions/revalidate-employee-paths";
+import { loadMoreEmployeesAction } from "@/features/employees/actions/load-more-employees";
 import { CreateEmployeeDialog } from "@/features/employees/create";
 import type { EmployeeListItem } from "../types";
 import { EmployeeEmptyState } from "./employee-empty-state";
@@ -27,8 +29,10 @@ function matchesSearch(employee: EmployeeListItem, query: string): boolean {
 
 export function EmployeesScreen({
   employees,
+  nextCursor,
 }: {
   employees: EmployeeListItem[];
+  nextCursor?: string | null;
 }) {
   const router = useRouter();
   const permissions = useWorkspacePermissions();
@@ -37,16 +41,24 @@ export function EmployeesScreen({
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | EmployeeStatus>("all");
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [loadedEmployees, setLoadedEmployees] = useState(employees);
+  const [loadedNextCursor, setLoadedNextCursor] = useState(nextCursor ?? null);
+
+  useEffect(() => {
+    setLoadedEmployees(employees);
+    setLoadedNextCursor(nextCursor ?? null);
+  }, [employees, nextCursor]);
 
   const filteredEmployees = useMemo(() => {
-    return employees.filter((employee) => {
+    return loadedEmployees.filter((employee) => {
       const statusMatches =
         statusFilter === "all" || employee.status === statusFilter;
       return statusMatches && matchesSearch(employee, searchQuery);
     });
-  }, [employees, searchQuery, statusFilter]);
+  }, [loadedEmployees, searchQuery, statusFilter]);
 
-  const hasEmployees = employees.length > 0;
+  const hasEmployees = loadedEmployees.length > 0;
 
   async function handleCreateComplete({
     employeeId,
@@ -78,7 +90,7 @@ export function EmployeesScreen({
 
         {hasEmployees ? (
           <>
-            <EmployeeMetrics employees={employees} />
+            <EmployeeMetrics employees={loadedEmployees} />
             <EmployeeToolbar
               searchQuery={searchQuery}
               statusFilter={statusFilter}
@@ -88,7 +100,37 @@ export function EmployeesScreen({
               canCreate={permissions.canManageEmployees}
             />
             {filteredEmployees.length > 0 ? (
-              <EmployeeGrid employees={filteredEmployees} />
+              <>
+                <EmployeeGrid employees={filteredEmployees} />
+                {loadedNextCursor && !searchQuery && statusFilter === "all" ? (
+                  <div className="flex justify-center pt-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="border-white/10 bg-transparent text-white hover:bg-white/5"
+                      disabled={isLoadingMore}
+                      onClick={() => {
+                        setIsLoadingMore(true);
+                        void loadMoreEmployeesAction(loadedNextCursor)
+                          .then((result) => {
+                            if ("items" in result) {
+                              setLoadedEmployees((current) => [
+                                ...current,
+                                ...result.items,
+                              ]);
+                              setLoadedNextCursor(result.nextCursor);
+                            }
+                          })
+                          .finally(() => {
+                            setIsLoadingMore(false);
+                          });
+                      }}
+                    >
+                      {isLoadingMore ? t("loadingMore") : t("loadMore")}
+                    </Button>
+                  </div>
+                ) : null}
+              </>
             ) : (
               <p className="py-8 text-center text-sm text-white/50">
                 {t("noMatches")}

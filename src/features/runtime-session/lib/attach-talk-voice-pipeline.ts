@@ -4,6 +4,7 @@ import type { Message } from "@anam-ai/js-sdk";
 import type { TalkPipelineState } from "../context/talk-anam-context";
 import type { TalkVoiceMode } from "../services/resolve-talk-voice-mode";
 import { appendSessionMessageAction } from "../actions/employee-session";
+import { prefetchTalkQueryEmbeddingAction } from "../actions/prefetch-talk-query-embedding";
 import { streamTalkBrainReply } from "./stream-talk-brain-client";
 import {
   buildTalkTurnKey,
@@ -191,6 +192,14 @@ export function attachTalkVoicePipeline(input: {
 
     if (debounceTimer) {
       clearTimeout(debounceTimer);
+    }
+
+    const messageContent = pendingMessage.content ?? "";
+    if (isSubstantiveUserMessage(messageContent)) {
+      void prefetchTalkQueryEmbeddingAction(
+        input.employeeId,
+        messageContent,
+      ).catch(() => undefined);
     }
 
     debounceTimer = setTimeout(() => {

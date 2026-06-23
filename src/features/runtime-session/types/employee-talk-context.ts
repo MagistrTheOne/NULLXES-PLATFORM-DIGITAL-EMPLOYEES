@@ -17,6 +17,8 @@ export type EmployeeTalkContext = {
   sessionVoiceProvider: string | null;
   voiceId: string | null;
   studioVoiceId: string | null;
+  sessionProvisioningStatus: ProviderProvisioningStatus;
+  sessionProviderMetadata: Record<string, unknown> | null;
   temperature: number;
   maxTokens: number;
   sessionLimitSeconds: number;

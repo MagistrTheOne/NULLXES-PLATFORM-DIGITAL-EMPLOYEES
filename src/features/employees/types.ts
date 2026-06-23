@@ -47,11 +47,27 @@ export type EmployeeListItem = {
   createdAt: Date;
   avatarPreviewUrl: string | null;
   avatarProvisioningStatus: ProviderProvisioningStatus;
+  sessionProvisioningStatus: ProviderProvisioningStatus;
+  avatarProvisioningFailureReason: string | null;
+  sessionProvisioningFailureReason: string | null;
   sessionVoiceProvider: string | null;
   canTalk: boolean;
 };
 
-export type EmployeeDetail = EmployeeListItem & {
+export type EmployeeDetailShell = EmployeeListItem & {
+  description: string | null;
+  avatarId: string | null;
+  personaId: string | null;
+  anamVoiceId: string | null;
+  studioVoiceId: string | null;
+  voiceId: string | null;
+  brainModel: string | null;
+  brainProvisioningStatus: ProviderProvisioningStatus;
+  brainProvisioningFailureReason: string | null;
+  systemPrompt: string;
+};
+
+export type EmployeeDetail = EmployeeDetailShell & {
   description: string | null;
   avatarId: string | null;
   personaId: string | null;

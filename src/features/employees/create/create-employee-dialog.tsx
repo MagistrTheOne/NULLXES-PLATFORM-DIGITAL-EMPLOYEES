@@ -19,7 +19,7 @@ import type { CreateEmployeeWizardInput } from "@/features/employees/create/wiza
 import { previewEmployeeVoice } from "@/features/employees/actions/preview-employee-voice";
 import {
   AvatarPreviewCard,
-  AvatarUpload,
+  AvatarStudioStep,
   VoiceStudioPicker,
 } from "@/features/employees/studio";
 import { CUSTOM_ELEVENLABS_STUDIO_VOICE_ID } from "@/features/employees/studio/voice/voice-catalog";
@@ -77,6 +77,7 @@ export function CreateEmployeeDialog({
     null,
   );
   const [previewingVoiceId, setPreviewingVoiceId] = useState<string | null>(null);
+  const [isGeneratingAvatar, setIsGeneratingAvatar] = useState(false);
   const localUploadPreviewUrlRef = useRef<string | null>(null);
   const voicePreviewAudioRef = useRef<HTMLAudioElement | null>(null);
   const stepRef = useRef<CreateEmployeeStep>(step);
@@ -131,6 +132,7 @@ export function CreateEmployeeDialog({
     setError(null);
     setPreviewingVoiceId(null);
     setVoicePreviewError(null);
+    setIsGeneratingAvatar(false);
     clearLocalUploadPreview();
   }
 
@@ -170,6 +172,10 @@ export function CreateEmployeeDialog({
     }
 
     if (step === "avatar") {
+      if (isGeneratingAvatar) {
+        setError(t("errors.avatarGenerating"));
+        return false;
+      }
       if (!form.photoFile) {
         setError(t("errors.photoRequired"));
         return false;
@@ -329,10 +335,34 @@ export function CreateEmployeeDialog({
       photoFile: file,
       photoFileName: file.name,
       photoFileSize: file.size,
+      avatarSource: "upload",
       avatarId: null,
       avatarPreviewUrl: null,
       personaId: null,
       avatarGenerationStatus: "idle",
+      avatarGenerationError: null,
+    });
+  }
+
+  function handleGeneratedPhoto(file: File, previewUrl: string): void {
+    if (file.size > MAX_AVATAR_UPLOAD_BYTES) {
+      setError(t("errors.imageTooLarge"));
+      return;
+    }
+
+    clearLocalUploadPreview();
+    localUploadPreviewUrlRef.current = previewUrl;
+    setLocalUploadPreviewUrl(previewUrl);
+
+    updateForm({
+      photoFile: file,
+      photoFileName: file.name,
+      photoFileSize: file.size,
+      avatarSource: "generate",
+      avatarId: null,
+      avatarPreviewUrl: null,
+      personaId: null,
+      avatarGenerationStatus: "ready",
       avatarGenerationError: null,
     });
   }
@@ -449,10 +479,23 @@ export function CreateEmployeeDialog({
 
           {step === "avatar" ? (
             <div className="flex flex-col gap-4">
-              <AvatarUpload
+              <AvatarStudioStep
+                employeeName={form.name}
+                employeeRole={form.role}
                 photoFileName={form.photoFileName}
                 localPreviewUrl={localUploadPreviewUrl}
-                onFileSelected={handlePhotoSelected}
+                avatarPrompt={form.avatarPrompt}
+                avatarSource={form.avatarSource}
+                isGenerating={isGeneratingAvatar}
+                generationError={form.avatarGenerationError}
+                onPhotoSelected={handlePhotoSelected}
+                onGeneratedPhoto={handleGeneratedPhoto}
+                onPromptChange={(prompt) => updateForm({ avatarPrompt: prompt })}
+                onSourceChange={(avatarSource) => updateForm({ avatarSource })}
+                onGeneratingChange={setIsGeneratingAvatar}
+                onGenerationError={(message) =>
+                  updateForm({ avatarGenerationError: message })
+                }
               />
               <p className="text-xs text-white/50">{t("avatar.hint")}</p>
             </div>
@@ -633,6 +676,7 @@ export function CreateEmployeeDialog({
             <Button
               type="button"
               onClick={goNext}
+              disabled={isGeneratingAvatar}
               className="bg-white text-black hover:bg-white/90"
             >
               {tCommon("continue")}

@@ -102,8 +102,8 @@ function TalkSessionShell({
 
   return (
     <>
-      <div className="mx-auto flex w-full max-w-[1280px] flex-col gap-5 px-4 pb-8">
-        <div className="flex flex-wrap items-start justify-between gap-4">
+      <div className="flex min-h-0 flex-1 flex-col gap-5 pb-[env(safe-area-inset-bottom)]">
+        <div className="flex flex-col flex-wrap items-start justify-between gap-4 md:flex-row">
           <div className="flex min-w-0 items-center gap-4">
             <Button
               variant="ghost"

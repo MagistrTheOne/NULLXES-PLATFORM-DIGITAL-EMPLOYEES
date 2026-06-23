@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
+import { cn } from "@/lib/utils";
 
 export function TalkLocalCameraPip({
   enabled,
@@ -87,10 +88,15 @@ export function TalkLocalCameraPip({
   }
 
   return (
-    <div className="absolute inset-x-0 bottom-0 z-30 flex h-24 items-stretch gap-3 border-t border-white/10 bg-black/75 px-3 py-2 backdrop-blur-[2px]">
-      <div className="relative aspect-video h-full overflow-hidden rounded-md border border-white/12 bg-[#111111]">
+    <div
+      className={cn(
+        "absolute z-30 overflow-hidden border border-white/12 bg-black/80 backdrop-blur-[2px]",
+        "bottom-3 right-3 w-28 rounded-lg lg:inset-x-0 lg:bottom-0 lg:flex lg:h-24 lg:w-auto lg:items-stretch lg:gap-3 lg:rounded-none lg:border-x-0 lg:border-t lg:border-b-0 lg:px-3 lg:py-2",
+      )}
+    >
+      <div className="relative aspect-video w-full bg-[#111111] lg:aspect-auto lg:h-full lg:w-auto lg:overflow-hidden lg:rounded-md">
         {failed ? (
-          <div className="flex size-full min-w-[120px] items-center justify-center px-2 text-center text-[10px] text-white/45">
+          <div className="flex size-full min-h-16 items-center justify-center px-2 text-center text-[10px] text-white/45 lg:min-w-[120px]">
             {t("cameraUnavailable")}
           </div>
         ) : (
@@ -103,7 +109,7 @@ export function TalkLocalCameraPip({
           />
         )}
       </div>
-      <div className="flex min-w-0 flex-col justify-center">
+      <div className="hidden min-w-0 flex-col justify-center lg:flex">
         <p className="truncate text-xs text-white/80">{userName}</p>
         <p className="text-[10px] text-white/45">{t("you")}</p>
       </div>

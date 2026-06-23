@@ -1,4 +1,5 @@
 import { provisionEmployeeProviders } from "../services/provision-employee-providers";
+import { logServerEvent } from "@/shared/lib/server-log";
 
 /**
  * Runs provider provisioning after the current request finishes.
@@ -7,5 +8,33 @@ import { provisionEmployeeProviders } from "../services/provision-employee-provi
  * Refresh the UI via revalidateEmployeePaths (server action) from the client.
  */
 export function enqueueEmployeeProvisioning(employeeId: string): void {
-  void provisionEmployeeProviders({ employeeId }).catch(() => undefined);
+  void provisionEmployeeProviders({ employeeId })
+    .then((result) => {
+      if (
+        result.avatar.status === "failed" ||
+        result.brain.status === "failed" ||
+        result.voice.status === "failed"
+      ) {
+        logServerEvent(
+          "employee.provisioning.partial_failure",
+          {
+            employeeId,
+            avatarStatus: result.avatar.status,
+            brainStatus: result.brain.status,
+            voiceStatus: result.voice.status,
+          },
+          "warn",
+        );
+      }
+    })
+    .catch((error: unknown) => {
+      logServerEvent(
+        "employee.provisioning.crash",
+        {
+          employeeId,
+          message: error instanceof Error ? error.message : "unknown",
+        },
+        "error",
+      );
+    });
 }

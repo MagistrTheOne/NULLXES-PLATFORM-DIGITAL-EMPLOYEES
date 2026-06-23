@@ -72,7 +72,7 @@ export function TalkStageChrome({ employeeName }: { employeeName: string }) {
             {t("goodConnection")}
           </div>
           <div className="absolute right-3 bottom-3 z-20 flex items-center gap-2">
-            <span className="rounded-full border border-white/10 bg-black/65 px-2 py-0.5 text-[10px] text-white/55">
+            <span className="hidden rounded-full border border-white/10 bg-black/65 px-2 py-0.5 text-[10px] text-white/55 sm:inline">
               720p
             </span>
             <button

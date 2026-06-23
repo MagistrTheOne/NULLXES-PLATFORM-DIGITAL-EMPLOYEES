@@ -37,16 +37,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { useWorkspacePermissions } from "@/features/workspace/components/workspace-permissions-provider";
 import { deleteEmployeeAction } from "../actions/delete-employee";
 import { updateEmployeeAction } from "../actions/update-employee";
-import type { EmployeeDetail } from "../types";
+import type { EmployeeDetailShell } from "../types";
 
-const STATUS_OPTIONS: EmployeeStatus[] = [
-  "draft",
-  "active",
-  "paused",
-  "archived",
-];
-
-export function EmployeeDetailActions({ employee }: { employee: EmployeeDetail }) {
+export function EmployeeDetailActions({
+  employee,
+}: {
+  employee: EmployeeDetailShell;
+}) {
   const router = useRouter();
   const t = useTranslations("employees.detail.actions");
   const tCommon = useTranslations("common.actions");
@@ -57,6 +54,13 @@ export function EmployeeDetailActions({ employee }: { employee: EmployeeDetail }
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+
+  const STATUS_OPTIONS: EmployeeStatus[] = [
+    "draft",
+    "active",
+    "paused",
+    "archived",
+  ];
 
   const [name, setName] = useState(employee.name);
   const [role, setRole] = useState(employee.role);
