@@ -1,4 +1,8 @@
 import type { BrainProvider } from "@/entities/digital-employee";
+import {
+  getCuratedBrainModelIds,
+  isCuratedBrainModel,
+} from "@/features/brain/lib/brain-model-catalog";
 
 export const BRAIN_MODEL_DEFAULTS: Record<BrainProvider, string> = {
   openai: "gpt-4.1-mini",
@@ -12,18 +16,30 @@ export function resolveBrainModelForProvider(
   configuredModel: string | null | undefined,
 ): string {
   const fallback = BRAIN_MODEL_DEFAULTS[provider];
-
-  if (provider !== "openai") {
-    return fallback;
-  }
-
   const model = configuredModel?.trim();
 
-  if (!model || !/^[a-z0-9.-]+$/i.test(model)) {
+  if (!model) {
     return fallback;
   }
 
-  return model;
+  if (provider === "openai") {
+    if (!/^[a-z0-9.-]+$/i.test(model)) {
+      return fallback;
+    }
+
+    return model;
+  }
+
+  if (isCuratedBrainModel(provider, model)) {
+    return model;
+  }
+
+  const curatedIds = getCuratedBrainModelIds(provider);
+  if (curatedIds.includes(model)) {
+    return model;
+  }
+
+  return fallback;
 }
 
 export function getDefaultBrainModelForProvider(provider: BrainProvider): string {

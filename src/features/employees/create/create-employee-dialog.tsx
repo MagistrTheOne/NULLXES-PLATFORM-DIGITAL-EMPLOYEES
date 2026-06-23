@@ -33,10 +33,15 @@ import {
 import { BrainProviderPicker } from "./components/brain-provider-picker";
 import {
   CREATE_EMPLOYEE_STEPS,
-  DEFAULT_BRAIN_PROVIDER,
   MAX_AVATAR_UPLOAD_BYTES,
   createInitialFormState,
 } from "./constants";
+import {
+  getBrainWorkspaceConfigAction,
+  isBrainProviderSelectable,
+  type BrainWorkspaceConfig,
+} from "@/features/brain";
+import { getDefaultBrainModelForProvider } from "@/features/settings/lib/brain-model-defaults";
 import type {
   CreateEmployeeDraftPayload,
   CreateEmployeeFormState,
@@ -83,6 +88,8 @@ export function CreateEmployeeDialog({
   );
   const [previewingVoiceId, setPreviewingVoiceId] = useState<string | null>(null);
   const [isGeneratingAvatar, setIsGeneratingAvatar] = useState(false);
+  const [brainWorkspaceConfig, setBrainWorkspaceConfig] =
+    useState<BrainWorkspaceConfig | null>(null);
   const localUploadPreviewUrlRef = useRef<string | null>(null);
   const voicePreviewAudioRef = useRef<HTMLAudioElement | null>(null);
   const voicePreviewObjectUrlRef = useRef<string | null>(null);
@@ -103,6 +110,37 @@ export function CreateEmployeeDialog({
       }
     };
   }, []);
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    let cancelled = false;
+
+    async function loadBrainConfig() {
+      const result = await getBrainWorkspaceConfigAction();
+
+      if (cancelled || !result.ok) {
+        return;
+      }
+
+      setBrainWorkspaceConfig(result.config);
+      setForm((current) => ({
+        ...current,
+        orgDefaultBrainProvider: result.config.defaultBrainProvider,
+        orgDefaultBrainModel: result.config.defaultBrainModel,
+        brainProvider: result.config.defaultBrainProvider,
+        brainModel: result.config.defaultBrainModel,
+      }));
+    }
+
+    void loadBrainConfig();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [open]);
 
   const currentStepIndex = stepIndex(step);
   const isFirstStep = currentStepIndex === 0;
@@ -142,6 +180,7 @@ export function CreateEmployeeDialog({
     setPreviewingVoiceId(null);
     setVoicePreviewError(null);
     setIsGeneratingAvatar(false);
+    setBrainWorkspaceConfig(null);
     clearLocalUploadPreview();
   }
 
@@ -205,19 +244,37 @@ export function CreateEmployeeDialog({
       }
     }
 
+    if (step === "brain" && brainWorkspaceConfig) {
+      if (form.brainMode === "org_default") {
+        const readiness =
+          brainWorkspaceConfig.providerReadiness[form.orgDefaultBrainProvider];
+
+        if (!isBrainProviderSelectable(form.orgDefaultBrainProvider, readiness)) {
+          setError(t("errors.brainOrgDefaultNotConfigured"));
+          return false;
+        }
+      } else {
+        const readiness =
+          brainWorkspaceConfig.providerReadiness[form.brainProvider];
+
+        if (!isBrainProviderSelectable(form.brainProvider, readiness)) {
+          setError(t("errors.brainProviderNotConfigured"));
+          return false;
+        }
+
+        if (!form.brainModel.trim()) {
+          setError(t("errors.brainModelRequired"));
+          return false;
+        }
+      }
+    }
+
     return true;
   }
 
   function goNext(): void {
     if (!validateCurrentStep()) {
       return;
-    }
-
-    if (step === "brain") {
-      updateForm({
-        brainProvider: DEFAULT_BRAIN_PROVIDER,
-        brainCustomModeEnabled: false,
-      });
     }
 
     const next = CREATE_EMPLOYEE_STEPS[currentStepIndex + 1];
@@ -257,7 +314,10 @@ export function CreateEmployeeDialog({
       const wizardInput: CreateEmployeeWizardInput = {
         name: form.name.trim(),
         role: form.role.trim(),
-        brainProvider: DEFAULT_BRAIN_PROVIDER,
+        brainMode: form.brainMode,
+        brainProvider:
+          form.brainMode === "custom" ? form.brainProvider : undefined,
+        brainModel: form.brainMode === "custom" ? form.brainModel : undefined,
         studioVoiceId: form.studioVoiceId,
         customElevenLabsVoiceId:
           form.studioVoiceId === CUSTOM_ELEVENLABS_STUDIO_VOICE_ID
@@ -576,17 +636,22 @@ export function CreateEmployeeDialog({
             </div>
           ) : null}
 
-          {step === "brain" ? (
+          {step === "brain" && brainWorkspaceConfig ? (
             <BrainProviderPicker
-              brainProvider={form.brainProvider}
-              customModeEnabled={form.brainCustomModeEnabled}
-              onBrainProviderChange={() => undefined}
-              onCustomModeChange={(enabled) =>
+              mode={form.brainMode}
+              orgDefaultProvider={form.orgDefaultBrainProvider}
+              orgDefaultModel={form.orgDefaultBrainModel}
+              customProvider={form.brainProvider}
+              customModel={form.brainModel}
+              providerReadiness={brainWorkspaceConfig.providerReadiness}
+              onModeChange={(mode) => updateForm({ brainMode: mode })}
+              onCustomProviderChange={(provider) =>
                 updateForm({
-                  brainCustomModeEnabled: enabled,
-                  brainProvider: DEFAULT_BRAIN_PROVIDER,
+                  brainProvider: provider,
+                  brainModel: getDefaultBrainModelForProvider(provider),
                 })
               }
+              onCustomModelChange={(model) => updateForm({ brainModel: model })}
             />
           ) : null}
 
@@ -666,7 +731,20 @@ export function CreateEmployeeDialog({
                       : t("summary.empty")
                   }
                 />
-                <SummaryRow label={t("summary.brain")} value="OpenAI" />
+                <SummaryRow
+                  label={t("summary.brain")}
+                  value={
+                    form.brainMode === "org_default"
+                      ? t("summary.brainOrgDefault", {
+                          provider: form.orgDefaultBrainProvider,
+                          model: form.orgDefaultBrainModel,
+                        })
+                      : t("summary.brainCustom", {
+                          provider: form.brainProvider,
+                          model: form.brainModel,
+                        })
+                  }
+                />
                 <SummaryRow
                   label={t("summary.knowledge")}
                   value={t("summary.items", {

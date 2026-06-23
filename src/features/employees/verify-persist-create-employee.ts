@@ -36,7 +36,9 @@ const SAMPLE_DRAFT: CreateEmployeeDraftPayload = {
     model: "eleven_v3",
   },
   brain: {
+    mode: "custom",
     provider: "openai",
+    model: "gpt-4.1-mini",
   },
   knowledge: [
     { type: "file", name: "runbook.txt", size: 2048, content: "Operational runbook excerpt." },

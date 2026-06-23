@@ -112,7 +112,11 @@ export function SettingsScreen({ data }: { data: SettingsPageData }) {
             </TabsContent>
 
             <TabsContent value="ai">
-              <SettingsAiTab settings={data.settings} />
+              <SettingsAiTab
+                settings={data.settings}
+                canManageOrganization={data.canManageOrganization}
+                providerReadiness={data.brainProviderReadiness}
+              />
             </TabsContent>
 
             <TabsContent value="notifications">

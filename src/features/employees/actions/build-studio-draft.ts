@@ -25,6 +25,7 @@ export function buildStudioDraft(input: {
   photoFileName: string | null;
   photoFileSize: number | null;
   brainProvider: BrainProvider;
+  brainModel?: string;
   knowledge: KnowledgeDraftItem[];
 }): CreateEmployeeDraftPayload {
   return {
@@ -51,7 +52,9 @@ export function buildStudioDraft(input: {
       model: input.studio.voice.model,
     },
     brain: {
+      mode: "custom",
       provider: input.brainProvider,
+      model: input.brainModel ?? "gpt-4.1-mini",
     },
     knowledge: input.knowledge,
   };

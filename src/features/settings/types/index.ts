@@ -1,4 +1,5 @@
 import type { BrainProvider } from "@/entities/digital-employee";
+import type { BrainProviderReadinessMap } from "@/features/brain/lib/brain-provider-readiness";
 import type { PendingApprovalRow } from "@/features/agent-approval/queries/list-pending-approvals";
 import type { MembershipRole } from "@/features/workspace/types";
 import type { SystemStatusItem } from "@/features/overview/types";
@@ -119,4 +120,5 @@ export type SettingsPageData = {
   security: SecuritySnapshot;
   auditEvents: AuditEventListItem[];
   pendingApprovals: PendingApprovalRow[];
+  brainProviderReadiness: BrainProviderReadinessMap;
 };

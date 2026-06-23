@@ -290,6 +290,8 @@
         "role": "Role",
         "voice": "Voice",
         "brain": "Brain",
+        "brainOrgDefault": "Organization default · {provider} · {model}",
+        "brainCustom": "{provider} · {model}",
         "knowledge": "Knowledge",
         "avatar": "Avatar",
         "avatarValue": "Provisioned in background after create",
@@ -315,7 +317,10 @@
         "imageTooLarge": "Image must be 4.5MB or smaller.",
         "createFailed": "Unable to create digital employee",
         "voicePreviewPlay": "Unable to play voice preview.",
-        "knowledgeFileRead": "Unable to read the selected knowledge file."
+        "knowledgeFileRead": "Unable to read the selected knowledge file.",
+        "brainOrgDefaultNotConfigured": "Organization default brain is not configured. Choose a custom model or update workspace settings.",
+        "brainProviderNotConfigured": "Selected brain provider is not configured for this workspace.",
+        "brainModelRequired": "Select a brain model before continuing."
       }
     },
     "talk": {
@@ -477,11 +482,28 @@
         "useCustomVoice": "Use custom voice"
       },
       "brain": {
-        "recommended": "Recommended",
+        "useOrgDefault": "Use organization default",
+        "customModel": "Custom model for this employee",
+        "customModelDescription": "Override the workspace default with a specific provider and model.",
+        "provider": "Provider",
+        "model": "Model",
         "openAi": "OpenAI",
-        "openAiDescription": "Default brain for new digital employees. Provisioned via the OpenAI API using your configured key.",
-        "active": "Active",
-        "customProviders": "Custom providers"
+        "anthropic": "Anthropic",
+        "google": "Google",
+        "nullxes": "NULLXES",
+        "openAiDescription": "GPT models via your configured OpenAI API key.",
+        "anthropicDescription": "Claude models via your configured Anthropic API key.",
+        "googleDescription": "Gemini models via your configured Google API key.",
+        "nullxesDescription": "Platform-managed NULLXES brain. No API key required.",
+        "badgeReady": "Ready",
+        "badgeConfigure": "Configure",
+        "badgeManaged": "Managed",
+        "modelsLoading": "Loading models…",
+        "modelsLoadFailed": "Could not load models.",
+        "modelGroupRecommended": "Recommended",
+        "modelGroupBalanced": "Balanced",
+        "modelGroupFast": "Fast",
+        "modelGroupManaged": "Managed"
       }
     }
   },
@@ -734,10 +756,30 @@
     },
     "ai": {
       "title": "AI Configuration",
-      "description": "LLM defaults for new digital employees",
+      "description": "Default LLM provider and model for new digital employees",
+      "defaultProvider": "Default provider",
+      "defaultModel": "Default model",
       "defaultLlm": "Default LLM",
-      "perEmployeeNote": "Voice and avatar providers are provisioned per employee during creation and are not managed in workspace settings.",
-      "generalNote": "Update the default LLM under General → Default Employee Settings."
+      "perEmployeeNote": "Employees can inherit these defaults or override provider and model during creation.",
+      "integrationsNote": "Provider API keys are configured in your deployment environment. Check status under",
+      "integrationsLink": "Integrations",
+      "modelsLoading": "Loading models…",
+      "modelsLoadFailed": "Could not load models.",
+      "modelGroupRecommended": "Recommended",
+      "modelGroupBalanced": "Balanced",
+      "modelGroupFast": "Fast",
+      "modelGroupManaged": "Managed",
+      "openAi": "OpenAI",
+      "anthropic": "Anthropic",
+      "google": "Google",
+      "nullxes": "NULLXES",
+      "openAiDescription": "GPT models via your configured OpenAI API key.",
+      "anthropicDescription": "Claude models via your configured Anthropic API key.",
+      "googleDescription": "Gemini models via your configured Google API key.",
+      "nullxesDescription": "Platform-managed NULLXES brain. No API key required.",
+      "badgeReady": "Ready",
+      "badgeConfigure": "Configure",
+      "badgeManaged": "Managed"
     },
     "options": {
       "enterprise": "Enterprise",

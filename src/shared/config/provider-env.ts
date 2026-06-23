@@ -23,6 +23,25 @@ export function hasOpenAiCredentials(): boolean {
   return Boolean(getOpenAiApiKey());
 }
 
+export function getAnthropicApiKey(): string | undefined {
+  const key = process.env.ANTHROPIC_API_KEY?.trim();
+  return key || undefined;
+}
+
+export function hasAnthropicCredentials(): boolean {
+  return Boolean(getAnthropicApiKey());
+}
+
+export function getGoogleApiKey(): string | undefined {
+  const key =
+    process.env.GOOGLE_API_KEY?.trim() || process.env.GEMINI_API_KEY?.trim();
+  return key || undefined;
+}
+
+export function hasGoogleCredentials(): boolean {
+  return Boolean(getGoogleApiKey());
+}
+
 export function getOpenAiEmbeddingModel(): string {
   return process.env.OPENAI_EMBEDDING_MODEL?.trim() || "text-embedding-3-small";
 }

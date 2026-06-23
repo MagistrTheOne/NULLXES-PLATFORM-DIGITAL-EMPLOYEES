@@ -25,6 +25,7 @@ export async function createEmployeeFromStudioWizard(
   ).trim();
   const brainProvider = (String(formData.get("brainProvider") ?? "openai").trim() ||
     "openai") as BrainProvider;
+  const brainModel = String(formData.get("brainModel") ?? "").trim() || undefined;
 
   const voice = getStudioVoiceById(studioVoiceId, customElevenLabsVoiceId);
   if (!voice) {
@@ -34,7 +35,9 @@ export async function createEmployeeFromStudioWizard(
   const created = await createEmployeeRecord({
     name,
     role,
+    brainMode: "custom",
     brainProvider,
+    brainModel,
     studioVoiceId,
     customElevenLabsVoiceId: customElevenLabsVoiceId || undefined,
     voiceProvider:

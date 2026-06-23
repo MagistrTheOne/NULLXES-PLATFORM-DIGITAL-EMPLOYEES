@@ -1,4 +1,5 @@
 import type { BrainProvider } from "@/entities/digital-employee";
+import type { BrainAssignmentMode } from "@/features/brain";
 
 export type CreateEmployeeStep =
   | "identity"
@@ -43,8 +44,11 @@ export type CreateEmployeeFormState = {
   voiceModel: "eleven_v3" | null;
   voiceBinding: "anam" | "elevenlabs_shell" | null;
   anamPersonaVoiceId: string | null;
+  brainMode: BrainAssignmentMode;
   brainProvider: BrainProvider;
-  brainCustomModeEnabled: boolean;
+  brainModel: string;
+  orgDefaultBrainProvider: BrainProvider;
+  orgDefaultBrainModel: string;
   customElevenLabsVoiceId: string;
   knowledgeUrl: string;
   knowledgeText: string;
@@ -75,7 +79,9 @@ export type CreateEmployeeDraftPayload = {
     model: "eleven_v3" | null;
   };
   brain: {
+    mode: BrainAssignmentMode;
     provider: BrainProvider;
+    model: string;
   };
   knowledge: KnowledgeDraftItem[];
 };

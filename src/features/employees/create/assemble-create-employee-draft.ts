@@ -95,7 +95,15 @@ export function assembleCreateEmployeeDraft(
       model: form.voiceModel,
     },
     brain: {
-      provider: form.brainProvider,
+      mode: form.brainMode,
+      provider:
+        form.brainMode === "org_default"
+          ? form.orgDefaultBrainProvider
+          : form.brainProvider,
+      model:
+        form.brainMode === "org_default"
+          ? form.orgDefaultBrainModel
+          : form.brainModel,
     },
     knowledge: buildKnowledgeItemsFromForm(form),
   };

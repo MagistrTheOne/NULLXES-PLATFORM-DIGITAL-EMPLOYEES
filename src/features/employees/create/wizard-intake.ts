@@ -1,10 +1,13 @@
 import type { BrainProvider } from "@/entities/digital-employee";
+import type { BrainAssignmentMode } from "@/features/brain";
 import type { KnowledgeDraftItem, StudioVoiceProviderType } from "./types";
 
 export type CreateEmployeeWizardInput = {
   name: string;
   role: string;
-  brainProvider: BrainProvider;
+  brainMode: BrainAssignmentMode;
+  brainProvider?: BrainProvider;
+  brainModel?: string;
   studioVoiceId: string;
   customElevenLabsVoiceId?: string;
   voiceProvider: StudioVoiceProviderType;

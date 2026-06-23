@@ -16,11 +16,8 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { updateDataPrivacySettingsAction } from "../actions/update-data-privacy-settings";
 import { updateDefaultEmployeeSettingsAction } from "../actions/update-default-employee-settings";
-import { DefaultBrainModelField } from "./DefaultBrainModelField";
 import { updateOrganizationPreferencesAction } from "../actions/update-organization-preferences";
 import { updateOrganizationProfileAction } from "../actions/update-organization-profile";
-import { BRAIN_PROVIDER_OPTIONS } from "../lib/brain-provider-labels";
-import { getDefaultBrainModelForProvider } from "../lib/brain-model-defaults";
 import { optionLabel } from "../lib/translated-option-label";
 import {
   DATE_FORMAT_OPTIONS,
@@ -32,7 +29,6 @@ import {
   TIME_RANGE_OPTIONS,
   TIMEZONE_OPTIONS,
 } from "../lib/options";
-import type { BrainProvider } from "@/entities/digital-employee";
 import type { OrganizationProfileDto, OrganizationSettingsDto } from "../types";
 import { SettingsCard } from "./settings-card";
 
@@ -98,8 +94,6 @@ export function SettingsGeneralTab({
   });
 
   const [defaults, setDefaults] = useState({
-    defaultBrainProvider: settings.defaultBrainProvider,
-    defaultBrainModel: settings.defaultBrainModel,
     knowledgeProcessing: settings.knowledgeProcessing,
     sessionRetentionDays: settings.sessionRetentionDays,
   });
@@ -349,50 +343,6 @@ export function SettingsGeneralTab({
           }
         >
           <div className="grid gap-4">
-            <Field label={t("defaultLlm")}>
-              <Select
-                value={defaults.defaultBrainProvider}
-                disabled={!canManageOrganization}
-                onValueChange={(value) => {
-                  const provider = value as BrainProvider;
-                  setDefaults((current) => ({
-                    ...current,
-                    defaultBrainProvider: provider,
-                    defaultBrainModel: getDefaultBrainModelForProvider(provider),
-                  }));
-                }}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {BRAIN_PROVIDER_OPTIONS.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {optionLabel(tOptions, option.labelKey)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </Field>
-            {defaults.defaultBrainProvider === "openai" ? (
-              <DefaultBrainModelField
-                value={defaults.defaultBrainModel}
-                disabled={!canManageOrganization}
-                onValueChange={(value) =>
-                  setDefaults((current) => ({
-                    ...current,
-                    defaultBrainModel: value,
-                  }))
-                }
-              />
-            ) : (
-              <Field label={t("defaultModel")}>
-                <Input value={defaults.defaultBrainModel} disabled readOnly />
-                <p className="text-xs text-muted-foreground">
-                  {t("defaultModelProviderNote")}
-                </p>
-              </Field>
-            )}
             <Field label={t("knowledgeProcessing")}>
               <Select
                 value={defaults.knowledgeProcessing}

@@ -14,7 +14,8 @@ import { requireWorkspacePermissionOrThrowMessage } from "@/features/workspace";
 import { buildEmployeeSystemPrompt } from "@/features/employees/lib/build-system-prompt";
 import { recordLifecycleEvent } from "@/features/employee/services/record-lifecycle-event";
 import { recordAuditEvent } from "@/features/security/services/record-audit-event";
-import { resolveOrganizationBrainModel } from "@/features/settings/services/resolve-organization-brain-model";
+import { getOrganizationBrainDefaults } from "@/features/brain/services/get-organization-brain-defaults";
+import { resolveBrainModelForProvider } from "@/features/settings/lib/brain-model-defaults";
 import { persistKnowledgeDraftItems } from "@/features/knowledge-processing/services/persist-knowledge-draft-items";
 import type { CreateEmployeeWizardInput } from "@/features/employees/create/wizard-intake";
 import { dbWithTransactions } from "@/shared/db/pool-client";
@@ -53,10 +54,24 @@ export async function createEmployeeRecord(
 
     const sessionLimitSeconds = getSessionLimitSecondsForPlan(billingPlan);
     const avatarProvider: AvatarProvider = "anam";
-    const brainModel = await resolveOrganizationBrainModel(
+
+    const orgBrainDefaults = await getOrganizationBrainDefaults(
       workspace.organization.id,
-      input.brainProvider,
     );
+
+    const brainProvider =
+      input.brainMode === "org_default"
+        ? orgBrainDefaults.defaultBrainProvider
+        : input.brainProvider;
+
+    if (!brainProvider) {
+      return { ok: false, message: "Brain provider is required." };
+    }
+
+    const brainModel =
+      input.brainMode === "org_default"
+        ? orgBrainDefaults.defaultBrainModel
+        : resolveBrainModelForProvider(brainProvider, input.brainModel);
 
     const employeeId = await dbWithTransactions.transaction(async (tx) => {
       const [employee] = await tx
@@ -68,7 +83,7 @@ export async function createEmployeeRecord(
           description: `${role} digital employee`,
           status: "draft",
           avatarProvider,
-          brainProvider: input.brainProvider,
+          brainProvider,
         })
         .returning();
 
@@ -80,7 +95,7 @@ export async function createEmployeeRecord(
         .insert(employeeRuntime)
         .values({
           employeeId: employee.id,
-          brainProvider: input.brainProvider,
+          brainProvider,
           avatarProvider,
           systemPrompt: buildEmployeeSystemPrompt(name, role),
           temperature: 0.7,
@@ -126,7 +141,7 @@ export async function createEmployeeRecord(
         {
           employeeId: employee.id,
           providerType: "brain",
-          providerId: input.brainProvider,
+          providerId: brainProvider,
           config: {
             model: brainModel,
             provisioningStatus: "pending",

@@ -290,6 +290,8 @@
         "role": "Роль",
         "voice": "Голос",
         "brain": "Интеллект",
+        "brainOrgDefault": "По умолчанию организации · {provider} · {model}",
+        "brainCustom": "{provider} · {model}",
         "knowledge": "Знания",
         "avatar": "Аватар",
         "avatarValue": "Создаётся в фоне после создания",
@@ -315,7 +317,10 @@
         "imageTooLarge": "Размер изображения не более 4,5 МБ.",
         "createFailed": "Не удалось создать цифрового сотрудника",
         "voicePreviewPlay": "Не удалось воспроизвести превью голоса.",
-        "knowledgeFileRead": "Не удалось прочитать выбранный файл знаний."
+        "knowledgeFileRead": "Не удалось прочитать выбранный файл знаний.",
+        "brainOrgDefaultNotConfigured": "Мозг по умолчанию организации не настроен. Выберите свою модель или обновите настройки workspace.",
+        "brainProviderNotConfigured": "Выбранный провайдер мозга не настроен для этого workspace.",
+        "brainModelRequired": "Выберите модель мозга перед продолжением."
       }
     },
     "talk": {
@@ -477,11 +482,28 @@
         "useCustomVoice": "Использовать свой голос"
       },
       "brain": {
-        "recommended": "Рекомендуется",
+        "useOrgDefault": "Использовать настройки организации",
+        "customModel": "Своя модель для этого сотрудника",
+        "customModelDescription": "Переопределить настройки workspace конкретным провайдером и моделью.",
+        "provider": "Провайдер",
+        "model": "Модель",
         "openAi": "OpenAI",
-        "openAiDescription": "Мозг по умолчанию для новых цифровых сотрудников. Подключается через OpenAI API с вашим ключом.",
-        "active": "Активен",
-        "customProviders": "Другие провайдеры"
+        "anthropic": "Anthropic",
+        "google": "Google",
+        "nullxes": "NULLXES",
+        "openAiDescription": "Модели GPT через настроенный ключ OpenAI API.",
+        "anthropicDescription": "Модели Claude через настроенный ключ Anthropic API.",
+        "googleDescription": "Модели Gemini через настроенный ключ Google API.",
+        "nullxesDescription": "Управляемый платформой мозг NULLXES. Ключ API не нужен.",
+        "badgeReady": "Готов",
+        "badgeConfigure": "Настроить",
+        "badgeManaged": "Управляемый",
+        "modelsLoading": "Загрузка моделей…",
+        "modelsLoadFailed": "Не удалось загрузить модели.",
+        "modelGroupRecommended": "Рекомендуемые",
+        "modelGroupBalanced": "Сбалансированные",
+        "modelGroupFast": "Быстрые",
+        "modelGroupManaged": "Управляемые"
       }
     }
   },
@@ -734,10 +756,30 @@
     },
     "ai": {
       "title": "Конфигурация ИИ",
-      "description": "LLM по умолчанию для новых цифровых сотрудников",
+      "description": "Провайдер и модель LLM по умолчанию для новых цифровых сотрудников",
+      "defaultProvider": "Провайдер по умолчанию",
+      "defaultModel": "Модель по умолчанию",
       "defaultLlm": "LLM по умолчанию",
-      "perEmployeeNote": "Голос и аватар настраиваются при создании сотрудника, не в настройках workspace.",
-      "generalNote": "Измените LLM по умолчанию в Общие → Настройки сотрудника."
+      "perEmployeeNote": "Сотрудники могут наследовать эти настройки или переопределить провайдера и модель при создании.",
+      "integrationsNote": "Ключи API провайдеров настраиваются в среде развёртывания. Статус — в разделе",
+      "integrationsLink": "Интеграции",
+      "modelsLoading": "Загрузка моделей…",
+      "modelsLoadFailed": "Не удалось загрузить модели.",
+      "modelGroupRecommended": "Рекомендуемые",
+      "modelGroupBalanced": "Сбалансированные",
+      "modelGroupFast": "Быстрые",
+      "modelGroupManaged": "Управляемые",
+      "openAi": "OpenAI",
+      "anthropic": "Anthropic",
+      "google": "Google",
+      "nullxes": "NULLXES",
+      "openAiDescription": "Модели GPT через настроенный ключ OpenAI API.",
+      "anthropicDescription": "Модели Claude через настроенный ключ Anthropic API.",
+      "googleDescription": "Модели Gemini через настроенный ключ Google API.",
+      "nullxesDescription": "Управляемый платформой мозг NULLXES. Ключ API не нужен.",
+      "badgeReady": "Готов",
+      "badgeConfigure": "Настроить",
+      "badgeManaged": "Управляемый"
     },
     "options": {
       "enterprise": "Корпоративный",

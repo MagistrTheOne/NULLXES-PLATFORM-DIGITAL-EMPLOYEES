@@ -13,6 +13,8 @@ import { db } from "@/shared/db/client";
 import { withDatabaseRetry } from "@/shared/db/with-database-retry";
 import { getPendingInvites } from "@/features/team/queries/get-pending-invites";
 import { getTeamMembers } from "../queries/get-team-members";
+import { getBrainProviderReadinessMap } from "@/features/brain/lib/brain-provider-readiness";
+import type { BrainProviderReadinessMap } from "@/features/brain/lib/brain-provider-readiness";
 import type { OrganizationSettingsDto, SettingsPageData } from "../types";
 
 function toSettingsDto(
@@ -128,6 +130,7 @@ export async function getSettingsPageData(
         createdAt: event.createdAt,
       })),
       pendingApprovals,
+      brainProviderReadiness: getBrainProviderReadinessMap(),
     };
   });
 }
