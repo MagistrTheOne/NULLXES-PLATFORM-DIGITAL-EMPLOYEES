@@ -4,6 +4,8 @@ export const ANAM_API_KEY_SLOTS = [
   "ANAM_API_KEY",
   "ANAM_API_KEY_2",
   "ANAM_API_KEY_3",
+  "ANAM_API_KEY_4",
+  "ANAM_API_KEY_5",
 ] as const;
 
 export type AnamApiKeySlot = (typeof ANAM_API_KEY_SLOTS)[number];
