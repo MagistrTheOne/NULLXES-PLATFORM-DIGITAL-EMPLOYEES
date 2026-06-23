@@ -423,6 +423,14 @@
         "followup": "follow-up",
         "handoff": "передача",
         "session_summary": "итог сессии"
+      },
+      "schedule": {
+        "title": "Запланировать задачу",
+        "taskTitle": "Название",
+        "description": "Инструкции",
+        "dueAt": "Выполнить",
+        "submit": "Запланировать",
+        "scheduling": "Планирование…"
       }
     },
     "lifecycle": {

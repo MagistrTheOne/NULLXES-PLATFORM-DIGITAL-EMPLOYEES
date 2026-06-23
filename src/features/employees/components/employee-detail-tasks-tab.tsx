@@ -1,5 +1,6 @@
 import { getEmployeeTasks } from "../services/get-employee-tasks";
 import type { OrganizationDisplayPreferences } from "@/features/workspace/types/display-preferences";
+import { requireWorkspacePermission } from "@/features/workspace";
 import { EmployeeTasksPanel } from "./employee-tasks-panel";
 
 export async function EmployeeDetailTasksTab({
@@ -11,9 +12,17 @@ export async function EmployeeDetailTasksTab({
   employeeId: string;
   displayPreferences: OrganizationDisplayPreferences;
 }) {
-  const items = await getEmployeeTasks(organizationId, employeeId);
+  const [items, workspace] = await Promise.all([
+    getEmployeeTasks(organizationId, employeeId),
+    requireWorkspacePermission("canManageEmployees").catch(() => null),
+  ]);
 
   return (
-    <EmployeeTasksPanel items={items} displayPreferences={displayPreferences} />
+    <EmployeeTasksPanel
+      items={items}
+      employeeId={employeeId}
+      canManage={Boolean(workspace)}
+      displayPreferences={displayPreferences}
+    />
   );
 }
