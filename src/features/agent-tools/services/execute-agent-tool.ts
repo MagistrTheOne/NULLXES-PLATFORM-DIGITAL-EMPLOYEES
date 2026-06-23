@@ -174,11 +174,6 @@ export async function executeAgentTool(input: {
       status: "pending",
     });
 
-    await enqueueEmployeeTask({
-      taskId,
-      organizationId: input.context.organizationId,
-    });
-
     await recordWorkEvent({
       organizationId: input.context.organizationId,
       employeeId: input.context.employeeId,
@@ -193,6 +188,37 @@ export async function executeAgentTool(input: {
     return {
       content: `Handoff queued to ${target.name} (task ${taskId}).`,
       taskId,
+    };
+  }
+
+  if (input.toolName === "draft_email") {
+    const to = typeof args.to === "string" ? args.to.trim() : "";
+    const subject = typeof args.subject === "string" ? args.subject.trim() : "";
+    const body = typeof args.body === "string" ? args.body.trim() : "";
+
+    if (!to || !subject || !body) {
+      return { content: "Email draft requires to, subject, and body." };
+    }
+
+    const draft = `To: ${to}\nSubject: ${subject}\n\n${body}`;
+
+    await recordWorkEvent({
+      organizationId: input.context.organizationId,
+      employeeId: input.context.employeeId,
+      sessionId: input.context.sessionId,
+      eventType: "task_received",
+      title: `Email draft · ${subject}`,
+      summary: `To: ${to}`,
+      metadata: {
+        tool: "draft_email",
+        to,
+        subject,
+        body,
+      },
+    });
+
+    return {
+      content: `Email draft prepared for review:\n\n${draft}`,
     };
   }
 

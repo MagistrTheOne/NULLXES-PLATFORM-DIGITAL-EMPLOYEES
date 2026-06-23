@@ -33,6 +33,8 @@ export type EmployeeHandoffItem = {
   direction: "incoming" | "outgoing";
   counterpartName: string;
   status: string;
+  reason: string | null;
+  taskId: string | null;
   createdAt: Date;
 };
 

@@ -249,6 +249,9 @@ export async function getEmployeeDetailLifecycle(
         counterpartName:
           counterpartNameById.get(counterpartId) ?? counterpartId,
         status: row.status,
+        reason:
+          typeof row.context?.reason === "string" ? row.context.reason : null,
+        taskId: row.taskId ?? null,
         createdAt: row.createdAt,
       };
     }),

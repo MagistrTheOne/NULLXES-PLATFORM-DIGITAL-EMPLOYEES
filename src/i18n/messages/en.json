@@ -224,7 +224,9 @@
         "description": "Work transferred to or from other digital employees",
         "empty": "No handoffs recorded yet.",
         "outgoing": "Outgoing",
-        "incoming": "Incoming"
+        "incoming": "Incoming",
+        "accept": "Accept",
+        "reject": "Reject"
       },
       "actions": {
         "edit": "Edit",

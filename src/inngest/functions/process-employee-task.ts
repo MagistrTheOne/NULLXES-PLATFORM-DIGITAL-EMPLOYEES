@@ -8,6 +8,7 @@ import { dispatchOrganizationWebhook } from "@/features/public-api/services/disp
 import { buildTalkBrainRequest } from "@/features/runtime-session/services/build-talk-brain-request";
 import { collectTalkBrainResponse } from "@/features/runtime-session/services/stream-talk-brain-response";
 import { recordWorkEvent } from "@/features/work-event";
+import { serializeEmployeeTaskResult } from "@/features/employees/lib/format-employee-task-result";
 import { db } from "@/shared/db/client";
 import { decryptField } from "@/shared/crypto/field-encryption";
 import { inngest } from "@/inngest/client";
@@ -155,7 +156,7 @@ async function processTaskById(taskId: string, organizationId: string) {
     .update(employeeTask)
     .set({
       status: "completed",
-      result,
+      result: serializeEmployeeTaskResult({ summary: result }),
       completedAt: new Date(),
     })
     .where(eq(employeeTask.id, taskId));

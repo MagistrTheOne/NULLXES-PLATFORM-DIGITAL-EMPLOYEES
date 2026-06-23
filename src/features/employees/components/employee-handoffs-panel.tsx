@@ -1,11 +1,14 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getTranslations } from "next-intl/server";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { EmployeeHandoffItem } from "../types";
+import { EmployeeHandoffActions } from "./employee-handoff-actions";
 
 export async function EmployeeHandoffsPanel({
   items,
+  canManage,
 }: {
   items: EmployeeHandoffItem[];
+  canManage: boolean;
 }) {
   const t = await getTranslations("employees.detail.handoffs");
 
@@ -31,6 +34,10 @@ export async function EmployeeHandoffsPanel({
                   {" · "}
                   {item.status}
                 </p>
+                {item.reason ? (
+                  <p className="mt-2 text-sm text-white/60">{item.reason}</p>
+                ) : null}
+                <EmployeeHandoffActions handoff={item} canManage={canManage} />
               </li>
             ))}
           </ul>

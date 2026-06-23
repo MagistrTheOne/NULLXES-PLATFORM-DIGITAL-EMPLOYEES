@@ -86,6 +86,23 @@ export const AGENT_TOOL_DEFINITIONS = [
       },
     },
   },
+  {
+    type: "function" as const,
+    function: {
+      name: "draft_email",
+      description:
+        "Draft a professional email for human review. Does not send email.",
+      parameters: {
+        type: "object",
+        properties: {
+          to: { type: "string", description: "Recipient email or name." },
+          subject: { type: "string", description: "Email subject line." },
+          body: { type: "string", description: "Email body content." },
+        },
+        required: ["to", "subject", "body"],
+      },
+    },
+  },
 ];
 
 export const TALK_AGENT_TOOL_DEFINITIONS = AGENT_TOOL_DEFINITIONS.filter(

@@ -6,6 +6,7 @@ import {
 } from "@/shared/i18n/format-organization-date";
 import type { OrganizationDisplayPreferences } from "@/features/workspace/types/display-preferences";
 import type { EmployeeTaskItem } from "../services/get-employee-tasks";
+import { parseEmployeeTaskResult } from "../lib/format-employee-task-result";
 
 export async function EmployeeTasksPanel({
   items,
@@ -62,14 +63,40 @@ export async function EmployeeTasksPanel({
               </p>
             ) : null}
             {item.result ? (
-              <div className="rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2">
-                <p className="text-xs uppercase tracking-wide text-white/40">
-                  {t("result")}
-                </p>
-                <p className="mt-1 whitespace-pre-wrap text-sm text-white/75">
-                  {item.result}
-                </p>
-              </div>
+              (() => {
+                const parsed = parseEmployeeTaskResult(item.result);
+                if (!parsed) {
+                  return null;
+                }
+
+                return (
+                  <div className="rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2">
+                    <p className="text-xs uppercase tracking-wide text-white/40">
+                      {t("result")}
+                    </p>
+                    <p className="mt-1 whitespace-pre-wrap text-sm text-white/75">
+                      {parsed.summary}
+                    </p>
+                    {parsed.artifacts && parsed.artifacts.length > 0 ? (
+                      <div className="mt-3 space-y-2">
+                        {parsed.artifacts.map((artifact) => (
+                          <div
+                            key={`${artifact.type}-${artifact.label}`}
+                            className="rounded-md border border-white/8 bg-black/20 px-3 py-2"
+                          >
+                            <p className="text-xs uppercase tracking-wide text-white/40">
+                              {artifact.label}
+                            </p>
+                            <p className="mt-1 whitespace-pre-wrap text-sm text-white/70">
+                              {artifact.content}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
+                );
+              })()
             ) : null}
           </div>
         ))}
