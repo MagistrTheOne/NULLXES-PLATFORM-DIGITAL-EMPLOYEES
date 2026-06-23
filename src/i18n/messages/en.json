@@ -164,7 +164,26 @@
       "provisioningAvatar": "Provisioning avatar…",
       "queuedProvisioning": "Queued for provisioning",
       "provisioningFailed": "Avatar provisioning failed",
-      "avatarPreview": "Avatar preview"
+      "avatarPreview": "Avatar preview",
+      "materializing": "Materializing"
+    },
+    "materialization": {
+      "eyebrow": "Digital workforce",
+      "title": "Materializing {name}",
+      "ready": "Ready to talk",
+      "failed": "Provisioning encountered an issue",
+      "viewEmployee": "View employee",
+      "continueInBackground": "Continue in background",
+      "close": "Close",
+      "muteAmbient": "Mute ambient sound",
+      "unmuteAmbient": "Unmute ambient sound",
+      "stages": {
+        "identity": "Recording identity",
+        "voice": "Calibrating voice",
+        "presence": "Materializing presence",
+        "neural": "Binding neural core",
+        "online": "Coming online"
+      }
     },
     "detail": {
       "talkLocked": "Talk unlocks when avatar and session providers are ready.",

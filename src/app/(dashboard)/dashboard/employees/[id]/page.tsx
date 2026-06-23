@@ -6,6 +6,7 @@ import {
   EmployeeDetailScreen,
   getEmployeeDetailShell,
 } from "@/features/employees";
+import { EmployeeDetailMaterializationHost } from "@/features/employees/components/employee-detail-materialization-host";
 
 export default async function EmployeeDetailPage({
   params,
@@ -25,10 +26,12 @@ export default async function EmployeeDetailPage({
   }
 
   return (
-    <EmployeeDetailScreen
-      employee={employee}
-      organizationId={workspace.organization.id}
-      displayPreferences={displayPreferences}
-    />
+    <EmployeeDetailMaterializationHost employee={employee}>
+      <EmployeeDetailScreen
+        employee={employee}
+        organizationId={workspace.organization.id}
+        displayPreferences={displayPreferences}
+      />
+    </EmployeeDetailMaterializationHost>
   );
 }

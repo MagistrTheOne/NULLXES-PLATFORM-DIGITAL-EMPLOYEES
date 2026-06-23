@@ -9,7 +9,19 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import type { EmployeeListItem } from "../types";
 import { AvatarIdlePreview } from "./avatar-idle-preview";
+import { EmployeeMaterializationCardPreview } from "./employee-materialization-card-preview";
 import { EmployeeStatusBadge } from "./employee-status-badge";
+
+function isEmployeeMaterializing(employee: EmployeeListItem): boolean {
+  if (employee.canTalk) {
+    return false;
+  }
+
+  return (
+    employee.avatarProvisioningStatus !== "failed" &&
+    employee.sessionProvisioningStatus !== "failed"
+  );
+}
 
 function provisioningLabel(
   status: EmployeeListItem["avatarProvisioningStatus"],
@@ -40,9 +52,11 @@ export function EmployeeCard({ employee }: { employee: EmployeeListItem }) {
   const isProvisioning =
     employee.avatarProvisioningStatus === "pending" ||
     employee.avatarProvisioningStatus === "provisioning";
+  const isMaterializing = isEmployeeMaterializing(employee);
   const showPreview =
     employee.avatarPreviewUrl &&
-    employee.avatarProvisioningStatus === "ready";
+    employee.avatarProvisioningStatus === "ready" &&
+    !isMaterializing;
 
   return (
     <Card className="flex h-full flex-col gap-0 overflow-hidden border-white/10 bg-[#111111] py-0 text-white ring-white/10">
@@ -52,6 +66,12 @@ export function EmployeeCard({ employee }: { employee: EmployeeListItem }) {
             src={employee.avatarPreviewUrl!}
             alt={employee.name}
             sizes="(max-width: 768px) 100vw, 320px"
+          />
+        ) : isMaterializing ? (
+          <EmployeeMaterializationCardPreview
+            portraitUrl={employee.avatarPreviewUrl}
+            name={employee.name}
+            label={provisioningLabel(employee.avatarProvisioningStatus, t)}
           />
         ) : (
           <div className="flex flex-col items-center gap-2 text-white/40">

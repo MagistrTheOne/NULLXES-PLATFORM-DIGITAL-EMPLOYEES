@@ -97,3 +97,71 @@
     @apply font-sans;
   }
 }
+
+@keyframes employee-materialize-scan {
+  0% {
+    top: -4%;
+    opacity: 0;
+  }
+  12% {
+    opacity: 0.45;
+  }
+  88% {
+    opacity: 0.45;
+  }
+  100% {
+    top: 104%;
+    opacity: 0;
+  }
+}
+
+@keyframes employee-materialize-flash {
+  0% {
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@utility animate-employee-materialize-scan {
+  animation: employee-materialize-scan 2.6s ease-in-out infinite;
+}
+
+@utility animate-employee-materialize-flash {
+  animation: employee-materialize-flash 1.2s ease-out forwards;
+}
+
+@keyframes employee-materialize-pulse {
+  0%,
+  100% {
+    filter: blur(18px);
+    opacity: 0.32;
+    transform: scale(1.04);
+  }
+  50% {
+    filter: blur(11px);
+    opacity: 0.58;
+    transform: scale(1.02);
+  }
+}
+
+@keyframes employee-materialize-indeterminate {
+  0% {
+    transform: translateX(-120%);
+  }
+  100% {
+    transform: translateX(320%);
+  }
+}
+
+@utility animate-employee-materialize-pulse {
+  animation: employee-materialize-pulse 3.2s ease-in-out infinite;
+}
+
+@utility animate-employee-materialize-indeterminate {
+  animation: employee-materialize-indeterminate 2.4s ease-in-out infinite;
+}

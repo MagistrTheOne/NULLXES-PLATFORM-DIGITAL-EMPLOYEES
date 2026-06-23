@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useRef, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import type { EmployeeStatus } from "@/entities/digital-employee";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,20 @@ import { EmployeeEmptyState } from "./employee-empty-state";
 import { EmployeeGrid } from "./employee-grid";
 import { EmployeeMetrics } from "./employee-metrics";
 import { EmployeeToolbar } from "./employee-toolbar";
+import {
+  EmployeeMaterializationOverlay,
+  type EmployeeMaterializationTarget,
+} from "./employee-materialization-overlay";
+
+async function retainPortraitPreviewUrl(url: string): Promise<string> {
+  if (!url.startsWith("blob:")) {
+    return url;
+  }
+
+  const response = await fetch(url);
+  const blob = await response.blob();
+  return URL.createObjectURL(blob);
+}
 
 function matchesSearch(employee: EmployeeListItem, query: string): boolean {
   const normalized = query.trim().toLowerCase();
@@ -44,6 +58,17 @@ export function EmployeesScreen({
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [loadedEmployees, setLoadedEmployees] = useState(employees);
   const [loadedNextCursor, setLoadedNextCursor] = useState(nextCursor ?? null);
+  const [materialization, setMaterialization] =
+    useState<EmployeeMaterializationTarget | null>(null);
+  const materializationPreviewRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (materializationPreviewRef.current?.startsWith("blob:")) {
+        URL.revokeObjectURL(materializationPreviewRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     setLoadedEmployees(employees);
@@ -62,10 +87,33 @@ export function EmployeesScreen({
 
   async function handleCreateComplete({
     employeeId,
+    name,
+    role,
+    portraitPreviewUrl,
   }: {
     employeeId: string;
     avatarProvisionStarted: boolean;
+    name: string;
+    role: string;
+    portraitPreviewUrl: string;
   }): Promise<void> {
+    const retainedPortrait = await retainPortraitPreviewUrl(portraitPreviewUrl);
+
+    if (materializationPreviewRef.current?.startsWith("blob:")) {
+      URL.revokeObjectURL(materializationPreviewRef.current);
+    }
+
+    materializationPreviewRef.current = retainedPortrait.startsWith("blob:")
+      ? retainedPortrait
+      : null;
+
+    setMaterialization({
+      employeeId,
+      name,
+      role,
+      portraitPreviewUrl: retainedPortrait,
+    });
+
     router.refresh();
 
     const refreshDelaysMs = [8000, 30000, 90000];
@@ -74,6 +122,15 @@ export function EmployeesScreen({
         void revalidateEmployeePaths(employeeId).then(() => router.refresh());
       }, delayMs);
     }
+  }
+
+  function dismissMaterialization(): void {
+    if (materializationPreviewRef.current?.startsWith("blob:")) {
+      URL.revokeObjectURL(materializationPreviewRef.current);
+      materializationPreviewRef.current = null;
+    }
+
+    setMaterialization(null);
   }
 
   return (
@@ -150,6 +207,18 @@ export function EmployeesScreen({
         onOpenChange={setCreateDialogOpen}
         onComplete={handleCreateComplete}
       />
+
+      {materialization ? (
+        <EmployeeMaterializationOverlay
+          target={materialization}
+          onDismiss={dismissMaterialization}
+          onReady={() => {
+            void revalidateEmployeePaths(materialization.employeeId).then(() =>
+              router.refresh(),
+            );
+          }}
+        />
+      ) : null}
     </>
   );
 }

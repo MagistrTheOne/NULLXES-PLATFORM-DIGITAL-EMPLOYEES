@@ -64,6 +64,9 @@ export function CreateEmployeeDialog({
   onComplete?: (result: {
     employeeId: string;
     avatarProvisionStarted: boolean;
+    name: string;
+    role: string;
+    portraitPreviewUrl: string;
   }) => Promise<void>;
 }) {
   const t = useTranslations("employees.create");
@@ -289,9 +292,18 @@ export function CreateEmployeeDialog({
       updateForm({ avatarGenerationStatus: "generating", avatarGenerationError: null });
 
       if (onComplete) {
+        const portraitPreviewUrl = summaryPreviewUrl;
+        if (!portraitPreviewUrl) {
+          setError(t("errors.photoVoiceRequired"));
+          return;
+        }
+
         await onComplete({
           employeeId: created.employeeId,
           avatarProvisionStarted: true,
+          name: wizardInput.name,
+          role: wizardInput.role,
+          portraitPreviewUrl,
         });
       }
 

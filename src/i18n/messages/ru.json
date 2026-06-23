@@ -164,7 +164,26 @@
       "provisioningAvatar": "Создание аватара…",
       "queuedProvisioning": "В очереди на создание",
       "provisioningFailed": "Ошибка создания аватара",
-      "avatarPreview": "Превью аватара"
+      "avatarPreview": "Превью аватара",
+      "materializing": "Проявление"
+    },
+    "materialization": {
+      "eyebrow": "Цифровой штат",
+      "title": "Проявление {name}",
+      "ready": "Готов к разговору",
+      "failed": "Возникла ошибка при подготовке",
+      "viewEmployee": "Открыть сотрудника",
+      "continueInBackground": "Продолжить в фоне",
+      "close": "Закрыть",
+      "muteAmbient": "Выключить фоновый звук",
+      "unmuteAmbient": "Включить фоновый звук",
+      "stages": {
+        "identity": "Фиксация личности",
+        "voice": "Калибровка голоса",
+        "presence": "Материализация образа",
+        "neural": "Подключение интеллекта",
+        "online": "Выход в сеть"
+      }
     },
     "detail": {
       "talkLocked": "Разговор доступен после готовности аватара и провайдеров.",
