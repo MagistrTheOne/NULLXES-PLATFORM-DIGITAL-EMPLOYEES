@@ -15,6 +15,18 @@ export type GetBrainModelsResult =
   | { ok: true; models: BrainModelOption[] }
   | { ok: false; message: string };
 
+function resolveOpenAiModelGroup(id: string): string {
+  if (/nano|mini|flash-lite|lite/i.test(id)) {
+    return "fast";
+  }
+
+  if (/^o[0-9]/i.test(id)) {
+    return "balanced";
+  }
+
+  return "recommended";
+}
+
 export async function getBrainModelsAction(
   provider: BrainProvider,
 ): Promise<GetBrainModelsResult> {
@@ -41,7 +53,7 @@ export async function getBrainModelsAction(
         id: model.id,
         label: model.id,
         pricingLabel: model.pricingLabel,
-        groupKey: model.id.includes("mini") ? "fast" : "recommended",
+        groupKey: resolveOpenAiModelGroup(model.id),
       })),
     };
   }

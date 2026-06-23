@@ -52,9 +52,15 @@ export function BrainProviderCards({
   const t = useTranslations(
     variant === "wizard" ? "employees.studio.brain" : "settings.ai",
   );
+  const isWizard = variant === "wizard";
 
   return (
-    <div className="grid gap-3 sm:grid-cols-2">
+    <div
+      className={cn(
+        "grid grid-cols-2 gap-2",
+        variant === "settings" && "sm:gap-3",
+      )}
+    >
       {BRAIN_PROVIDERS.map((provider) => {
         const readiness = providerReadiness[provider];
         const selectable = isBrainProviderSelectable(provider, readiness);
@@ -67,42 +73,45 @@ export function BrainProviderCards({
             disabled={disabled || !selectable}
             onClick={() => onProviderChange(provider)}
             className={cn(
-              "rounded-xl border p-4 text-left transition-colors",
-              variant === "wizard"
+              "flex h-full min-h-[5.5rem] flex-col rounded-xl border p-3 text-left transition-colors",
+              isWizard
                 ? selected
                   ? "border-white/30 bg-white/6"
-                  : "border-white/10 bg-[#111111] hover:border-white/20"
+                  : "border-white/10 bg-black/30 hover:border-white/20"
                 : selected
                   ? "border-foreground/30 bg-background/60"
                   : "border-border bg-background/40 hover:border-foreground/20",
               !selectable && "cursor-not-allowed opacity-50",
             )}
           >
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="text-sm font-medium text-foreground">
-                  {t(PROVIDER_LABEL_KEYS[provider])}
-                </p>
-                <p
-                  className={cn(
-                    "mt-1 text-xs",
-                    variant === "wizard" ? "text-white/55" : "text-muted-foreground",
-                  )}
-                >
-                  {t(PROVIDER_DESCRIPTION_KEYS[provider])}
-                </p>
-              </div>
+            <div className="flex items-center justify-between gap-2">
+              <p
+                className={cn(
+                  "text-sm font-medium",
+                  isWizard ? "text-white" : "text-foreground",
+                )}
+              >
+                {t(PROVIDER_LABEL_KEYS[provider])}
+              </p>
               <span
                 className={cn(
-                  "shrink-0 rounded-full border px-2 py-0.5 text-xs",
-                  variant === "wizard"
-                    ? "border-white/20 text-white/70"
+                  "shrink-0 rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-wide",
+                  isWizard
+                    ? "border-white/20 text-white/60"
                     : "border-border text-muted-foreground",
                 )}
               >
                 {t(READINESS_BADGE_KEYS[readiness])}
               </span>
             </div>
+            <p
+              className={cn(
+                "mt-2 line-clamp-2 text-xs leading-relaxed",
+                isWizard ? "text-white/50" : "text-muted-foreground",
+              )}
+            >
+              {t(PROVIDER_DESCRIPTION_KEYS[provider])}
+            </p>
           </button>
         );
       })}
