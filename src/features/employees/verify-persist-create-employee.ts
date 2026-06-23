@@ -39,7 +39,7 @@ const SAMPLE_DRAFT: CreateEmployeeDraftPayload = {
     provider: "openai",
   },
   knowledge: [
-    { type: "file", name: "runbook.pdf", size: 2048 },
+    { type: "file", name: "runbook.txt", size: 2048, content: "Operational runbook excerpt." },
     { type: "url", url: "https://docs.nullxes.local/runbook" },
     { type: "text", content: "Operational checklist for Atlas." },
   ],

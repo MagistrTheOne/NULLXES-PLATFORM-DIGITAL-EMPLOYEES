@@ -69,7 +69,7 @@ export async function resolveHandoffAction(input: {
         summary:
           typeof handoff.context?.reason === "string"
             ? handoff.context.reason
-            : null,
+            : undefined,
         metadata: { handoffId: handoff.id, decision: "accepted" },
       });
 
@@ -113,7 +113,7 @@ export async function resolveHandoffAction(input: {
       summary:
         typeof handoff.context?.reason === "string"
           ? handoff.context.reason
-          : null,
+          : undefined,
       metadata: { handoffId: handoff.id, decision: "rejected" },
     });
 

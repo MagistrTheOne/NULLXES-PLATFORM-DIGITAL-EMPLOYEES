@@ -24,7 +24,9 @@ function verifyCreateEmployeeExperience(): void {
   form.brainProvider = "anthropic";
   form.knowledgeUrl = "https://docs.nullxes.local/playbook";
   form.knowledgeText = "Compliance reference notes";
-  form.knowledgeFiles = [{ name: "policy.pdf", size: 4096 }];
+  form.knowledgeFiles = [
+    { name: "policy.txt", size: 4096, content: "Compliance reference notes from policy." },
+  ];
 
   if (!canAssembleCreateEmployeeDraft(form)) {
     throw new Error("Draft readiness check failed");
