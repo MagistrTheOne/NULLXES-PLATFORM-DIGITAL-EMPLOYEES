@@ -43,6 +43,24 @@ export const AGENT_TOOL_DEFINITIONS = [
   {
     type: "function" as const,
     function: {
+      name: "list_workforce_peers",
+      description:
+        "List other digital employees in the organization for routing or handoff.",
+      parameters: {
+        type: "object",
+        properties: {
+          roleQuery: {
+            type: "string",
+            description:
+              "Optional filter by employee name or role (e.g. sales, legal).",
+          },
+        },
+      },
+    },
+  },
+  {
+    type: "function" as const,
+    function: {
       name: "request_handoff",
       description:
         "Hand off work to another digital employee in the organization.",
@@ -51,7 +69,12 @@ export const AGENT_TOOL_DEFINITIONS = [
         properties: {
           toEmployeeId: {
             type: "string",
-            description: "Target digital employee UUID.",
+            description: "Target digital employee UUID when known.",
+          },
+          toEmployeeName: {
+            type: "string",
+            description:
+              "Target employee name when UUID is unknown. Use list_workforce_peers first if unsure.",
           },
           reason: { type: "string", description: "Why the handoff is needed." },
           context: {
@@ -59,7 +82,7 @@ export const AGENT_TOOL_DEFINITIONS = [
             description: "Context for the receiving employee.",
           },
         },
-        required: ["toEmployeeId", "reason", "context"],
+        required: ["reason", "context"],
       },
     },
   },

@@ -206,6 +206,7 @@
       "voice": "Голос",
       "brain": "Интеллект",
       "knowledge": "Знания",
+      "tasks": "Задачи",
       "lifecycle": "Жизненный цикл",
       "status": "Статус",
       "created": "Создан",
@@ -401,6 +402,25 @@
         "textPlaceholder": "Вставьте справочный текст для сотрудника.",
         "addText": "Добавить текст",
         "adding": "Индексация…"
+      }
+    },
+    "tasks": {
+      "empty": "У этого сотрудника пока нет задач.",
+      "title": "Задачи ({count})",
+      "dueAt": "Срок",
+      "result": "Результат",
+      "status": {
+        "pending": "ожидание",
+        "in_progress": "в работе",
+        "completed": "выполнено",
+        "cancelled": "отменено"
+      },
+      "source": {
+        "talk_tool": "разговор",
+        "api": "api",
+        "followup": "follow-up",
+        "handoff": "передача",
+        "session_summary": "итог сессии"
       }
     },
     "lifecycle": {

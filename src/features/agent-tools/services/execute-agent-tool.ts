@@ -1,10 +1,12 @@
-import { and, eq } from "drizzle-orm";
-import { digitalEmployee } from "@/entities/digital-employee/schema";
 import { employeeHandoff } from "@/entities/employee-handoff/schema";
 import {
   createEmployeeTask,
   enqueueEmployeeTask,
 } from "@/features/agent-tasks";
+import {
+  listWorkforcePeers,
+  resolveWorkforceHandoffTarget,
+} from "@/features/employees/services/resolve-workforce-handoff-target";
 import { searchKnowledge } from "@/features/knowledge-retrieval";
 import { recordWorkEvent } from "@/features/work-event";
 import { db } from "@/shared/db/client";
@@ -51,6 +53,29 @@ export async function executeAgentTool(input: {
             `[${result.sourceTitle}] (score ${result.similarity.toFixed(2)})\n${result.content}`,
         )
         .join("\n\n"),
+    };
+  }
+
+  if (input.toolName === "list_workforce_peers") {
+    const roleQuery =
+      typeof args.roleQuery === "string" ? args.roleQuery.trim() : undefined;
+    const peers = await listWorkforcePeers({
+      organizationId: input.context.organizationId,
+      employeeId: input.context.employeeId,
+      roleQuery,
+    });
+
+    if (peers.length === 0) {
+      return { content: "No other digital employees are available for handoff." };
+    }
+
+    return {
+      content: peers
+        .map(
+          (peer) =>
+            `- ${peer.name} (${peer.role}) · id=${peer.id} · status=${peer.status}`,
+        )
+        .join("\n"),
     };
   }
 
@@ -105,34 +130,36 @@ export async function executeAgentTool(input: {
   if (input.toolName === "request_handoff") {
     const toEmployeeId =
       typeof args.toEmployeeId === "string" ? args.toEmployeeId.trim() : "";
+    const toEmployeeName =
+      typeof args.toEmployeeName === "string" ? args.toEmployeeName.trim() : "";
     const reason = typeof args.reason === "string" ? args.reason.trim() : "";
     const contextText =
       typeof args.context === "string" ? args.context.trim() : "";
 
-    if (!toEmployeeId || !reason || !contextText) {
+    if ((!toEmployeeId && !toEmployeeName) || !reason || !contextText) {
       return {
-        content: "Handoff requires toEmployeeId, reason, and context.",
+        content:
+          "Handoff requires reason, context, and either toEmployeeId or toEmployeeName.",
       };
     }
 
-    const [target] = await db
-      .select({ id: digitalEmployee.id })
-      .from(digitalEmployee)
-      .where(
-        and(
-          eq(digitalEmployee.id, toEmployeeId),
-          eq(digitalEmployee.organizationId, input.context.organizationId),
-        ),
-      )
-      .limit(1);
+    const target = await resolveWorkforceHandoffTarget({
+      organizationId: input.context.organizationId,
+      fromEmployeeId: input.context.employeeId,
+      toEmployeeId: toEmployeeId || undefined,
+      toEmployeeName: toEmployeeName || undefined,
+    });
 
     if (!target) {
-      return { content: "Target employee not found in this organization." };
+      return {
+        content:
+          "Target employee not found. Call list_workforce_peers and retry with an exact name or id.",
+      };
     }
 
     const taskId = await createEmployeeTask({
       organizationId: input.context.organizationId,
-      employeeId: toEmployeeId,
+      employeeId: target.id,
       title: `Handoff: ${reason}`,
       description: contextText,
       source: "handoff",
@@ -141,7 +168,7 @@ export async function executeAgentTool(input: {
 
     await db.insert(employeeHandoff).values({
       fromEmployeeId: input.context.employeeId,
-      toEmployeeId,
+      toEmployeeId: target.id,
       taskId,
       context: { reason, context: contextText },
       status: "pending",
@@ -156,15 +183,15 @@ export async function executeAgentTool(input: {
       organizationId: input.context.organizationId,
       employeeId: input.context.employeeId,
       eventType: "handoff_created",
-      title: `Handoff to employee ${toEmployeeId}`,
+      title: `Handoff to ${target.name}`,
       summary: reason,
       taskId,
       sessionId: input.context.sessionId,
-      metadata: { toEmployeeId, context: contextText },
+      metadata: { toEmployeeId: target.id, context: contextText },
     });
 
     return {
-      content: `Handoff queued to employee ${toEmployeeId} (task ${taskId}).`,
+      content: `Handoff queued to ${target.name} (task ${taskId}).`,
       taskId,
     };
   }

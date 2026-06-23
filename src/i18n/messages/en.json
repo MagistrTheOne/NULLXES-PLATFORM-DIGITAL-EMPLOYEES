@@ -206,6 +206,7 @@
       "voice": "Voice",
       "brain": "Brain",
       "knowledge": "Knowledge",
+      "tasks": "Tasks",
       "lifecycle": "Lifecycle",
       "status": "Status",
       "created": "Created",
@@ -401,6 +402,25 @@
         "textPlaceholder": "Paste reference text for this employee.",
         "addText": "Add text",
         "adding": "Indexing…"
+      }
+    },
+    "tasks": {
+      "empty": "No tasks assigned to this employee yet.",
+      "title": "Tasks ({count})",
+      "dueAt": "Due",
+      "result": "Result",
+      "status": {
+        "pending": "pending",
+        "in_progress": "in progress",
+        "completed": "completed",
+        "cancelled": "cancelled"
+      },
+      "source": {
+        "talk_tool": "talk",
+        "api": "api",
+        "followup": "follow-up",
+        "handoff": "handoff",
+        "session_summary": "session summary"
       }
     },
     "lifecycle": {

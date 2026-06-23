@@ -15,6 +15,7 @@ import { AvatarIdlePreview } from "./avatar-idle-preview";
 import { EmployeeDetailTabs, TabsContent } from "./employee-detail-tabs";
 import { EmployeeDetailKnowledgeTab } from "./employee-detail-knowledge-tab";
 import { EmployeeDetailLifecycleTab } from "./employee-detail-lifecycle-tab";
+import { EmployeeDetailTasksTab } from "./employee-detail-tasks-tab";
 import { EmployeeProviderBadge } from "./employee-provider-badge";
 import { EmployeeDetailActions } from "./employee-detail-actions";
 import { EmployeeStatusBadge } from "./employee-status-badge";
@@ -287,6 +288,16 @@ export async function EmployeeDetailScreen({
           <TabsContent value="knowledge" className="mt-4">
             <Suspense fallback={<TabPanelSkeleton />}>
               <EmployeeDetailKnowledgeTab
+                organizationId={organizationId}
+                employeeId={employee.id}
+                displayPreferences={displayPreferences}
+              />
+            </Suspense>
+          </TabsContent>
+
+          <TabsContent value="tasks" className="mt-4">
+            <Suspense fallback={<TabPanelSkeleton />}>
+              <EmployeeDetailTasksTab
                 organizationId={organizationId}
                 employeeId={employee.id}
                 displayPreferences={displayPreferences}

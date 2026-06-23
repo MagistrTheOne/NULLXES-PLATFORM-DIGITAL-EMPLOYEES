@@ -5,7 +5,6 @@ import {
   type AgentToolExecutionContext,
 } from "@/features/agent-tools";
 import { logTalkPerf } from "@/features/runtime-session/lib/talk-perf-log";
-import { shouldRunTalkToolLoop } from "@/features/runtime-session/lib/should-run-talk-tool-loop";
 import { getOpenAiApiBaseUrl, getOpenAiApiKey } from "@/shared/config/provider-env";
 import type { TalkBrainMessage } from "./generate-talk-brain-response";
 
@@ -166,15 +165,7 @@ export async function* streamTalkBrainResponse(input: {
   toolContext?: AgentToolExecutionContext;
   mode?: "talk" | "default";
 }): AsyncGenerator<string> {
-  const lastUserMessage = input.messages.at(-1)?.content ?? "";
-  const toolContext =
-    input.mode === "talk" &&
-    input.toolContext &&
-    !shouldRunTalkToolLoop(lastUserMessage)
-      ? undefined
-      : input.toolContext;
-
-  const conversation = await runToolLoop({ ...input, toolContext });
+  const conversation = await runToolLoop(input);
   const streamStartedAt = performance.now();
   let firstTokenLogged = false;
   const response = await callOpenAiChat({
