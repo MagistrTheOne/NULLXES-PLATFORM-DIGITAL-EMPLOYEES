@@ -67,6 +67,40 @@ export const STUDIO_VOICES: StudioVoiceOption[] = [
 ];
 
 export const CUSTOM_ELEVENLABS_STUDIO_VOICE_ID = "custom-elevenlabs";
+export const ELEVENLABS_API_VOICE_ID_PREFIX = "elevenlabs-api-";
+
+export function getAnamStudioVoices(): StudioVoiceOption[] {
+  return STUDIO_VOICES.filter((voice) => voice.provider === "Anam");
+}
+
+export function getStaticElevenLabsStudioVoices(): StudioVoiceOption[] {
+  return STUDIO_VOICES.filter((voice) => voice.provider === "ElevenLabs");
+}
+
+export function mergeElevenLabsStudioVoices(
+  apiVoices: StudioVoiceOption[],
+): StudioVoiceOption[] {
+  const staticIds = new Set(
+    getStaticElevenLabsStudioVoices()
+      .map((voice) => voice.elevenLabsVoiceId)
+      .filter(Boolean),
+  );
+
+  const merged = [
+    ...getStaticElevenLabsStudioVoices(),
+    ...apiVoices.filter(
+      (voice) => !staticIds.has(voice.elevenLabsVoiceId),
+    ),
+  ];
+
+  return merged.sort((left, right) => left.name.localeCompare(right.name));
+}
+
+export function buildStudioVoiceCatalog(
+  apiElevenLabsVoices: StudioVoiceOption[] = [],
+): StudioVoiceOption[] {
+  return [...getAnamStudioVoices(), ...mergeElevenLabsStudioVoices(apiElevenLabsVoices)];
+}
 
 export function createCustomElevenLabsVoiceOption(
   elevenLabsVoiceId: string,
@@ -86,6 +120,44 @@ export function createCustomElevenLabsVoiceOption(
   };
 }
 
+import {
+  matchesStudioVoiceGenderFilter,
+  type StudioVoiceGenderFilter,
+} from "./normalize-studio-voice-gender";
+
+export function resolveStudioVoiceSelection(
+  studioVoiceId: string,
+  customElevenLabsVoiceId?: string,
+  catalog: StudioVoiceOption[] = STUDIO_VOICES,
+): StudioVoiceOption | undefined {
+  if (studioVoiceId.startsWith(ELEVENLABS_API_VOICE_ID_PREFIX)) {
+    const elevenLabsVoiceId = studioVoiceId.slice(
+      ELEVENLABS_API_VOICE_ID_PREFIX.length,
+    );
+
+    if (!elevenLabsVoiceId) {
+      return undefined;
+    }
+
+    return (
+      catalog.find((voice) => voice.id === studioVoiceId) ?? {
+        id: studioVoiceId,
+        name: elevenLabsVoiceId,
+        gender: "Neutral",
+        language: "English",
+        provider: "ElevenLabs",
+        elevenLabsVoiceId,
+      }
+    );
+  }
+
+  if (studioVoiceId === CUSTOM_ELEVENLABS_STUDIO_VOICE_ID) {
+    return getStudioVoiceById(studioVoiceId, customElevenLabsVoiceId);
+  }
+
+  return catalog.find((voice) => voice.id === studioVoiceId);
+}
+
 export function getStudioVoiceById(
   voiceId: string,
   customElevenLabsVoiceId?: string,
@@ -101,11 +173,21 @@ export function getStudioVoiceById(
 export function filterStudioVoices(input: {
   query: string;
   provider: "all" | StudioVoiceProvider;
+  gender?: StudioVoiceGenderFilter;
+  voices?: StudioVoiceOption[];
 }): StudioVoiceOption[] {
   const normalizedQuery = input.query.trim().toLowerCase();
+  const source = input.voices ?? STUDIO_VOICES;
 
-  return STUDIO_VOICES.filter((voice) => {
+  return source.filter((voice) => {
     if (input.provider !== "all" && voice.provider !== input.provider) {
+      return false;
+    }
+
+    if (
+      input.gender &&
+      !matchesStudioVoiceGenderFilter(voice.gender, input.gender)
+    ) {
       return false;
     }
 
@@ -119,7 +201,9 @@ export function filterStudioVoices(input: {
       voice.language,
       voice.provider,
       voice.id,
+      voice.elevenLabsVoiceId,
     ]
+      .filter(Boolean)
       .join(" ")
       .toLowerCase();
 

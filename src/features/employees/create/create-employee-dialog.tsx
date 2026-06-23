@@ -17,6 +17,7 @@ import { createEmployeeRecord } from "@/features/employees/actions/create-employ
 import { provisionEmployeeAvatarStudio } from "@/features/employees/actions/provision-employee-avatar-studio";
 import type { CreateEmployeeWizardInput } from "@/features/employees/create/wizard-intake";
 import { previewEmployeeVoice } from "@/features/employees/actions/preview-employee-voice";
+import { createAudioPreviewObjectUrl } from "@/features/employees/lib/play-base64-audio-preview";
 import {
   AvatarPreviewCard,
   AvatarStudioStep,
@@ -83,6 +84,7 @@ export function CreateEmployeeDialog({
   const [isGeneratingAvatar, setIsGeneratingAvatar] = useState(false);
   const localUploadPreviewUrlRef = useRef<string | null>(null);
   const voicePreviewAudioRef = useRef<HTMLAudioElement | null>(null);
+  const voicePreviewObjectUrlRef = useRef<string | null>(null);
   const stepRef = useRef<CreateEmployeeStep>(step);
   stepRef.current = step;
 
@@ -90,6 +92,9 @@ export function CreateEmployeeDialog({
     return () => {
       if (localUploadPreviewUrlRef.current) {
         URL.revokeObjectURL(localUploadPreviewUrlRef.current);
+      }
+      if (voicePreviewObjectUrlRef.current) {
+        URL.revokeObjectURL(voicePreviewObjectUrlRef.current);
       }
       if (voicePreviewAudioRef.current) {
         voicePreviewAudioRef.current.pause();
@@ -399,9 +404,21 @@ export function CreateEmployeeDialog({
 
     if (voicePreviewAudioRef.current) {
       voicePreviewAudioRef.current.pause();
+      voicePreviewAudioRef.current = null;
     }
 
-    const audio = new Audio(`data:${result.contentType};base64,${result.audioBase64}`);
+    if (voicePreviewObjectUrlRef.current) {
+      URL.revokeObjectURL(voicePreviewObjectUrlRef.current);
+      voicePreviewObjectUrlRef.current = null;
+    }
+
+    const objectUrl = createAudioPreviewObjectUrl({
+      audioBase64: result.audioBase64,
+      contentType: result.contentType,
+    });
+    voicePreviewObjectUrlRef.current = objectUrl;
+
+    const audio = new Audio(objectUrl);
     voicePreviewAudioRef.current = audio;
     audio.onended = () => setPreviewingVoiceId(null);
     audio.onerror = () => {

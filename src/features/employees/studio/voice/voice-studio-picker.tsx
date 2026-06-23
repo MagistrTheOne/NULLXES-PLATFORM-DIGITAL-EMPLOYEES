@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Loader2, Play, Search } from "lucide-react";
+import { listElevenLabsStudioVoices } from "@/features/employees/actions/list-elevenlabs-studio-voices";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -23,12 +24,13 @@ import {
 import { cn } from "@/lib/utils";
 import {
   CUSTOM_ELEVENLABS_STUDIO_VOICE_ID,
-  STUDIO_VOICES,
+  buildStudioVoiceCatalog,
   filterStudioVoices,
   getStudioVoiceById,
   type StudioVoiceOption,
   type StudioVoiceProvider,
 } from "./voice-catalog";
+import type { StudioVoiceGenderFilter } from "./normalize-studio-voice-gender";
 
 function VoiceDetailPanel({
   voice,
@@ -90,9 +92,7 @@ function VoiceDetailPanel({
             {t("listenPreview")}
           </Button>
         ) : (
-          <p className="text-xs text-white/45">
-            Anam voices are verified when you create the employee.
-          </p>
+          <p className="text-xs text-white/45">{t("anamPreviewNote")}</p>
         )}
       </div>
     </div>
@@ -114,6 +114,7 @@ export function VoiceStudioPicker({
     studioVoiceId: string;
     voiceName: string;
     provider: StudioVoiceProvider;
+    elevenLabsVoiceId?: string;
   }) => void;
   onApplyCustomVoice: (elevenLabsVoiceId: string) => void;
   onPreviewVoice: (elevenLabsVoiceId: string) => void;
@@ -127,10 +128,25 @@ export function VoiceStudioPicker({
     { value: "Anam", label: "Anam" },
     { value: "ElevenLabs", label: "ElevenLabs" },
   ];
+  const genderFilterOptions: Array<{
+    value: StudioVoiceGenderFilter;
+    label: string;
+  }> = [
+    { value: "all", label: t("allGenders") },
+    { value: "female", label: t("female") },
+    { value: "male", label: t("male") },
+  ];
   const [providerFilter, setProviderFilter] = useState<"all" | StudioVoiceProvider>(
     "all",
   );
+  const [genderFilter, setGenderFilter] =
+    useState<StudioVoiceGenderFilter>("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [apiElevenLabsVoices, setApiElevenLabsVoices] = useState<
+    StudioVoiceOption[]
+  >([]);
+  const [voicesLoadError, setVoicesLoadError] = useState<string | null>(null);
+  const [isLoadingVoices, setIsLoadingVoices] = useState(true);
   const [customDraftId, setCustomDraftId] = useState(customElevenLabsVoiceId);
   const [customOpen, setCustomOpen] = useState(
     selectedVoiceId === CUSTOM_ELEVENLABS_STUDIO_VOICE_ID,
@@ -148,17 +164,57 @@ export function VoiceStudioPicker({
     }
   }, [isCustomSelected]);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    void listElevenLabsStudioVoices()
+      .then((result) => {
+        if (cancelled) {
+          return;
+        }
+
+        if (result.ok) {
+          setApiElevenLabsVoices(result.voices);
+          setVoicesLoadError(null);
+          return;
+        }
+
+        setVoicesLoadError(result.message);
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setIsLoadingVoices(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const catalogVoices = useMemo(
+    () => buildStudioVoiceCatalog(apiElevenLabsVoices),
+    [apiElevenLabsVoices],
+  );
+
   const filteredVoices = useMemo(
-    () => filterStudioVoices({ query: searchQuery, provider: providerFilter }),
-    [searchQuery, providerFilter],
+    () =>
+      filterStudioVoices({
+        query: searchQuery,
+        provider: providerFilter,
+        gender: genderFilter,
+        voices: catalogVoices,
+      }),
+    [catalogVoices, genderFilter, providerFilter, searchQuery],
   );
 
   const selectedVoice = useMemo(
     () =>
       selectedVoiceId
-        ? getStudioVoiceById(selectedVoiceId, customElevenLabsVoiceId)
+        ? getStudioVoiceById(selectedVoiceId, customElevenLabsVoiceId) ??
+          catalogVoices.find((voice) => voice.id === selectedVoiceId)
         : undefined,
-    [selectedVoiceId, customElevenLabsVoiceId],
+    [catalogVoices, customElevenLabsVoiceId, selectedVoiceId],
   );
 
   const catalogGroups = useMemo(() => {
@@ -174,7 +230,7 @@ export function VoiceStudioPicker({
       return;
     }
 
-    const voice = STUDIO_VOICES.find((item) => item.id === voiceId);
+    const voice = catalogVoices.find((item) => item.id === voiceId);
     if (!voice) {
       return;
     }
@@ -183,6 +239,7 @@ export function VoiceStudioPicker({
       studioVoiceId: voice.id,
       voiceName: voice.name,
       provider: voice.provider,
+      elevenLabsVoiceId: voice.elevenLabsVoiceId,
     });
   }
 
@@ -199,7 +256,7 @@ export function VoiceStudioPicker({
     <div className="flex flex-col gap-6">
       <section className="flex flex-col gap-3">
         <p className="text-xs uppercase tracking-wide text-white/40">{t("findVoice")}</p>
-        <div className="flex flex-col gap-3 sm:flex-row">
+        <div className="flex flex-col gap-3 lg:flex-row">
           <div className="relative min-w-0 flex-1">
             <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-white/40" />
             <Input
@@ -218,7 +275,7 @@ export function VoiceStudioPicker({
             }
           >
             <SelectTrigger
-              className="w-full border-white/10 bg-black/40 text-white sm:w-44"
+              className="w-full border-white/10 bg-black/40 text-white lg:w-40"
               aria-label="Filter by provider"
             >
               <SelectValue placeholder="Provider" />
@@ -235,7 +292,40 @@ export function VoiceStudioPicker({
               ))}
             </SelectContent>
           </Select>
+          <Select
+            value={genderFilter}
+            onValueChange={(value) =>
+              setGenderFilter(value as StudioVoiceGenderFilter)
+            }
+          >
+            <SelectTrigger
+              className="w-full border-white/10 bg-black/40 text-white lg:w-36"
+              aria-label="Filter by gender"
+            >
+              <SelectValue placeholder={t("gender")} />
+            </SelectTrigger>
+            <SelectContent className="border-white/10 bg-[#111111] text-white">
+              {genderFilterOptions.map((option) => (
+                <SelectItem
+                  key={option.value}
+                  value={option.value}
+                  className="text-white focus:bg-white/10 focus:text-white"
+                >
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
+        {isLoadingVoices ? (
+          <p className="flex items-center gap-2 text-xs text-white/45">
+            <Loader2 className="size-3 animate-spin" />
+            {t("loadingVoices")}
+          </p>
+        ) : null}
+        {voicesLoadError ? (
+          <p className="text-xs text-white/45">{t("voicesLoadFallback")}</p>
+        ) : null}
       </section>
 
       <section className="flex flex-col gap-3">
@@ -270,7 +360,7 @@ export function VoiceStudioPicker({
             ) : null}
             {filteredVoices.length === 0 ? (
               <p className="px-3 py-4 text-sm text-white/50">
-                No catalog voices match. Try another filter or use a custom ElevenLabs
+                No catalog voices match. Try another filter or use a custom 
                 voice ID below.
               </p>
             ) : null}
@@ -326,7 +416,7 @@ export function VoiceStudioPicker({
         </section>
       ) : (
         <p className="rounded-xl border border-dashed border-white/10 px-4 py-6 text-sm text-white/45">
-          Select a voice from the list or add a custom ElevenLabs voice ID.
+          Select a voice from the list or add a custom  voice ID.
         </p>
       )}
 
@@ -339,13 +429,13 @@ export function VoiceStudioPicker({
               "h-auto w-full justify-between px-0 text-sm text-white/60 hover:bg-transparent hover:text-white",
             )}
           >
-            Custom ElevenLabs voice ID
+            Custom  voice ID
             <span className="text-xs text-white/40">{customOpen ? "Hide" : "Show"}</span>
           </Button>
         </CollapsibleTrigger>
         <CollapsibleContent className="flex flex-col gap-3 pt-2">
           <p className="text-xs text-white/45">
-            Paste an ElevenLabs voice ID from your account if it is not in the catalog.
+            Paste an  voice ID from your account if it is not in the catalog.
           </p>
           <div className="flex flex-col gap-2">
             <Label htmlFor="custom-elevenlabs-voice-id" className="text-white/80">
@@ -372,7 +462,7 @@ export function VoiceStudioPicker({
             disabled={!customDraftId.trim()}
             className="border-white/10 bg-transparent text-white hover:bg-white/5"
           >
-            Use custom voice
+            Use custom voice ID
           </Button>
         </CollapsibleContent>
       </Collapsible>

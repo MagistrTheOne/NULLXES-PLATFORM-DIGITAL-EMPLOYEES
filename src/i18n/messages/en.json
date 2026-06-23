@@ -260,7 +260,7 @@
         "rolePlaceholder": "Enterprise Sales Employee"
       },
       "avatar": {
-        "hint": "Avatar is generated on the final step after you choose a voice, so your ElevenLabs selection is not replaced by Anam defaults.",
+        "hint": "Portrait preview is generated here. Full deployment completes after you choose a voice.",
         "tabUpload": "Upload",
         "tabGenerate": "Generate",
         "promptLabel": "Describe the avatar",
@@ -409,12 +409,18 @@
         "upload": "Upload Photo",
         "formats": "PNG, JPG, or WebP up to 4.5MB",
         "change": "Change photo",
-        "generating": "Generating avatar with Anam…",
-        "regenerate": "Regenerate Avatar",
-        "generate": "Generate Avatar"
+        "generating": "Generating…",
+        "regenerate": "Regenerate",
+        "generate": "Generate"
       },
       "voice": {
         "allProviders": "All providers",
+        "allGenders": "All genders",
+        "female": "Female",
+        "male": "Male",
+        "loadingVoices": "Loading voice catalog…",
+        "voicesLoadFallback": "Using built-in voice catalog. Connect ElevenLabs to load your account voices.",
+        "anamPreviewNote": "Catalog voices are verified when you create the employee.",
         "selectedVoice": "Selected voice",
         "provider": "Provider",
         "voiceId": "Voice ID",

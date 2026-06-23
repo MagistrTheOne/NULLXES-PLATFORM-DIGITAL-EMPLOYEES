@@ -4,8 +4,7 @@ import { requireWorkspacePermissionOrThrowMessage } from "@/features/workspace";
 import { createAnamAvatarFromFile } from "@/features/employees/studio/anam-create-avatar-from-file";
 import { resolveAnamPersonaVoiceId } from "@/features/employees/studio/resolve-anam-persona-voice";
 import {
-  getStudioVoiceById,
-  type StudioVoiceProvider,
+  resolveStudioVoiceSelection,
 } from "@/features/employees/studio/voice/voice-catalog";
 import { buildAnamPersonaCreatePayload } from "@/features/runtime-session/lib/build-anam-talk-persona-config";
 import {
@@ -22,7 +21,7 @@ export type FinalizeEmployeeStudioSuccess = {
   provider: "anam";
   voice: {
     studioVoiceId: string;
-    provider: Lowercase<StudioVoiceProvider>;
+    provider: "anam" | "elevenlabs";
     voiceId: string;
     model: "eleven_v3" | null;
     anamPersonaVoiceId: string;
@@ -120,7 +119,10 @@ export async function finalizeEmployeeStudio(
     return { status: "failed", message: "Employee name and role are required" };
   }
 
-  const selectedVoice = getStudioVoiceById(studioVoiceId, customElevenLabsVoiceId);
+  const selectedVoice = resolveStudioVoiceSelection(
+    studioVoiceId,
+    customElevenLabsVoiceId,
+  );
   if (!selectedVoice) {
     return {
       status: "failed",
