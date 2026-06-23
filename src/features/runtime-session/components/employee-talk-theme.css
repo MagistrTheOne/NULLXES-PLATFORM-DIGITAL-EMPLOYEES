@@ -42,14 +42,12 @@
 }
 
 .employee-talk-mobile-tabs {
-  display: flex;
   min-height: 0;
   flex: 1;
   flex-direction: column;
 }
 
 .employee-talk-mobile-tab-panel {
-  display: flex;
   min-height: 0;
   flex: 1;
   flex-direction: column;

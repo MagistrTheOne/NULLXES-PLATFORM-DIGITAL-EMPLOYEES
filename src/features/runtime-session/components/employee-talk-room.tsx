@@ -376,7 +376,7 @@ function TalkRoomLayout(props: EmployeeTalkRoomProps) {
 
   return (
     <div className="employee-talk-workspace employee-talk-shell mx-auto w-full">
-      <div className="employee-talk-grid hidden min-h-0 gap-4 min-[900px]:grid min-[900px]:grid-cols-[1fr_300px] min-[900px]:items-stretch lg:grid-cols-[minmax(0,1fr)_340px] xl:grid-cols-[minmax(0,1fr)_360px]">
+      <div className="employee-talk-grid employee-talk-desktop-layout hidden min-h-0 gap-4 min-[900px]:grid min-[900px]:grid-cols-[1fr_300px] min-[900px]:items-stretch lg:grid-cols-[minmax(0,1fr)_340px] xl:grid-cols-[minmax(0,1fr)_360px]">
         <TalkStagePanel {...props} prefetchedTokenRef={prefetchedTokenRef} />
         <TalkChatPanel
           chatSession={props.chatSession}
@@ -387,7 +387,7 @@ function TalkRoomLayout(props: EmployeeTalkRoomProps) {
 
       <Tabs
         defaultValue="stage"
-        className="employee-talk-mobile-tabs flex min-h-[min(70dvh,640px)] flex-col min-[900px]:hidden"
+        className="employee-talk-mobile-tabs flex min-h-[min(70dvh,640px)] flex-col min-[900px]:!hidden"
       >
         <TabsList className="mb-3 grid h-10 w-full shrink-0 grid-cols-2 rounded-lg border border-white/10 bg-white/4 p-1">
           <TabsTrigger
@@ -405,13 +405,13 @@ function TalkRoomLayout(props: EmployeeTalkRoomProps) {
         </TabsList>
         <TabsContent
           value="stage"
-          className="employee-talk-mobile-tab-panel mt-0 min-h-0 flex-1"
+          className="employee-talk-mobile-tab-panel mt-0 flex min-h-0 flex-1 flex-col"
         >
           <TalkStagePanel {...props} prefetchedTokenRef={prefetchedTokenRef} />
         </TabsContent>
         <TabsContent
           value="chat"
-          className="employee-talk-mobile-tab-panel mt-0 min-h-0 flex-1"
+          className="employee-talk-mobile-tab-panel mt-0 flex min-h-0 flex-1 flex-col"
         >
           <TalkChatPanel
             chatSession={props.chatSession}
