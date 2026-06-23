@@ -1,7 +1,8 @@
 import type { AvatarProviderConfigPayload } from "@/entities/provider-config";
 import {
+  anamFetchWithKeyPool,
   getAnamApiBaseUrl,
-  getAnamApiKey,
+  getAnamApiKeyBySlot,
   hasAnamCredentials,
 } from "@/shared/config/provider-env";
 import { resolveAvatarProvider } from "@/shared/providers";
@@ -33,16 +34,33 @@ function toFailure(message: string): ProvisionProviderResult {
 async function fetchAnamJson<T>(
   path: string,
   init?: RequestInit,
+  apiKeySlot?: string | null,
 ): Promise<T> {
-  const apiKey = getAnamApiKey();
-  if (!apiKey) {
-    throw new Error("ANAM_API_KEY is not configured");
+  if (apiKeySlot) {
+    const apiKey = getAnamApiKeyBySlot(apiKeySlot);
+    if (!apiKey) {
+      throw new Error("ANAM_API_KEY is not configured");
+    }
+
+    const response = await fetch(`${getAnamApiBaseUrl()}${path}`, {
+      ...init,
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+        ...(init?.headers ?? {}),
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Anam request failed with status ${response.status}`);
+    }
+
+    return (await response.json()) as T;
   }
 
-  const response = await fetch(`${getAnamApiBaseUrl()}${path}`, {
+  const { response } = await anamFetchWithKeyPool(path, {
     ...init,
     headers: {
-      Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
       ...(init?.headers ?? {}),
     },
@@ -142,6 +160,10 @@ export async function provisionAvatarProvider(
     await syncAnamPersonaExternalBrain({
       personaId: config.personaId,
       employeeId: input.employeeId,
+      anamApiKeySlot:
+        typeof config.providerMetadata?.anamApiKeySlot === "string"
+          ? config.providerMetadata.anamApiKeySlot
+          : null,
     });
 
     return {
@@ -163,6 +185,11 @@ export async function provisionAvatarProvider(
       ? config.providerMetadata.anamPersonaVoiceId
       : undefined;
 
+  const anamApiKeySlot =
+    typeof config.providerMetadata?.anamApiKeySlot === "string"
+      ? config.providerMetadata.anamApiKeySlot
+      : null;
+
   try {
     const avatarId = studioAvatarReady
       ? config.avatarId!
@@ -175,16 +202,42 @@ export async function provisionAvatarProvider(
             : undefined,
         );
 
-    const persona = await fetchAnamJson<AnamPersonaResponse>("/personas", {
-      method: "POST",
-      body: JSON.stringify(
-        buildAnamPersonaCreatePayload({
-          name: input.employeeName,
-          avatarId,
-          voiceId,
-        }),
-      ),
-    });
+    let persona: AnamPersonaResponse;
+    let usedApiKeySlot = anamApiKeySlot;
+
+    if (anamApiKeySlot) {
+      persona = await fetchAnamJson<AnamPersonaResponse>(
+        "/personas",
+        {
+          method: "POST",
+          body: JSON.stringify(
+            buildAnamPersonaCreatePayload({
+              name: input.employeeName,
+              avatarId,
+              voiceId,
+            }),
+          ),
+        },
+        anamApiKeySlot,
+      );
+    } else {
+      const { response, slot } = await anamFetchWithKeyPool("/personas", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(
+          buildAnamPersonaCreatePayload({
+            name: input.employeeName,
+            avatarId,
+            voiceId,
+          }),
+        ),
+      });
+
+      persona = (await response.json()) as AnamPersonaResponse;
+      usedApiKeySlot = slot;
+    }
 
     if (!persona.id) {
       throw new Error("Anam create persona returned an invalid response");
@@ -197,6 +250,7 @@ export async function provisionAvatarProvider(
       anamPersonaVoiceId: voiceId,
       voiceId,
       llmId: ANAM_EXTERNAL_LLM_ID,
+      ...(usedApiKeySlot ? { anamApiKeySlot: usedApiKeySlot } : {}),
     };
 
     await mergeProviderConfig(input.employeeId, "avatar", {
@@ -210,6 +264,7 @@ export async function provisionAvatarProvider(
     await syncAnamPersonaExternalBrain({
       personaId: persona.id,
       employeeId: input.employeeId,
+      anamApiKeySlot: usedApiKeySlot,
     });
 
     return {

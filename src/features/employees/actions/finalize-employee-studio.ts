@@ -6,11 +6,12 @@ import { resolveAnamPersonaVoiceId } from "@/features/employees/studio/resolve-a
 import {
   resolveStudioVoiceSelection,
 } from "@/features/employees/studio/voice/voice-catalog";
+import type { AnamApiKeySlot } from "@/shared/config/anam-api-pool";
 import { buildAnamPersonaCreatePayload } from "@/features/runtime-session/lib/build-anam-talk-persona-config";
 import {
-  getAnamApiBaseUrl,
-  getAnamApiKey,
+  anamFetchWithSlot,
   hasAnamCredentials,
+  readAnamErrorMessage,
 } from "@/shared/config/provider-env";
 
 export type FinalizeEmployeeStudioSuccess = {
@@ -19,6 +20,7 @@ export type FinalizeEmployeeStudioSuccess = {
   previewUrl: string;
   personaId: string;
   provider: "anam";
+  anamApiKeySlot: AnamApiKeySlot;
   voice: {
     studioVoiceId: string;
     provider: "anam" | "elevenlabs";
@@ -47,35 +49,28 @@ async function createAnamPersona(input: {
   role: string;
   avatarId: string;
   anamVoiceId: string;
+  anamApiKeySlot: AnamApiKeySlot;
 }): Promise<string> {
-  const apiKey = getAnamApiKey();
-  if (!apiKey) {
-    throw new Error("ANAM_API_KEY is not configured");
-  }
-
-  const response = await fetch(`${getAnamApiBaseUrl()}/personas`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
+  const response = await anamFetchWithSlot(
+    "/personas",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(
+        buildAnamPersonaCreatePayload({
+          name: input.name,
+          avatarId: input.avatarId,
+          voiceId: input.anamVoiceId,
+        }),
+      ),
     },
-    body: JSON.stringify(
-      buildAnamPersonaCreatePayload({
-        name: input.name,
-        avatarId: input.avatarId,
-        voiceId: input.anamVoiceId,
-      }),
-    ),
-  });
+    input.anamApiKeySlot,
+  );
 
   if (!response.ok) {
-    let detail = response.statusText;
-    try {
-      const payload = (await response.json()) as { message?: string };
-      detail = payload.message ?? detail;
-    } catch {
-      // ignore parse errors
-    }
+    const detail = await readAnamErrorMessage(response);
     throw new Error(`Anam persona creation failed with status ${response.status}: ${detail}`);
   }
 
@@ -141,6 +136,7 @@ export async function finalizeEmployeeStudio(
       role,
       avatarId: avatar.avatarId,
       anamVoiceId,
+      anamApiKeySlot: avatar.anamApiKeySlot,
     });
 
     const sessionVoiceId =
@@ -154,6 +150,7 @@ export async function finalizeEmployeeStudio(
       previewUrl: avatar.previewUrl,
       personaId,
       provider: "anam",
+      anamApiKeySlot: avatar.anamApiKeySlot,
       voice: {
         studioVoiceId,
         provider: selectedVoice.provider === "Anam" ? "anam" : "elevenlabs",

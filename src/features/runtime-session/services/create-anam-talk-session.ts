@@ -5,7 +5,7 @@ import { ANAM_EXTERNAL_LLM_ID } from "@/features/provider-provisioning/types";
 import { syncAnamPersonaExternalBrain } from "@/features/provider-provisioning/services/sync-anam-persona-external-brain";
 import { buildAnamTalkEphemeralPersonaConfig } from "@/features/runtime-session/lib/build-anam-talk-persona-config";
 import { resolveTalkSpeechLanguageCode } from "@/features/runtime-session/services/resolve-talk-speech-language";
-import { getAnamApiBaseUrl, getAnamApiKey } from "@/shared/config/provider-env";
+import { getAnamApiBaseUrl, getAnamApiKeyBySlot } from "@/shared/config/provider-env";
 import type { EmployeeTalkContext } from "../types/employee-talk-context";
 import { getEmployeeTalkContext } from "./get-employee-talk-context";
 
@@ -50,7 +50,11 @@ export async function createAnamTalkSessionTokenForEmployee(
     };
   }
 
-  const apiKey = getAnamApiKey();
+  const apiKeySlot =
+    typeof employee.avatarProviderMetadata?.anamApiKeySlot === "string"
+      ? employee.avatarProviderMetadata.anamApiKeySlot
+      : null;
+  const apiKey = getAnamApiKeyBySlot(apiKeySlot);
   if (!apiKey) {
     return { ok: false, message: "ANAM_API_KEY is not configured" };
   }
@@ -60,6 +64,7 @@ export async function createAnamTalkSessionTokenForEmployee(
       await syncAnamPersonaExternalBrain({
         personaId: employee.personaId,
         employeeId: employee.id,
+        anamApiKeySlot: apiKeySlot,
       });
     } catch {
       // Best-effort sync; session token can still be requested.

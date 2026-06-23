@@ -9,8 +9,9 @@ import type {
   UpdateAvatarResult,
 } from "@/shared/providers/avatar/types";
 import {
+  anamFetchWithKeyPool,
   getAnamApiBaseUrl,
-  getAnamApiKey,
+  getAnamApiKeyBySlot,
   hasAnamCredentials,
 } from "@/shared/config/provider-env";
 import type { AnamAvatarAdapterConfig } from "./config";
@@ -32,20 +33,14 @@ export function createAnamAvatarAdapter(
         };
       }
 
-      const apiKey = getAnamApiKey();
-      if (!apiKey) {
-        throw new Error("ANAM_API_KEY is not configured");
-      }
-
       const imageUrl = config.imageUrl;
       if (!imageUrl) {
         throw new Error("Anam avatar creation requires imageUrl in provider config");
       }
 
-      const response = await fetch(`${getAnamApiBaseUrl()}/avatars`, {
+      const { response } = await anamFetchWithKeyPool("/avatars", {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${apiKey}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
@@ -72,7 +67,7 @@ export function createAnamAvatarAdapter(
     },
 
     async updateAvatar(input: UpdateAvatarInput): Promise<UpdateAvatarResult> {
-      const apiKey = getAnamApiKey();
+      const apiKey = getAnamApiKeyBySlot(null);
       if (!apiKey) {
         throw new Error("ANAM_API_KEY is not configured");
       }
@@ -106,7 +101,7 @@ export function createAnamAvatarAdapter(
     },
 
     async deleteAvatar(input: DeleteAvatarInput): Promise<DeleteAvatarResult> {
-      const apiKey = getAnamApiKey();
+      const apiKey = getAnamApiKeyBySlot(null);
       if (!apiKey) {
         throw new Error("ANAM_API_KEY is not configured");
       }
@@ -142,7 +137,7 @@ export function createAnamAvatarAdapter(
       }
 
       try {
-        const apiKey = getAnamApiKey();
+        const apiKey = getAnamApiKeyBySlot(null);
         const response = await fetch(`${getAnamApiBaseUrl()}/avatars?perPage=1`, {
           method: "GET",
           headers: {

@@ -32,6 +32,14 @@ const NAV_ITEMS = [
   { labelKey: "settings", href: "/settings", icon: Settings },
 ] as const;
 
+function isNavItemActive(pathname: string, href: string): boolean {
+  if (href === "/dashboard") {
+    return pathname === "/dashboard";
+  }
+
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
 export function DashboardSidebar({
   user,
   workspace,
@@ -58,9 +66,7 @@ export function DashboardSidebar({
           <SidebarGroupContent>
             <SidebarMenu>
               {NAV_ITEMS.map((item) => {
-                const isActive =
-                  pathname === item.href ||
-                  pathname.startsWith(`${item.href}/`);
+                const isActive = isNavItemActive(pathname, item.href);
                 const Icon = item.icon;
 
                 return (

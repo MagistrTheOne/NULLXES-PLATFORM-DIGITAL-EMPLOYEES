@@ -1,14 +1,26 @@
 const OPENAI_API_BASE_URL_DEFAULT = "https://api.openai.com/v1";
 const ANAM_API_BASE_URL_DEFAULT = "https://api.anam.ai/v1";
 
+import { getAnamApiKeyBySlot, getAnamApiKeyPool } from "./anam-api-pool";
+
+export {
+  ANAM_API_KEY_SLOTS,
+  anamFetchWithKeyPool,
+  anamFetchWithSlot,
+  getAnamApiKeyBySlot,
+  getAnamApiKeyPool,
+  isAnamAvatarQuotaError,
+  readAnamErrorMessage,
+} from "./anam-api-pool";
+export type { AnamApiKeyPoolEntry, AnamApiKeySlot } from "./anam-api-pool";
+
 export function getOpenAiApiKey(): string | undefined {
   const key = process.env.OPENAI_API_KEY?.trim();
   return key || undefined;
 }
 
 export function getAnamApiKey(): string | undefined {
-  const key = process.env.ANAM_API_KEY?.trim();
-  return key || undefined;
+  return getAnamApiKeyPool()[0]?.key;
 }
 
 export function getOpenAiApiBaseUrl(): string {
@@ -51,7 +63,7 @@ export function getOpenAiEmbeddingDimensions(): number {
 }
 
 export function hasAnamCredentials(): boolean {
-  return Boolean(getAnamApiKey());
+  return getAnamApiKeyPool().length > 0;
 }
 
 export function getElevenLabsApiKey(): string | undefined {

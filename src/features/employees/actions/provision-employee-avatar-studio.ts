@@ -77,6 +77,7 @@ export async function provisionEmployeeAvatarStudio(
       provisionedAt: studioProvisionedAt,
       voiceBinding: draft.avatar.voiceBinding,
       anamPersonaVoiceId: draft.avatar.anamPersonaVoiceId,
+      anamApiKeySlot: studio.anamApiKeySlot,
     },
   };
 

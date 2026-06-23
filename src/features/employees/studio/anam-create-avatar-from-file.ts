@@ -1,6 +1,7 @@
+import type { AnamApiKeySlot } from "@/shared/config/anam-api-pool";
 import {
-  getAnamApiBaseUrl,
-  getAnamApiKey,
+  anamFetchWithKeyPool,
+  anamFetchWithSlot,
 } from "@/shared/config/provider-env";
 import { ANAM_AVATAR_PROVIDER_ID } from "@/providers/avatar/anam/config";
 
@@ -22,34 +23,17 @@ function normalizeDisplayName(displayName: string): string {
   return "NULLXES Digital Employee";
 }
 
-async function readAnamErrorMessage(response: Response): Promise<string> {
-  try {
-    const payload = (await response.json()) as {
-      message?: string;
-      error?: string;
-      detail?: string;
-    };
-    return payload.message ?? payload.error ?? payload.detail ?? response.statusText;
-  } catch {
-    return response.statusText;
-  }
-}
-
 export type CreateAnamAvatarFromFileResult = {
   avatarId: string;
   previewUrl: string;
   provider: typeof ANAM_AVATAR_PROVIDER_ID;
+  anamApiKeySlot: AnamApiKeySlot;
 };
 
 export async function createAnamAvatarFromFile(input: {
   file: File;
   displayName: string;
 }): Promise<CreateAnamAvatarFromFileResult> {
-  const apiKey = getAnamApiKey();
-  if (!apiKey) {
-    throw new Error("ANAM_API_KEY is not configured");
-  }
-
   if (input.file.size > MAX_AVATAR_BYTES) {
     throw new Error("Image must be 4.5MB or smaller");
   }
@@ -62,20 +46,10 @@ export async function createAnamAvatarFromFile(input: {
   formData.append("displayName", normalizeDisplayName(input.displayName));
   formData.append("imageFile", input.file, input.file.name);
 
-  const createResponse = await fetch(`${getAnamApiBaseUrl()}/avatars`, {
+  const { response: createResponse, slot } = await anamFetchWithKeyPool("/avatars", {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-    },
     body: formData,
   });
-
-  if (!createResponse.ok) {
-    const detail = await readAnamErrorMessage(createResponse);
-    throw new Error(
-      `Anam avatar creation failed with status ${createResponse.status}: ${detail}`,
-    );
-  }
 
   const created = (await createResponse.json()) as AnamAvatarResponse;
   if (!created.id) {
@@ -85,12 +59,7 @@ export async function createAnamAvatarFromFile(input: {
   let previewUrl = created.imageUrl ?? "";
 
   if (!previewUrl) {
-    const getResponse = await fetch(
-      `${getAnamApiBaseUrl()}/avatars/${created.id}`,
-      {
-        headers: { Authorization: `Bearer ${apiKey}` },
-      },
-    );
+    const getResponse = await anamFetchWithSlot(`/avatars/${created.id}`, { method: "GET" }, slot);
 
     if (getResponse.ok) {
       const details = (await getResponse.json()) as AnamAvatarResponse;
@@ -106,5 +75,6 @@ export async function createAnamAvatarFromFile(input: {
     avatarId: created.id,
     previewUrl,
     provider: ANAM_AVATAR_PROVIDER_ID,
+    anamApiKeySlot: slot,
   };
 }

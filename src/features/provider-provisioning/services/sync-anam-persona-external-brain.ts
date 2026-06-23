@@ -4,7 +4,7 @@ import {
 } from "@/features/runtime-session/lib/build-anam-talk-persona-config";
 import { ANAM_EXTERNAL_LLM_ID } from "../types";
 import { mergeProviderConfig, getProviderConfigRow } from "./update-provider-config";
-import { getAnamApiBaseUrl, getAnamApiKey } from "@/shared/config/provider-env";
+import { getAnamApiBaseUrl, getAnamApiKeyBySlot } from "@/shared/config/provider-env";
 
 type AnamPersonaSnapshot = {
   llmId?: string | null;
@@ -12,12 +12,40 @@ type AnamPersonaSnapshot = {
   systemPrompt?: string | null;
 };
 
+async function resolveStoredAnamApiKeySlot(
+  employeeId: string,
+): Promise<string | null> {
+  try {
+    const row = await getProviderConfigRow(employeeId, "avatar");
+    const metadata =
+      row?.config &&
+      typeof row.config === "object" &&
+      row.config !== null &&
+      "providerMetadata" in row.config &&
+      typeof (row.config as { providerMetadata?: unknown }).providerMetadata ===
+        "object"
+        ? ((row.config as { providerMetadata: Record<string, unknown> })
+            .providerMetadata ?? {})
+        : {};
+
+    return typeof metadata.anamApiKeySlot === "string" ? metadata.anamApiKeySlot : null;
+  } catch {
+    return null;
+  }
+}
+
 export async function syncAnamPersonaExternalBrain(input: {
   personaId: string;
   employeeId?: string;
+  anamApiKeySlot?: string | null;
 }): Promise<void> {
-  const { personaId, employeeId } = input;
-  const apiKey = getAnamApiKey();
+  const { personaId, employeeId, anamApiKeySlot } = input;
+  const apiKey = getAnamApiKeyBySlot(
+    anamApiKeySlot ??
+      (employeeId
+        ? await resolveStoredAnamApiKeySlot(employeeId)
+        : null),
+  );
   if (!apiKey) {
     return;
   }
