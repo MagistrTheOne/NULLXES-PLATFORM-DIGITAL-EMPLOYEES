@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Loader2, Play, Search } from "lucide-react";
 import { listElevenLabsStudioVoices } from "@/features/employees/actions/list-elevenlabs-studio-voices";
@@ -360,8 +360,7 @@ export function VoiceStudioPicker({
             ) : null}
             {filteredVoices.length === 0 ? (
               <p className="px-3 py-4 text-sm text-white/50">
-                No catalog voices match. Try another filter or use a custom 
-                voice ID below.
+                {t("noCatalogMatches")}
               </p>
             ) : null}
             {catalogGroups.anam.length > 0 ? (
@@ -416,7 +415,7 @@ export function VoiceStudioPicker({
         </section>
       ) : (
         <p className="rounded-xl border border-dashed border-white/10 px-4 py-6 text-sm text-white/45">
-          Select a voice from the list or add a custom  voice ID.
+          {t("selectCatalogVoice")}
         </p>
       )}
 
@@ -429,13 +428,13 @@ export function VoiceStudioPicker({
               "h-auto w-full justify-between px-0 text-sm text-white/60 hover:bg-transparent hover:text-white",
             )}
           >
-            Custom  voice ID
+            {t("customVoiceId")}
             <span className="text-xs text-white/40">{customOpen ? "Hide" : "Show"}</span>
           </Button>
         </CollapsibleTrigger>
         <CollapsibleContent className="flex flex-col gap-3 pt-2">
           <p className="text-xs text-white/45">
-            Paste an  voice ID from your account if it is not in the catalog.
+            {t("customVoiceIdHint")}
           </p>
           <div className="flex flex-col gap-2">
             <Label htmlFor="custom-elevenlabs-voice-id" className="text-white/80">
@@ -462,7 +461,7 @@ export function VoiceStudioPicker({
             disabled={!customDraftId.trim()}
             className="border-white/10 bg-transparent text-white hover:bg-white/5"
           >
-            Use custom voice ID
+            {t("useCustomVoice")}
           </Button>
         </CollapsibleContent>
       </Collapsible>

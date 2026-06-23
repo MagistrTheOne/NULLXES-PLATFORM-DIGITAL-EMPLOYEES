@@ -3,6 +3,8 @@ import { getOpenAiApiKey } from "@/shared/config/provider-env";
 
 const MAX_PROMPT_LENGTH = 500;
 
+const GPT_IMAGE_MODELS = ["gpt-image-1.5", "gpt-image-1"] as const;
+
 export function buildAvatarImagePrompt(
   userPrompt: string,
   context?: { name?: string; role?: string },
@@ -27,6 +29,51 @@ export function buildAvatarImagePrompt(
     .join(" ");
 }
 
+function readGeneratedImage(
+  image: OpenAI.Images.Image | undefined,
+): { base64: string; mimeType: string } | null {
+  if (image?.b64_json) {
+    return {
+      base64: image.b64_json,
+      mimeType: "image/png",
+    };
+  }
+
+  return null;
+}
+
+async function generateWithGptImageModel(
+  client: OpenAI,
+  model: (typeof GPT_IMAGE_MODELS)[number],
+  prompt: string,
+): Promise<OpenAI.Images.Image | undefined> {
+  const response = await client.images.generate({
+    model,
+    prompt,
+    size: "1024x1024",
+    quality: "high",
+    output_format: "png",
+    n: 1,
+  });
+
+  return response.data?.[0];
+}
+
+async function generateWithDallE3(
+  client: OpenAI,
+  prompt: string,
+): Promise<OpenAI.Images.Image | undefined> {
+  const response = await client.images.generate({
+    model: "dall-e-3",
+    prompt,
+    size: "1024x1024",
+    response_format: "b64_json",
+    n: 1,
+  });
+
+  return response.data?.[0];
+}
+
 export async function generatePortraitImageFromPrompt(input: {
   prompt: string;
   name?: string;
@@ -44,30 +91,31 @@ export async function generatePortraitImageFromPrompt(input: {
   });
 
   let image: OpenAI.Images.Image | undefined;
+  let lastError: unknown;
 
-  try {
-    const response = await client.images.generate({
-      model: "gpt-image-1",
-      prompt,
-      size: "1024x1024",
-      n: 1,
-    });
-    image = response.data?.[0];
-  } catch {
-    const response = await client.images.generate({
-      model: "dall-e-3",
-      prompt,
-      size: "1024x1024",
-      response_format: "b64_json",
-      n: 1,
-    });
-    image = response.data?.[0];
+  for (const model of GPT_IMAGE_MODELS) {
+    try {
+      image = await generateWithGptImageModel(client, model, prompt);
+      if (readGeneratedImage(image)) {
+        break;
+      }
+    } catch (error: unknown) {
+      lastError = error;
+    }
   }
 
-  if (image?.b64_json) {
+  if (!readGeneratedImage(image)) {
+    try {
+      image = await generateWithDallE3(client, prompt);
+    } catch (error: unknown) {
+      lastError = error;
+    }
+  }
+
+  const generated = readGeneratedImage(image);
+  if (generated) {
     return {
-      base64: image.b64_json,
-      mimeType: "image/png",
+      ...generated,
       fileName: "generated-avatar.png",
     };
   }
@@ -84,6 +132,10 @@ export async function generatePortraitImageFromPrompt(input: {
       mimeType: imageResponse.headers.get("content-type") ?? "image/png",
       fileName: "generated-avatar.png",
     };
+  }
+
+  if (lastError instanceof Error) {
+    throw lastError;
   }
 
   throw new Error("Image generation returned an empty response");

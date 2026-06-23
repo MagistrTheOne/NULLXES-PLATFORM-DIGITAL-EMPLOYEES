@@ -429,7 +429,11 @@
         "listenPreview": "Listen to preview",
         "findVoice": "1 · Find a voice",
         "search": "Search voices",
-        "customVoiceId": "Custom ElevenLabs voice ID"
+        "customVoiceId": "Custom ElevenLabs voice ID",
+        "customVoiceIdHint": "Paste a voice ID from your account if it is not in the catalog.",
+        "noCatalogMatches": "No catalog voices match. Try another filter or use a custom voice ID below.",
+        "selectCatalogVoice": "Select a voice from the list or add a custom voice ID.",
+        "useCustomVoice": "Use custom voice"
       },
       "brain": {
         "recommended": "Recommended",

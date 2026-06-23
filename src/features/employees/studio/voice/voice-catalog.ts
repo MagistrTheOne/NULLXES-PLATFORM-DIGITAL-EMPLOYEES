@@ -1,3 +1,10 @@
+import {
+  matchesStudioVoiceGenderFilter,
+  type StudioVoiceGenderFilter,
+} from "./normalize-studio-voice-gender";
+
+export type { StudioVoiceGenderFilter };
+
 export type StudioVoiceProvider = "Anam" | "ElevenLabs";
 
 export type StudioVoiceOption = {
@@ -119,11 +126,6 @@ export function createCustomElevenLabsVoiceOption(
     elevenLabsVoiceId,
   };
 }
-
-import {
-  matchesStudioVoiceGenderFilter,
-  type StudioVoiceGenderFilter,
-} from "./normalize-studio-voice-gender";
 
 export function resolveStudioVoiceSelection(
   studioVoiceId: string,

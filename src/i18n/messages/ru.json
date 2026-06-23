@@ -429,7 +429,11 @@
         "listenPreview": "Прослушать превью",
         "findVoice": "1 · Найти голос",
         "search": "Поиск голосов",
-        "customVoiceId": "Свой ID голоса ElevenLabs"
+        "customVoiceId": "Свой ID голоса ElevenLabs",
+        "customVoiceIdHint": "Вставьте ID голоса из аккаунта, если его нет в каталоге.",
+        "noCatalogMatches": "Нет совпадений. Смените фильтр или укажите свой ID голоса ниже.",
+        "selectCatalogVoice": "Выберите голос из списка или укажите свой ID.",
+        "useCustomVoice": "Использовать свой голос"
       },
       "brain": {
         "recommended": "Рекомендуется",
