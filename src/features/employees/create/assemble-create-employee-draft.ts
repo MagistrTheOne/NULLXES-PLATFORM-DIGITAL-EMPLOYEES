@@ -14,6 +14,7 @@ export function buildKnowledgeItemsFromForm(
       type: "file",
       name: file.name,
       size: file.size,
+      content: file.content,
     });
   }
 

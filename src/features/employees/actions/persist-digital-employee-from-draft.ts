@@ -8,7 +8,6 @@ import type {
 } from "@/entities/digital-employee";
 import { digitalEmployee } from "@/entities/digital-employee/schema";
 import { employeeLifecycleEvent } from "@/entities/employee-lifecycle/schema";
-import { knowledgeSource } from "@/entities/knowledge/schema";
 import { employeeProviderConfig } from "@/entities/provider-config/schema";
 import { employeeRuntime } from "@/entities/runtime/schema";
 import { requireWorkspacePermissionOrThrowMessage } from "@/features/workspace";
@@ -16,37 +15,15 @@ import { buildEmployeeSystemPrompt } from "@/features/employees/lib/build-system
 import { recordLifecycleEvent } from "@/features/employee/services/record-lifecycle-event";
 import { resolveOrganizationBrainModel } from "@/features/settings/services/resolve-organization-brain-model";
 import { enqueueEmployeeProvisioning } from "@/features/provider-provisioning/orchestrator/enqueue-employee-provisioning";
-import { enqueuePendingKnowledgeForEmployee } from "@/features/knowledge-processing/services/enqueue-pending-knowledge-for-employee";
+import { persistKnowledgeDraftItems } from "@/features/knowledge-processing/services/persist-knowledge-draft-items";
 import { inngest } from "@/inngest/client";
 import { db } from "@/shared/db/client";
 import { dbWithTransactions } from "@/shared/db/pool-client";
-import type {
-  CreateEmployeeDraftPayload,
-  KnowledgeDraftItem,
-} from "../create/types";
+import type { CreateEmployeeDraftPayload } from "../create/types";
 
 export type PersistDigitalEmployeeResult = {
   employeeId: string;
 };
-
-function mapKnowledgeItem(item: KnowledgeDraftItem): {
-  type: "file" | "url" | "text";
-  title: string;
-} {
-  if (item.type === "file") {
-    return { type: "file", title: item.name };
-  }
-
-  if (item.type === "url") {
-    return { type: "url", title: item.url };
-  }
-
-  const excerpt = item.content.trim().slice(0, 160);
-  return {
-    type: "text",
-    title: excerpt.length > 0 ? excerpt : "Pasted text",
-  };
-}
 
 export async function persistDigitalEmployeeFromDraft(
   draft: CreateEmployeeDraftPayload,
@@ -166,25 +143,14 @@ export async function persistDigitalEmployeeFromDraft(
       },
     ]);
 
-    if (draft.knowledge.length > 0) {
-      await tx.insert(knowledgeSource).values(
-        draft.knowledge.map((item) => {
-          const mapped = mapKnowledgeItem(item);
-          return {
-            employeeId: employee.id,
-            type: mapped.type,
-            title: mapped.title,
-            status: "pending" as const,
-          };
-        }),
-      );
-    }
-
     return employee.id;
   });
 
+  if (draft.knowledge.length > 0) {
+    await persistKnowledgeDraftItems(employeeId, draft.knowledge);
+  }
+
   enqueueEmployeeProvisioning(employeeId);
-  await enqueuePendingKnowledgeForEmployee(employeeId);
 
   await inngest.send({
     name: "employee/created",

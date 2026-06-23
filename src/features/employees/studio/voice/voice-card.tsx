@@ -60,7 +60,7 @@ export function VoiceCard({
         </Button>
       ) : (
         <p className="text-xs text-white/40">
-          Anam voice — preview on create
+          Voice for avatar.
         </p>
       )}
     </div>

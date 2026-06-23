@@ -18,7 +18,7 @@ export type AvatarGenerationStatus =
   | "failed";
 
 export type KnowledgeDraftItem =
-  | { type: "file"; name: string; size: number }
+  | { type: "file"; name: string; size: number; content: string }
   | { type: "url"; url: string }
   | { type: "text"; content: string };
 
@@ -48,7 +48,7 @@ export type CreateEmployeeFormState = {
   customElevenLabsVoiceId: string;
   knowledgeUrl: string;
   knowledgeText: string;
-  knowledgeFiles: Array<{ name: string; size: number }>;
+  knowledgeFiles: Array<{ name: string; size: number; content: string }>;
 };
 
 export type CreateEmployeeDraftPayload = {

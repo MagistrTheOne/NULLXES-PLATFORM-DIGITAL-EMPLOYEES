@@ -18,6 +18,7 @@ import { provisionEmployeeAvatarStudio } from "@/features/employees/actions/prov
 import type { CreateEmployeeWizardInput } from "@/features/employees/create/wizard-intake";
 import { previewEmployeeVoice } from "@/features/employees/actions/preview-employee-voice";
 import { createAudioPreviewObjectUrl } from "@/features/employees/lib/play-base64-audio-preview";
+import { readKnowledgeFileContent } from "@/features/knowledge-processing/lib/extract-knowledge-content";
 import {
   AvatarPreviewCard,
   AvatarStudioStep,
@@ -438,12 +439,25 @@ export function CreateEmployeeDialog({
     event: React.ChangeEvent<HTMLInputElement>,
   ): void {
     const files = Array.from(event.target.files ?? []);
-    updateForm({
-      knowledgeFiles: files.map((file) => ({
-        name: file.name,
-        size: file.size,
-      })),
-    });
+    void (async () => {
+      try {
+        const entries = await Promise.all(
+          files.map(async (file) => ({
+            name: file.name,
+            size: file.size,
+            content: await readKnowledgeFileContent(file),
+          })),
+        );
+        updateForm({ knowledgeFiles: entries });
+        setError(null);
+      } catch (readError: unknown) {
+        setError(
+          readError instanceof Error
+            ? readError.message
+            : t("errors.knowledgeFileRead"),
+        );
+      }
+    })();
   }
 
   return (

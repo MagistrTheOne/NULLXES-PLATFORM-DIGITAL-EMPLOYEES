@@ -311,7 +311,8 @@
         "invalidImage": "Загрузите изображение PNG, JPG или WebP.",
         "imageTooLarge": "Размер изображения не более 4,5 МБ.",
         "createFailed": "Не удалось создать цифрового сотрудника",
-        "voicePreviewPlay": "Не удалось воспроизвести превью голоса."
+        "voicePreviewPlay": "Не удалось воспроизвести превью голоса.",
+        "knowledgeFileRead": "Не удалось прочитать выбранный файл знаний."
       }
     },
     "talk": {
@@ -390,6 +391,16 @@
         "processing": "обработка",
         "ready": "готово",
         "failed": "ошибка"
+      },
+      "add": {
+        "title": "Добавить знания",
+        "urlLabel": "URL",
+        "urlPlaceholder": "https://",
+        "addUrl": "Индексировать URL",
+        "textLabel": "Текст",
+        "textPlaceholder": "Вставьте справочный текст для сотрудника.",
+        "addText": "Добавить текст",
+        "adding": "Индексация…"
       }
     },
     "lifecycle": {

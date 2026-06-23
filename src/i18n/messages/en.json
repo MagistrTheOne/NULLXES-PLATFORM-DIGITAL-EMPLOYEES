@@ -311,7 +311,8 @@
         "invalidImage": "Upload a PNG, JPG, or WebP image.",
         "imageTooLarge": "Image must be 4.5MB or smaller.",
         "createFailed": "Unable to create digital employee",
-        "voicePreviewPlay": "Unable to play voice preview."
+        "voicePreviewPlay": "Unable to play voice preview.",
+        "knowledgeFileRead": "Unable to read the selected knowledge file."
       }
     },
     "talk": {
@@ -390,6 +391,16 @@
         "processing": "processing",
         "ready": "ready",
         "failed": "failed"
+      },
+      "add": {
+        "title": "Add knowledge",
+        "urlLabel": "URL",
+        "urlPlaceholder": "https://",
+        "addUrl": "Index URL",
+        "textLabel": "Text",
+        "textPlaceholder": "Paste reference text for this employee.",
+        "addText": "Add text",
+        "adding": "Indexing…"
       }
     },
     "lifecycle": {

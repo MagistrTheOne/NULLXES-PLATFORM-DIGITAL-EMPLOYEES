@@ -3,7 +3,6 @@
 import { revalidatePath } from "next/cache";
 import type { AvatarProvider } from "@/entities/digital-employee";
 import { digitalEmployee } from "@/entities/digital-employee/schema";
-import { knowledgeSource } from "@/entities/knowledge/schema";
 import { employeeProviderConfig } from "@/entities/provider-config/schema";
 import { employeeRuntime } from "@/entities/runtime/schema";
 import {
@@ -16,7 +15,7 @@ import { buildEmployeeSystemPrompt } from "@/features/employees/lib/build-system
 import { recordLifecycleEvent } from "@/features/employee/services/record-lifecycle-event";
 import { recordAuditEvent } from "@/features/security/services/record-audit-event";
 import { resolveOrganizationBrainModel } from "@/features/settings/services/resolve-organization-brain-model";
-import { enqueuePendingKnowledgeForEmployee } from "@/features/knowledge-processing/services/enqueue-pending-knowledge-for-employee";
+import { persistKnowledgeDraftItems } from "@/features/knowledge-processing/services/persist-knowledge-draft-items";
 import type { CreateEmployeeWizardInput } from "@/features/employees/create/wizard-intake";
 import { dbWithTransactions } from "@/shared/db/pool-client";
 
@@ -149,24 +148,12 @@ export async function createEmployeeRecord(
         },
       ]);
 
-      if (input.knowledge.length > 0) {
-        await tx.insert(knowledgeSource).values(
-          input.knowledge.map((item) => ({
-            employeeId: employee.id,
-            type: item.type,
-            title:
-              item.type === "file"
-                ? item.name
-                : item.type === "url"
-                  ? item.url
-                  : item.content.slice(0, 160),
-            status: "pending" as const,
-          })),
-        );
-      }
-
       return employee.id;
     });
+
+    if (input.knowledge.length > 0) {
+      await persistKnowledgeDraftItems(employeeId, input.knowledge);
+    }
 
     recordAuditEvent({
       organizationId: workspace.organization.id,
@@ -177,8 +164,6 @@ export async function createEmployeeRecord(
       resourceId: employeeId,
       metadata: { name, role },
     });
-
-    await enqueuePendingKnowledgeForEmployee(employeeId);
 
     revalidatePath("/dashboard/employees");
     return { ok: true, employeeId };
