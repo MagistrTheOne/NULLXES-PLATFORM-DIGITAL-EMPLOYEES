@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { ArrowLeft } from "lucide-react";
@@ -14,6 +14,7 @@ import {
   type EmployeeTalkSessionInputProps,
 } from "./employee-talk-room";
 import { TalkSessionMeta } from "./talk-session-meta";
+import { useTalkSessionLifecycle } from "../lib/use-talk-session-lifecycle";
 import { TalkSessionRatingDialog } from "./talk-session-rating-dialog";
 
 type PendingSessionEnd = {
@@ -37,6 +38,15 @@ function TalkSessionShell({
   const [isEndingSession, setIsEndingSession] = useState(false);
   const [isLimitLeaving, setIsLimitLeaving] = useState(false);
   const limitHandledRef = useRef(false);
+  const skipAbandonRef = useRef(false);
+
+  useEffect(() => {
+    if (activeSession) {
+      skipAbandonRef.current = false;
+    }
+  }, [activeSession?.sessionId]);
+
+  useTalkSessionLifecycle(activeSession?.sessionId ?? null, skipAbandonRef);
 
   const finalizeSession = useCallback(
     async (sessionId: string, afterComplete: PendingSessionEnd["afterComplete"], rating?: number) => {
@@ -58,6 +68,7 @@ function TalkSessionShell({
 
   const beginSessionEnd = useCallback(
     async (session: ActiveTalkSession, afterComplete: PendingSessionEnd["afterComplete"]) => {
+      skipAbandonRef.current = true;
       await stopSession();
       setActiveSession(null);
       setPendingEnd({ sessionId: session.sessionId, afterComplete });

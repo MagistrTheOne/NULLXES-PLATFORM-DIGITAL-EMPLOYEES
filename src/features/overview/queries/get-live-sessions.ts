@@ -1,5 +1,6 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { digitalEmployee } from "@/entities/digital-employee/schema";
+import { employeeRuntime } from "@/entities/runtime/schema";
 import { employeeSession } from "@/entities/session/schema";
 import { user } from "@/entities/user/schema";
 import { db } from "@/shared/db/client";
@@ -24,11 +25,16 @@ export async function getLiveSessions(
       digitalEmployee,
       eq(employeeSession.employeeId, digitalEmployee.id),
     )
+    .innerJoin(
+      employeeRuntime,
+      eq(employeeRuntime.employeeId, digitalEmployee.id),
+    )
     .innerJoin(user, eq(employeeSession.userId, user.id))
     .where(
       and(
         eq(digitalEmployee.organizationId, organizationId),
         eq(employeeSession.status, "active"),
+        sql`${employeeSession.startedAt} + (${employeeRuntime.sessionLimitSeconds} * interval '1 second') > now()`,
       ),
     )
     .orderBy(desc(employeeSession.startedAt))

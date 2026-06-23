@@ -8,6 +8,7 @@ import {
   processEmployeeTaskReceived,
   scanOverdueEmployeeTasks,
 } from "@/inngest/functions/process-employee-task";
+import { expireStaleEmployeeSessionsJob } from "@/inngest/functions/expire-stale-employee-sessions";
 import { retentionPurge } from "@/inngest/functions/retention-purge";
 import { summarizeCompletedSession } from "@/inngest/functions/session-summary";
 import {
@@ -35,6 +36,7 @@ export const { GET, POST, PUT } = serve({
     notifyKnowledgeFailed,
     notifyEmployeeCreated,
     processExportJob,
+    expireStaleEmployeeSessionsJob,
     retentionPurge,
     processKnowledgeSource,
     summarizeCompletedSession,
