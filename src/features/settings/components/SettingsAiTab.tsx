@@ -9,9 +9,9 @@ import { Label } from "@/components/ui/label";
 import {
   BrainModelSelect,
   BrainProviderCards,
-  updateBrainSettingsAction,
 } from "@/features/brain";
 import type { BrainProviderReadinessMap } from "@/features/brain";
+import { updateBrainSettingsAction } from "@/features/brain/actions/update-brain-settings";
 import { getDefaultBrainModelForProvider } from "../lib/brain-model-defaults";
 import type { OrganizationSettingsDto } from "../types";
 import { SettingsCard } from "./settings-card";

@@ -36,11 +36,11 @@ import {
   MAX_AVATAR_UPLOAD_BYTES,
   createInitialFormState,
 } from "./constants";
+import { isBrainProviderSelectable } from "@/features/brain";
 import {
   getBrainWorkspaceConfigAction,
-  isBrainProviderSelectable,
   type BrainWorkspaceConfig,
-} from "@/features/brain";
+} from "@/features/brain/actions/get-brain-workspace-config";
 import { getDefaultBrainModelForProvider } from "@/features/settings/lib/brain-model-defaults";
 import type {
   CreateEmployeeDraftPayload,
