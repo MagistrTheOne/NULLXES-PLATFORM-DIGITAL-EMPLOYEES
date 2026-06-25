@@ -242,12 +242,11 @@ export function EmployeeTalkChat({
 
   useEffect(() => {
     if (uiState !== "ready" || !channel) {
-      registerTalkChatBridge({ channel: null, botUserId: "" });
+      registerTalkChatBridge({ employeeId: null });
       return;
     }
 
-    const botUserId = `digital-employee-${employeeId}`;
-    registerTalkChatBridge({ channel, botUserId });
+    registerTalkChatBridge({ employeeId });
 
     const detach = attachTalkChatPipeline({
       channel,
@@ -261,7 +260,7 @@ export function EmployeeTalkChat({
 
     return () => {
       detach();
-      registerTalkChatBridge({ channel: null, botUserId: "" });
+      registerTalkChatBridge({ employeeId: null });
     };
   }, [
     activeChatSession,

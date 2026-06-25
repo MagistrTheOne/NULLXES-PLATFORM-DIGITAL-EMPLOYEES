@@ -1,7 +1,6 @@
-import type { Channel as StreamChannel } from "stream-chat";
+import { sendTalkChatBotMessageAction } from "../actions/send-talk-chat-bot-message";
 
-let chatChannel: StreamChannel | null = null;
-let botUserId: string | null = null;
+let activeEmployeeId: string | null = null;
 let lastPostedReply: { normalized: string; at: number } | null = null;
 
 const REPLY_DEDUP_WINDOW_MS = 15_000;
@@ -11,11 +10,9 @@ function normalizeReplyText(text: string): string {
 }
 
 export function registerTalkChatBridge(input: {
-  channel: StreamChannel | null;
-  botUserId: string;
+  employeeId: string | null;
 }): void {
-  chatChannel = input.channel;
-  botUserId = input.botUserId;
+  activeEmployeeId = input.employeeId;
 }
 
 export function resetTalkChatReplyDedup(): void {
@@ -23,7 +20,7 @@ export function resetTalkChatReplyDedup(): void {
 }
 
 export async function postTalkEmployeeChatReply(text: string): Promise<void> {
-  if (!chatChannel || !botUserId || !text.trim()) {
+  if (!activeEmployeeId || !text.trim()) {
     return;
   }
 
@@ -39,10 +36,9 @@ export async function postTalkEmployeeChatReply(text: string): Promise<void> {
     return;
   }
 
-  await chatChannel.sendMessage({
-    text: trimmed,
-    user_id: botUserId,
-  });
-
   lastPostedReply = { normalized, at: now };
+
+  await sendTalkChatBotMessageAction(activeEmployeeId, trimmed).catch(
+    () => undefined,
+  );
 }
