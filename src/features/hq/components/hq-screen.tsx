@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useHqRealtime } from "../lib/use-hq-realtime";
+import { useHqThoughts } from "../lib/use-hq-thoughts";
 import { useOfficeStore } from "../store/use-office-store";
 import type { HqDepartment, HqState } from "../types";
 import { HqDesignEditor } from "./hq-design-editor";
@@ -22,6 +23,8 @@ export function HqScreen({
 }) {
   const t = useTranslations("hq");
   const state = useHqRealtime(initialState);
+  const { thoughts, loading: thoughtsLoading, refresh: refreshThoughts } =
+    useHqThoughts();
   const selectedId = useOfficeStore((store) => store.selectedEmployeeId);
   const selectEmployee = useOfficeStore((store) => store.selectEmployee);
 
@@ -56,7 +59,12 @@ export function HqScreen({
         <TabsContent value="office" className="flex flex-col gap-4">
           <HqMetricsStrip metrics={state.departmentMetrics} />
           <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_330px]">
-            <HqOfficeCanvas state={state} />
+            <HqOfficeCanvas
+              state={state}
+              llmThoughts={thoughts}
+              thoughtsLoading={thoughtsLoading}
+              onRefreshThoughts={refreshThoughts}
+            />
             <HqProfilePanel employees={state.employees} />
           </div>
         </TabsContent>

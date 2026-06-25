@@ -846,7 +846,8 @@
     "office": {
       "loading": "Preparing the headquarters…",
       "empty": "No digital employees to place on the floor yet.",
-      "placeholder": "The live 3D office renders here."
+      "placeholder": "The live 3D office renders here.",
+      "refreshThoughts": "Refresh thoughts"
     },
     "directory": {
       "unassigned": "Unassigned",

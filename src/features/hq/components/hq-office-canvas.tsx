@@ -3,7 +3,7 @@
 import { useRef } from "react";
 import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
-import { Loader2, Maximize2, Minus, Plus } from "lucide-react";
+import { Loader2, Maximize2, Minus, Plus, Sparkles } from "lucide-react";
 import type { OrthographicCamera } from "three";
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import {
@@ -14,6 +14,7 @@ import {
 import { DEPARTMENT_ORDER } from "../lib/department-layout";
 import { resolveActivityBadgeLabel } from "../lib/resolve-activity-label";
 import { pickCharacterModel } from "./office/office-models";
+import type { EmployeeThoughtsMap } from "../services/generate-employee-thoughts";
 import type { HqRuntimeStatus, HqState } from "../types";
 import type { SceneEmployee, SceneRoom } from "./office/scene-types";
 
@@ -34,7 +35,17 @@ const OfficeScene = dynamic(() => import("./office/office-scene"), {
 
 const LEGEND_ORDER: HqRuntimeStatus[] = ["active", "busy", "idle", "offline"];
 
-export function HqOfficeCanvas({ state }: { state: HqState }) {
+export function HqOfficeCanvas({
+  state,
+  llmThoughts = {},
+  thoughtsLoading = false,
+  onRefreshThoughts,
+}: {
+  state: HqState;
+  llmThoughts?: EmployeeThoughtsMap;
+  thoughtsLoading?: boolean;
+  onRefreshThoughts?: () => void;
+}) {
   const t = useTranslations("hq");
   const tDepartments = useTranslations("hq.departments");
   const tActivity = useTranslations("hq.activity");
@@ -84,7 +95,12 @@ export function HqOfficeCanvas({ state }: { state: HqState }) {
         position: positions[index] ?? [room.x, room.z],
         roam,
         behavior,
-        thoughts: isActive ? activeThoughts : idleThoughts,
+        thoughts:
+          llmThoughts[employee.id] && llmThoughts[employee.id].length > 0
+            ? llmThoughts[employee.id]
+            : isActive
+              ? activeThoughts
+              : idleThoughts,
         modelUrl: pickCharacterModel(employee.name),
       };
     });
@@ -156,6 +172,22 @@ export function HqOfficeCanvas({ state }: { state: HqState }) {
         >
           <Maximize2 className="size-3.5" />
         </button>
+        {onRefreshThoughts ? (
+          <button
+            type="button"
+            onClick={onRefreshThoughts}
+            disabled={thoughtsLoading}
+            className="flex size-8 items-center justify-center rounded-full text-white/70 transition-colors hover:bg-white/10 hover:text-white disabled:opacity-50"
+            aria-label={t("office.refreshThoughts")}
+            title={t("office.refreshThoughts")}
+          >
+            {thoughtsLoading ? (
+              <Loader2 className="size-3.5 animate-spin" />
+            ) : (
+              <Sparkles className="size-3.5" />
+            )}
+          </button>
+        ) : null}
       </div>
 
       {/* Status legend */}
