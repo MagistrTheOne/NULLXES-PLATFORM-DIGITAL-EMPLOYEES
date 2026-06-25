@@ -7,13 +7,22 @@ import { Group, Vector3 } from "three";
 import { STATUS_COLORS } from "../../lib/office-layout";
 import { useOfficeStore } from "../../store/use-office-store";
 import { CharacterModel } from "./character-model";
-import { HQ_MODEL_PATHS } from "./office-models";
 import type { SceneEmployee } from "./scene-types";
 
-const ATRIUM = new Vector3(0, 0, 0);
-const WALK_SPEED = 2.6;
+const WALK_SPEED = 1.4;
 const tmpDir = new Vector3();
 const scaleTarget = new Vector3();
+
+function seededRandom(seed: number): () => number {
+  let state = seed % 2147483647;
+  if (state <= 0) {
+    state += 2147483646;
+  }
+  return () => {
+    state = (state * 16807) % 2147483647;
+    return (state - 1) / 2147483646;
+  };
+}
 
 export function OfficeEmployee({ employee }: { employee: SceneEmployee }) {
   const rootRef = useRef<Group>(null);
@@ -29,38 +38,45 @@ export function OfficeEmployee({ employee }: { employee: SceneEmployee }) {
   const bodyColor = employee.status === "offline" ? "#2a2a2a" : "#161616";
 
   // Imperative motion state (kept out of React to avoid re-renders).
-  const posRef = useRef(new Vector3(ATRIUM.x, 0, ATRIUM.z));
-  const waypoints = useRef<Vector3[]>([]);
-  const wpIndex = useRef(0);
-  const movingRef = useRef(false);
-  const lastTarget = useRef<[number, number]>([Number.NaN, Number.NaN]);
-  const idlePhase = useRef(
-    Math.abs(employee.position[0] * 12.9898 + employee.position[1] * 78.233) %
-      (Math.PI * 2),
+  const seed = useRef(
+    Math.abs(
+      employee.id.split("").reduce((acc, ch) => acc * 31 + ch.charCodeAt(0), 7),
+    ) % 2147483647,
   );
+  const rng = useRef(seededRandom(seed.current));
+  const posRef = useRef(new Vector3(employee.position[0], 0, employee.position[1]));
+  const goal = useRef(new Vector3(employee.position[0], 0, employee.position[1]));
+  const waitUntil = useRef(0);
+  const movingRef = useRef(false);
+  const idlePhase = useRef(rng.current() * Math.PI * 2);
 
-  // Build a walk path whenever the destination changes (spawn / reassignment).
-  // Routing through the atrium keeps figures from clipping through walls,
-  // since every room opens toward the centre.
-  useEffect(() => {
-    const [tx, tz] = employee.position;
-    if (lastTarget.current[0] === tx && lastTarget.current[1] === tz) {
+  // Pick the next destination based on autonomous behavior. Idle/offline
+  // employees settle at their seat; active ones roam inside their room.
+  const pickNextGoal = (time: number) => {
+    if (employee.behavior === "sit") {
+      goal.current.set(employee.position[0], 0, employee.position[1]);
       return;
     }
-    lastTarget.current = [tx, tz];
-
-    const target = new Vector3(tx, 0, tz);
-    const route: Vector3[] = [];
-    if (posRef.current.distanceTo(target) > 0.1) {
-      if (posRef.current.distanceTo(ATRIUM) > 1.5) {
-        route.push(ATRIUM.clone());
-      }
-      route.push(target);
+    const { roam } = employee;
+    // 35% of the time return to the desk, otherwise wander the room.
+    if (rng.current() < 0.35) {
+      goal.current.set(employee.position[0], 0, employee.position[1]);
+    } else {
+      goal.current.set(
+        roam.minX + rng.current() * (roam.maxX - roam.minX),
+        0,
+        roam.minZ + rng.current() * (roam.maxZ - roam.minZ),
+      );
     }
-    waypoints.current = route;
-    wpIndex.current = 0;
-    movingRef.current = route.length > 0;
-  }, [employee.position]);
+    waitUntil.current = time;
+  };
+
+  // Reset the goal when behavior or seat changes (reassignment / status flip).
+  useEffect(() => {
+    goal.current.set(employee.position[0], 0, employee.position[1]);
+    waitUntil.current = 0;
+    movingRef.current = false;
+  }, [employee.behavior, employee.position]);
 
   useFrame((state, delta) => {
     const root = rootRef.current;
@@ -69,21 +85,24 @@ export function OfficeEmployee({ employee }: { employee: SceneEmployee }) {
     }
     const time = state.clock.elapsedTime;
 
-    if (movingRef.current && wpIndex.current < waypoints.current.length) {
-      const wp = waypoints.current[wpIndex.current];
-      tmpDir.copy(wp).sub(posRef.current);
-      tmpDir.y = 0;
-      const dist = tmpDir.length();
-      if (dist < 0.06) {
-        wpIndex.current += 1;
-        if (wpIndex.current >= waypoints.current.length) {
-          movingRef.current = false;
-        }
-      } else {
-        tmpDir.normalize();
-        posRef.current.addScaledVector(tmpDir, Math.min(dist, WALK_SPEED * delta));
-        const targetYaw = Math.atan2(tmpDir.x, tmpDir.z);
-        root.rotation.y += (targetYaw - root.rotation.y) * Math.min(1, delta * 8);
+    tmpDir.copy(goal.current).sub(posRef.current);
+    tmpDir.y = 0;
+    const dist = tmpDir.length();
+
+    if (dist > 0.08) {
+      movingRef.current = true;
+      tmpDir.normalize();
+      posRef.current.addScaledVector(tmpDir, Math.min(dist, WALK_SPEED * delta));
+      const targetYaw = Math.atan2(tmpDir.x, tmpDir.z);
+      root.rotation.y += (targetYaw - root.rotation.y) * Math.min(1, delta * 8);
+    } else {
+      if (movingRef.current) {
+        // Just arrived: pause before deciding the next move.
+        movingRef.current = false;
+        waitUntil.current = time + 1.5 + rng.current() * 3.5;
+      }
+      if (employee.behavior === "roam" && time >= waitUntil.current) {
+        pickNextGoal(time);
       }
     }
 
@@ -91,10 +110,13 @@ export function OfficeEmployee({ employee }: { employee: SceneEmployee }) {
     root.position.z = posRef.current.z;
 
     const moving = movingRef.current;
+    const seated = employee.behavior === "sit" && !moving;
     if (bodyRef.current) {
-      bodyRef.current.position.y = moving
+      const seatDrop = seated ? -0.18 : 0;
+      const bob = moving
         ? Math.abs(Math.sin(time * 9)) * 0.05
         : Math.sin(time * 1.4 + idlePhase.current) * 0.02;
+      bodyRef.current.position.y = seatDrop + bob;
     }
     const swing = moving ? Math.sin(time * 9) * 0.5 : 0;
     if (legLeftRef.current) {
@@ -128,9 +150,9 @@ export function OfficeEmployee({ employee }: { employee: SceneEmployee }) {
           selectEmployee(employee.id);
         }}
       >
-        {HQ_MODEL_PATHS.character ? (
+        {employee.modelUrl ? (
           <Suspense fallback={null}>
-            <CharacterModel url={HQ_MODEL_PATHS.character} />
+            <CharacterModel url={employee.modelUrl} />
           </Suspense>
         ) : (
           <>

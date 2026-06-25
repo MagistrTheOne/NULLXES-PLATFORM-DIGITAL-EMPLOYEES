@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { Loader2, Radio, UserRound } from "lucide-react";
 import { AvatarIdlePreview } from "@/features/employees/components/avatar-idle-preview";
 import { cn } from "@/lib/utils";
+import { STATUS_COLORS } from "../lib/office-layout";
 import { resolveActivityBadgeLabel } from "../lib/resolve-activity-label";
 import type { HqActivity, HqDepartmentGroup, HqEmployee } from "../types";
 
@@ -48,7 +49,7 @@ function DirectoryEmployee({ employee }: { employee: HqEmployee }) {
       title={t("viewProfile")}
       className="group flex items-center gap-3 rounded-xl border border-border bg-card px-3 py-2.5 transition-colors hover:bg-white/3"
     >
-      <span className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-white/2">
+      <span className="relative flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-white/2">
         {showPreview ? (
           <AvatarIdlePreview
             src={employee.avatarPreviewUrl!}
@@ -60,6 +61,10 @@ function DirectoryEmployee({ employee }: { employee: HqEmployee }) {
         ) : (
           <UserRound className="size-4 stroke-[1.25] text-muted-foreground" />
         )}
+        <span
+          className="absolute right-0 bottom-0 size-2.5 rounded-full border-2 border-card"
+          style={{ backgroundColor: STATUS_COLORS[employee.runtimeStatus] }}
+        />
       </span>
       <div className="flex min-w-0 flex-1 flex-col">
         <span className="truncate text-sm font-medium text-foreground">

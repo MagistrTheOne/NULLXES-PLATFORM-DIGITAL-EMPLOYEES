@@ -13,6 +13,7 @@ import {
 } from "../lib/office-layout";
 import { DEPARTMENT_ORDER } from "../lib/department-layout";
 import { resolveActivityBadgeLabel } from "../lib/resolve-activity-label";
+import { pickCharacterModel } from "./office/office-models";
 import type { HqRuntimeStatus, HqState } from "../types";
 import type { SceneEmployee, SceneRoom } from "./office/scene-types";
 
@@ -49,17 +50,32 @@ export function HqOfficeCanvas({ state }: { state: HqState }) {
   const employees: SceneEmployee[] = state.departments.flatMap((group) => {
     const room = OFFICE_ROOMS[group.department];
     const positions = placeEmployeesInRoom(room, group.employees.length);
+    const interiorHalfW = Math.max(0.4, room.w / 2 - 0.8);
+    const interiorHalfD = Math.max(0.4, room.d / 2 - 0.8);
+    const roam = {
+      minX: room.x - interiorHalfW,
+      maxX: room.x + interiorHalfW,
+      minZ: room.z - interiorHalfD,
+      maxZ: room.z + interiorHalfD,
+    };
     return group.employees.map((employee, index) => {
       const taskLabel = resolveActivityBadgeLabel(
         employee.activity.badge,
         tActivity,
       );
+      const behavior: SceneEmployee["behavior"] =
+        employee.runtimeStatus === "active" || employee.runtimeStatus === "busy"
+          ? "roam"
+          : "sit";
       return {
         id: employee.id,
         name: employee.name,
         taskLabel,
         status: employee.runtimeStatus,
         position: positions[index] ?? [room.x, room.z],
+        roam,
+        behavior,
+        modelUrl: pickCharacterModel(employee.id),
       };
     });
   });

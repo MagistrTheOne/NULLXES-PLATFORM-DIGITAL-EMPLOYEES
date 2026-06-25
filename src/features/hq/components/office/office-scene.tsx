@@ -7,10 +7,20 @@ import { Vector3 } from "three";
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import { useOfficeStore } from "../../store/use-office-store";
 import { OfficeEmployee } from "./office-employee";
-import { OfficeEnvironment } from "./office-environment";
-import { HQ_MODEL_PATHS } from "./office-models";
+import { HQ_MODELS } from "./office-models";
+import { OfficeProps } from "./office-props";
 import { OfficeRoom } from "./office-room";
 import type { SceneEmployee, SceneRoom } from "./scene-types";
+
+/** Overhead ceiling-light positions (x, z) over each department cluster. */
+const CEILING_LIGHTS: Array<[number, number]> = [
+  [-5, -6.5],
+  [5.5, -6.5],
+  [-5, 7],
+  [5.5, 7],
+  [11.5, 1],
+  [-12.5, 0.5],
+];
 
 function MarbleFloor() {
   return (
@@ -101,11 +111,11 @@ export default function OfficeScene({
       <fog attach="fog" args={["#050505", 45, 95]} />
 
       <Suspense fallback={null}>
-        <ambientLight intensity={0.7} />
-        <hemisphereLight intensity={0.4} groundColor="#050505" color="#ffffff" />
+        <ambientLight intensity={0.5} />
+        <hemisphereLight intensity={0.35} groundColor="#050505" color="#ffffff" />
         <directionalLight
           position={[14, 22, 10]}
-          intensity={1.5}
+          intensity={1.25}
           castShadow
           shadow-mapSize={[2048, 2048]}
           shadow-camera-left={-30}
@@ -116,19 +126,40 @@ export default function OfficeScene({
           shadow-camera-far={80}
           shadow-bias={-0.0004}
         />
-        <directionalLight position={[-16, 12, -8]} intensity={0.5} />
-        <pointLight position={[0, 10, 0]} intensity={0.4} distance={60} />
+        <directionalLight position={[-16, 12, -8]} intensity={0.4} />
 
-        {HQ_MODEL_PATHS.office ? (
-          <OfficeEnvironment url={HQ_MODEL_PATHS.office} />
-        ) : (
-          <>
-            <MarbleFloor />
-            {rooms.map((room) => (
-              <OfficeRoom key={room.def.department} room={room} />
-            ))}
-          </>
-        )}
+        {/* Soft overhead wash, pooling light on the marble like a ceiling. */}
+        <spotLight
+          position={[0, 24, 2]}
+          angle={0.85}
+          penumbra={1}
+          intensity={1.4}
+          distance={70}
+          decay={0}
+          color="#ffffff"
+        />
+        {/* Per-room ceiling glow so each department reads as a lit space. */}
+        {CEILING_LIGHTS.map(([x, z], index) => (
+          <pointLight
+            key={index}
+            position={[x, 5.5, z]}
+            intensity={0.55}
+            distance={16}
+            decay={1.4}
+            color="#f5f5f5"
+          />
+        ))}
+
+        <MarbleFloor />
+        {rooms.map((room) => (
+          <OfficeRoom key={room.def.department} room={room} />
+        ))}
+
+        {HQ_MODELS.props ? (
+          <Suspense fallback={null}>
+            <OfficeProps url={HQ_MODELS.props} />
+          </Suspense>
+        ) : null}
 
         {employees.map((employee) => (
           <OfficeEmployee key={employee.id} employee={employee} />
