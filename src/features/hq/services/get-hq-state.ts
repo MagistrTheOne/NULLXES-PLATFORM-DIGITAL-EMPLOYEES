@@ -10,6 +10,10 @@ import {
 import { DEPARTMENT_ORDER } from "../lib/department-layout";
 import { resolveEmployeeDepartment } from "../lib/map-employee-department";
 import {
+  emptyPerformance,
+  getEmployeePerformance,
+} from "../queries/get-employee-performance";
+import {
   emptyTaskSnapshot,
   getEmployeeTaskSnapshots,
 } from "../queries/get-employee-task-snapshots";
@@ -28,12 +32,13 @@ import type {
 export async function getHqState(organizationId: string): Promise<HqState> {
   return withDatabaseRetry(async () => {
     const range = getDefaultAnalyticsRange();
-    const [employees, summaries, liveSessions, taskSnapshots] =
+    const [employees, summaries, liveSessions, taskSnapshots, performance] =
       await Promise.all([
         listOrganizationEmployees(organizationId).then((page) => page.items),
         getEmployeeSessionSummaries(organizationId, range),
         getLiveSessions(organizationId),
         getEmployeeTaskSnapshots(organizationId),
+        getEmployeePerformance(organizationId, range),
       ]);
 
     const summaryByEmployeeId = new Map(
@@ -48,6 +53,7 @@ export async function getHqState(organizationId: string): Promise<HqState> {
       const isLive = liveEmployeeIds.has(employee.id);
       const sessionsInRange = summary?.sessionsInRange ?? 0;
       const tasks = taskSnapshots.get(employee.id) ?? emptyTaskSnapshot();
+      const perf = performance.get(employee.id) ?? emptyPerformance();
       const activityInput = { isLive, status: employee.status, tasks };
 
       return {
@@ -65,6 +71,8 @@ export async function getHqState(organizationId: string): Promise<HqState> {
         ),
         activity: deriveEmployeeActivity(activityInput),
         sessionsInRange,
+        conversationSeconds: perf.conversationSeconds,
+        satisfactionAvg: perf.satisfactionAvg,
         lastSessionAt: summary?.lastSessionAt ?? null,
         tasksToday: tasks.tasksToday,
         createdAt: employee.createdAt,
@@ -91,6 +99,24 @@ export async function getHqState(organizationId: string): Promise<HqState> {
         const live = group.employees.filter(
           (employee) => employee.isLive,
         ).length;
+        const sessions = group.employees.reduce(
+          (sum, employee) => sum + employee.sessionsInRange,
+          0,
+        );
+        const conversationSeconds = group.employees.reduce(
+          (sum, employee) => sum + employee.conversationSeconds,
+          0,
+        );
+        const rated = group.employees.filter(
+          (employee) => employee.satisfactionAvg !== null,
+        );
+        const satisfactionAvg =
+          rated.length > 0
+            ? rated.reduce(
+                (sum, employee) => sum + (employee.satisfactionAvg ?? 0),
+                0,
+              ) / rated.length
+            : null;
 
         return {
           department: group.department,
@@ -98,6 +124,9 @@ export async function getHqState(organizationId: string): Promise<HqState> {
           active,
           live,
           utilization: total > 0 ? Math.round((active / total) * 100) : 0,
+          sessions,
+          conversationSeconds,
+          satisfactionAvg,
         };
       },
     );

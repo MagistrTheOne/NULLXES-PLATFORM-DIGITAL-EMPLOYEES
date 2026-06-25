@@ -880,7 +880,12 @@
       "interview": "Собеседование"
     },
     "metrics": {
-      "active": "{count} активных"
+      "active": "{count} активных",
+      "sessions": "Сессии",
+      "satisfaction": "CSAT",
+      "talkTime": "Время бесед",
+      "headcount": "{active}/{total} активны",
+      "viewAnalytics": "Открыть аналитику"
     },
     "legend": {
       "active": "Активен",

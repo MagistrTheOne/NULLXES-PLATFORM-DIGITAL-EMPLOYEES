@@ -47,6 +47,10 @@ export type HqEmployee = {
   department: HqDepartment;
   activity: HqActivity;
   sessionsInRange: number;
+  /** Total conversation time across sessions in range, in seconds. */
+  conversationSeconds: number;
+  /** Mean satisfaction (1-5) over rated sessions in range, or null. */
+  satisfactionAvg: number | null;
   lastSessionAt: Date | null;
   tasksToday: number;
   createdAt: Date;
@@ -66,6 +70,12 @@ export type HqDepartmentMetrics = {
   live: number;
   /** 0-100 utilization: active headcount over total headcount. */
   utilization: number;
+  /** Session volume handled by the department within the range. */
+  sessions: number;
+  /** Total conversation time across the department, in seconds. */
+  conversationSeconds: number;
+  /** Mean satisfaction (1-5) over rated sessions, or null when unrated. */
+  satisfactionAvg: number | null;
 };
 
 export type HqState = {

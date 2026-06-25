@@ -880,7 +880,12 @@
       "interview": "Interview"
     },
     "metrics": {
-      "active": "{count} active"
+      "active": "{count} active",
+      "sessions": "Sessions",
+      "satisfaction": "CSAT",
+      "talkTime": "Talk time",
+      "headcount": "{active}/{total} active",
+      "viewAnalytics": "View analytics"
     },
     "legend": {
       "active": "Active",
