@@ -7,8 +7,10 @@ import { OverviewCard } from "./overview-card";
 
 export function OverviewRecentActivity({
   events,
+  embedded = false,
 }: {
   events: RecentLifecycleEventRow[];
+  embedded?: boolean;
 }) {
   const locale = useLocale();
   const t = useTranslations("dashboard.activity");
@@ -34,18 +36,18 @@ export function OverviewRecentActivity({
 
   return (
     <OverviewCard
-      title={t("title")}
-      description={t("description")}
-      className="min-h-[360px]"
+      title={embedded ? undefined : t("title")}
+      description={embedded ? undefined : t("description")}
+      className={embedded ? undefined : "min-h-[360px]"}
     >
-      <div className="flex min-h-[303px] flex-col">
+      <div className={embedded ? "flex flex-col" : "flex min-h-[303px] flex-col"}>
         <div className="flex items-center justify-between gap-4 border-b border-border px-5 py-3">
           <span className="text-sm text-muted-foreground">{t("event")}</span>
           <span className="text-sm text-muted-foreground">{t("when")}</span>
         </div>
         <ul className="flex-1 space-y-0 overflow-y-auto">
           {events.length === 0 ? (
-            <li className="px-5 py-10 text-center text-sm text-muted-foreground">
+            <li className="px-5 py-8 text-center text-sm text-muted-foreground">
               {t("empty")}
             </li>
           ) : (

@@ -7,19 +7,21 @@ import { OverviewCard } from "./overview-card";
 
 export function OverviewOvernightWork({
   events,
+  embedded = false,
 }: {
   events: OvernightWorkEventRow[];
+  embedded?: boolean;
 }) {
   const locale = useLocale();
   const t = useTranslations("dashboard.overnight");
 
   return (
     <OverviewCard
-      title={t("title")}
-      description={t("description")}
-      className="min-h-[280px]"
+      title={embedded ? undefined : t("title")}
+      description={embedded ? undefined : t("description")}
+      className={embedded ? undefined : "min-h-[280px]"}
     >
-      <div className="flex min-h-[220px] flex-col">
+      <div className={embedded ? "flex flex-col" : "flex min-h-[220px] flex-col"}>
         <div className="flex items-center justify-between gap-4 border-b border-border px-5 py-3">
           <span className="text-sm text-muted-foreground">{t("event")}</span>
           <span className="text-sm text-muted-foreground">{t("when")}</span>

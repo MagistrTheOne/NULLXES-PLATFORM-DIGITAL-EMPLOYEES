@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
+import { Radio } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -33,17 +34,19 @@ function LiveDurationCell({ startedAt }: { startedAt: Date }) {
 
 export function OverviewLiveSessions({
   sessions,
+  embedded = false,
 }: {
   sessions: LiveSessionRow[];
+  embedded?: boolean;
 }) {
   const locale = useLocale();
   const t = useTranslations("dashboard.sessions");
 
   return (
     <OverviewCard
-      title={t("title")}
-      description={t("description")}
-      className="min-h-[360px]"
+      title={embedded ? undefined : t("title")}
+      description={embedded ? undefined : t("description")}
+      className={embedded ? undefined : "min-h-[360px]"}
     >
       <div className="overflow-x-auto">
         <Table>
@@ -86,9 +89,10 @@ export function OverviewLiveSessions({
                     <LiveDurationCell startedAt={session.startedAt} />
                   </TableCell>
                   <TableCell>
-                    <span className="rounded-full border border-border px-2 py-0.5 text-xs text-foreground">
-                      {t("live")}
-                    </span>
+                    <Radio
+                      className="size-3.5 stroke-[1.5] text-foreground"
+                      aria-label={t("live")}
+                    />
                   </TableCell>
                   <TableCell className="text-right text-muted-foreground">
                     {formatRelativeTime(session.startedAt, locale)}

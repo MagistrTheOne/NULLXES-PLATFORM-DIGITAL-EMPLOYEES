@@ -49,13 +49,13 @@ export function OverviewSecondaryPanels({
       </TabsList>
 
       <TabsContent value="activity" className="mt-0">
-        <OverviewRecentActivity events={recentActivity} />
+        <OverviewRecentActivity events={recentActivity} embedded />
       </TabsContent>
       <TabsContent value="live" className="mt-0">
-        <OverviewLiveSessions sessions={liveSessions} />
+        <OverviewLiveSessions sessions={liveSessions} embedded />
       </TabsContent>
       <TabsContent value="overnight" className="mt-0">
-        <OverviewOvernightWork events={overnightWork} />
+        <OverviewOvernightWork events={overnightWork} embedded />
       </TabsContent>
     </Tabs>
   );
