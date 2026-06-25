@@ -1,4 +1,4 @@
-import { and, count, desc, eq, gte, lte, sql } from "drizzle-orm";
+import { and, count, desc, eq, gte, inArray, lte, sql } from "drizzle-orm";
 import { digitalEmployee } from "@/entities/digital-employee/schema";
 import { employeeSession } from "@/entities/session/schema";
 import { db } from "@/shared/db/client";
@@ -9,6 +9,7 @@ export async function getTopTopics(
   organizationId: string,
   range: AnalyticsDateRange,
   limit = 6,
+  employeeIds?: string[],
 ): Promise<TopicRow[]> {
   const rows = await db
     .select({
@@ -27,6 +28,7 @@ export async function getTopTopics(
         lte(employeeSession.startedAt, endOfUtcDay(range.to)),
         sql`${employeeSession.primaryTopic} is not null`,
         sql`trim(${employeeSession.primaryTopic}) <> ''`,
+        employeeIds ? inArray(digitalEmployee.id, employeeIds) : undefined,
       ),
     )
     .groupBy(employeeSession.primaryTopic)

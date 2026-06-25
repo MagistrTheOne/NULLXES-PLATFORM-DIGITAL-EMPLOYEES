@@ -930,6 +930,17 @@
     "subtitle": "Актуальные данные о цифровых сотрудниках и разговорах.",
     "exportReport": "Экспорт отчёта",
     "applyRange": "Применить период",
+    "openHq": "Открыть этаж HQ",
+    "tabs": {
+      "overview": "Обзор",
+      "conversations": "Разговоры",
+      "workforce": "Штат",
+      "knowledge": "Знания"
+    },
+    "departmentScope": {
+      "all": "Все отделы",
+      "viewing": "Отдел: {department}"
+    },
     "kpi": {
       "totalEmployees": "Всего сотрудников",
       "active": "{count} активных",

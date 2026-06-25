@@ -127,6 +127,8 @@ export type RecentLifecycleEventRow = {
 
 export type DashboardAnalytics = {
   range: AnalyticsDateRange;
+  /** Active department scope, or null for the whole workspace. */
+  department: import("@/features/hq/types").HqDepartment | null;
   metrics: WorkspaceAnalytics;
   timeseries: SessionTimeseriesPoint[];
   messageTimeseries: MessageTimeseriesPoint[];

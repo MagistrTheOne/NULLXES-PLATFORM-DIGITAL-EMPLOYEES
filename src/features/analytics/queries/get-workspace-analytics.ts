@@ -10,16 +10,17 @@ import { getSessionMetrics } from "./get-session-metrics";
 export async function getWorkspaceAnalytics(
   organizationId: string,
   range: AnalyticsDateRange,
+  employeeIds?: string[],
 ): Promise<WorkspaceAnalytics> {
   const [employees, sessions, conversation, performance, knowledge, activity, trends] =
     await Promise.all([
-      getEmployeeMetrics(organizationId),
-      getSessionMetrics(organizationId, range),
-      getConversationMetrics(organizationId, range),
-      getPerformanceMetrics(organizationId, range),
+      getEmployeeMetrics(organizationId, employeeIds),
+      getSessionMetrics(organizationId, range, employeeIds),
+      getConversationMetrics(organizationId, range, employeeIds),
+      getPerformanceMetrics(organizationId, range, employeeIds),
       getKnowledgeMetrics(organizationId),
       getActivityMetrics(organizationId),
-      getAnalyticsTrends(organizationId, range),
+      getAnalyticsTrends(organizationId, range, employeeIds),
     ]);
 
   return {

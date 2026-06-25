@@ -1,4 +1,4 @@
-import { and, count, desc, eq, gte, lte, sql } from "drizzle-orm";
+import { and, count, desc, eq, gte, inArray, lte, sql } from "drizzle-orm";
 import { digitalEmployee } from "@/entities/digital-employee/schema";
 import { employeeSession } from "@/entities/session/schema";
 import { db } from "@/shared/db/client";
@@ -10,6 +10,7 @@ const TOP_EMPLOYEE_LIMIT = 8;
 export async function getTopEmployees(
   organizationId: string,
   range: AnalyticsDateRange,
+  employeeIds?: string[],
 ): Promise<TopEmployeeRow[]> {
   const rows = await db
     .select({
@@ -30,7 +31,12 @@ export async function getTopEmployees(
         lte(employeeSession.startedAt, endOfUtcDay(range.to)),
       ),
     )
-    .where(eq(digitalEmployee.organizationId, organizationId))
+    .where(
+      and(
+        eq(digitalEmployee.organizationId, organizationId),
+        employeeIds ? inArray(digitalEmployee.id, employeeIds) : undefined,
+      ),
+    )
     .groupBy(digitalEmployee.id, digitalEmployee.name)
     .orderBy(desc(count(employeeSession.id)), desc(digitalEmployee.name))
     .limit(TOP_EMPLOYEE_LIMIT);

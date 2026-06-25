@@ -1,4 +1,4 @@
-import { and, count, eq, gte, lte } from "drizzle-orm";
+import { and, count, eq, gte, inArray, lte } from "drizzle-orm";
 import { digitalEmployee } from "@/entities/digital-employee/schema";
 import { db } from "@/shared/db/client";
 import { computeTrend } from "../lib/compute-trend";
@@ -14,6 +14,7 @@ import { getSessionMetrics } from "./get-session-metrics";
 async function countEmployeesCreatedInRange(
   organizationId: string,
   range: AnalyticsDateRange,
+  employeeIds?: string[],
 ): Promise<number> {
   const [row] = await db
     .select({ total: count() })
@@ -23,6 +24,7 @@ async function countEmployeesCreatedInRange(
         eq(digitalEmployee.organizationId, organizationId),
         gte(digitalEmployee.createdAt, startOfUtcDay(range.from)),
         lte(digitalEmployee.createdAt, endOfUtcDay(range.to)),
+        employeeIds ? inArray(digitalEmployee.id, employeeIds) : undefined,
       ),
     );
 
@@ -32,6 +34,7 @@ async function countEmployeesCreatedInRange(
 export async function getAnalyticsTrends(
   organizationId: string,
   range: AnalyticsDateRange,
+  employeeIds?: string[],
 ): Promise<AnalyticsTrends> {
   const previousRange = getPreviousAnalyticsRange(range);
 
@@ -43,12 +46,12 @@ export async function getAnalyticsTrends(
     employeesCreated,
     previousEmployeesCreated,
   ] = await Promise.all([
-    getSessionMetrics(organizationId, range),
-    getConversationMetrics(organizationId, range),
-    getSessionMetrics(organizationId, previousRange),
-    getConversationMetrics(organizationId, previousRange),
-    countEmployeesCreatedInRange(organizationId, range),
-    countEmployeesCreatedInRange(organizationId, previousRange),
+    getSessionMetrics(organizationId, range, employeeIds),
+    getConversationMetrics(organizationId, range, employeeIds),
+    getSessionMetrics(organizationId, previousRange, employeeIds),
+    getConversationMetrics(organizationId, previousRange, employeeIds),
+    countEmployeesCreatedInRange(organizationId, range, employeeIds),
+    countEmployeesCreatedInRange(organizationId, previousRange, employeeIds),
   ]);
 
   const satisfactionTrend =

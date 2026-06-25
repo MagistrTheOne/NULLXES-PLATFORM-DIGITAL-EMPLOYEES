@@ -930,6 +930,17 @@
     "subtitle": "Real-time insights into your digital employees and conversations.",
     "exportReport": "Export Report",
     "applyRange": "Apply range",
+    "openHq": "Open HQ floor",
+    "tabs": {
+      "overview": "Overview",
+      "conversations": "Conversations",
+      "workforce": "Workforce",
+      "knowledge": "Knowledge"
+    },
+    "departmentScope": {
+      "all": "All departments",
+      "viewing": "Viewing {department}"
+    },
     "kpi": {
       "totalEmployees": "Total Employees",
       "active": "{count} active",

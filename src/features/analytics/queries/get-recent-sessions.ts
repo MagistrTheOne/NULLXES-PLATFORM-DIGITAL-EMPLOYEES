@@ -1,4 +1,4 @@
-import { and, desc, eq, gte, lte } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, lte } from "drizzle-orm";
 import { digitalEmployee } from "@/entities/digital-employee/schema";
 import { employeeSession } from "@/entities/session/schema";
 import { user } from "@/entities/user/schema";
@@ -10,6 +10,7 @@ export async function getRecentSessions(
   organizationId: string,
   range: AnalyticsDateRange,
   limit = 12,
+  employeeIds?: string[],
 ): Promise<RecentSessionRow[]> {
   const rows = await db
     .select({
@@ -34,6 +35,7 @@ export async function getRecentSessions(
         eq(digitalEmployee.organizationId, organizationId),
         gte(employeeSession.startedAt, startOfUtcDay(range.from)),
         lte(employeeSession.startedAt, endOfUtcDay(range.to)),
+        employeeIds ? inArray(digitalEmployee.id, employeeIds) : undefined,
       ),
     )
     .orderBy(desc(employeeSession.startedAt))

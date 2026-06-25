@@ -1,4 +1,4 @@
-import { and, count, eq, gte, lte, sql } from "drizzle-orm";
+import { and, count, eq, gte, inArray, lte, sql } from "drizzle-orm";
 import { digitalEmployee } from "@/entities/digital-employee/schema";
 import { employeeSession } from "@/entities/session/schema";
 import { db } from "@/shared/db/client";
@@ -14,6 +14,7 @@ import type { AnalyticsDateRange, SessionTimeseriesPoint } from "../types";
 async function querySessionCountsByDate(
   organizationId: string,
   range: AnalyticsDateRange,
+  employeeIds?: string[],
 ): Promise<Map<string, { sessions: number; durationSeconds: number }>> {
   const rows = await db
     .select({
@@ -34,6 +35,7 @@ async function querySessionCountsByDate(
         eq(digitalEmployee.organizationId, organizationId),
         gte(employeeSession.startedAt, startOfUtcDay(range.from)),
         lte(employeeSession.startedAt, endOfUtcDay(range.to)),
+        employeeIds ? inArray(digitalEmployee.id, employeeIds) : undefined,
       ),
     )
     .groupBy(sql`date_trunc('day', ${employeeSession.startedAt} at time zone 'UTC')`)
@@ -53,11 +55,12 @@ async function querySessionCountsByDate(
 export async function getSessionTimeseries(
   organizationId: string,
   range: AnalyticsDateRange,
+  employeeIds?: string[],
 ): Promise<SessionTimeseriesPoint[]> {
   const previousRange = getPreviousAnalyticsRange(range);
   const [currentRows, previousRows] = await Promise.all([
-    querySessionCountsByDate(organizationId, range),
-    querySessionCountsByDate(organizationId, previousRange),
+    querySessionCountsByDate(organizationId, range, employeeIds),
+    querySessionCountsByDate(organizationId, previousRange, employeeIds),
   ]);
 
   const dates = buildDateRange(range);

@@ -1,4 +1,4 @@
-import { and, eq, gte, lte, sql } from "drizzle-orm";
+import { and, eq, gte, inArray, lte, sql } from "drizzle-orm";
 import { digitalEmployee } from "@/entities/digital-employee/schema";
 import { employeeSession } from "@/entities/session/schema";
 import { db } from "@/shared/db/client";
@@ -8,6 +8,7 @@ import type { AnalyticsDateRange, SatisfactionTimeseriesPoint } from "../types";
 export async function getSatisfactionTimeseries(
   organizationId: string,
   range: AnalyticsDateRange,
+  employeeIds?: string[],
 ): Promise<SatisfactionTimeseriesPoint[]> {
   const rows = await db
     .select({
@@ -31,6 +32,7 @@ export async function getSatisfactionTimeseries(
         eq(digitalEmployee.organizationId, organizationId),
         gte(employeeSession.startedAt, startOfUtcDay(range.from)),
         lte(employeeSession.startedAt, endOfUtcDay(range.to)),
+        employeeIds ? inArray(digitalEmployee.id, employeeIds) : undefined,
       ),
     )
     .groupBy(sql`date_trunc('day', ${employeeSession.startedAt} at time zone 'UTC')`)

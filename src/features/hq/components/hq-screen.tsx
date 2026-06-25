@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useHqRealtime } from "../lib/use-hq-realtime";
 import { useOfficeStore } from "../store/use-office-store";
-import type { HqState } from "../types";
+import type { HqDepartment, HqState } from "../types";
 import { HqDesignEditor } from "./hq-design-editor";
 import { HqDirectory } from "./hq-directory";
 import { HqMetricsStrip } from "./hq-metrics-strip";
@@ -13,21 +13,34 @@ import { HqOfficeCanvas } from "./hq-office-canvas";
 import { HqProfilePanel } from "./hq-profile-panel";
 import { HqStatusBar } from "./hq-status-bar";
 
-export function HqScreen({ state: initialState }: { state: HqState }) {
+export function HqScreen({
+  state: initialState,
+  initialDepartment = null,
+}: {
+  state: HqState;
+  initialDepartment?: HqDepartment | null;
+}) {
   const t = useTranslations("hq");
   const state = useHqRealtime(initialState);
   const selectedId = useOfficeStore((store) => store.selectedEmployeeId);
   const selectEmployee = useOfficeStore((store) => store.selectEmployee);
 
-  // Pre-select a sensible default so the profile panel is never empty.
+  // Pre-select a sensible default so the profile panel is never empty. When the
+  // user arrives from an analytics department deep-link, prefer that department.
   useEffect(() => {
     if (selectedId && state.employees.some((item) => item.id === selectedId)) {
       return;
     }
+    const pool = initialDepartment
+      ? state.employees.filter((item) => item.department === initialDepartment)
+      : state.employees;
     const fallback =
-      state.employees.find((item) => item.isLive) ?? state.employees[0];
+      pool.find((item) => item.isLive) ??
+      pool[0] ??
+      state.employees.find((item) => item.isLive) ??
+      state.employees[0];
     selectEmployee(fallback?.id ?? null);
-  }, [selectedId, state.employees, selectEmployee]);
+  }, [selectedId, state.employees, selectEmployee, initialDepartment]);
 
   return (
     <div className="flex w-full flex-col gap-5">

@@ -1,10 +1,11 @@
-import { count, eq, sql } from "drizzle-orm";
+import { and, count, eq, inArray, sql } from "drizzle-orm";
 import { digitalEmployee } from "@/entities/digital-employee/schema";
 import { db } from "@/shared/db/client";
 import type { EmployeeMetrics } from "../types";
 
 export async function getEmployeeMetrics(
   organizationId: string,
+  employeeIds?: string[],
 ): Promise<EmployeeMetrics> {
   const [row] = await db
     .select({
@@ -27,7 +28,12 @@ export async function getEmployeeMetrics(
         ),
     })
     .from(digitalEmployee)
-    .where(eq(digitalEmployee.organizationId, organizationId));
+    .where(
+      and(
+        eq(digitalEmployee.organizationId, organizationId),
+        employeeIds ? inArray(digitalEmployee.id, employeeIds) : undefined,
+      ),
+    );
 
   return {
     totalEmployees: Number(row?.totalEmployees ?? 0),

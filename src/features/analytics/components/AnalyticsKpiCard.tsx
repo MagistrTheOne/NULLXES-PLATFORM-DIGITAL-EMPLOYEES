@@ -1,18 +1,21 @@
 import { cn } from "@/lib/utils";
 import type { MetricTrend } from "../types";
 import { formatTrendLabel } from "../lib/format-trend";
+import { AnalyticsSparkline } from "./AnalyticsSparkline";
 
 export function AnalyticsKpiCard({
   title,
   value,
   detail,
   trend,
+  series,
   className,
 }: {
   title: string;
   value: string;
   detail: string;
   trend?: MetricTrend | null;
+  series?: number[];
   className?: string;
 }) {
   const trendLabel = formatTrendLabel(trend);
@@ -20,7 +23,7 @@ export function AnalyticsKpiCard({
   return (
     <article
       className={cn(
-        "flex min-h-[132px] flex-col justify-between rounded-2xl border border-border bg-card px-5 py-4 text-card-foreground",
+        "flex min-h-[132px] flex-col justify-between gap-2 rounded-2xl border border-border bg-card px-5 py-4 text-card-foreground",
         className,
       )}
     >
@@ -35,6 +38,9 @@ export function AnalyticsKpiCard({
       <p className="text-3xl font-medium tracking-tight tabular-nums text-foreground">
         {value}
       </p>
+      {series && series.length > 1 ? (
+        <AnalyticsSparkline data={series} />
+      ) : null}
       <p className="text-xs text-muted-foreground">{detail}</p>
     </article>
   );

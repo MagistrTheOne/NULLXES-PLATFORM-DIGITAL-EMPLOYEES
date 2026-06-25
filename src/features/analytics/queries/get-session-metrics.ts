@@ -1,4 +1,4 @@
-import { and, count, eq, sql } from "drizzle-orm";
+import { and, count, eq, inArray, sql } from "drizzle-orm";
 import { digitalEmployee } from "@/entities/digital-employee/schema";
 import { employeeSession } from "@/entities/session/schema";
 import { db } from "@/shared/db/client";
@@ -8,11 +8,16 @@ import type { AnalyticsDateRange, SessionMetrics } from "../types";
 export async function getSessionMetrics(
   organizationId: string,
   range?: AnalyticsDateRange,
+  employeeIds?: string[],
 ): Promise<SessionMetrics> {
   const filters = [eq(digitalEmployee.organizationId, organizationId)];
 
   if (range) {
     filters.push(sessionStartedInRange(range)!);
+  }
+
+  if (employeeIds) {
+    filters.push(inArray(digitalEmployee.id, employeeIds));
   }
 
   const [row] = await db

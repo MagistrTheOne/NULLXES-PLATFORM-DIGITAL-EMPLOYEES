@@ -1,4 +1,4 @@
-import { and, count, eq, sql } from "drizzle-orm";
+import { and, count, eq, inArray, sql } from "drizzle-orm";
 import { digitalEmployee } from "@/entities/digital-employee/schema";
 import { employeeSession } from "@/entities/session/schema";
 import { db } from "@/shared/db/client";
@@ -8,6 +8,7 @@ import type { AnalyticsDateRange, PerformanceMetrics } from "../types";
 export async function getPerformanceMetrics(
   organizationId: string,
   range: AnalyticsDateRange,
+  employeeIds?: string[],
 ): Promise<PerformanceMetrics> {
   const [row] = await db
     .select({
@@ -38,6 +39,7 @@ export async function getPerformanceMetrics(
       and(
         eq(digitalEmployee.organizationId, organizationId),
         sessionStartedInRange(range),
+        employeeIds ? inArray(digitalEmployee.id, employeeIds) : undefined,
       ),
     );
 
