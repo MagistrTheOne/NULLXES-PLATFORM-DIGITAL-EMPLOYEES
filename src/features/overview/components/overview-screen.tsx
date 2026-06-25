@@ -3,18 +3,13 @@
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
-import { AnalyticsKpiCard } from "@/features/analytics/components/AnalyticsKpiCard";
-import { formatDurationSeconds } from "@/features/analytics/lib/format-duration";
 import { CreateEmployeeDialog } from "@/features/employees/create";
 import { revalidateEmployeePaths } from "@/features/employees/actions/revalidate-employee-paths";
 import type { DashboardOverview } from "../types";
 import { OverviewEmployeeCarousel } from "./OverviewEmployeeCarousel";
 import { OverviewHeader } from "./OverviewHeader";
-import { OverviewKnowledgePanel } from "./OverviewKnowledgePanel";
-import { OverviewLiveSessions } from "./OverviewLiveSessions";
-import { OverviewOvernightWork } from "./OverviewOvernightWork";
-import { OverviewRecentActivity } from "./OverviewRecentActivity";
-import { OverviewSystemStatus } from "./OverviewSystemStatus";
+import { OverviewMetricsStrip } from "./overview-metrics-strip";
+import { OverviewSecondaryPanels } from "./overview-secondary-panels";
 
 export function OverviewScreen({ data }: { data: DashboardOverview }) {
   const router = useRouter();
@@ -41,7 +36,7 @@ export function OverviewScreen({ data }: { data: DashboardOverview }) {
 
   return (
     <>
-      <div className="flex w-full flex-col gap-6">
+      <div className="flex w-full flex-col gap-5">
         <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <h1 className="text-2xl font-medium tracking-tight text-foreground">
@@ -57,83 +52,18 @@ export function OverviewScreen({ data }: { data: DashboardOverview }) {
           />
         </header>
 
-        <section className="grid gap-6 sm:grid-cols-2 xl:grid-cols-5">
-          <AnalyticsKpiCard
-            title={t("kpi.totalEmployees")}
-            value={String(metrics.employees.total)}
-            detail={t("kpi.active", { count: metrics.employees.active })}
-            trend={metrics.trends.employees}
-          />
-          <AnalyticsKpiCard
-            title={t("kpi.activeNow")}
-            value={String(metrics.activeNow)}
-            detail={
-              metrics.activeNow > 0
-                ? t("kpi.inConversations")
-                : t("kpi.noLiveConversations")
-            }
-          />
-          <AnalyticsKpiCard
-            title={t("kpi.totalSessions")}
-            value={String(metrics.sessions.totalSessions)}
-            detail={t("kpi.completed", {
-              count: metrics.sessions.completedSessions,
-            })}
-            trend={metrics.trends.sessions}
-          />
-          <AnalyticsKpiCard
-            title={t("kpi.totalTalkTime")}
-            value={formatDurationSeconds(metrics.sessions.totalConversationSeconds)}
-            detail={
-              metrics.sessions.completedSessions > 0
-                ? t("kpi.avgDuration", {
-                    duration: formatDurationSeconds(
-                      metrics.sessions.averageSessionDurationSeconds,
-                    ),
-                  })
-                : t("kpi.noCompletedSessions")
-            }
-            trend={metrics.trends.conversationSeconds}
-          />
-          <AnalyticsKpiCard
-            title={t("kpi.satisfaction")}
-            value={
-              metrics.conversation.averageSatisfaction !== null
-                ? `${metrics.conversation.averageSatisfaction.toFixed(1)} / 5`
-                : "—"
-            }
-            detail={
-              metrics.conversation.ratedSessions > 0
-                ? t("kpi.ratings", {
-                    count: metrics.conversation.ratedSessions,
-                  })
-                : t("kpi.noRatings")
-            }
-            trend={metrics.trends.satisfaction}
-          />
-        </section>
-
         <OverviewEmployeeCarousel
           employees={data.employees}
           onCreateClick={() => setCreateDialogOpen(true)}
         />
 
-        <section className="grid gap-6 xl:grid-cols-12">
-          <div className="xl:col-span-4">
-            <OverviewRecentActivity events={data.recentActivity} />
-          </div>
-          <div className="xl:col-span-4">
-            <OverviewOvernightWork events={data.overnightWork} />
-          </div>
-          <div className="xl:col-span-4">
-            <OverviewLiveSessions sessions={data.liveSessions} />
-          </div>
-        </section>
+        <OverviewMetricsStrip metrics={metrics} />
 
-        <section className="grid gap-6 lg:grid-cols-2">
-          <OverviewKnowledgePanel knowledge={metrics.knowledge} />
-          <OverviewSystemStatus items={data.systemStatus} />
-        </section>
+        <OverviewSecondaryPanels
+          recentActivity={data.recentActivity}
+          liveSessions={data.liveSessions}
+          overnightWork={data.overnightWork}
+        />
       </div>
 
       <CreateEmployeeDialog

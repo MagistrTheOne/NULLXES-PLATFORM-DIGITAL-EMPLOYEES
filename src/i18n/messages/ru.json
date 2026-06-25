@@ -52,6 +52,18 @@
       "ratings": "{count} оценок",
       "noRatings": "Нет оценок за период"
     },
+    "metrics": {
+      "workforce": "Персонал",
+      "activeNow": "Активны",
+      "sessions": "Сессии",
+      "talkTime": "Время разговоров",
+      "satisfaction": "Оценка"
+    },
+    "panels": {
+      "activity": "Активность",
+      "live": "Сессии",
+      "overnight": "Ночная работа"
+    },
     "carousel": {
       "title": "Ваши цифровые сотрудники",
       "description": "Активный персонал в рабочем пространстве",

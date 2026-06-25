@@ -52,6 +52,18 @@
       "ratings": "{count} ratings",
       "noRatings": "No ratings in this period"
     },
+    "metrics": {
+      "workforce": "Workforce",
+      "activeNow": "Active now",
+      "sessions": "Sessions",
+      "talkTime": "Talk time",
+      "satisfaction": "Satisfaction"
+    },
+    "panels": {
+      "activity": "Activity",
+      "live": "Live sessions",
+      "overnight": "Overnight"
+    },
     "carousel": {
       "title": "Your Digital Employees",
       "description": "Active workforce in this workspace",
