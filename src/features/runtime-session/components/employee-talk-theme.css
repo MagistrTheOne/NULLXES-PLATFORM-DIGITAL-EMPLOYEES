@@ -226,3 +226,34 @@
 .employee-talk-chat-panel .str-chat__message--me .str-chat__message-sender-name {
   color: rgba(255, 255, 255, 0.55);
 }
+
+/* Custom TalkMessageUI — hide default Stream bubble chrome. */
+.employee-talk-chat-panel .str-chat__message,
+.employee-talk-chat-surface .str-chat__message {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.employee-talk-chat-panel .str-chat__message-bubble,
+.employee-talk-chat-surface .str-chat__message-bubble {
+  display: none !important;
+}
+
+.employee-talk-chat-panel .str-chat__message-inner,
+.employee-talk-chat-surface .str-chat__message-inner {
+  margin: 0 !important;
+  padding: 0 !important;
+  max-width: none !important;
+}
+
+.talk-message {
+  width: 100%;
+}
+
+.talk-chat-workspace {
+  width: 100%;
+  min-height: 0;
+}

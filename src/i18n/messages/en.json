@@ -3,6 +3,7 @@
     "nav": {
       "dashboard": "Dashboard",
       "employees": "Digital Employees",
+      "conversations": "Conversations",
       "hq": "NULLXES HQ",
       "analytics": "Analytics",
       "settings": "Settings",
@@ -366,7 +367,14 @@
         "conversationsToday": "Conversations Today",
         "talkTime": "Talk Time",
         "satisfaction": "Satisfaction Score",
-        "viewFullProfile": "View full profile"
+        "viewFullProfile": "View full profile",
+        "activity": "Activity",
+        "activityKind": {
+          "connected": "Connected",
+          "session_started": "Session started",
+          "session_ended": "Session ended",
+          "speaking": "Speaking"
+        }
       },
       "sessions": {
         "title": "Sessions",
@@ -384,7 +392,11 @@
         "clearHistoryDescription": "All messages in this session chat will be permanently removed.",
         "clearHistoryCancel": "Cancel",
         "clearHistoryConfirm": "Clear history",
-        "clearHistoryClearing": "Clearing…"
+        "clearHistoryClearing": "Clearing…",
+        "senderYou": "You",
+        "copy": "Copy",
+        "copied": "Copied",
+        "regenerate": "Regenerate"
       },
       "controls": {
         "muteMic": "Mute microphone",
@@ -853,6 +865,13 @@
       "brainGoogle": "Google Gemini",
       "brainNullxes": "NULLXES Brain"
     }
+  },
+  "conversations": {
+    "title": "Conversations",
+    "subtitle": "Message your digital employees across threads — text-first workspace.",
+    "roster": "Workforce",
+    "emptyRoster": "No talk-ready employees yet.",
+    "pickEmployee": "Select an employee to open their conversation workspace."
   },
   "hq": {
     "title": "NULLXES HQ",

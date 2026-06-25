@@ -25,6 +25,7 @@ import {
   MessageList,
   Window,
 } from "stream-chat-react";
+import { TalkMessageUI } from "./talk-message-ui";
 import type { TalkChatCredentials } from "../services/create-talk-chat-session";
 import { attachTalkChatPipeline } from "../lib/attach-talk-chat-pipeline";
 import { useTalkAnam } from "../context/talk-anam-context";
@@ -126,6 +127,7 @@ class TalkChatErrorBoundary extends Component<
 export function EmployeeTalkChat({
   chatSession,
   employeeId,
+  employeeName,
   threadId = null,
   brainModelLabel,
   employeeSessionId,
@@ -134,6 +136,7 @@ export function EmployeeTalkChat({
 }: {
   chatSession: TalkChatCredentials | null;
   employeeId: string;
+  employeeName: string;
   threadId?: string | null;
   brainModelLabel?: string | null;
   employeeSessionId?: string;
@@ -229,6 +232,7 @@ export function EmployeeTalkChat({
   }, [
     activeChatSession,
     employeeId,
+    threadId,
     connectAttempt,
   ]);
 
@@ -373,7 +377,12 @@ export function EmployeeTalkChat({
               </div>
               <div className="employee-talk-chat-messages relative min-h-0 min-w-0 flex-1">
                 <TalkChatEmptyOverlay channel={channel} emptyMessage={t("empty")} />
-                <MessageList />
+                <MessageList
+                  Message={() => (
+                    <TalkMessageUI agentDisplayName={employeeName} />
+                  )}
+                  noGroupByUser
+                />
               </div>
               <MessageComposer />
             </Window>

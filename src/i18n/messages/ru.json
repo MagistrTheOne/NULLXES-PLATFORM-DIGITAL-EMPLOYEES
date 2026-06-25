@@ -3,6 +3,7 @@
     "nav": {
       "dashboard": "Панель",
       "employees": "Цифровые сотрудники",
+      "conversations": "Разговоры",
       "hq": "NULLXES HQ",
       "analytics": "Аналитика",
       "settings": "Настройки",
@@ -366,7 +367,14 @@
         "conversationsToday": "Бесед сегодня",
         "talkTime": "Время в разговоре",
         "satisfaction": "Оценка удовлетворённости",
-        "viewFullProfile": "Открыть профиль"
+        "viewFullProfile": "Открыть профиль",
+        "activity": "Активность",
+        "activityKind": {
+          "connected": "Подключение",
+          "session_started": "Сессия начата",
+          "session_ended": "Сессия завершена",
+          "speaking": "Говорит"
+        }
       },
       "sessions": {
         "title": "Беседы",
@@ -384,7 +392,11 @@
         "clearHistoryDescription": "Все сообщения в чате этой сессии будут удалены без возможности восстановления.",
         "clearHistoryCancel": "Отмена",
         "clearHistoryConfirm": "Очистить",
-        "clearHistoryClearing": "Очистка…"
+        "clearHistoryClearing": "Очистка…",
+        "senderYou": "Вы",
+        "copy": "Копировать",
+        "copied": "Скопировано",
+        "regenerate": "Перегенерировать"
       },
       "controls": {
         "muteMic": "Выключить микрофон",
@@ -853,6 +865,13 @@
       "brainGoogle": "Google Gemini",
       "brainNullxes": "NULLXES Brain"
     }
+  },
+  "conversations": {
+    "title": "Разговоры",
+    "subtitle": "Переписка с цифровыми сотрудниками в отдельных тредах — текстовый workspace.",
+    "roster": "Команда",
+    "emptyRoster": "Пока нет сотрудников, готовых к разговору.",
+    "pickEmployee": "Выберите сотрудника, чтобы открыть workspace переписки."
   },
   "hq": {
     "title": "NULLXES HQ",

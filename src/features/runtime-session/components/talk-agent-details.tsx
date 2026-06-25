@@ -6,6 +6,7 @@ import { ArrowRight, UserRound } from "lucide-react";
 import { AvatarIdlePreview } from "@/features/employees/components/avatar-idle-preview";
 import { formatDurationSeconds } from "@/features/analytics/lib/format-duration";
 import type { TalkAgentPanelStats } from "../queries/get-talk-agent-panel";
+import type { TalkActivityItem } from "../queries/get-talk-agent-activity";
 
 export type TalkAgentDetails = {
   employeeId: string;
@@ -18,6 +19,7 @@ export type TalkAgentDetails = {
   language: string;
   currentTaskTitle: string | null;
   stats: TalkAgentPanelStats;
+  activity?: TalkActivityItem[];
 };
 
 function SectionLabel({ children }: { children: string }) {
@@ -38,6 +40,24 @@ function StatRow({ label, value }: { label: string; value: string }) {
     </div>
   );
 }
+
+function formatActivityTime(value: Date): string {
+  return new Intl.DateTimeFormat(undefined, {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(value);
+}
+
+const ACTIVITY_DOT: Record<
+  NonNullable<TalkAgentDetails["activity"]>[number]["kind"],
+  string
+> = {
+  connected: "bg-white/35",
+  session_started: "bg-white/35",
+  session_ended: "bg-white/25",
+  speaking: "bg-emerald-400",
+};
 
 export function TalkAgentDetailsPanel({
   details,
@@ -120,6 +140,33 @@ export function TalkAgentDetailsPanel({
           }
         />
       </div>
+
+      {details.activity && details.activity.length > 0 ? (
+        <>
+          <div className="h-px bg-white/8" />
+          <div className="flex flex-col gap-2">
+            <SectionLabel>{t("activity")}</SectionLabel>
+            <ul className="flex flex-col gap-2">
+              {[...details.activity].reverse().map((item) => (
+                <li
+                  key={item.id}
+                  className="flex items-center justify-between gap-3 text-xs"
+                >
+                  <span className="inline-flex min-w-0 items-center gap-2 text-white/70">
+                    <span
+                      className={`size-1.5 shrink-0 rounded-full ${ACTIVITY_DOT[item.kind]}`}
+                    />
+                    <span className="truncate">{t(`activityKind.${item.kind}`)}</span>
+                  </span>
+                  <time className="shrink-0 text-[10px] text-white/35 tabular-nums">
+                    {formatActivityTime(item.at)}
+                  </time>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </>
+      ) : null}
 
       <Link
         href={`/dashboard/employees/${details.employeeId}`}

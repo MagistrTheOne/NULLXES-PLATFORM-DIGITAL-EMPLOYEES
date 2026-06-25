@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import {
   Loader2,
@@ -16,15 +16,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
-import {
-  TalkAgentDetailsPanel,
-  type TalkAgentDetails,
-} from "./talk-agent-details";
-import {
-  TalkSessionsSidebar,
-  type TalkThreadItem,
-} from "./talk-sessions-sidebar";
-import { listTalkThreadsAction } from "../actions/list-talk-threads";
+import type { TalkAgentDetails } from "./talk-agent-details";
+import { TalkAgentDetailsPanel } from "./talk-agent-details";
+import { TalkChatWorkspace } from "./talk-chat-workspace";
 import type { TalkChatCredentials } from "../services/create-talk-chat-session";
 import { useTalkAnam } from "../context/talk-anam-context";
 import { startTalkSessionAction } from "../actions/employee-session";
@@ -42,19 +36,6 @@ const EmployeeAnamStage = dynamic(
     loading: () => (
       <div className="flex h-full w-full items-center justify-center bg-black/40">
         <Loader2 className="size-5 animate-spin text-white/50" />
-      </div>
-    ),
-  },
-);
-
-const EmployeeTalkChat = dynamic(
-  () =>
-    import("./employee-talk-chat").then((module) => module.EmployeeTalkChat),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="employee-talk-chat-fallback flex h-full items-center justify-center">
-        <Loader2 className="size-4 animate-spin text-white/50" />
       </div>
     ),
   },
@@ -119,7 +100,7 @@ function TalkControlsBar({
   const [isStarting, setIsStarting] = useState(false);
   const [startError, setStartError] = useState<string | null>(null);
 
-  const handleStart = useCallback(async () => {
+  const handleStart = async () => {
     setIsStarting(true);
     setStartError(null);
     try {
@@ -141,9 +122,9 @@ function TalkControlsBar({
     } finally {
       setIsStarting(false);
     }
-  }, [employeeId, onSessionStarted, prefetchedTokenRef]);
+  };
 
-  const warmPrefetch = useCallback(() => {
+  const warmPrefetch = () => {
     if (prefetchedTokenRef.current || activeSession) {
       return;
     }
@@ -153,23 +134,14 @@ function TalkControlsBar({
         prefetchedTokenRef.current = result.sessionToken;
       }
     });
-  }, [activeSession, employeeId, prefetchedTokenRef]);
+  };
 
-  const handleStop = useCallback(async () => {
+  const handleStop = async () => {
     if (!activeSession || sessionBusy) {
       return;
     }
-
     await onStopSession();
-  }, [activeSession, onStopSession, sessionBusy]);
-
-  const handleLeave = useCallback(async () => {
-    if (sessionBusy) {
-      return;
-    }
-
-    await onLeaveSession();
-  }, [onLeaveSession, sessionBusy]);
+  };
 
   const controlsDisabled = sessionBusy || isStarting;
 
@@ -220,17 +192,6 @@ function TalkControlsBar({
                 ) : (
                   <Mic className="size-4 stroke-[1.5]" />
                 )}
-                {!micMuted && isLive && micPermission !== "granted" ? (
-                  <span
-                    className={cn(
-                      "absolute -top-1 -right-1 size-2 rounded-full bg-white",
-                      micPermission === "pending"
-                        ? "animate-pulse opacity-80"
-                        : "opacity-40",
-                    )}
-                    aria-hidden
-                  />
-                ) : null}
               </span>
             </TalkIconControl>
             <TalkIconControl
@@ -268,7 +229,7 @@ function TalkControlsBar({
           variant="destructive"
           className="h-11 rounded-full px-5 text-sm"
           onClick={() => {
-            void handleLeave();
+            void onLeaveSession();
           }}
         >
           <PhoneOff className="size-4" />
@@ -280,7 +241,6 @@ function TalkControlsBar({
 }
 
 function TalkStagePanel({
-  chatSession,
   actorUserName,
   employeeName,
   employeeId,
@@ -323,104 +283,6 @@ function TalkStagePanel({
         prefetchedTokenRef={prefetchedTokenRef}
         onCameraToggle={() => setCameraEnabled((current) => !current)}
       />
-    </div>
-  );
-}
-
-function createThreadId(): string {
-  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
-    return crypto.randomUUID();
-  }
-  return `t${Date.now()}${Math.random().toString(36).slice(2, 8)}`;
-}
-
-function TalkChatPanel({
-  chatSession,
-  employeeId,
-  brainModelLabel,
-  activeSession,
-  layout = "desktop",
-}: Pick<
-  EmployeeTalkRoomProps,
-  "chatSession" | "employeeId" | "brainModelLabel" | "activeSession"
-> & {
-  layout?: "desktop" | "mobile";
-}) {
-  const t = useTranslations("employees.talk.sessions");
-  const [threads, setThreads] = useState<TalkThreadItem[]>([]);
-  const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  const mainThread: TalkThreadItem = {
-    threadId: null,
-    title: t("main"),
-    lastMessageAt: null,
-  };
-
-  useEffect(() => {
-    let cancelled = false;
-    setLoading(true);
-    void listTalkThreadsAction(employeeId).then((remote) => {
-      if (cancelled) {
-        return;
-      }
-      setThreads(remote);
-      setLoading(false);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [employeeId]);
-
-  const handleNew = useCallback(() => {
-    const threadId = createThreadId();
-    setThreads((current) => [
-      { threadId, title: "New chat", lastMessageAt: new Date().toISOString() },
-      ...current,
-    ]);
-    setActiveThreadId(threadId);
-  }, []);
-
-  const allThreads = [mainThread, ...threads];
-
-  const sidebar = (
-    <TalkSessionsSidebar
-      threads={allThreads}
-      activeThreadId={activeThreadId}
-      loading={loading}
-      onSelect={setActiveThreadId}
-      onNew={handleNew}
-    />
-  );
-
-  const chat = (
-    <div className="employee-talk-chat-panel flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-white/10 bg-[#0a0a0a]">
-      <EmployeeTalkChat
-        key={activeThreadId ?? "main"}
-        chatSession={activeThreadId ? null : chatSession}
-        employeeId={employeeId}
-        threadId={activeThreadId}
-        brainModelLabel={brainModelLabel}
-        employeeSessionId={activeSession?.sessionId}
-        isSessionLive={Boolean(activeSession)}
-        voiceMode={activeSession?.voiceMode ?? "anam"}
-      />
-    </div>
-  );
-
-  if (layout === "mobile") {
-    return (
-      <div className="flex min-h-0 flex-1 flex-col gap-2">
-        <div className="max-h-40 shrink-0">{sidebar}</div>
-        {chat}
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex min-h-0 flex-col gap-3 lg:grid lg:grid-cols-[168px_minmax(0,1fr)] lg:self-stretch">
-      <div className="hidden min-h-0 lg:block">{sidebar}</div>
-      {chat}
     </div>
   );
 }
@@ -473,19 +335,19 @@ function TalkRoomLayout(props: EmployeeTalkRoomProps) {
   if (isDesktop) {
     return (
       <div className="employee-talk-workspace employee-talk-shell mx-auto w-full">
-        <div className="employee-talk-grid employee-talk-desktop-layout grid min-h-0 gap-4 min-[1024px]:grid-cols-[minmax(0,1fr)_300px] min-[1024px]:items-stretch">
-          <div className="flex min-h-0 flex-col gap-4">
-            <TalkStagePanel {...props} prefetchedTokenRef={prefetchedTokenRef} />
-            <TalkChatPanel
-              chatSession={props.chatSession}
-              employeeId={props.employeeId}
-              brainModelLabel={props.brainModelLabel}
-              activeSession={props.activeSession}
-            />
-          </div>
-          <div className="hidden min-h-0 min-[1024px]:flex">
-            <TalkAgentDetailsPanel details={props.agentDetails} />
-          </div>
+        <div className="flex min-h-0 flex-col gap-4">
+          <TalkStagePanel {...props} prefetchedTokenRef={prefetchedTokenRef} />
+          <TalkChatWorkspace
+            employeeId={props.employeeId}
+            employeeName={props.employeeName}
+            chatSession={props.chatSession}
+            brainModelLabel={props.brainModelLabel}
+            activeSession={props.activeSession}
+            isSessionLive={Boolean(props.activeSession)}
+            agentDetails={props.agentDetails}
+            variant="full"
+            className="min-h-[min(42dvh,480px)]"
+          />
         </div>
       </div>
     );
@@ -498,47 +360,26 @@ function TalkRoomLayout(props: EmployeeTalkRoomProps) {
         className="employee-talk-mobile-tabs flex min-h-[min(70dvh,640px)] flex-col"
       >
         <TabsList className="mb-3 grid h-10 w-full shrink-0 grid-cols-3 rounded-lg border border-white/10 bg-white/4 p-1">
-          <TabsTrigger
-            value="stage"
-            className="rounded-md text-sm text-white/60 data-[state=active]:bg-white/10 data-[state=active]:text-white"
-          >
-            {t("mobileTabStage")}
-          </TabsTrigger>
-          <TabsTrigger
-            value="chat"
-            className="rounded-md text-sm text-white/60 data-[state=active]:bg-white/10 data-[state=active]:text-white"
-          >
-            {t("mobileTabChat")}
-          </TabsTrigger>
-          <TabsTrigger
-            value="details"
-            className="rounded-md text-sm text-white/60 data-[state=active]:bg-white/10 data-[state=active]:text-white"
-          >
-            {t("mobileTabDetails")}
-          </TabsTrigger>
+          <TabsTrigger value="stage">{t("mobileTabStage")}</TabsTrigger>
+          <TabsTrigger value="chat">{t("mobileTabChat")}</TabsTrigger>
+          <TabsTrigger value="details">{t("mobileTabDetails")}</TabsTrigger>
         </TabsList>
-        <TabsContent
-          value="stage"
-          className="employee-talk-mobile-tab-panel mt-0 flex min-h-0 flex-1 flex-col"
-        >
+        <TabsContent value="stage" className="employee-talk-mobile-tab-panel mt-0 flex min-h-0 flex-1 flex-col">
           <TalkStagePanel {...props} prefetchedTokenRef={prefetchedTokenRef} />
         </TabsContent>
-        <TabsContent
-          value="chat"
-          className="employee-talk-mobile-tab-panel mt-0 flex min-h-0 flex-1 flex-col"
-        >
-          <TalkChatPanel
-            chatSession={props.chatSession}
+        <TabsContent value="chat" className="employee-talk-mobile-tab-panel mt-0 flex min-h-0 flex-1 flex-col">
+          <TalkChatWorkspace
             employeeId={props.employeeId}
+            employeeName={props.employeeName}
+            chatSession={props.chatSession}
             brainModelLabel={props.brainModelLabel}
             activeSession={props.activeSession}
-            layout="mobile"
+            isSessionLive={Boolean(props.activeSession)}
+            variant="compact"
+            className="min-h-0 flex-1"
           />
         </TabsContent>
-        <TabsContent
-          value="details"
-          className="employee-talk-mobile-tab-panel mt-0 flex min-h-0 flex-1 flex-col"
-        >
+        <TabsContent value="details" className="employee-talk-mobile-tab-panel mt-0 flex min-h-0 flex-1 flex-col">
           <TalkAgentDetailsPanel details={props.agentDetails} />
         </TabsContent>
       </Tabs>

@@ -9,6 +9,7 @@ import {
   getTalkPipelineCoordinator,
 } from "./talk-pipeline-coordinator";
 import { postTalkEmployeeChatReply } from "./talk-reply-bridge";
+import { registerTalkRegenerateHandler } from "./talk-regenerate-bridge";
 import type { TalkVoiceMode } from "../services/resolve-talk-voice-mode";
 
 function digitalEmployeeChatUserId(employeeId: string): string {
@@ -57,6 +58,62 @@ export function attachTalkChatPipeline(input: {
   let processing = false;
   let lastHandledMessageId: string | null = null;
 
+  const runBrainTurn = async (userText: string, userStreamMessageId?: string) => {
+    const turnKey = buildTalkTurnKey(userText.trim());
+    if (!coordinator.tryBeginTalkTurn(turnKey)) {
+      return;
+    }
+
+    try {
+      if (input.employeeSessionId) {
+        persistUserSessionMessage({
+          sessionId: input.employeeSessionId,
+          content: userText.trim(),
+          streamMessageId: userStreamMessageId,
+        });
+      }
+
+      void dispatchHqTaskFromChatAction(input.employeeId, userText.trim()).catch(
+        () => undefined,
+      );
+
+      const pipelineMessages = buildPipelineMessages(input.channel, botUserId);
+      const replyText = await streamTalkBrainReply({
+        employeeId: input.employeeId,
+        sessionId: input.employeeSessionId,
+        messages: pipelineMessages,
+      });
+
+      if (input.employeeSessionId) {
+        await appendSessionMessageAction({
+          sessionId: input.employeeSessionId,
+          role: "assistant",
+          content: replyText,
+        });
+      }
+
+      await postTalkEmployeeChatReply(replyText);
+
+      const anamClient = input.getAnamClient();
+      if (input.isSessionLive && anamClient) {
+        await playTalkVoiceReply({
+          anamClient,
+          employeeId: input.employeeId,
+          replyText,
+          voiceMode: input.voiceMode,
+        });
+      }
+
+      coordinator.completeTalkTurn(turnKey, replyText);
+    } catch {
+      coordinator.failTalkTurn();
+      const fallback =
+        "I could not process that message right now. Please try again.";
+      await postTalkEmployeeChatReply(fallback);
+      coordinator.completeTalkTurn(turnKey, fallback);
+    }
+  };
+
   const handleNewMessage = (event: Event) => {
     const message = event.message;
     if (!message?.id || !message.text?.trim()) {
@@ -71,74 +128,60 @@ export function attachTalkChatPipeline(input: {
       return;
     }
 
-    const turnKey = buildTalkTurnKey(message.text.trim());
-    if (!coordinator.tryBeginTalkTurn(turnKey)) {
-      return;
-    }
-
     lastHandledMessageId = message.id;
     processing = true;
 
     void (async () => {
       try {
-        if (input.employeeSessionId) {
-          persistUserSessionMessage({
-            sessionId: input.employeeSessionId,
-            content: message.text!.trim(),
-            streamMessageId: message.id,
-          });
-        }
-
-        // Floor errand command ("go to CRM"): dispatch out-of-band so the
-        // employee starts walking on the HQ floor. Never blocks the reply.
-        void dispatchHqTaskFromChatAction(
-          input.employeeId,
-          message.text!.trim(),
-        ).catch(() => undefined);
-
-        const pipelineMessages = buildPipelineMessages(input.channel, botUserId);
-        const replyText = await streamTalkBrainReply({
-          employeeId: input.employeeId,
-          sessionId: input.employeeSessionId,
-          messages: pipelineMessages,
-        });
-
-        if (input.employeeSessionId) {
-          await appendSessionMessageAction({
-            sessionId: input.employeeSessionId,
-            role: "assistant",
-            content: replyText,
-          });
-        }
-
-        await postTalkEmployeeChatReply(replyText);
-
-        const anamClient = input.getAnamClient();
-        if (input.isSessionLive && anamClient) {
-          await playTalkVoiceReply({
-            anamClient,
-            employeeId: input.employeeId,
-            replyText,
-            voiceMode: input.voiceMode,
-          });
-        }
-
-        coordinator.completeTalkTurn(turnKey, replyText);
-      } catch {
-        coordinator.failTalkTurn();
-        const fallback =
-          "I could not process that message right now. Please try again.";
-        await postTalkEmployeeChatReply(fallback);
-        coordinator.completeTalkTurn(turnKey, fallback);
+        await runBrainTurn(message.text!.trim(), message.id);
       } finally {
         processing = false;
       }
     })();
   };
 
+  const handleRegenerate = async (botMessageId: string) => {
+    if (processing) {
+      return;
+    }
+
+    const messages = input.channel.state.messages ?? [];
+    const botIndex = messages.findIndex((item) => item.id === botMessageId);
+    if (botIndex <= 0) {
+      return;
+    }
+
+    let userMessage = null;
+    for (let index = botIndex - 1; index >= 0; index -= 1) {
+      const candidate = messages[index];
+      if (
+        candidate.user?.id === input.actorUserId &&
+        candidate.text?.trim()
+      ) {
+        userMessage = candidate;
+        break;
+      }
+    }
+
+    if (!userMessage?.text?.trim()) {
+      return;
+    }
+
+    processing = true;
+    try {
+      await input.channel.getClient().deleteMessage(botMessageId, true);
+      await runBrainTurn(userMessage.text.trim(), userMessage.id);
+    } finally {
+      processing = false;
+    }
+  };
+
+  registerTalkRegenerateHandler(handleRegenerate);
+
   input.channel.on("message.new", handleNewMessage);
 
   return () => {
     input.channel.off("message.new", handleNewMessage);
+    registerTalkRegenerateHandler(null);
   };
 }

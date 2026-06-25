@@ -3,6 +3,8 @@ import { requireAuth } from "@/features/auth/services/require-auth";
 import { ensureWorkspace } from "@/features/auth/services/ensure-workspace";
 import { getEmployeeTalkContext } from "@/features/runtime-session/services/get-employee-talk-context";
 import { getTalkAgentPanel } from "@/features/runtime-session/queries/get-talk-agent-panel";
+import { getTalkAgentActivity } from "@/features/runtime-session/queries/get-talk-agent-activity";
+import { buildTalkAgentDetails } from "@/features/runtime-session/lib/build-talk-agent-details";
 import { EmployeeTalkSession } from "@/features/runtime-session/components/employee-talk-session";
 import { formatBrainModelDisplay } from "@/features/brain/lib/format-brain-model-display";
 import { resolveBrainModelForProvider } from "@/features/settings/lib/brain-model-defaults";
@@ -34,10 +36,19 @@ export default async function EmployeeTalkPage({
     ),
   });
 
-  const [panel, locale] = await Promise.all([
+  const [panel, activity, locale] = await Promise.all([
     getTalkAgentPanel(employee.id),
+    getTalkAgentActivity(employee.id),
     getLocale(),
   ]);
+
+  const agentDetails = buildTalkAgentDetails({
+    employee,
+    panel,
+    locale,
+    activity,
+    modelLabel: brainModelLabel,
+  });
 
   return (
     <EmployeeTalkSession
@@ -49,18 +60,7 @@ export default async function EmployeeTalkPage({
       avatarPreviewUrl={employee.avatarPreviewUrl}
       sessionLimitSeconds={employee.sessionLimitSeconds}
       brainModelLabel={brainModelLabel}
-      agentDetails={{
-        employeeId: employee.id,
-        name: employee.name,
-        role: employee.role,
-        avatarPreviewUrl: employee.avatarPreviewUrl,
-        avatarReady: employee.avatarProvisioningStatus === "ready",
-        online: true,
-        modelLabel: brainModelLabel,
-        language: locale.toUpperCase(),
-        currentTaskTitle: panel.currentTaskTitle,
-        stats: panel.stats,
-      }}
+      agentDetails={agentDetails}
     />
   );
 }
