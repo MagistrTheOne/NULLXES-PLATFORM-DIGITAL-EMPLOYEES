@@ -16,6 +16,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
+import {
+  TalkAgentDetailsPanel,
+  type TalkAgentDetails,
+} from "./talk-agent-details";
 import type { TalkChatCredentials } from "../services/create-talk-chat-session";
 import { useTalkAnam } from "../context/talk-anam-context";
 import { startTalkSessionAction } from "../actions/employee-session";
@@ -349,6 +353,7 @@ export type EmployeeTalkSessionInputProps = {
   avatarPreviewUrl: string | null;
   sessionLimitSeconds: number;
   brainModelLabel: string | null;
+  agentDetails: TalkAgentDetails;
 };
 
 export type EmployeeTalkRoomProps = EmployeeTalkSessionInputProps & {
@@ -388,7 +393,7 @@ function TalkRoomLayout(props: EmployeeTalkRoomProps) {
   if (isDesktop) {
     return (
       <div className="employee-talk-workspace employee-talk-shell mx-auto w-full">
-        <div className="employee-talk-grid employee-talk-desktop-layout grid min-h-0 gap-4 min-[900px]:grid-cols-[1fr_300px] min-[900px]:items-stretch lg:grid-cols-[minmax(0,1fr)_340px] xl:grid-cols-[minmax(0,1fr)_360px]">
+        <div className="employee-talk-grid employee-talk-desktop-layout grid min-h-0 gap-4 min-[900px]:grid-cols-[1fr_300px] min-[900px]:items-stretch lg:grid-cols-[minmax(0,1fr)_320px] min-[1280px]:grid-cols-[minmax(0,1fr)_340px_300px]">
           <TalkStagePanel {...props} prefetchedTokenRef={prefetchedTokenRef} />
           <TalkChatPanel
             chatSession={props.chatSession}
@@ -396,6 +401,9 @@ function TalkRoomLayout(props: EmployeeTalkRoomProps) {
             brainModelLabel={props.brainModelLabel}
             activeSession={props.activeSession}
           />
+          <div className="hidden min-h-0 min-[1280px]:flex">
+            <TalkAgentDetailsPanel details={props.agentDetails} />
+          </div>
         </div>
       </div>
     );
@@ -407,7 +415,7 @@ function TalkRoomLayout(props: EmployeeTalkRoomProps) {
         defaultValue="stage"
         className="employee-talk-mobile-tabs flex min-h-[min(70dvh,640px)] flex-col"
       >
-        <TabsList className="mb-3 grid h-10 w-full shrink-0 grid-cols-2 rounded-lg border border-white/10 bg-white/4 p-1">
+        <TabsList className="mb-3 grid h-10 w-full shrink-0 grid-cols-3 rounded-lg border border-white/10 bg-white/4 p-1">
           <TabsTrigger
             value="stage"
             className="rounded-md text-sm text-white/60 data-[state=active]:bg-white/10 data-[state=active]:text-white"
@@ -419,6 +427,12 @@ function TalkRoomLayout(props: EmployeeTalkRoomProps) {
             className="rounded-md text-sm text-white/60 data-[state=active]:bg-white/10 data-[state=active]:text-white"
           >
             {t("mobileTabChat")}
+          </TabsTrigger>
+          <TabsTrigger
+            value="details"
+            className="rounded-md text-sm text-white/60 data-[state=active]:bg-white/10 data-[state=active]:text-white"
+          >
+            {t("mobileTabDetails")}
           </TabsTrigger>
         </TabsList>
         <TabsContent
@@ -437,6 +451,12 @@ function TalkRoomLayout(props: EmployeeTalkRoomProps) {
             brainModelLabel={props.brainModelLabel}
             activeSession={props.activeSession}
           />
+        </TabsContent>
+        <TabsContent
+          value="details"
+          className="employee-talk-mobile-tab-panel mt-0 flex min-h-0 flex-1 flex-col"
+        >
+          <TalkAgentDetailsPanel details={props.agentDetails} />
         </TabsContent>
       </Tabs>
     </div>

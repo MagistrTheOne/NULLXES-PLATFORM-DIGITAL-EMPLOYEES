@@ -352,6 +352,21 @@
       "statusSecure": "Защищено",
       "mobileTabStage": "Сцена",
       "mobileTabChat": "Чат",
+      "mobileTabDetails": "Детали",
+      "agentPanel": {
+        "title": "Об агенте",
+        "online": "В сети",
+        "offline": "Не в сети",
+        "model": "Модель",
+        "language": "Язык",
+        "currentTask": "Текущая задача",
+        "currentTaskHint": "Обработка запросов пользователей",
+        "statistics": "Статистика",
+        "conversationsToday": "Бесед сегодня",
+        "talkTime": "Время в разговоре",
+        "satisfaction": "Оценка удовлетворённости",
+        "viewFullProfile": "Открыть профиль"
+      },
       "chat": {
         "title": "Чат сессии",
         "empty": "Отправьте сообщение, чтобы начать разговор",

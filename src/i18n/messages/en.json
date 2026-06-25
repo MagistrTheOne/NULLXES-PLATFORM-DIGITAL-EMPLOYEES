@@ -352,6 +352,21 @@
       "statusSecure": "Secure",
       "mobileTabStage": "Stage",
       "mobileTabChat": "Chat",
+      "mobileTabDetails": "Details",
+      "agentPanel": {
+        "title": "Agent Details",
+        "online": "Online",
+        "offline": "Offline",
+        "model": "Model",
+        "language": "Language",
+        "currentTask": "Current Task",
+        "currentTaskHint": "Handling user requests",
+        "statistics": "Statistics",
+        "conversationsToday": "Conversations Today",
+        "talkTime": "Talk Time",
+        "satisfaction": "Satisfaction Score",
+        "viewFullProfile": "View full profile"
+      },
       "chat": {
         "title": "Session chat",
         "empty": "Send a message to start the conversation",
