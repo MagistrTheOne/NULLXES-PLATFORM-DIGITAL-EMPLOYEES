@@ -361,6 +361,7 @@
         "language": "Язык",
         "currentTask": "Текущая задача",
         "currentTaskHint": "Обработка запросов пользователей",
+        "currentTaskNone": "Свободен",
         "statistics": "Статистика",
         "conversationsToday": "Бесед сегодня",
         "talkTime": "Время в разговоре",

@@ -4,7 +4,7 @@ import { Suspense, useEffect, useRef, useState } from "react";
 import { Html } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { Group, Vector3 } from "three";
-import { STATUS_COLORS } from "../../lib/office-layout";
+import { FLOOR_HALF, STATUS_COLORS } from "../../lib/office-layout";
 import { MEETING_POINT } from "../../lib/standup";
 import { useOfficeStore } from "../../store/use-office-store";
 import { CharacterModel } from "./character-model";
@@ -13,6 +13,13 @@ import type { SceneEmployee } from "./scene-types";
 const WALK_SPEED = 1.4;
 const tmpDir = new Vector3();
 const scaleTarget = new Vector3();
+
+// Invisible scene boundary: figures (and dragged placements) never leave the
+// floor plane. Keep a small inset so they don't clip the outer edge.
+const SCENE_BOUND = FLOOR_HALF - 1.5;
+function clampToScene(value: number): number {
+  return Math.max(-SCENE_BOUND, Math.min(SCENE_BOUND, value));
+}
 
 function seededRandom(seed: number): () => number {
   let state = seed % 2147483647;
@@ -151,7 +158,11 @@ export function OfficeEmployee({ employee }: { employee: SceneEmployee }) {
     // --- Mouse drag: snap to the pointer position and lift off the floor. ---
     if (isDragging) {
       if (dragTarget) {
-        posRef.current.set(dragTarget[0], 0, dragTarget[1]);
+        posRef.current.set(
+          clampToScene(dragTarget[0]),
+          0,
+          clampToScene(dragTarget[1]),
+        );
       }
       root.position.x = posRef.current.x;
       root.position.z = posRef.current.z;
@@ -223,6 +234,8 @@ export function OfficeEmployee({ employee }: { employee: SceneEmployee }) {
       }
     }
 
+    posRef.current.x = clampToScene(posRef.current.x);
+    posRef.current.z = clampToScene(posRef.current.z);
     root.position.x = posRef.current.x;
     root.position.z = posRef.current.z;
 

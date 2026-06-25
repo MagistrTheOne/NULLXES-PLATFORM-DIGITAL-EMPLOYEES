@@ -92,9 +92,11 @@ export function TalkAgentDetailsPanel({
       <div className="flex flex-col gap-2">
         <SectionLabel>{t("currentTask")}</SectionLabel>
         <span className="text-sm text-white/85">
-          {details.currentTaskTitle ?? details.role}
+          {details.currentTaskTitle ?? t("currentTaskNone")}
         </span>
-        <span className="text-xs text-white/40">{t("currentTaskHint")}</span>
+        {details.currentTaskTitle ? (
+          <span className="text-xs text-white/40">{t("currentTaskHint")}</span>
+        ) : null}
       </div>
 
       <div className="h-px bg-white/8" />

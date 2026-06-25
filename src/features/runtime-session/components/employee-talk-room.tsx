@@ -473,15 +473,17 @@ function TalkRoomLayout(props: EmployeeTalkRoomProps) {
   if (isDesktop) {
     return (
       <div className="employee-talk-workspace employee-talk-shell mx-auto w-full">
-        <div className="employee-talk-grid employee-talk-desktop-layout grid min-h-0 gap-4 min-[900px]:grid-cols-[1fr_320px] min-[900px]:items-stretch lg:grid-cols-[minmax(0,1fr)_minmax(420px,0.85fr)] min-[1280px]:grid-cols-[minmax(0,1fr)_minmax(480px,0.9fr)_300px]">
-          <TalkStagePanel {...props} prefetchedTokenRef={prefetchedTokenRef} />
-          <TalkChatPanel
-            chatSession={props.chatSession}
-            employeeId={props.employeeId}
-            brainModelLabel={props.brainModelLabel}
-            activeSession={props.activeSession}
-          />
-          <div className="hidden min-h-0 min-[1280px]:flex">
+        <div className="employee-talk-grid employee-talk-desktop-layout grid min-h-0 gap-4 min-[1024px]:grid-cols-[minmax(0,1fr)_300px] min-[1024px]:items-stretch">
+          <div className="flex min-h-0 flex-col gap-4">
+            <TalkStagePanel {...props} prefetchedTokenRef={prefetchedTokenRef} />
+            <TalkChatPanel
+              chatSession={props.chatSession}
+              employeeId={props.employeeId}
+              brainModelLabel={props.brainModelLabel}
+              activeSession={props.activeSession}
+            />
+          </div>
+          <div className="hidden min-h-0 min-[1024px]:flex">
             <TalkAgentDetailsPanel details={props.agentDetails} />
           </div>
         </div>

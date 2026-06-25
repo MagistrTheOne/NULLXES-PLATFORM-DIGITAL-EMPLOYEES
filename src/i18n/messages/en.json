@@ -361,6 +361,7 @@
         "language": "Language",
         "currentTask": "Current Task",
         "currentTaskHint": "Handling user requests",
+        "currentTaskNone": "Standing by",
         "statistics": "Statistics",
         "conversationsToday": "Conversations Today",
         "talkTime": "Talk Time",
