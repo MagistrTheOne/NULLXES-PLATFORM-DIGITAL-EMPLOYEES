@@ -849,6 +849,9 @@
       "placeholder": "Здесь рендерится живой 3D-офис.",
       "refreshThoughts": "Обновить мысли"
     },
+    "talk": {
+      "openFull": "Открыть полный режим"
+    },
     "directory": {
       "unassigned": "Без отдела",
       "headcount": "{count} на этаже",

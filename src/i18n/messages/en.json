@@ -849,6 +849,9 @@
       "placeholder": "The live 3D office renders here.",
       "refreshThoughts": "Refresh thoughts"
     },
+    "talk": {
+      "openFull": "Open full talk"
+    },
     "directory": {
       "unassigned": "Unassigned",
       "headcount": "{count} on floor",

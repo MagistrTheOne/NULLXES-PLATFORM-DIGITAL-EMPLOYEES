@@ -15,11 +15,15 @@ type OfficeStore = {
    * An override becomes the employee's new "home" desk on the floor.
    */
   overrides: Record<string, [number, number]>;
+  /** Employee whose inline office chat overlay is open, or null. */
+  talkEmployeeId: string | null;
   selectEmployee: (id: string | null) => void;
   hoverEmployee: (id: string | null) => void;
   beginDrag: (id: string) => void;
   updateDragTarget: (pos: [number, number]) => void;
   endDrag: () => void;
+  openTalk: (id: string) => void;
+  closeTalk: () => void;
 };
 
 export const useOfficeStore = create<OfficeStore>((set) => ({
@@ -28,6 +32,7 @@ export const useOfficeStore = create<OfficeStore>((set) => ({
   draggingId: null,
   dragTarget: null,
   overrides: {},
+  talkEmployeeId: null,
   selectEmployee: (id) => set({ selectedEmployeeId: id }),
   hoverEmployee: (id) => set({ hoveredEmployeeId: id }),
   beginDrag: (id) =>
@@ -47,4 +52,6 @@ export const useOfficeStore = create<OfficeStore>((set) => ({
         },
       };
     }),
+  openTalk: (id) => set({ talkEmployeeId: id, selectedEmployeeId: id }),
+  closeTalk: () => set({ talkEmployeeId: null }),
 }));

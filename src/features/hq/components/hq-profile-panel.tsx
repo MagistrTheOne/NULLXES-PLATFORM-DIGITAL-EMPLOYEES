@@ -57,6 +57,7 @@ export function HqProfilePanel({ employees }: { employees: HqEmployee[] }) {
   const tDepartments = useTranslations("hq.departments");
   const tLegend = useTranslations("hq.legend");
   const selectedId = useOfficeStore((state) => state.selectedEmployeeId);
+  const openTalk = useOfficeStore((state) => state.openTalk);
 
   const employee = employees.find((item) => item.id === selectedId) ?? null;
 
@@ -202,13 +203,14 @@ export function HqProfilePanel({ employees }: { employees: HqEmployee[] }) {
 
       <div className="grid grid-cols-2 gap-2">
         {employee.canTalk ? (
-          <Link
-            href={`/dashboard/employees/${employee.id}/talk`}
+          <button
+            type="button"
+            onClick={() => openTalk(employee.id)}
             className="flex items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-xs text-white transition-colors hover:bg-white/[0.06]"
           >
             <MessageSquare className="size-3.5" />
             {t("actions.talk")}
-          </Link>
+          </button>
         ) : null}
         <Link
           href={`/dashboard/employees/${employee.id}`}

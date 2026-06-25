@@ -13,6 +13,7 @@ import { HqMetricsStrip } from "./hq-metrics-strip";
 import { HqOfficeCanvas } from "./hq-office-canvas";
 import { HqProfilePanel } from "./hq-profile-panel";
 import { HqStatusBar } from "./hq-status-bar";
+import { HqTalkOverlay } from "./hq-talk-overlay";
 
 export function HqScreen({
   state: initialState,
@@ -77,6 +78,8 @@ export function HqScreen({
           <HqDesignEditor employees={state.employees} />
         </TabsContent>
       </Tabs>
+
+      <HqTalkOverlay employees={state.employees} />
     </div>
   );
 }
