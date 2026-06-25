@@ -897,6 +897,15 @@
       "emptyTitle": "No employee selected",
       "emptyHint": "Select someone on the floor to view their profile.",
       "openProfile": "Open Agent Profile",
+      "none": "—",
+      "noTasks": "No active tasks right now.",
+      "noActivity": "No recent activity.",
+      "tabs": {
+        "profile": "Profile",
+        "tasks": "Tasks",
+        "metrics": "Metrics",
+        "activity": "Activity"
+      },
       "fields": {
         "status": "Status",
         "currentTask": "Current Task",
@@ -904,7 +913,11 @@
         "model": "Model",
         "runtime": "Runtime",
         "tasksToday": "Tasks Today",
-        "sessions": "Sessions"
+        "sessions": "Sessions",
+        "conversationTime": "Conversation Time",
+        "satisfaction": "Satisfaction",
+        "lastSession": "Last Session",
+        "live": "Live now"
       },
       "actions": {
         "talk": "Talk",

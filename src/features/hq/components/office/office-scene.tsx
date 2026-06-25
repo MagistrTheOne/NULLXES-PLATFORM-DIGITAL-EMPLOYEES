@@ -1,8 +1,9 @@
 "use client";
 
-import { Suspense } from "react";
-import { Canvas } from "@react-three/fiber";
+import { Suspense, useEffect, useRef } from "react";
+import { Canvas, useFrame } from "@react-three/fiber";
 import { MeshReflectorMaterial, OrbitControls } from "@react-three/drei";
+import { Vector3 } from "three";
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import { useOfficeStore } from "../../store/use-office-store";
 import { OfficeEmployee } from "./office-employee";
@@ -30,6 +31,49 @@ function MarbleFloor() {
       />
     </mesh>
   );
+}
+
+/**
+ * Smoothly recenters the orbit target on the selected employee so the active
+ * digital employee is always framed in the canvas (and never tucked behind the
+ * profile card). Only re-runs when the selected target actually changes, so it
+ * doesn't fight manual panning or periodic data refreshes.
+ */
+function CameraRig({
+  employees,
+  controlsRef,
+}: {
+  employees: SceneEmployee[];
+  controlsRef: React.RefObject<OrbitControlsImpl | null>;
+}) {
+  const selectedId = useOfficeStore((state) => state.selectedEmployeeId);
+  const selected = employees.find((employee) => employee.id === selectedId);
+  const px = selected ? selected.position[0] : 0;
+  const pz = selected ? selected.position[1] : 0;
+  const desired = useRef(new Vector3(0, 0.5, 0));
+  const focusing = useRef(false);
+
+  useEffect(() => {
+    desired.current.set(px, 0.5, pz);
+    focusing.current = true;
+  }, [px, pz]);
+
+  useFrame(() => {
+    if (!focusing.current) {
+      return;
+    }
+    const controls = controlsRef.current;
+    if (!controls) {
+      return;
+    }
+    controls.target.lerp(desired.current, 0.08);
+    controls.update();
+    if (controls.target.distanceTo(desired.current) < 0.03) {
+      focusing.current = false;
+    }
+  });
+
+  return null;
 }
 
 export default function OfficeScene({
@@ -90,6 +134,8 @@ export default function OfficeScene({
           <OfficeEmployee key={employee.id} employee={employee} />
         ))}
       </Suspense>
+
+      <CameraRig employees={employees} controlsRef={controlsRef} />
 
       <OrbitControls
         ref={controlsRef}

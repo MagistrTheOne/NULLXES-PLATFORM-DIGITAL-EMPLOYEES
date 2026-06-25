@@ -90,7 +90,7 @@ export function HqOfficeCanvas({ state }: { state: HqState }) {
   return (
     <div
       ref={containerRef}
-      className="relative h-[clamp(420px,58vh,680px)] w-full overflow-hidden rounded-3xl border border-white/10 bg-[#050505]"
+      className="relative isolate z-0 h-[clamp(420px,58vh,680px)] w-full overflow-hidden rounded-3xl border border-white/10 bg-[#050505]"
     >
       {state.employees.length > 0 ? (
         <OfficeScene
