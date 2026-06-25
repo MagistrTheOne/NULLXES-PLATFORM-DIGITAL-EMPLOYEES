@@ -1,11 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { Html } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { Group, Vector3 } from "three";
 import { STATUS_COLORS } from "../../lib/office-layout";
 import { useOfficeStore } from "../../store/use-office-store";
+import { CharacterModel } from "./character-model";
+import { HQ_MODEL_PATHS } from "./office-models";
 import type { SceneEmployee } from "./scene-types";
 
 const ATRIUM = new Vector3(0, 0, 0);
@@ -126,41 +128,57 @@ export function OfficeEmployee({ employee }: { employee: SceneEmployee }) {
           selectEmployee(employee.id);
         }}
       >
-        {/* Legs (pivot at hips for walk swing) */}
-        <group ref={legLeftRef} position={[-0.07, 0.32, 0]}>
-          <mesh position={[0, -0.16, 0]} castShadow>
-            <capsuleGeometry args={[0.05, 0.26, 4, 8]} />
-            <meshStandardMaterial color={bodyColor} roughness={0.6} />
-          </mesh>
-        </group>
-        <group ref={legRightRef} position={[0.07, 0.32, 0]}>
-          <mesh position={[0, -0.16, 0]} castShadow>
-            <capsuleGeometry args={[0.05, 0.26, 4, 8]} />
-            <meshStandardMaterial color={bodyColor} roughness={0.6} />
-          </mesh>
-        </group>
+        {HQ_MODEL_PATHS.character ? (
+          <Suspense fallback={null}>
+            <CharacterModel url={HQ_MODEL_PATHS.character} />
+          </Suspense>
+        ) : (
+          <>
+            {/* Legs (pivot at hips for walk swing) */}
+            <group ref={legLeftRef} position={[-0.07, 0.32, 0]}>
+              <mesh position={[0, -0.16, 0]} castShadow>
+                <capsuleGeometry args={[0.05, 0.26, 4, 8]} />
+                <meshStandardMaterial color={bodyColor} roughness={0.6} />
+              </mesh>
+            </group>
+            <group ref={legRightRef} position={[0.07, 0.32, 0]}>
+              <mesh position={[0, -0.16, 0]} castShadow>
+                <capsuleGeometry args={[0.05, 0.26, 4, 8]} />
+                <meshStandardMaterial color={bodyColor} roughness={0.6} />
+              </mesh>
+            </group>
 
-        {/* Torso */}
-        <mesh position={[0, 0.56, 0]} castShadow>
-          <capsuleGeometry args={[0.145, 0.32, 6, 14]} />
-          <meshStandardMaterial color={bodyColor} roughness={0.55} metalness={0.1} />
-        </mesh>
+            {/* Torso */}
+            <mesh position={[0, 0.56, 0]} castShadow>
+              <capsuleGeometry args={[0.145, 0.32, 6, 14]} />
+              <meshStandardMaterial
+                color={bodyColor}
+                roughness={0.55}
+                metalness={0.1}
+              />
+            </mesh>
 
-        {/* Arms */}
-        <mesh position={[-0.19, 0.6, 0]} rotation={[0, 0, 0.2]} castShadow>
-          <capsuleGeometry args={[0.045, 0.3, 4, 8]} />
-          <meshStandardMaterial color={bodyColor} roughness={0.6} />
-        </mesh>
-        <mesh position={[0.19, 0.6, 0]} rotation={[0, 0, -0.2]} castShadow>
-          <capsuleGeometry args={[0.045, 0.3, 4, 8]} />
-          <meshStandardMaterial color={bodyColor} roughness={0.6} />
-        </mesh>
+            {/* Arms */}
+            <mesh position={[-0.19, 0.6, 0]} rotation={[0, 0, 0.2]} castShadow>
+              <capsuleGeometry args={[0.045, 0.3, 4, 8]} />
+              <meshStandardMaterial color={bodyColor} roughness={0.6} />
+            </mesh>
+            <mesh position={[0.19, 0.6, 0]} rotation={[0, 0, -0.2]} castShadow>
+              <capsuleGeometry args={[0.045, 0.3, 4, 8]} />
+              <meshStandardMaterial color={bodyColor} roughness={0.6} />
+            </mesh>
 
-        {/* Head */}
-        <mesh position={[0, 0.92, 0]} castShadow>
-          <sphereGeometry args={[0.13, 18, 18]} />
-          <meshStandardMaterial color="#dcdcdc" roughness={0.4} metalness={0.05} />
-        </mesh>
+            {/* Head */}
+            <mesh position={[0, 0.92, 0]} castShadow>
+              <sphereGeometry args={[0.13, 18, 18]} />
+              <meshStandardMaterial
+                color="#dcdcdc"
+                roughness={0.4}
+                metalness={0.05}
+              />
+            </mesh>
+          </>
+        )}
       </group>
 
       {/* Ground status ring (stays on the floor under the figure) */}
@@ -179,11 +197,11 @@ export function OfficeEmployee({ employee }: { employee: SceneEmployee }) {
         </mesh>
       ) : null}
 
-      {/* Floating name / task badge */}
+      {/* Floating name / task badge (screen-space: stable size under the
+          orthographic camera, where distanceFactor scaling breaks) */}
       <Html
         position={[0, 1.45, 0]}
         center
-        distanceFactor={9}
         zIndexRange={[20, 0]}
         wrapperClass="pointer-events-none"
       >

@@ -148,7 +148,6 @@ export function OfficeRoom({ room }: { room: SceneRoom }) {
       <Html
         position={[def.x, WALL_HEIGHT + 0.22, labelZ]}
         center
-        distanceFactor={11}
         zIndexRange={[10, 0]}
         wrapperClass="pointer-events-none"
       >

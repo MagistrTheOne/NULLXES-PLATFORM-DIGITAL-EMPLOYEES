@@ -2,15 +2,12 @@
 
 import { Suspense } from "react";
 import { Canvas } from "@react-three/fiber";
-import {
-  Environment,
-  Lightformer,
-  MeshReflectorMaterial,
-  OrbitControls,
-} from "@react-three/drei";
+import { MeshReflectorMaterial, OrbitControls } from "@react-three/drei";
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import { useOfficeStore } from "../../store/use-office-store";
 import { OfficeEmployee } from "./office-employee";
+import { OfficeEnvironment } from "./office-environment";
+import { HQ_MODEL_PATHS } from "./office-models";
 import { OfficeRoom } from "./office-room";
 import type { SceneEmployee, SceneRoom } from "./scene-types";
 
@@ -50,7 +47,7 @@ export default function OfficeScene({
     <Canvas
       shadows
       orthographic
-      camera={{ position: [20, 17, 20], zoom: 40, near: 1, far: 240 }}
+      camera={{ position: [22, 18, 22], zoom: 34, near: 1, far: 240 }}
       gl={{ antialias: true, preserveDrawingBuffer: false }}
       dpr={[1, 2]}
       onPointerMissed={() => selectEmployee(null)}
@@ -60,11 +57,11 @@ export default function OfficeScene({
       <fog attach="fog" args={["#050505", 45, 95]} />
 
       <Suspense fallback={null}>
-        <ambientLight intensity={0.55} />
-        <hemisphereLight intensity={0.25} groundColor="#000000" color="#ffffff" />
+        <ambientLight intensity={0.7} />
+        <hemisphereLight intensity={0.4} groundColor="#050505" color="#ffffff" />
         <directionalLight
           position={[14, 22, 10]}
-          intensity={1.35}
+          intensity={1.5}
           castShadow
           shadow-mapSize={[2048, 2048]}
           shadow-camera-left={-30}
@@ -75,35 +72,19 @@ export default function OfficeScene({
           shadow-camera-far={80}
           shadow-bias={-0.0004}
         />
-        <directionalLight position={[-16, 12, -8]} intensity={0.35} />
+        <directionalLight position={[-16, 12, -8]} intensity={0.5} />
+        <pointLight position={[0, 10, 0]} intensity={0.4} distance={60} />
 
-        <Environment resolution={256}>
-          <Lightformer
-            form="rect"
-            intensity={2}
-            position={[0, 12, 0]}
-            scale={[20, 8, 1]}
-            rotation={[Math.PI / 2, 0, 0]}
-          />
-          <Lightformer
-            form="rect"
-            intensity={1.2}
-            position={[12, 6, 12]}
-            scale={[8, 8, 1]}
-          />
-          <Lightformer
-            form="rect"
-            intensity={0.8}
-            position={[-12, 6, -12]}
-            scale={[8, 8, 1]}
-          />
-        </Environment>
-
-        <MarbleFloor />
-
-        {rooms.map((room) => (
-          <OfficeRoom key={room.def.department} room={room} />
-        ))}
+        {HQ_MODEL_PATHS.office ? (
+          <OfficeEnvironment url={HQ_MODEL_PATHS.office} />
+        ) : (
+          <>
+            <MarbleFloor />
+            {rooms.map((room) => (
+              <OfficeRoom key={room.def.department} room={room} />
+            ))}
+          </>
+        )}
 
         {employees.map((employee) => (
           <OfficeEmployee key={employee.id} employee={employee} />
