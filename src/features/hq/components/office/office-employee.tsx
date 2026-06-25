@@ -5,6 +5,7 @@ import { Html } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { Group, Vector3 } from "three";
 import { STATUS_COLORS } from "../../lib/office-layout";
+import { MEETING_POINT } from "../../lib/standup";
 import { useOfficeStore } from "../../store/use-office-store";
 import { CharacterModel } from "./character-model";
 import type { SceneEmployee } from "./scene-types";
@@ -188,8 +189,14 @@ export function OfficeEmployee({ employee }: { employee: SceneEmployee }) {
       if (reach.length() < 0.25 && pathIndex.current < path.length - 1) {
         pathIndex.current += 1;
       }
-    } else if (pathIndex.current !== 0) {
-      pathIndex.current = 0;
+    } else {
+      if (pathIndex.current !== 0) {
+        pathIndex.current = 0;
+      }
+      // Standup: head to the assigned atrium ring slot and hold there.
+      if (employee.meetingTarget) {
+        goal.current.set(employee.meetingTarget[0], 0, employee.meetingTarget[1]);
+      }
     }
 
     tmpDir.copy(goal.current).sub(posRef.current);
@@ -204,7 +211,14 @@ export function OfficeEmployee({ employee }: { employee: SceneEmployee }) {
       root.rotation.y += (targetYaw - root.rotation.y) * Math.min(1, delta * 8);
     } else {
       movingRef.current = false;
-      if (!employee.task && time >= nextDecisionAt.current) {
+      // Face the ring center while standing in the meeting.
+      if (employee.meetingTarget) {
+        const faceYaw = Math.atan2(
+          MEETING_POINT[0] - posRef.current.x,
+          MEETING_POINT[1] - posRef.current.z,
+        );
+        root.rotation.y += (faceYaw - root.rotation.y) * Math.min(1, delta * 6);
+      } else if (!employee.task && time >= nextDecisionAt.current) {
         decide(time);
       }
     }
@@ -362,6 +376,10 @@ export function OfficeEmployee({ employee }: { employee: SceneEmployee }) {
           {employee.task ? (
             <span className="rounded-full bg-white/15 px-1.5 py-0.5 text-[10px] font-medium leading-none text-white/90">
               {employee.task.label}
+            </span>
+          ) : employee.meetingTarget ? (
+            <span className="rounded-full bg-white/15 px-1.5 py-0.5 text-[10px] font-medium leading-none text-white/90">
+              {employee.meetingLabel}
             </span>
           ) : employee.taskLabel ? (
             <span className="text-[10px] leading-none text-white/45">

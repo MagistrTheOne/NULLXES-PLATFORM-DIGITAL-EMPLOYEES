@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
 import { Loader2, Maximize2, Minus, Plus, Sparkles } from "lucide-react";
@@ -13,6 +13,7 @@ import {
 } from "../lib/office-layout";
 import { DEPARTMENT_ORDER } from "../lib/department-layout";
 import { buildErrandPath } from "../lib/nav-graph";
+import { computeStandup } from "../lib/standup";
 import { resolveActivityBadgeLabel } from "../lib/resolve-activity-label";
 import { pickCharacterModel } from "./office/office-models";
 import type { EmployeeThoughtsMap } from "../services/generate-employee-thoughts";
@@ -56,6 +57,21 @@ export function HqOfficeCanvas({
   const idleThoughts = tLofi.raw("thoughts") as string[];
   const activeThoughts = tLofi.raw("thoughtsActive") as string[];
   const reactions = tLofi.raw("reactions") as string[];
+  const meetingLabel = tLofi("meeting");
+
+  // Coarse ticking clock (1s) so standups can start/end without a render loop.
+  const [nowSeconds, setNowSeconds] = useState(() => Date.now() / 1000);
+  useEffect(() => {
+    const id = window.setInterval(
+      () => setNowSeconds(Date.now() / 1000),
+      1000,
+    );
+    return () => window.clearInterval(id);
+  }, []);
+  const standup = useMemo(
+    () => computeStandup(state.employees, nowSeconds),
+    [state.employees, nowSeconds],
+  );
   const controlsRef = useRef<OrbitControlsImpl | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -104,6 +120,8 @@ export function HqOfficeCanvas({
               ? activeThoughts
               : idleThoughts,
         reactions,
+        meetingTarget: standup.get(employee.id) ?? null,
+        meetingLabel,
         modelUrl: pickCharacterModel(employee.name),
         task: employee.task
           ? (() => {

@@ -37,6 +37,10 @@ export type SceneEmployee = {
     /** Invisible waypoint route (home door → atrium → destination door → target). */
     path: [number, number][];
   } | null;
+  /** Atrium ring slot during a standup, or null when not gathering. */
+  meetingTarget: [number, number] | null;
+  /** Localized standup badge label (e.g. "Standup"). */
+  meetingLabel: string;
 };
 
 export type SceneRoom = {
