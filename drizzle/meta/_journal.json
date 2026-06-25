@@ -141,6 +141,13 @@
       "when": 1782409986599,
       "tag": "0019_hq_department",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1782500000000,
+      "tag": "0020_hq_task",
+      "breakpoints": true
     }
   ]
 }

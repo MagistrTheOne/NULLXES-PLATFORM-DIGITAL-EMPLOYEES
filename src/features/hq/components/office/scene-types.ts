@@ -25,6 +25,14 @@ export type SceneEmployee = {
   thoughts: string[];
   /** GLB character model, or null to use the procedural figure. */
   modelUrl: string | null;
+  /**
+   * Active floor errand: when set, the employee walks to `target` (a room
+   * center) and lingers there until the task clears, overriding roaming.
+   */
+  task: {
+    label: string;
+    target: [number, number];
+  } | null;
 };
 
 export type SceneRoom = {

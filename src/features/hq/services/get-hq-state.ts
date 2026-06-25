@@ -9,6 +9,7 @@ import {
 } from "../lib/derive-employee-activity";
 import { DEPARTMENT_ORDER } from "../lib/department-layout";
 import { resolveEmployeeDepartment } from "../lib/map-employee-department";
+import { getActiveHqTasks } from "../queries/get-active-hq-tasks";
 import {
   emptyPerformance,
   getEmployeePerformance,
@@ -32,14 +33,21 @@ import type {
 export async function getHqState(organizationId: string): Promise<HqState> {
   return withDatabaseRetry(async () => {
     const range = getDefaultAnalyticsRange();
-    const [employees, summaries, liveSessions, taskSnapshots, performance] =
-      await Promise.all([
-        listOrganizationEmployees(organizationId).then((page) => page.items),
-        getEmployeeSessionSummaries(organizationId, range),
-        getLiveSessions(organizationId),
-        getEmployeeTaskSnapshots(organizationId),
-        getEmployeePerformance(organizationId, range),
-      ]);
+    const [
+      employees,
+      summaries,
+      liveSessions,
+      taskSnapshots,
+      performance,
+      activeTasks,
+    ] = await Promise.all([
+      listOrganizationEmployees(organizationId).then((page) => page.items),
+      getEmployeeSessionSummaries(organizationId, range),
+      getLiveSessions(organizationId),
+      getEmployeeTaskSnapshots(organizationId),
+      getEmployeePerformance(organizationId, range),
+      getActiveHqTasks(organizationId),
+    ]);
 
     const summaryByEmployeeId = new Map(
       summaries.map((summary) => [summary.employeeId, summary]),
@@ -54,6 +62,7 @@ export async function getHqState(organizationId: string): Promise<HqState> {
       const sessionsInRange = summary?.sessionsInRange ?? 0;
       const tasks = taskSnapshots.get(employee.id) ?? emptyTaskSnapshot();
       const perf = performance.get(employee.id) ?? emptyPerformance();
+      const activeTask = activeTasks.get(employee.id) ?? null;
       const activityInput = { isLive, status: employee.status, tasks };
 
       return {
@@ -70,6 +79,9 @@ export async function getHqState(organizationId: string): Promise<HqState> {
           employee.role,
         ),
         activity: deriveEmployeeActivity(activityInput),
+        task: activeTask
+          ? { destination: activeTask.destination, label: activeTask.label }
+          : null,
         sessionsInRange,
         conversationSeconds: perf.conversationSeconds,
         satisfactionAvg: perf.satisfactionAvg,

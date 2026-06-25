@@ -1,5 +1,6 @@
 import type { AnamClient } from "@anam-ai/js-sdk";
 import type { Channel as StreamChannel, Event } from "stream-chat";
+import { dispatchHqTaskFromChatAction } from "@/features/hq/actions/dispatch-hq-task-from-chat";
 import { appendSessionMessageAction } from "../actions/employee-session";
 import { playTalkVoiceReply } from "./play-talk-voice-reply";
 import { streamTalkBrainReply } from "./stream-talk-brain-client";
@@ -87,6 +88,13 @@ export function attachTalkChatPipeline(input: {
             streamMessageId: message.id,
           });
         }
+
+        // Floor errand command ("go to CRM"): dispatch out-of-band so the
+        // employee starts walking on the HQ floor. Never blocks the reply.
+        void dispatchHqTaskFromChatAction(
+          input.employeeId,
+          message.text!.trim(),
+        ).catch(() => undefined);
 
         const pipelineMessages = buildPipelineMessages(input.channel, botUserId);
         const replyText = await streamTalkBrainReply({

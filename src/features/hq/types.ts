@@ -35,6 +35,15 @@ export type HqActivity = {
   badge: HqActivityBadge | null;
 };
 
+/**
+ * An in-flight floor errand (e.g. issued from chat: "go to CRM"). Drives the
+ * employee to physically walk to a destination room until it completes.
+ */
+export type HqActiveTask = {
+  destination: HqDepartment;
+  label: string;
+};
+
 export type HqEmployee = {
   id: string;
   name: string;
@@ -46,6 +55,8 @@ export type HqEmployee = {
   avatarProvisioningStatus: ProviderProvisioningStatus;
   department: HqDepartment;
   activity: HqActivity;
+  /** Active floor errand the employee is walking, or null when at the desk. */
+  task: HqActiveTask | null;
   sessionsInRange: number;
   /** Total conversation time across sessions in range, in seconds. */
   conversationSeconds: number;

@@ -119,6 +119,12 @@ export function OfficeEmployee({ employee }: { employee: SceneEmployee }) {
       setThought(null);
     }
 
+    // An active floor errand overrides ambient behavior: walk straight to the
+    // destination room and dwell there until the task clears from state.
+    if (employee.task) {
+      goal.current.set(employee.task.target[0], 0, employee.task.target[1]);
+    }
+
     tmpDir.copy(goal.current).sub(posRef.current);
     tmpDir.y = 0;
     const dist = tmpDir.length();
@@ -131,7 +137,7 @@ export function OfficeEmployee({ employee }: { employee: SceneEmployee }) {
       root.rotation.y += (targetYaw - root.rotation.y) * Math.min(1, delta * 8);
     } else {
       movingRef.current = false;
-      if (time >= nextDecisionAt.current) {
+      if (!employee.task && time >= nextDecisionAt.current) {
         decide(time);
       }
     }
@@ -276,7 +282,11 @@ export function OfficeEmployee({ employee }: { employee: SceneEmployee }) {
           <span className="text-[11px] font-medium leading-none text-white">
             {employee.name}
           </span>
-          {employee.taskLabel ? (
+          {employee.task ? (
+            <span className="rounded-full bg-white/15 px-1.5 py-0.5 text-[10px] font-medium leading-none text-white/90">
+              {employee.task.label}
+            </span>
+          ) : employee.taskLabel ? (
             <span className="text-[10px] leading-none text-white/45">
               {employee.taskLabel}
             </span>

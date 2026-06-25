@@ -102,6 +102,15 @@ export function HqOfficeCanvas({
               ? activeThoughts
               : idleThoughts,
         modelUrl: pickCharacterModel(employee.name),
+        task: employee.task
+          ? {
+              label: employee.task.label,
+              target: [
+                OFFICE_ROOMS[employee.task.destination].x,
+                OFFICE_ROOMS[employee.task.destination].z,
+              ],
+            }
+          : null,
       };
     });
   });

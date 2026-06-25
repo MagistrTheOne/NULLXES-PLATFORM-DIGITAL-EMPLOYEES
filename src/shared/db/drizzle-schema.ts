@@ -6,6 +6,8 @@ import * as sessionMessageRelations from "@/entities/session-message/relations";
 import * as sessionMessageSchema from "@/entities/session-message/schema";
 import * as taskRelations from "@/entities/task/relations";
 import * as taskSchema from "@/entities/task/schema";
+import * as hqTaskRelations from "@/entities/hq-task/relations";
+import * as hqTaskSchema from "@/entities/hq-task/schema";
 import * as workEventRelations from "@/entities/work-event/relations";
 import * as workEventSchema from "@/entities/work-event/schema";
 import * as auditRelations from "@/entities/audit/relations";
@@ -76,6 +78,8 @@ export const drizzleSchema = {
   ...sessionMessageRelations,
   ...taskSchema,
   ...taskRelations,
+  ...hqTaskSchema,
+  ...hqTaskRelations,
   ...workEventSchema,
   ...workEventRelations,
   ...agentApprovalSchema,

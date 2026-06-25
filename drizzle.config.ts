@@ -36,6 +36,8 @@ export default defineConfig({
     "./src/entities/session-message/relations.ts",
     "./src/entities/task/schema.ts",
     "./src/entities/task/relations.ts",
+    "./src/entities/hq-task/schema.ts",
+    "./src/entities/hq-task/relations.ts",
     "./src/entities/work-event/schema.ts",
     "./src/entities/work-event/relations.ts",
     "./src/entities/agent-approval/schema.ts",
