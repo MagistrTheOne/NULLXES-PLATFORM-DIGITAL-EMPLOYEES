@@ -54,6 +54,7 @@ export function HqOfficeCanvas({
 
   const idleThoughts = tLofi.raw("thoughts") as string[];
   const activeThoughts = tLofi.raw("thoughtsActive") as string[];
+  const reactions = tLofi.raw("reactions") as string[];
   const controlsRef = useRef<OrbitControlsImpl | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -101,6 +102,7 @@ export function HqOfficeCanvas({
             : isActive
               ? activeThoughts
               : idleThoughts,
+        reactions,
         modelUrl: pickCharacterModel(employee.name),
         task: employee.task
           ? {

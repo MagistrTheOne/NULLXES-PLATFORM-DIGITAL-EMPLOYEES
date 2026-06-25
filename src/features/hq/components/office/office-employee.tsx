@@ -32,12 +32,23 @@ export function OfficeEmployee({ employee }: { employee: SceneEmployee }) {
   const [hovered, setHovered] = useState(false);
   const selectedId = useOfficeStore((state) => state.selectedEmployeeId);
   const selectEmployee = useOfficeStore((state) => state.selectEmployee);
+  const beginDrag = useOfficeStore((state) => state.beginDrag);
+  const draggingId = useOfficeStore((state) => state.draggingId);
+  const dragTarget = useOfficeStore((state) => state.dragTarget);
+  const override = useOfficeStore((state) => state.overrides[employee.id]);
+
+  const isDragging = draggingId === employee.id;
+  const wasDragging = useRef(false);
+  const liftY = useRef(0);
 
   const isSelected = selectedId === employee.id;
   const color = STATUS_COLORS[employee.status];
   const bodyColor = employee.status === "offline" ? "#2a2a2a" : "#161616";
 
   const [thought, setThought] = useState<string | null>(null);
+  const [bubbleKind, setBubbleKind] = useState<"thought" | "reaction">(
+    "thought",
+  );
 
   // Imperative motion state (kept out of React to avoid re-renders).
   const seed = useRef(
@@ -50,13 +61,14 @@ export function OfficeEmployee({ employee }: { employee: SceneEmployee }) {
   const goal = useRef(new Vector3(employee.position[0], 0, employee.position[1]));
   const nextDecisionAt = useRef(1 + rng.current() * 6);
   const thoughtHideAt = useRef(0);
+  const clockRef = useRef(0);
   const movingRef = useRef(false);
   const idlePhase = useRef(rng.current() * Math.PI * 2);
 
-  const deskPoint = (): [number, number] => [
-    employee.position[0],
-    employee.position[1],
-  ];
+  // The "home" desk is the dragged placement when present, else the layout seat.
+  const homePoint = (): [number, number] =>
+    override ?? [employee.position[0], employee.position[1]];
+  const deskPoint = (): [number, number] => homePoint();
   const coffeePoint = (): [number, number] => [
     employee.roam.maxX,
     employee.roam.maxZ,
@@ -69,9 +81,22 @@ export function OfficeEmployee({ employee }: { employee: SceneEmployee }) {
   const emitThought = (time: number) => {
     const pool = employee.thoughts;
     if (pool.length > 0) {
+      setBubbleKind("thought");
       setThought(pool[Math.floor(rng.current() * pool.length)] ?? null);
       thoughtHideAt.current = time + 4;
     }
+  };
+
+  // NULLXES/kavka one-liner when the user grabs or drops the figure. Uses the
+  // render clock so the bubble auto-hides through the same useFrame timer.
+  const emitReaction = () => {
+    const pool = employee.reactions;
+    if (pool.length === 0) {
+      return;
+    }
+    setBubbleKind("reaction");
+    setThought(pool[Math.floor(rng.current() * pool.length)] ?? null);
+    thoughtHideAt.current = clockRef.current + 3.5;
   };
 
   // Autonomous "lofi" decision loop. Active employees move often; idle ones
@@ -102,11 +127,12 @@ export function OfficeEmployee({ employee }: { employee: SceneEmployee }) {
     nextDecisionAt.current = time + gap;
   };
 
-  // Reset the goal when behavior or seat changes (reassignment / status flip).
+  // Reset the goal when behavior, seat, or manual placement changes.
   useEffect(() => {
-    goal.current.set(employee.position[0], 0, employee.position[1]);
+    const [hx, hz] = override ?? [employee.position[0], employee.position[1]];
+    goal.current.set(hx, 0, hz);
     movingRef.current = false;
-  }, [employee.behavior, employee.position]);
+  }, [employee.behavior, employee.position, override]);
 
   useFrame((state, delta) => {
     const root = rootRef.current;
@@ -114,10 +140,38 @@ export function OfficeEmployee({ employee }: { employee: SceneEmployee }) {
       return;
     }
     const time = state.clock.elapsedTime;
+    clockRef.current = time;
 
     if (thought !== null && time >= thoughtHideAt.current) {
       setThought(null);
     }
+
+    // --- Mouse drag: snap to the pointer position and lift off the floor. ---
+    if (isDragging) {
+      if (dragTarget) {
+        posRef.current.set(dragTarget[0], 0, dragTarget[1]);
+      }
+      root.position.x = posRef.current.x;
+      root.position.z = posRef.current.z;
+      liftY.current += (0.45 - liftY.current) * Math.min(1, delta * 12);
+      root.position.y = liftY.current + Math.sin(time * 6) * 0.03;
+      if (!wasDragging.current) {
+        wasDragging.current = true;
+        emitReaction();
+      }
+      const dragScale = 1.18;
+      scaleTarget.setScalar(dragScale);
+      root.scale.lerp(scaleTarget, 0.25);
+      return;
+    }
+
+    // Just dropped: settle back to the floor and react once.
+    if (wasDragging.current) {
+      wasDragging.current = false;
+      emitReaction();
+    }
+    liftY.current += (0 - liftY.current) * Math.min(1, delta * 10);
+    root.position.y = liftY.current;
 
     // An active floor errand overrides ambient behavior: walk straight to the
     // destination room and dwell there until the task clears from state.
@@ -171,16 +225,20 @@ export function OfficeEmployee({ employee }: { employee: SceneEmployee }) {
         onPointerOver={(event) => {
           event.stopPropagation();
           setHovered(true);
-          document.body.style.cursor = "pointer";
+          document.body.style.cursor = "grab";
         }}
         onPointerOut={(event) => {
           event.stopPropagation();
           setHovered(false);
-          document.body.style.cursor = "default";
+          if (!isDragging) {
+            document.body.style.cursor = "default";
+          }
         }}
-        onClick={(event) => {
+        onPointerDown={(event) => {
           event.stopPropagation();
           selectEmployee(employee.id);
+          beginDrag(employee.id);
+          document.body.style.cursor = "grabbing";
         }}
       >
         {employee.modelUrl ? (
@@ -252,7 +310,7 @@ export function OfficeEmployee({ employee }: { employee: SceneEmployee }) {
         </mesh>
       ) : null}
 
-      {/* Lofi thought bubble (appears periodically, then fades out) */}
+      {/* Bubble: lofi thought (light) or a grab/drop reaction (dark NULLXES). */}
       {thought ? (
         <Html
           position={[0, 1.92, 0]}
@@ -260,7 +318,13 @@ export function OfficeEmployee({ employee }: { employee: SceneEmployee }) {
           zIndexRange={[30, 0]}
           wrapperClass="pointer-events-none"
         >
-          <div className="pointer-events-none flex select-none items-center whitespace-nowrap rounded-2xl border border-black/10 bg-white/90 px-2.5 py-1 text-[10px] font-medium leading-none text-black shadow-sm backdrop-blur-md">
+          <div
+            className={
+              bubbleKind === "reaction"
+                ? "pointer-events-none flex max-w-[180px] select-none items-center rounded-2xl border border-white/15 bg-black/85 px-2.5 py-1 text-center text-[10px] font-medium leading-tight text-white shadow-md backdrop-blur-md"
+                : "pointer-events-none flex select-none items-center whitespace-nowrap rounded-2xl border border-black/10 bg-white/90 px-2.5 py-1 text-[10px] font-medium leading-none text-black shadow-sm backdrop-blur-md"
+            }
+          >
             {thought}
           </div>
         </Html>

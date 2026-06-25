@@ -23,6 +23,8 @@ export type SceneEmployee = {
   behavior: "roam" | "lofi" | "still";
   /** Curated lofi thought lines (resolved i18n) shown periodically in a bubble. */
   thoughts: string[];
+  /** NULLXES/kavka-style one-liners shown when the user grabs/drops the figure. */
+  reactions: string[];
   /** GLB character model, or null to use the procedural figure. */
   modelUrl: string | null;
   /**

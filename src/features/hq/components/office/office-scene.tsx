@@ -22,6 +22,38 @@ const CEILING_LIGHTS: Array<[number, number]> = [
   [-12.5, 0.5],
 ];
 
+/**
+ * Transparent full-bleed plane mounted only while dragging. It captures pointer
+ * move/up across the whole canvas and reports the world position under the
+ * cursor, so a grabbed employee follows the mouse even off its own mesh.
+ */
+function DragPlane() {
+  const updateDragTarget = useOfficeStore((state) => state.updateDragTarget);
+  const endDrag = useOfficeStore((state) => state.endDrag);
+  return (
+    <mesh
+      rotation={[-Math.PI / 2, 0, 0]}
+      position={[0, 0.05, 0]}
+      onPointerMove={(event) => {
+        event.stopPropagation();
+        updateDragTarget([event.point.x, event.point.z]);
+      }}
+      onPointerUp={(event) => {
+        event.stopPropagation();
+        endDrag();
+        document.body.style.cursor = "default";
+      }}
+      onPointerLeave={() => {
+        endDrag();
+        document.body.style.cursor = "default";
+      }}
+    >
+      <planeGeometry args={[200, 200]} />
+      <meshBasicMaterial transparent opacity={0} depthWrite={false} />
+    </mesh>
+  );
+}
+
 function MarbleFloor() {
   return (
     <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
@@ -96,6 +128,7 @@ export default function OfficeScene({
   controlsRef: React.RefObject<OrbitControlsImpl | null>;
 }) {
   const selectEmployee = useOfficeStore((state) => state.selectEmployee);
+  const draggingId = useOfficeStore((state) => state.draggingId);
 
   return (
     <Canvas
@@ -164,6 +197,8 @@ export default function OfficeScene({
         {employees.map((employee) => (
           <OfficeEmployee key={employee.id} employee={employee} />
         ))}
+
+        {draggingId ? <DragPlane /> : null}
       </Suspense>
 
       <CameraRig employees={employees} controlsRef={controlsRef} />
@@ -171,6 +206,7 @@ export default function OfficeScene({
       <OrbitControls
         ref={controlsRef}
         makeDefault
+        enabled={draggingId === null}
         enablePan
         enableZoom
         enableRotate
