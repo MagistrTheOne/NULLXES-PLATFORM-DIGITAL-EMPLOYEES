@@ -367,6 +367,11 @@
         "satisfaction": "Satisfaction Score",
         "viewFullProfile": "View full profile"
       },
+      "sessions": {
+        "title": "Sessions",
+        "new": "New",
+        "main": "Main"
+      },
       "chat": {
         "title": "Session chat",
         "empty": "Send a message to start the conversation",

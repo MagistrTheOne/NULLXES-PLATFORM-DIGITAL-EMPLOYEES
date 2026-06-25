@@ -126,6 +126,7 @@ class TalkChatErrorBoundary extends Component<
 export function EmployeeTalkChat({
   chatSession,
   employeeId,
+  threadId = null,
   brainModelLabel,
   employeeSessionId,
   isSessionLive,
@@ -133,6 +134,7 @@ export function EmployeeTalkChat({
 }: {
   chatSession: TalkChatCredentials | null;
   employeeId: string;
+  threadId?: string | null;
   brainModelLabel?: string | null;
   employeeSessionId?: string;
   isSessionLive: boolean;
@@ -168,7 +170,7 @@ export function EmployeeTalkChat({
         return activeChatSession;
       }
 
-      const result = await connectTalkChatSessionAction(employeeId);
+      const result = await connectTalkChatSessionAction(employeeId, threadId);
       if (!result.ok) {
         throw new Error(result.message);
       }

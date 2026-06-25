@@ -13,6 +13,7 @@ export type ConnectTalkChatSessionResult =
 
 export async function connectTalkChatSessionAction(
   employeeId: string,
+  threadId?: string | null,
 ): Promise<ConnectTalkChatSessionResult> {
   try {
     const workspace = await requireWorkspacePermissionOrThrowMessage(
@@ -34,6 +35,7 @@ export async function connectTalkChatSessionAction(
       workspace.user.id,
       workspace.user.name,
       talkContext,
+      { threadId: threadId ?? null },
     );
 
     if (!chatSession) {

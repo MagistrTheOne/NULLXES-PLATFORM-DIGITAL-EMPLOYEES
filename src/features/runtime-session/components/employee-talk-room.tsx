@@ -20,6 +20,11 @@ import {
   TalkAgentDetailsPanel,
   type TalkAgentDetails,
 } from "./talk-agent-details";
+import {
+  TalkSessionsSidebar,
+  type TalkThreadItem,
+} from "./talk-sessions-sidebar";
+import { listTalkThreadsAction } from "../actions/list-talk-threads";
 import type { TalkChatCredentials } from "../services/create-talk-chat-session";
 import { useTalkAnam } from "../context/talk-anam-context";
 import { startTalkSessionAction } from "../actions/employee-session";
@@ -322,25 +327,100 @@ function TalkStagePanel({
   );
 }
 
+function createThreadId(): string {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID();
+  }
+  return `t${Date.now()}${Math.random().toString(36).slice(2, 8)}`;
+}
+
 function TalkChatPanel({
   chatSession,
   employeeId,
   brainModelLabel,
   activeSession,
+  layout = "desktop",
 }: Pick<
   EmployeeTalkRoomProps,
   "chatSession" | "employeeId" | "brainModelLabel" | "activeSession"
->) {
-  return (
-    <div className="employee-talk-chat-panel flex min-h-0 flex-col overflow-hidden rounded-xl border border-white/10 bg-[#0a0a0a] lg:self-stretch">
+> & {
+  layout?: "desktop" | "mobile";
+}) {
+  const t = useTranslations("employees.talk.sessions");
+  const [threads, setThreads] = useState<TalkThreadItem[]>([]);
+  const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const mainThread: TalkThreadItem = {
+    threadId: null,
+    title: t("main"),
+    lastMessageAt: null,
+  };
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    void listTalkThreadsAction(employeeId).then((remote) => {
+      if (cancelled) {
+        return;
+      }
+      setThreads(remote);
+      setLoading(false);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [employeeId]);
+
+  const handleNew = useCallback(() => {
+    const threadId = createThreadId();
+    setThreads((current) => [
+      { threadId, title: "New chat", lastMessageAt: new Date().toISOString() },
+      ...current,
+    ]);
+    setActiveThreadId(threadId);
+  }, []);
+
+  const allThreads = [mainThread, ...threads];
+
+  const sidebar = (
+    <TalkSessionsSidebar
+      threads={allThreads}
+      activeThreadId={activeThreadId}
+      loading={loading}
+      onSelect={setActiveThreadId}
+      onNew={handleNew}
+    />
+  );
+
+  const chat = (
+    <div className="employee-talk-chat-panel flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-white/10 bg-[#0a0a0a]">
       <EmployeeTalkChat
-        chatSession={chatSession}
+        key={activeThreadId ?? "main"}
+        chatSession={activeThreadId ? null : chatSession}
         employeeId={employeeId}
+        threadId={activeThreadId}
         brainModelLabel={brainModelLabel}
         employeeSessionId={activeSession?.sessionId}
         isSessionLive={Boolean(activeSession)}
         voiceMode={activeSession?.voiceMode ?? "anam"}
       />
+    </div>
+  );
+
+  if (layout === "mobile") {
+    return (
+      <div className="flex min-h-0 flex-1 flex-col gap-2">
+        <div className="max-h-40 shrink-0">{sidebar}</div>
+        {chat}
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex min-h-0 flex-col gap-3 lg:grid lg:grid-cols-[168px_minmax(0,1fr)] lg:self-stretch">
+      <div className="hidden min-h-0 lg:block">{sidebar}</div>
+      {chat}
     </div>
   );
 }
@@ -393,7 +473,7 @@ function TalkRoomLayout(props: EmployeeTalkRoomProps) {
   if (isDesktop) {
     return (
       <div className="employee-talk-workspace employee-talk-shell mx-auto w-full">
-        <div className="employee-talk-grid employee-talk-desktop-layout grid min-h-0 gap-4 min-[900px]:grid-cols-[1fr_300px] min-[900px]:items-stretch lg:grid-cols-[minmax(0,1fr)_320px] min-[1280px]:grid-cols-[minmax(0,1fr)_340px_300px]">
+        <div className="employee-talk-grid employee-talk-desktop-layout grid min-h-0 gap-4 min-[900px]:grid-cols-[1fr_320px] min-[900px]:items-stretch lg:grid-cols-[minmax(0,1fr)_minmax(420px,0.85fr)] min-[1280px]:grid-cols-[minmax(0,1fr)_minmax(480px,0.9fr)_300px]">
           <TalkStagePanel {...props} prefetchedTokenRef={prefetchedTokenRef} />
           <TalkChatPanel
             chatSession={props.chatSession}
@@ -450,6 +530,7 @@ function TalkRoomLayout(props: EmployeeTalkRoomProps) {
             employeeId={props.employeeId}
             brainModelLabel={props.brainModelLabel}
             activeSession={props.activeSession}
+            layout="mobile"
           />
         </TabsContent>
         <TabsContent

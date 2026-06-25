@@ -22,11 +22,26 @@ function digitalEmployeeChatUserId(employeeId: string): string {
   return `digital-employee-${employeeId}`;
 }
 
+/** Stream channel id for a talk thread. The default (null) keeps the legacy id. */
+export function talkChannelId(
+  employeeId: string,
+  threadId?: string | null,
+): string {
+  return threadId
+    ? `et-${employeeId}-${threadId}`
+    : `employee-talk-${employeeId}`;
+}
+
 function isStreamChatProvisioned(
   metadata: Record<string, unknown> | null | undefined,
 ): boolean {
   return typeof metadata?.streamChatProvisionedAt === "string";
 }
+
+export type CreateTalkChatSessionOptions = {
+  threadId?: string | null;
+  title?: string;
+};
 
 export async function createTalkChatSession(
   organizationId: string,
@@ -34,6 +49,7 @@ export async function createTalkChatSession(
   actorUserId: string,
   actorName: string,
   talkContext?: EmployeeTalkContext | null,
+  options?: CreateTalkChatSessionOptions,
 ): Promise<TalkChatCredentials | null> {
   const employee =
     talkContext ??
@@ -42,6 +58,8 @@ export async function createTalkChatSession(
   if (!employee?.canTalk) {
     return null;
   }
+
+  const threadId = options?.threadId ?? null;
 
   const apiKey = getStreamApiKey();
   const secret = getStreamSecretKey();
@@ -55,10 +73,11 @@ export async function createTalkChatSession(
 
   const server = StreamChat.getInstance(apiKey, secret);
   const botUserId = digitalEmployeeChatUserId(employeeId);
-  const channelId = `employee-talk-${employeeId}`;
-  const channelProvisioned = isStreamChatProvisioned(
-    employee.sessionProviderMetadata,
-  );
+  const channelId = talkChannelId(employeeId, threadId);
+  // Only the legacy default channel uses the provisioned shortcut; named
+  // threads always ensure their own channel (with queryable thread metadata).
+  const channelProvisioned =
+    threadId === null && isStreamChatProvisioned(employee.sessionProviderMetadata);
 
   await server.upsertUsers([
     { id: actorUserId, name: actorName },
@@ -69,9 +88,16 @@ export async function createTalkChatSession(
     },
   ]);
 
-  const channel = server.channel("messaging", channelId, {
+  const channelData: Record<string, unknown> = {
     members: [actorUserId, botUserId],
-  });
+  };
+  if (threadId) {
+    channelData.talkKind = "thread";
+    channelData.talkEmployeeId = employeeId;
+    channelData.talkTitle = options?.title ?? "New chat";
+  }
+
+  const channel = server.channel("messaging", channelId, channelData);
 
   if (!channelProvisioned) {
     try {
@@ -79,7 +105,7 @@ export async function createTalkChatSession(
         created_by_id: actorUserId,
       });
     } catch {
-      // Channel already exists for repeat Talk sessions on the same employee.
+      // Channel already exists for repeat Talk sessions on the same thread.
     }
 
     try {
@@ -88,18 +114,20 @@ export async function createTalkChatSession(
       // Members may already be on the channel.
     }
 
-    const existingSessionMetadata =
-      employee.sessionProviderMetadata &&
-      typeof employee.sessionProviderMetadata === "object"
-        ? employee.sessionProviderMetadata
-        : {};
+    if (threadId === null) {
+      const existingSessionMetadata =
+        employee.sessionProviderMetadata &&
+        typeof employee.sessionProviderMetadata === "object"
+          ? employee.sessionProviderMetadata
+          : {};
 
-    await mergeProviderConfig(employeeId, "session", {
-      providerMetadata: {
-        ...existingSessionMetadata,
-        streamChatProvisionedAt: new Date().toISOString(),
-      },
-    } satisfies Partial<SessionProviderConfigPayload>);
+      await mergeProviderConfig(employeeId, "session", {
+        providerMetadata: {
+          ...existingSessionMetadata,
+          streamChatProvisionedAt: new Date().toISOString(),
+        },
+      } satisfies Partial<SessionProviderConfigPayload>);
+    }
   }
 
   const token = server.createToken(actorUserId);
