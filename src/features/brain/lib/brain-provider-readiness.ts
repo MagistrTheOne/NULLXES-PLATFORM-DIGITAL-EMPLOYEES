@@ -2,6 +2,7 @@ import type { BrainProvider } from "@/entities/digital-employee";
 import {
   hasAnthropicCredentials,
   hasGoogleCredentials,
+  hasNullxesBrainCredentials,
   hasOpenAiCredentials,
 } from "@/shared/config/provider-env";
 import { BRAIN_PROVIDERS } from "./brain-model-catalog";
@@ -24,7 +25,7 @@ function resolveProviderReadiness(
     case "google":
       return hasGoogleCredentials() ? "ready" : "configure";
     case "nullxes":
-      return "managed";
+      return hasNullxesBrainCredentials() ? "managed" : "configure";
   }
 }
 

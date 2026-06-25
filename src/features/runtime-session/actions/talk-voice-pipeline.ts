@@ -1,9 +1,9 @@
 "use server";
 
 import { requireWorkspacePermissionOrThrowMessage } from "@/features/workspace";
+import { buildTalkBrainRequest } from "../services/build-talk-brain-request";
 import { getEmployeeTalkContext } from "../services/get-employee-talk-context";
 import { collectTalkBrainResponse } from "../services/stream-talk-brain-response";
-import { getTalkRuntimeConfig } from "../services/get-talk-runtime-config";
 import {
   resolveTalkVoiceMode,
   type TalkVoiceMode,
@@ -73,9 +73,12 @@ export async function processTalkTurnAction(
     const workspace = await requireWorkspacePermissionOrThrowMessage(
       "canOperateEmployees",
     );
-    const config = await getTalkRuntimeConfig(workspace.organization.id, employeeId);
+    const employee = await getEmployeeTalkContext(
+      workspace.organization.id,
+      employeeId,
+    );
 
-  if (!config) {
+  if (!employee) {
     return { ok: false, message: "Employee not found" };
   }
 
@@ -92,24 +95,36 @@ export async function processTalkTurnAction(
       content: message.content,
     }));
 
-    const replyText = await collectTalkBrainResponse({
-      model: config.model,
-      systemPrompt: config.systemPrompt,
+    const brainRequest = await buildTalkBrainRequest({
+      organizationId: workspace.organization.id,
+      employeeId,
       messages: openAiMessages,
-      temperature: config.temperature,
-      maxTokens: config.maxTokens,
     });
 
+    if (!brainRequest) {
+      return { ok: false, message: "Employee brain is not configured" };
+    }
+
+    const replyText = await collectTalkBrainResponse({
+      brainProvider: brainRequest.brainProvider,
+      model: brainRequest.model,
+      systemPrompt: brainRequest.systemPrompt,
+      messages: openAiMessages,
+      temperature: brainRequest.temperature,
+      maxTokens: brainRequest.maxTokens,
+    });
+
+    const voiceMode = resolveTalkVoiceMode(employee);
     let pcmBase64: string | null = null;
-    if (config.voiceMode === "elevenlabs" && config.voiceId) {
-      const pcm = await synthesizeTalkVoicePcm(config.voiceId, replyText);
+    if (voiceMode === "elevenlabs" && employee.voiceId) {
+      const pcm = await synthesizeTalkVoicePcm(employee.voiceId, replyText);
       pcmBase64 = Buffer.from(pcm).toString("base64");
     }
 
     return {
       ok: true,
       replyText,
-      voiceMode: config.voiceMode,
+      voiceMode,
       pcmBase64,
     };
   } catch (error) {

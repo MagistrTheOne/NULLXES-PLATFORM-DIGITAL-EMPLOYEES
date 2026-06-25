@@ -1,3 +1,4 @@
+import type { BrainProvider } from "@/entities/digital-employee";
 import {
   collectTalkBrainResponse,
   streamTalkBrainResponse,
@@ -9,6 +10,7 @@ export type TalkBrainMessage = {
 };
 
 export async function generateTalkBrainResponse(input: {
+  brainProvider: BrainProvider;
   model: string;
   systemPrompt: string;
   messages: TalkBrainMessage[];

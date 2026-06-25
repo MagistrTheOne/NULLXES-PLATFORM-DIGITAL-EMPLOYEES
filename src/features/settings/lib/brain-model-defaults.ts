@@ -8,7 +8,7 @@ export const BRAIN_MODEL_DEFAULTS: Record<BrainProvider, string> = {
   openai: "gpt-4.1-mini",
   anthropic: "claude-sonnet-4-20250514",
   google: "gemini-2.0-flash",
-  nullxes: "nullxes-brain-v1",
+  nullxes: "MagistrTheOne/SHUTEN-DOJI",
 };
 
 export function resolveBrainModelForProvider(

@@ -86,3 +86,47 @@ export function getElevenLabsDefaultVoiceId(): string {
 export function hasElevenLabsCredentials(): boolean {
   return Boolean(getElevenLabsApiKey());
 }
+
+const NULLXES_BRAIN_MODEL_DEFAULT = "MagistrTheOne/SHUTEN-DOJI";
+
+/** NULLXES SHUTEN-DŌJI on RunPod vLLM — OpenAI-compatible /v1/chat/completions */
+export function getNullxesBrainApiBaseUrl(): string | undefined {
+  const url = process.env.NULLXES_BRAIN_API_BASE_URL?.trim();
+  return url || undefined;
+}
+
+export function getNullxesBrainApiKey(): string | undefined {
+  const key = process.env.NULLXES_BRAIN_API_KEY?.trim();
+  if (key) {
+    return key;
+  }
+
+  if (getNullxesBrainApiBaseUrl()) {
+    return "nullxes";
+  }
+
+  return undefined;
+}
+
+export function getNullxesBrainModel(): string {
+  return process.env.NULLXES_BRAIN_MODEL?.trim() || NULLXES_BRAIN_MODEL_DEFAULT;
+}
+
+export function resolveNullxesBrainModel(
+  configuredModel?: string | null,
+): string {
+  const model = configuredModel?.trim();
+  if (!model || model === "nullxes-brain-v1") {
+    return getNullxesBrainModel();
+  }
+
+  return model;
+}
+
+export function hasNullxesBrainCredentials(): boolean {
+  return Boolean(getNullxesBrainApiBaseUrl());
+}
+
+export function nullxesBrainSupportsTools(): boolean {
+  return process.env.NULLXES_BRAIN_SUPPORTS_TOOLS?.trim() === "true";
+}

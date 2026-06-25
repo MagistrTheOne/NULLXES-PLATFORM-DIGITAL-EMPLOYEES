@@ -1,9 +1,13 @@
+import { eq } from "drizzle-orm";
 import OpenAI from "openai";
 import type { BrainProviderConfigPayload } from "@/entities/provider-config";
+import { digitalEmployee } from "@/entities/digital-employee/schema";
 import {
   getOpenAiApiKey,
+  hasNullxesBrainCredentials,
   hasOpenAiCredentials,
 } from "@/shared/config/provider-env";
+import { db } from "@/shared/db/client";
 import type {
   ProvisionBrainProviderInput,
   ProvisionProviderResult,
@@ -34,6 +38,41 @@ export async function provisionBrainProvider(
       failureReason: failure.failureReason,
     });
     return failure;
+  }
+
+  const [employee] = await db
+    .select({ brainProvider: digitalEmployee.brainProvider })
+    .from(digitalEmployee)
+    .where(eq(digitalEmployee.id, input.employeeId))
+    .limit(1);
+
+  if (employee?.brainProvider === "nullxes") {
+    if (!hasNullxesBrainCredentials()) {
+      const failure = toFailure("NULLXES_BRAIN_API_BASE_URL is not configured");
+      await mergeProviderConfig(input.employeeId, "brain", {
+        provisioningStatus: "failed",
+        failureReason: failure.failureReason,
+        providerMetadata: failure.providerMetadata,
+      });
+      return failure;
+    }
+
+    const providerMetadata = {
+      provisionedAt: new Date().toISOString(),
+      resourceType: "nullxes_shuten_vllm",
+      model: config.model,
+    };
+
+    await mergeProviderConfig(input.employeeId, "brain", {
+      provisioningStatus: "ready",
+      providerMetadata,
+      failureReason: undefined,
+    });
+
+    return {
+      status: "ready",
+      providerMetadata,
+    };
   }
 
   if (!hasOpenAiCredentials()) {

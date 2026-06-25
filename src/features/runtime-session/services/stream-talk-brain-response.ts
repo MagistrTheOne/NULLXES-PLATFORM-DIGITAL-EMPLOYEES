@@ -4,15 +4,20 @@ import {
   executeAgentTool,
   type AgentToolExecutionContext,
 } from "@/features/agent-tools";
+import type { BrainApiConfig } from "@/features/brain/lib/resolve-brain-api-config";
+import { resolveBrainApiConfig } from "@/features/brain/lib/resolve-brain-api-config";
+import { formatBrainModelDisplay } from "@/features/brain/lib/format-brain-model-display";
 import { logTalkPerf } from "@/features/runtime-session/lib/talk-perf-log";
-import { getOpenAiApiBaseUrl, getOpenAiApiKey } from "@/shared/config/provider-env";
+import type { BrainProvider } from "@/entities/digital-employee";
 import type { TalkBrainMessage } from "./generate-talk-brain-response";
 
 type OpenAiStreamChunk = {
   choices?: Array<{
     delta?: {
       content?: string | null;
+      reasoning?: string | null;
     };
+    finish_reason?: string | null;
   }>;
 };
 
@@ -28,6 +33,7 @@ type OpenAiToolCall = {
 type OpenAiCompletionMessage = {
   role: "assistant";
   content: string | null;
+  reasoning?: string | null;
   tool_calls?: OpenAiToolCall[];
 };
 
@@ -36,30 +42,30 @@ type OpenAiChatMessage =
   | { role: "assistant"; content: string | null; tool_calls?: OpenAiToolCall[] }
   | { role: "tool"; tool_call_id: string; content: string };
 
-const MAX_TOOL_ITERATIONS = 3;
-const MAX_TOOL_ITERATIONS_TALK = 1;
+export type TalkBrainStreamEvent =
+  | { type: "meta"; brainProvider: BrainProvider; model: string; modelLabel: string }
+  | { type: "content"; content: string }
+  | { type: "tool"; tool: string; phase: "start" | "done" };
 
-async function callOpenAiChat(input: {
-  model: string;
+const MAX_TOOL_ITERATIONS = 8;
+const MAX_TOOL_ITERATIONS_TALK = 5;
+
+async function callBrainChat(input: {
+  api: BrainApiConfig;
   messages: OpenAiChatMessage[];
   temperature?: number;
   maxTokens?: number;
   tools?: typeof AGENT_TOOL_DEFINITIONS;
   stream?: boolean;
 }): Promise<Response> {
-  const apiKey = getOpenAiApiKey();
-  if (!apiKey) {
-    throw new Error("OPENAI_API_KEY is not configured");
-  }
-
-  return fetch(`${getOpenAiApiBaseUrl()}/chat/completions`, {
+  return fetch(`${input.api.baseUrl}/chat/completions`, {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${apiKey}`,
+      Authorization: `Bearer ${input.api.apiKey}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: input.model,
+      model: input.api.model,
       temperature: input.temperature ?? 0.7,
       max_tokens: input.maxTokens ?? 1024,
       stream: input.stream ?? false,
@@ -69,15 +75,15 @@ async function callOpenAiChat(input: {
   });
 }
 
-async function runToolLoop(input: {
-  model: string;
+async function* runToolLoopStream(input: {
+  api: BrainApiConfig;
   systemPrompt: string;
   messages: TalkBrainMessage[];
   temperature?: number;
   maxTokens?: number;
   toolContext?: AgentToolExecutionContext;
   mode?: "talk" | "default";
-}): Promise<OpenAiChatMessage[]> {
+}): AsyncGenerator<TalkBrainStreamEvent, OpenAiChatMessage[]> {
   const conversation: OpenAiChatMessage[] = [
     { role: "system", content: input.systemPrompt },
     ...input.messages.map(
@@ -88,7 +94,7 @@ async function runToolLoop(input: {
     ),
   ];
 
-  if (!input.toolContext) {
+  if (!input.toolContext || !input.api.supportsTools) {
     return conversation;
   }
 
@@ -101,8 +107,8 @@ async function runToolLoop(input: {
   const toolLoopStartedAt = performance.now();
 
   for (let iteration = 0; iteration < maxIterations; iteration += 1) {
-    const response = await callOpenAiChat({
-      model: input.model,
+    const response = await callBrainChat({
+      api: input.api,
       messages: conversation,
       temperature: input.temperature,
       maxTokens: input.maxTokens,
@@ -111,7 +117,7 @@ async function runToolLoop(input: {
     });
 
     if (!response.ok) {
-      throw new Error(`OpenAI tool loop failed with status ${response.status}`);
+      throw new Error(`Brain tool loop failed with status ${response.status}`);
     }
 
     const payload = (await response.json()) as {
@@ -134,8 +140,11 @@ async function runToolLoop(input: {
     });
 
     for (const toolCall of message.tool_calls) {
+      const toolName = toolCall.function.name;
+      yield { type: "tool", tool: toolName, phase: "start" };
+
       const result = await executeAgentTool({
-        toolName: toolCall.function.name,
+        toolName,
         argumentsJson: toolCall.function.arguments,
         context: input.toolContext,
       });
@@ -145,11 +154,14 @@ async function runToolLoop(input: {
         tool_call_id: toolCall.id,
         content: result.content,
       });
+
+      yield { type: "tool", tool: toolName, phase: "done" };
     }
   }
 
   logTalkPerf("talk.brain.tool_loop", {
     mode: input.mode ?? "default",
+    provider: input.api.provider,
     duration_ms: Math.round(performance.now() - toolLoopStartedAt),
   });
 
@@ -157,6 +169,7 @@ async function runToolLoop(input: {
 }
 
 export async function* streamTalkBrainResponse(input: {
+  brainProvider: BrainProvider;
   model: string;
   systemPrompt: string;
   messages: TalkBrainMessage[];
@@ -164,12 +177,37 @@ export async function* streamTalkBrainResponse(input: {
   maxTokens?: number;
   toolContext?: AgentToolExecutionContext;
   mode?: "talk" | "default";
-}): AsyncGenerator<string> {
-  const conversation = await runToolLoop(input);
+}): AsyncGenerator<TalkBrainStreamEvent> {
+  const api = resolveBrainApiConfig({
+    provider: input.brainProvider,
+    configuredModel: input.model,
+  });
+
+  yield {
+    type: "meta",
+    brainProvider: api.provider,
+    model: api.model,
+    modelLabel: formatBrainModelDisplay({
+      provider: api.provider,
+      modelId: api.model,
+    }),
+  };
+
+  const toolLoop = runToolLoopStream({ ...input, api });
+  let toolStep = await toolLoop.next();
+
+  while (!toolStep.done) {
+    yield toolStep.value;
+    toolStep = await toolLoop.next();
+  }
+
+  const conversation = toolStep.value;
   const streamStartedAt = performance.now();
   let firstTokenLogged = false;
-  const response = await callOpenAiChat({
-    model: input.model,
+  let streamedContent = "";
+
+  const response = await callBrainChat({
+    api,
     messages: conversation,
     temperature: input.temperature,
     maxTokens: input.maxTokens,
@@ -177,7 +215,7 @@ export async function* streamTalkBrainResponse(input: {
   });
 
   if (!response.ok || !response.body) {
-    throw new Error(`OpenAI stream failed with status ${response.status}`);
+    throw new Error(`Brain stream failed with status ${response.status}`);
   }
 
   const reader = response.body.getReader();
@@ -208,15 +246,40 @@ export async function* streamTalkBrainResponse(input: {
       const chunk = JSON.parse(payload) as OpenAiStreamChunk;
       const content = chunk.choices?.[0]?.delta?.content;
       if (content) {
+        streamedContent += content;
         if (!firstTokenLogged) {
           firstTokenLogged = true;
           logTalkPerf("talk.brain.ttfb", {
             mode: input.mode ?? "default",
+            provider: api.provider,
             duration_ms: Math.round(performance.now() - streamStartedAt),
           });
         }
-        yield content;
+        yield { type: "content", content };
       }
+    }
+  }
+
+  if (!streamedContent.trim() && api.provider === "nullxes") {
+    const fallback = await callBrainChat({
+      api,
+      messages: conversation,
+      temperature: input.temperature,
+      maxTokens: input.maxTokens,
+      stream: false,
+    });
+
+    if (!fallback.ok) {
+      throw new Error(`Brain fallback failed with status ${fallback.status}`);
+    }
+
+    const payload = (await fallback.json()) as {
+      choices?: Array<{ message?: OpenAiCompletionMessage }>;
+    };
+    const fallbackContent = payload.choices?.[0]?.message?.content?.trim() ?? "";
+
+    if (fallbackContent) {
+      yield { type: "content", content: fallbackContent };
     }
   }
 }
@@ -226,13 +289,15 @@ export async function collectTalkBrainResponse(
 ): Promise<string> {
   let reply = "";
 
-  for await (const chunk of streamTalkBrainResponse(input)) {
-    reply += chunk;
+  for await (const event of streamTalkBrainResponse(input)) {
+    if (event.type === "content") {
+      reply += event.content;
+    }
   }
 
   const trimmed = reply.trim();
   if (!trimmed) {
-    throw new Error("OpenAI returned an empty response");
+    throw new Error("Brain returned an empty response");
   }
 
   return trimmed;

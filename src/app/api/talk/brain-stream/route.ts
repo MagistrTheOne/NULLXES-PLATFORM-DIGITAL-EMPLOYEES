@@ -86,7 +86,8 @@ export async function POST(request: Request): Promise<Response> {
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
       try {
-        for await (const content of streamTalkBrainResponse({
+        for await (const event of streamTalkBrainResponse({
+          brainProvider: config.brainProvider,
           model: config.model,
           systemPrompt: config.systemPrompt,
           messages: openAiMessages,
@@ -99,9 +100,7 @@ export async function POST(request: Request): Promise<Response> {
           },
           mode: "talk",
         })) {
-          controller.enqueue(
-            encoder.encode(`${JSON.stringify({ content })}\n`),
-          );
+          controller.enqueue(encoder.encode(`${JSON.stringify(event)}\n`));
         }
         controller.close();
       } catch (error) {

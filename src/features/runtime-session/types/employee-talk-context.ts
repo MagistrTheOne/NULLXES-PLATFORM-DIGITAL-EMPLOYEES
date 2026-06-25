@@ -1,3 +1,4 @@
+import type { BrainProvider } from "@/entities/digital-employee";
 import type { ProviderProvisioningStatus } from "@/entities/provider-config";
 
 export type EmployeeTalkContext = {
@@ -8,6 +9,7 @@ export type EmployeeTalkContext = {
   canTalk: boolean;
   avatarPreviewUrl: string | null;
   systemPrompt: string;
+  brainProvider: BrainProvider;
   brainModel: string | null;
   avatarId: string | null;
   personaId: string | null;

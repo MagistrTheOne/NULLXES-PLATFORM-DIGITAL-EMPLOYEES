@@ -54,8 +54,13 @@ const CURATED_MODELS: Record<
   ],
   nullxes: [
     {
+      id: "MagistrTheOne/SHUTEN-DOJI",
+      label: "SHUTEN-DŌJI",
+      groupKey: "managed",
+    },
+    {
       id: "nullxes-brain-v1",
-      label: "NULLXES Brain v1",
+      label: "SHUTEN-DŌJI (alias)",
       groupKey: "managed",
     },
   ],

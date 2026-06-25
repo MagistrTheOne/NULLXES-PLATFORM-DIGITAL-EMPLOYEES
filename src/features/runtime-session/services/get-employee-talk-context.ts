@@ -77,6 +77,7 @@ async function loadEmployeeTalkContext(
     canTalk: avatarReady && sessionProvisioningStatus === "ready",
     avatarPreviewUrl: avatarConfig?.previewUrl ?? null,
     systemPrompt: runtime?.systemPrompt ?? "",
+    brainProvider: employee.brainProvider,
     brainModel: brainConfig?.model ?? null,
     avatarId: avatarConfig?.avatarId ?? null,
     personaId: avatarConfig?.personaId ?? null,

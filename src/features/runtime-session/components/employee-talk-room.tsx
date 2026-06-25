@@ -22,6 +22,7 @@ import { startTalkSessionAction } from "../actions/employee-session";
 import { prefetchAnamTalkSessionAction } from "../actions/prefetch-anam-talk-session";
 import type { TalkVoiceMode } from "../services/resolve-talk-voice-mode";
 import { TalkLocalCameraPip } from "./talk-local-camera-pip";
+import { useTalkDesktopLayout } from "../lib/use-talk-desktop-layout";
 import "./employee-talk-theme.css";
 
 const EmployeeAnamStage = dynamic(
@@ -360,6 +361,7 @@ export type EmployeeTalkRoomProps = EmployeeTalkSessionInputProps & {
 
 function TalkRoomLayout(props: EmployeeTalkRoomProps) {
   const t = useTranslations("employees.talk");
+  const isDesktop = useTalkDesktopLayout();
   const prefetchedTokenRef = useRef<string | null>(null);
 
   useEffect(() => {
@@ -374,20 +376,34 @@ function TalkRoomLayout(props: EmployeeTalkRoomProps) {
     });
   }, [props.activeSession, props.employeeId]);
 
+  if (isDesktop === null) {
+    return (
+      <div className="employee-talk-workspace employee-talk-shell mx-auto flex min-h-[min(70dvh,640px)] items-center justify-center">
+        <Loader2 className="size-5 animate-spin text-white/50" />
+      </div>
+    );
+  }
+
+  if (isDesktop) {
+    return (
+      <div className="employee-talk-workspace employee-talk-shell mx-auto w-full">
+        <div className="employee-talk-grid employee-talk-desktop-layout grid min-h-0 gap-4 min-[900px]:grid-cols-[1fr_300px] min-[900px]:items-stretch lg:grid-cols-[minmax(0,1fr)_340px] xl:grid-cols-[minmax(0,1fr)_360px]">
+          <TalkStagePanel {...props} prefetchedTokenRef={prefetchedTokenRef} />
+          <TalkChatPanel
+            chatSession={props.chatSession}
+            employeeId={props.employeeId}
+            activeSession={props.activeSession}
+          />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="employee-talk-workspace employee-talk-shell mx-auto w-full">
-      <div className="employee-talk-grid employee-talk-desktop-layout hidden min-h-0 gap-4 min-[900px]:grid min-[900px]:grid-cols-[1fr_300px] min-[900px]:items-stretch lg:grid-cols-[minmax(0,1fr)_340px] xl:grid-cols-[minmax(0,1fr)_360px]">
-        <TalkStagePanel {...props} prefetchedTokenRef={prefetchedTokenRef} />
-        <TalkChatPanel
-          chatSession={props.chatSession}
-          employeeId={props.employeeId}
-          activeSession={props.activeSession}
-        />
-      </div>
-
       <Tabs
         defaultValue="stage"
-        className="employee-talk-mobile-tabs flex min-h-[min(70dvh,640px)] flex-col min-[900px]:!hidden"
+        className="employee-talk-mobile-tabs flex min-h-[min(70dvh,640px)] flex-col"
       >
         <TabsList className="mb-3 grid h-10 w-full shrink-0 grid-cols-2 rounded-lg border border-white/10 bg-white/4 p-1">
           <TabsTrigger

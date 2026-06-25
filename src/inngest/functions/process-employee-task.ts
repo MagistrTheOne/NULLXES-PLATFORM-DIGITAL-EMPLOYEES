@@ -138,6 +138,7 @@ async function processTaskById(taskId: string, organizationId: string) {
           : "";
 
   const result = await collectTalkBrainResponse({
+    brainProvider: brainRequest.brainProvider,
     model: brainRequest.model,
     systemPrompt: workflowHint
       ? `${brainRequest.systemPrompt}\n\nWorkflow: ${workflowHint}`
@@ -239,7 +240,7 @@ export const processEmployeeFollowupDue = inngest.createFunction(
 export const scanOverdueEmployeeTasks = inngest.createFunction(
   {
     id: "scan-overdue-employee-tasks",
-    triggers: [{ cron: "0 6 * * *" }],
+    triggers: [{ cron: "*/15 * * * *" }],
   },
   async ({ step }) => {
     return step.run("scan-overdue", async () => {
