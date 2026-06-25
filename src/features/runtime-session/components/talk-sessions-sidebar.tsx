@@ -30,17 +30,24 @@ export function TalkSessionsSidebar({
   loading,
   onSelect,
   onNew,
+  embedded = false,
 }: {
   threads: TalkThreadItem[];
   activeThreadId: string | null;
   loading: boolean;
   onSelect: (threadId: string | null) => void;
   onNew: () => void;
+  embedded?: boolean;
 }) {
   const t = useTranslations("employees.talk.sessions");
 
   return (
-    <aside className="flex h-full min-h-0 flex-col rounded-xl border border-white/10 bg-[#0a0a0a]">
+    <aside
+      className={cn(
+        "flex h-full min-h-0 flex-col",
+        embedded ? "" : "rounded-xl border border-white/10 bg-[#0a0a0a]",
+      )}
+    >
       <div className="flex items-center justify-between gap-2 border-b border-white/10 px-3 py-3">
         <span className="text-[10px] font-medium uppercase tracking-[0.16em] text-white/35">
           {t("title")}

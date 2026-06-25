@@ -19,6 +19,7 @@ import { cn } from "@/lib/utils";
 import type { TalkAgentDetails } from "./talk-agent-details";
 import { TalkAgentDetailsPanel } from "./talk-agent-details";
 import { TalkChatWorkspace } from "./talk-chat-workspace";
+import type { TalkViewer } from "./talk-viewer-card";
 import type { TalkChatCredentials } from "../services/create-talk-chat-session";
 import { useTalkAnam } from "../context/talk-anam-context";
 import { startTalkSessionAction } from "../actions/employee-session";
@@ -296,6 +297,7 @@ export type EmployeeTalkSessionInputProps = {
   sessionLimitSeconds: number;
   brainModelLabel: string | null;
   agentDetails: TalkAgentDetails;
+  viewer: TalkViewer;
 };
 
 export type EmployeeTalkRoomProps = EmployeeTalkSessionInputProps & {
@@ -345,6 +347,7 @@ function TalkRoomLayout(props: EmployeeTalkRoomProps) {
             activeSession={props.activeSession}
             isSessionLive={Boolean(props.activeSession)}
             agentDetails={props.agentDetails}
+            viewer={props.viewer}
             variant="full"
             className="min-h-[min(42dvh,480px)]"
           />

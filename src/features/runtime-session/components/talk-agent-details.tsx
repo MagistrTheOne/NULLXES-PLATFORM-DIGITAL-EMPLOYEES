@@ -61,13 +61,21 @@ const ACTIVITY_DOT: Record<
 
 export function TalkAgentDetailsPanel({
   details,
+  embedded = false,
 }: {
   details: TalkAgentDetails;
+  embedded?: boolean;
 }) {
   const t = useTranslations("employees.talk.agentPanel");
 
   return (
-    <aside className="flex h-full min-h-0 flex-col gap-5 overflow-y-auto rounded-xl border border-white/10 bg-[#0a0a0a] p-5">
+    <aside
+      className={
+        embedded
+          ? "flex h-full min-h-0 flex-col gap-5 overflow-y-auto p-5"
+          : "flex h-full min-h-0 flex-col gap-5 overflow-y-auto rounded-xl border border-white/10 bg-[#0a0a0a] p-5"
+      }
+    >
       <div className="flex flex-col gap-4">
         <SectionLabel>{t("title")}</SectionLabel>
         <div className="flex items-start gap-3">

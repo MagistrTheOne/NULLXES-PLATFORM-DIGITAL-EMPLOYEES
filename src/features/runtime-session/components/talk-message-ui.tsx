@@ -25,8 +25,12 @@ function formatMessageTime(value: Date | string | undefined): string {
 
 export function TalkMessageUI({
   agentDisplayName,
+  viewerName,
+  viewerImage,
 }: {
   agentDisplayName: string;
+  viewerName?: string;
+  viewerImage?: string | null;
 }) {
   const t = useTranslations("employees.talk.chat");
   const { message, isMyMessage } = useMessageContext("TalkMessageUI");
@@ -34,7 +38,14 @@ export function TalkMessageUI({
   const [regenerating, setRegenerating] = useState(false);
 
   const mine = isMyMessage();
-  const senderLabel = mine ? t("senderYou") : agentDisplayName.toUpperCase();
+  const youLabel = t("senderYou");
+  const senderLabel = mine ? youLabel : agentDisplayName.toUpperCase();
+  const avatarImage = mine
+    ? (viewerImage ?? message.user?.image)
+    : message.user?.image;
+  const avatarName = mine
+    ? (viewerName ?? message.user?.name ?? youLabel)
+    : (message.user?.name ?? agentDisplayName);
   const text = message.text?.trim() ?? "";
   const createdAt = message.created_at
     ? new Date(message.created_at)
@@ -78,13 +89,11 @@ export function TalkMessageUI({
     >
       <div className="mb-2 flex items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-2.5">
-          {!mine ? (
-            <Avatar
-              imageUrl={message.user?.image}
-              userName={message.user?.name ?? agentDisplayName}
-              size="sm"
-            />
-          ) : null}
+          <Avatar
+            imageUrl={avatarImage ?? undefined}
+            userName={avatarName}
+            size="sm"
+          />
           <span className="truncate text-[10px] font-semibold tracking-[0.14em] text-white/45 uppercase">
             {senderLabel}
           </span>

@@ -61,6 +61,11 @@ export default async function EmployeeTalkPage({
       sessionLimitSeconds={employee.sessionLimitSeconds}
       brainModelLabel={brainModelLabel}
       agentDetails={agentDetails}
+      viewer={{
+        name: workspace.user.name,
+        image: workspace.user.image,
+        role: workspace.permissions.role,
+      }}
     />
   );
 }

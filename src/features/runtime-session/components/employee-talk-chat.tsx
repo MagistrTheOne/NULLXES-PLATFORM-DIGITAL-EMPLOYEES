@@ -133,6 +133,8 @@ export function EmployeeTalkChat({
   employeeSessionId,
   isSessionLive,
   voiceMode,
+  viewerName,
+  viewerImage,
 }: {
   chatSession: TalkChatCredentials | null;
   employeeId: string;
@@ -142,6 +144,8 @@ export function EmployeeTalkChat({
   employeeSessionId?: string;
   isSessionLive: boolean;
   voiceMode: TalkVoiceMode;
+  viewerName?: string;
+  viewerImage?: string | null;
 }) {
   const t = useTranslations("employees.talk.chat");
   const tTalk = useTranslations("employees.talk");
@@ -324,7 +328,10 @@ export function EmployeeTalkChat({
     >
       <div className="employee-talk-chat-surface relative flex h-full min-h-0 flex-1 flex-col overflow-hidden">
         <Chat client={client} theme="str-chat__theme-dark">
-          <Channel channel={channel}>
+          <Channel
+            channel={channel}
+            EmptyPlaceholder={<TalkChatEmptyState message={t("empty")} />}
+          >
             <Window>
               <div className="employee-talk-chat-header border-b border-white/10 px-4 py-3">
                 <div className="employee-talk-chat-header-actions">
@@ -376,10 +383,13 @@ export function EmployeeTalkChat({
                 </div>
               </div>
               <div className="employee-talk-chat-messages relative min-h-0 min-w-0 flex-1">
-                <TalkChatEmptyOverlay channel={channel} emptyMessage={t("empty")} />
                 <MessageList
                   Message={() => (
-                    <TalkMessageUI agentDisplayName={employeeName} />
+                    <TalkMessageUI
+                      agentDisplayName={employeeName}
+                      viewerName={viewerName}
+                      viewerImage={viewerImage}
+                    />
                   )}
                   noGroupByUser
                 />
@@ -390,42 +400,5 @@ export function EmployeeTalkChat({
         </Chat>
       </div>
     </TalkChatErrorBoundary>
-  );
-}
-
-function TalkChatEmptyOverlay({
-  channel,
-  emptyMessage,
-}: {
-  channel: StreamChannel;
-  emptyMessage: string;
-}) {
-  const [isEmpty, setIsEmpty] = useState(
-    () => (channel.state.messages?.length ?? 0) === 0,
-  );
-
-  useEffect(() => {
-    const syncEmpty = () => {
-      setIsEmpty((channel.state.messages?.length ?? 0) === 0);
-    };
-
-    syncEmpty();
-    channel.on("message.new", syncEmpty);
-    channel.on("message.deleted", syncEmpty);
-
-    return () => {
-      channel.off("message.new", syncEmpty);
-      channel.off("message.deleted", syncEmpty);
-    };
-  }, [channel]);
-
-  if (!isEmpty) {
-    return null;
-  }
-
-  return (
-    <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
-      <TalkChatEmptyState message={emptyMessage} />
-    </div>
   );
 }

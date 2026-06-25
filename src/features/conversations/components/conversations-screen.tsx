@@ -8,6 +8,7 @@ import { AvatarIdlePreview } from "@/features/employees/components/avatar-idle-p
 import type { EmployeeListItem } from "@/features/employees/types";
 import { TalkAnamProvider } from "@/features/runtime-session/context/talk-anam-context";
 import { TalkChatWorkspace } from "@/features/runtime-session/components/talk-chat-workspace";
+import type { TalkViewer } from "@/features/runtime-session/components/talk-viewer-card";
 import type { TalkAgentDetails } from "@/features/runtime-session/components/talk-agent-details";
 
 export type ConversationEmployee = Pick<
@@ -20,11 +21,13 @@ export function ConversationsScreen({
   selectedEmployeeId,
   agentDetails,
   brainModelLabel,
+  viewer,
 }: {
   employees: ConversationEmployee[];
   selectedEmployeeId: string | null;
   agentDetails: TalkAgentDetails | null;
   brainModelLabel: string | null;
+  viewer: TalkViewer;
 }) {
   const t = useTranslations("conversations");
   const talkReady = employees.filter((employee) => employee.canTalk);
@@ -107,6 +110,7 @@ export function ConversationsScreen({
                 chatSession={null}
                 brainModelLabel={brainModelLabel}
                 agentDetails={resolvedDetails}
+                viewer={viewer}
                 variant="full"
                 className="min-h-[min(64dvh,680px)]"
               />

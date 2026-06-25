@@ -381,6 +381,18 @@
         "new": "New",
         "main": "Main"
       },
+      "viewer": {
+        "you": "You",
+        "viewAll": "View all conversations",
+        "role": {
+          "owner": "Owner",
+          "admin": "Administrator",
+          "operator": "Operator",
+          "viewer": "Viewer"
+        }
+      },
+      "live": "Live",
+      "offlineState": "Offline",
       "chat": {
         "title": "Session chat",
         "empty": "Send a message to start the conversation",

@@ -83,6 +83,11 @@ export default async function ConversationsPage({
       selectedEmployeeId={selectedId}
       agentDetails={agentDetails}
       brainModelLabel={brainModelLabel}
+      viewer={{
+        name: workspace.user.name,
+        image: workspace.user.image,
+        role: workspace.permissions.role,
+      }}
     />
   );
 }
