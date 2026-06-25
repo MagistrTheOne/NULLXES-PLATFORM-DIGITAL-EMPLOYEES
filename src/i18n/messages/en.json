@@ -887,6 +887,25 @@
       "headcount": "{active}/{total} active",
       "viewAnalytics": "View analytics"
     },
+    "lofi": {
+      "thoughts": [
+        "Reviewing the queue…",
+        "Grabbing a coffee ☕",
+        "Thinking it through…",
+        "Syncing notes",
+        "Quick stretch",
+        "Back to it",
+        "Processing…",
+        "Almost there"
+      ],
+      "thoughtsActive": [
+        "On a call",
+        "Drafting a reply",
+        "Closing this out",
+        "Pulling the data",
+        "Wrapping up…"
+      ]
+    },
     "legend": {
       "active": "Active",
       "busy": "Busy",

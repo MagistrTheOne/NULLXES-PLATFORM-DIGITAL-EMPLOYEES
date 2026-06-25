@@ -20,7 +20,7 @@ import type { SceneEmployee, SceneRoom } from "./office/scene-types";
 function CanvasFallback() {
   const t = useTranslations("hq.office");
   return (
-    <div className="absolute inset-0 flex items-center justify-center gap-2 text-white/40">
+    <div className="absolute inset-0 flex items-center justify-center gap-2 text-black/45">
       <Loader2 className="size-4 animate-spin" />
       <span className="text-sm">{t("loading")}</span>
     </div>
@@ -39,6 +39,10 @@ export function HqOfficeCanvas({ state }: { state: HqState }) {
   const tDepartments = useTranslations("hq.departments");
   const tActivity = useTranslations("hq.activity");
   const tLegend = useTranslations("hq.legend");
+  const tLofi = useTranslations("hq.lofi");
+
+  const idleThoughts = tLofi.raw("thoughts") as string[];
+  const activeThoughts = tLofi.raw("thoughtsActive") as string[];
   const controlsRef = useRef<OrbitControlsImpl | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -63,10 +67,15 @@ export function HqOfficeCanvas({ state }: { state: HqState }) {
         employee.activity.badge,
         tActivity,
       );
+      const isActive =
+        employee.runtimeStatus === "active" ||
+        employee.runtimeStatus === "busy";
       const behavior: SceneEmployee["behavior"] =
-        employee.runtimeStatus === "active" || employee.runtimeStatus === "busy"
-          ? "roam"
-          : "sit";
+        employee.runtimeStatus === "offline"
+          ? "still"
+          : isActive
+            ? "roam"
+            : "lofi";
       return {
         id: employee.id,
         name: employee.name,
@@ -75,7 +84,8 @@ export function HqOfficeCanvas({ state }: { state: HqState }) {
         position: positions[index] ?? [room.x, room.z],
         roam,
         behavior,
-        modelUrl: pickCharacterModel(employee.id),
+        thoughts: isActive ? activeThoughts : idleThoughts,
+        modelUrl: pickCharacterModel(employee.name),
       };
     });
   });
@@ -106,7 +116,7 @@ export function HqOfficeCanvas({ state }: { state: HqState }) {
   return (
     <div
       ref={containerRef}
-      className="relative isolate z-0 h-[clamp(420px,58vh,680px)] w-full overflow-hidden rounded-3xl border border-white/10 bg-[#050505]"
+      className="relative isolate z-0 h-[clamp(420px,58vh,680px)] w-full overflow-hidden rounded-3xl border border-white/10 bg-[#d2d5d9]"
     >
       {state.employees.length > 0 ? (
         <OfficeScene
@@ -116,7 +126,7 @@ export function HqOfficeCanvas({ state }: { state: HqState }) {
         />
       ) : (
         <div className="absolute inset-0 flex items-center justify-center">
-          <p className="text-sm text-white/40">{t("office.empty")}</p>
+          <p className="text-sm text-black/45">{t("office.empty")}</p>
         </div>
       )}
 

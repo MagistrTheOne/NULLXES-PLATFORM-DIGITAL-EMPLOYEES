@@ -37,6 +37,8 @@ export function OfficeEmployee({ employee }: { employee: SceneEmployee }) {
   const color = STATUS_COLORS[employee.status];
   const bodyColor = employee.status === "offline" ? "#2a2a2a" : "#161616";
 
+  const [thought, setThought] = useState<string | null>(null);
+
   // Imperative motion state (kept out of React to avoid re-renders).
   const seed = useRef(
     Math.abs(
@@ -46,35 +48,63 @@ export function OfficeEmployee({ employee }: { employee: SceneEmployee }) {
   const rng = useRef(seededRandom(seed.current));
   const posRef = useRef(new Vector3(employee.position[0], 0, employee.position[1]));
   const goal = useRef(new Vector3(employee.position[0], 0, employee.position[1]));
-  const waitUntil = useRef(0);
+  const nextDecisionAt = useRef(1 + rng.current() * 6);
+  const thoughtHideAt = useRef(0);
   const movingRef = useRef(false);
   const idlePhase = useRef(rng.current() * Math.PI * 2);
 
-  // Pick the next destination based on autonomous behavior. Idle/offline
-  // employees settle at their seat; active ones roam inside their room.
-  const pickNextGoal = (time: number) => {
-    if (employee.behavior === "sit") {
+  const deskPoint = (): [number, number] => [
+    employee.position[0],
+    employee.position[1],
+  ];
+  const coffeePoint = (): [number, number] => [
+    employee.roam.maxX,
+    employee.roam.maxZ,
+  ];
+  const randomPoint = (): [number, number] => [
+    employee.roam.minX + rng.current() * (employee.roam.maxX - employee.roam.minX),
+    employee.roam.minZ + rng.current() * (employee.roam.maxZ - employee.roam.minZ),
+  ];
+
+  const emitThought = (time: number) => {
+    const pool = employee.thoughts;
+    if (pool.length > 0) {
+      setThought(pool[Math.floor(rng.current() * pool.length)] ?? null);
+      thoughtHideAt.current = time + 4;
+    }
+  };
+
+  // Autonomous "lofi" decision loop. Active employees move often; idle ones
+  // mostly linger at the desk but occasionally wander, grab a coffee, or just
+  // surface a thought. Offline employees stay put and never think.
+  const decide = (time: number) => {
+    if (employee.behavior === "still") {
       goal.current.set(employee.position[0], 0, employee.position[1]);
       return;
     }
-    const { roam } = employee;
-    // 35% of the time return to the desk, otherwise wander the room.
-    if (rng.current() < 0.35) {
-      goal.current.set(employee.position[0], 0, employee.position[1]);
+    const roll = rng.current();
+    const moveBias = employee.behavior === "roam" ? 0.72 : 0.4;
+    if (roll < moveBias * 0.6) {
+      const [x, z] = randomPoint();
+      goal.current.set(x, 0, z);
+    } else if (roll < moveBias) {
+      const [x, z] = coffeePoint();
+      goal.current.set(x, 0, z);
+      emitThought(time);
     } else {
-      goal.current.set(
-        roam.minX + rng.current() * (roam.maxX - roam.minX),
-        0,
-        roam.minZ + rng.current() * (roam.maxZ - roam.minZ),
-      );
+      const [x, z] = deskPoint();
+      goal.current.set(x, 0, z);
+      if (rng.current() < 0.7) {
+        emitThought(time);
+      }
     }
-    waitUntil.current = time;
+    const gap = employee.behavior === "roam" ? 3 + rng.current() * 4 : 6 + rng.current() * 7;
+    nextDecisionAt.current = time + gap;
   };
 
   // Reset the goal when behavior or seat changes (reassignment / status flip).
   useEffect(() => {
     goal.current.set(employee.position[0], 0, employee.position[1]);
-    waitUntil.current = 0;
     movingRef.current = false;
   }, [employee.behavior, employee.position]);
 
@@ -84,6 +114,10 @@ export function OfficeEmployee({ employee }: { employee: SceneEmployee }) {
       return;
     }
     const time = state.clock.elapsedTime;
+
+    if (thought !== null && time >= thoughtHideAt.current) {
+      setThought(null);
+    }
 
     tmpDir.copy(goal.current).sub(posRef.current);
     tmpDir.y = 0;
@@ -96,13 +130,9 @@ export function OfficeEmployee({ employee }: { employee: SceneEmployee }) {
       const targetYaw = Math.atan2(tmpDir.x, tmpDir.z);
       root.rotation.y += (targetYaw - root.rotation.y) * Math.min(1, delta * 8);
     } else {
-      if (movingRef.current) {
-        // Just arrived: pause before deciding the next move.
-        movingRef.current = false;
-        waitUntil.current = time + 1.5 + rng.current() * 3.5;
-      }
-      if (employee.behavior === "roam" && time >= waitUntil.current) {
-        pickNextGoal(time);
+      movingRef.current = false;
+      if (time >= nextDecisionAt.current) {
+        decide(time);
       }
     }
 
@@ -110,13 +140,10 @@ export function OfficeEmployee({ employee }: { employee: SceneEmployee }) {
     root.position.z = posRef.current.z;
 
     const moving = movingRef.current;
-    const seated = employee.behavior === "sit" && !moving;
     if (bodyRef.current) {
-      const seatDrop = seated ? -0.18 : 0;
-      const bob = moving
+      bodyRef.current.position.y = moving
         ? Math.abs(Math.sin(time * 9)) * 0.05
         : Math.sin(time * 1.4 + idlePhase.current) * 0.02;
-      bodyRef.current.position.y = seatDrop + bob;
     }
     const swing = moving ? Math.sin(time * 9) * 0.5 : 0;
     if (legLeftRef.current) {
@@ -217,6 +244,20 @@ export function OfficeEmployee({ employee }: { employee: SceneEmployee }) {
           <ringGeometry args={[0.4, 0.46, 40]} />
           <meshBasicMaterial color="#ffffff" transparent opacity={0.7} />
         </mesh>
+      ) : null}
+
+      {/* Lofi thought bubble (appears periodically, then fades out) */}
+      {thought ? (
+        <Html
+          position={[0, 1.92, 0]}
+          center
+          zIndexRange={[30, 0]}
+          wrapperClass="pointer-events-none"
+        >
+          <div className="pointer-events-none flex select-none items-center whitespace-nowrap rounded-2xl border border-black/10 bg-white/90 px-2.5 py-1 text-[10px] font-medium leading-none text-black shadow-sm backdrop-blur-md">
+            {thought}
+          </div>
+        </Html>
       ) : null}
 
       {/* Floating name / task badge (screen-space: stable size under the

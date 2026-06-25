@@ -10,12 +10,19 @@ export type SceneEmployee = {
   name: string;
   taskLabel: string | null;
   status: HqRuntimeStatus;
-  /** Desk/seat anchor (where an idle employee settles). */
+  /** Desk/seat anchor (where the employee settles). */
   position: [number, number];
   /** Interior bounds the employee roams within (keeps them inside the room). */
   roam: { minX: number; maxX: number; minZ: number; maxZ: number };
-  /** "sit" when idle/offline, "roam" when active/busy. */
-  behavior: "sit" | "roam";
+  /**
+   * Ambient behavior:
+   *  - "roam"  active/busy: moves around often
+   *  - "lofi"  idle: mostly at desk, occasional wander / coffee / a thought
+   *  - "still" offline: frozen at the desk
+   */
+  behavior: "roam" | "lofi" | "still";
+  /** Curated lofi thought lines (resolved i18n) shown periodically in a bubble. */
+  thoughts: string[];
   /** GLB character model, or null to use the procedural figure. */
   modelUrl: string | null;
 };

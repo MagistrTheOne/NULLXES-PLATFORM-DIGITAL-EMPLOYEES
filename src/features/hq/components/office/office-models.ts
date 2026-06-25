@@ -41,24 +41,24 @@ export const PROPS_PLACEMENT = {
   yaw: 0,
 };
 
+import {
+  resolveCharacterGender,
+  type CharacterGender,
+} from "../../lib/resolve-character-gender";
+
 /**
- * Deterministically assign a character model to an employee so the same person
- * always renders with the same body (skins can override this later).
+ * Pick the character model for an employee by resolved gender, so the female
+ * body attaches to female employees (Somnia, Kira, …) and the male body to the
+ * rest. Falls back to whichever model is configured.
  */
-export function pickCharacterModel(employeeId: string): string | null {
+export function pickCharacterModel(name: string): string | null {
   const { female, male } = HQ_MODELS.characters;
   if (!female && !male) {
     return null;
   }
-  if (!female) {
-    return male;
+  const gender: CharacterGender = resolveCharacterGender(name);
+  if (gender === "female") {
+    return female ?? male;
   }
-  if (!male) {
-    return female;
-  }
-  let hash = 0;
-  for (let i = 0; i < employeeId.length; i += 1) {
-    hash = (hash * 31 + employeeId.charCodeAt(i)) >>> 0;
-  }
-  return hash % 2 === 0 ? female : male;
+  return male ?? female;
 }

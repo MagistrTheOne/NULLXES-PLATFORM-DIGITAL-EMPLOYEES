@@ -83,7 +83,7 @@ export function HqProfilePanel({ employees }: { employees: HqEmployee[] }) {
   return (
     <aside className="relative z-10 flex h-full flex-col gap-4 rounded-3xl border border-white/10 bg-[#0B0B0B] p-5">
       <div className="flex items-center gap-3">
-        <span className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-black">
+        <span className="relative flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-black">
           {showPreview ? (
             <AvatarIdlePreview
               src={employee.avatarPreviewUrl!}

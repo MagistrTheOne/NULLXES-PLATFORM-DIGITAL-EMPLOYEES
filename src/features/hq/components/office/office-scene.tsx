@@ -27,17 +27,17 @@ function MarbleFloor() {
     <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
       <planeGeometry args={[90, 90]} />
       <MeshReflectorMaterial
-        color="#070707"
-        metalness={0.65}
-        roughness={0.45}
-        blur={[420, 120]}
+        color="#43464b"
+        metalness={0.45}
+        roughness={0.6}
+        blur={[300, 100]}
         resolution={1024}
-        mixBlur={1.1}
-        mixStrength={5}
+        mixBlur={1.2}
+        mixStrength={3}
         depthScale={1}
         minDepthThreshold={0.4}
         maxDepthThreshold={1.4}
-        mirror={0.55}
+        mirror={0.4}
       />
     </mesh>
   );
@@ -107,12 +107,12 @@ export default function OfficeScene({
       onPointerMissed={() => selectEmployee(null)}
       className="!absolute inset-0"
     >
-      <color attach="background" args={["#050505"]} />
-      <fog attach="fog" args={["#050505", 45, 95]} />
+      <color attach="background" args={["#d2d5d9"]} />
+      <fog attach="fog" args={["#d2d5d9", 55, 110]} />
 
       <Suspense fallback={null}>
-        <ambientLight intensity={0.5} />
-        <hemisphereLight intensity={0.35} groundColor="#050505" color="#ffffff" />
+        <ambientLight intensity={0.75} />
+        <hemisphereLight intensity={0.55} groundColor="#9a9da2" color="#ffffff" />
         <directionalLight
           position={[14, 22, 10]}
           intensity={1.25}
