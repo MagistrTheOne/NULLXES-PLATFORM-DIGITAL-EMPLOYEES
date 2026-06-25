@@ -63,6 +63,7 @@ export function OfficeEmployee({ employee }: { employee: SceneEmployee }) {
   const thoughtHideAt = useRef(0);
   const clockRef = useRef(0);
   const movingRef = useRef(false);
+  const pathIndex = useRef(0);
   const idlePhase = useRef(rng.current() * Math.PI * 2);
 
   // The "home" desk is the dragged placement when present, else the layout seat.
@@ -173,10 +174,22 @@ export function OfficeEmployee({ employee }: { employee: SceneEmployee }) {
     liftY.current += (0 - liftY.current) * Math.min(1, delta * 10);
     root.position.y = liftY.current;
 
-    // An active floor errand overrides ambient behavior: walk straight to the
-    // destination room and dwell there until the task clears from state.
+    // An active floor errand overrides ambient behavior: follow the invisible
+    // waypoint route (door → atrium → door → target) so the figure walks the
+    // corridors instead of clipping through walls. Advance once each node is
+    // reached, then dwell at the final target until the task clears.
     if (employee.task) {
-      goal.current.set(employee.task.target[0], 0, employee.task.target[1]);
+      const path = employee.task.path;
+      const idx = Math.min(pathIndex.current, path.length - 1);
+      const node = path[idx];
+      goal.current.set(node[0], 0, node[1]);
+      const reach = tmpDir.copy(goal.current).sub(posRef.current);
+      reach.y = 0;
+      if (reach.length() < 0.25 && pathIndex.current < path.length - 1) {
+        pathIndex.current += 1;
+      }
+    } else if (pathIndex.current !== 0) {
+      pathIndex.current = 0;
     }
 
     tmpDir.copy(goal.current).sub(posRef.current);

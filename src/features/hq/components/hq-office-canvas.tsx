@@ -12,6 +12,7 @@ import {
   placeEmployeesInRoom,
 } from "../lib/office-layout";
 import { DEPARTMENT_ORDER } from "../lib/department-layout";
+import { buildErrandPath } from "../lib/nav-graph";
 import { resolveActivityBadgeLabel } from "../lib/resolve-activity-label";
 import { pickCharacterModel } from "./office/office-models";
 import type { EmployeeThoughtsMap } from "../services/generate-employee-thoughts";
@@ -105,13 +106,21 @@ export function HqOfficeCanvas({
         reactions,
         modelUrl: pickCharacterModel(employee.name),
         task: employee.task
-          ? {
-              label: employee.task.label,
-              target: [
+          ? (() => {
+              const target: [number, number] = [
                 OFFICE_ROOMS[employee.task.destination].x,
                 OFFICE_ROOMS[employee.task.destination].z,
-              ],
-            }
+              ];
+              return {
+                label: employee.task.label,
+                target,
+                path: buildErrandPath(
+                  employee.department,
+                  employee.task.destination,
+                  target,
+                ),
+              };
+            })()
           : null,
       };
     });

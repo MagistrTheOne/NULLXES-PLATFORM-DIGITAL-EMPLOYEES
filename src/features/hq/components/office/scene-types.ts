@@ -34,6 +34,8 @@ export type SceneEmployee = {
   task: {
     label: string;
     target: [number, number];
+    /** Invisible waypoint route (home door → atrium → destination door → target). */
+    path: [number, number][];
   } | null;
 };
 
