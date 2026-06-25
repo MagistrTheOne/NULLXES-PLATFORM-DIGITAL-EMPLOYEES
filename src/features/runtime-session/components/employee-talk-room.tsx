@@ -211,15 +211,13 @@ function TalkControlsBar({
                 ) : (
                   <Mic className="size-4 stroke-[1.5]" />
                 )}
-                {!micMuted && isLive ? (
+                {!micMuted && isLive && micPermission !== "granted" ? (
                   <span
                     className={cn(
-                      "absolute -top-1 -right-1 size-2 rounded-full",
-                      micPermission === "granted"
-                        ? "bg-emerald-300"
-                        : micPermission === "pending"
-                          ? "bg-amber-300"
-                          : "bg-red-400",
+                      "absolute -top-1 -right-1 size-2 rounded-full bg-white",
+                      micPermission === "pending"
+                        ? "animate-pulse opacity-80"
+                        : "opacity-40",
                     )}
                     aria-hidden
                   />
@@ -323,16 +321,18 @@ function TalkStagePanel({
 function TalkChatPanel({
   chatSession,
   employeeId,
+  brainModelLabel,
   activeSession,
 }: Pick<
   EmployeeTalkRoomProps,
-  "chatSession" | "employeeId" | "activeSession"
+  "chatSession" | "employeeId" | "brainModelLabel" | "activeSession"
 >) {
   return (
     <div className="employee-talk-chat-panel flex min-h-0 flex-col overflow-hidden rounded-xl border border-white/10 bg-[#0a0a0a] lg:self-stretch">
       <EmployeeTalkChat
         chatSession={chatSession}
         employeeId={employeeId}
+        brainModelLabel={brainModelLabel}
         employeeSessionId={activeSession?.sessionId}
         isSessionLive={Boolean(activeSession)}
         voiceMode={activeSession?.voiceMode ?? "anam"}
@@ -348,6 +348,7 @@ export type EmployeeTalkSessionInputProps = {
   employeeId: string;
   avatarPreviewUrl: string | null;
   sessionLimitSeconds: number;
+  brainModelLabel: string | null;
 };
 
 export type EmployeeTalkRoomProps = EmployeeTalkSessionInputProps & {
@@ -392,6 +393,7 @@ function TalkRoomLayout(props: EmployeeTalkRoomProps) {
           <TalkChatPanel
             chatSession={props.chatSession}
             employeeId={props.employeeId}
+            brainModelLabel={props.brainModelLabel}
             activeSession={props.activeSession}
           />
         </div>
@@ -432,6 +434,7 @@ function TalkRoomLayout(props: EmployeeTalkRoomProps) {
           <TalkChatPanel
             chatSession={props.chatSession}
             employeeId={props.employeeId}
+            brainModelLabel={props.brainModelLabel}
             activeSession={props.activeSession}
           />
         </TabsContent>

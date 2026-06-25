@@ -126,12 +126,14 @@ class TalkChatErrorBoundary extends Component<
 export function EmployeeTalkChat({
   chatSession,
   employeeId,
+  brainModelLabel,
   employeeSessionId,
   isSessionLive,
   voiceMode,
 }: {
   chatSession: TalkChatCredentials | null;
   employeeId: string;
+  brainModelLabel?: string | null;
   employeeSessionId?: string;
   isSessionLive: boolean;
   voiceMode: TalkVoiceMode;
@@ -320,10 +322,15 @@ export function EmployeeTalkChat({
             <Window>
               <div className="employee-talk-chat-header border-b border-white/10 px-4 py-3">
                 <div className="employee-talk-chat-header-actions">
-                  <div className="min-w-0">
+                  <div className="flex min-w-0 flex-col">
                     <span className="text-[11px] font-medium tracking-[0.12em] text-white/50 uppercase">
                       {t("title")}
                     </span>
+                    {brainModelLabel ? (
+                      <span className="truncate text-[10px] text-white/30">
+                        {brainModelLabel}
+                      </span>
+                    ) : null}
                   </div>
                   <AlertDialog>
                     <AlertDialogTrigger asChild>

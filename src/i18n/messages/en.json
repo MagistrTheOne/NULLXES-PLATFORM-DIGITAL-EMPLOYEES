@@ -335,6 +335,8 @@
       "connecting": "Connecting…",
       "live": "Live",
       "remaining": "{remaining} remaining · limit {limit}",
+      "statusOnline": "Online",
+      "statusSecure": "Secure",
       "mobileTabStage": "Stage",
       "mobileTabChat": "Chat",
       "chat": {

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { TalkStatusCluster } from "./talk-status-cluster";
 import { completeTalkSessionAction } from "../actions/employee-session";
 import { TalkAnamProvider, useTalkAnam } from "../context/talk-anam-context";
 import {
@@ -133,12 +134,15 @@ function TalkSessionShell({
               <p className="mt-1 text-sm text-white/60">{t("subtitle")}</p>
             </div>
           </div>
-          <TalkSessionMeta
-            sessionLimitSeconds={sessionLimitSeconds}
-            onLimitReached={() => {
-              void handleSessionLimitReached();
-            }}
-          />
+          <div className="flex items-center gap-5">
+            <TalkStatusCluster />
+            <TalkSessionMeta
+              sessionLimitSeconds={sessionLimitSeconds}
+              onLimitReached={() => {
+                void handleSessionLimitReached();
+              }}
+            />
+          </div>
         </div>
         <EmployeeTalkRoom
           {...roomProps}

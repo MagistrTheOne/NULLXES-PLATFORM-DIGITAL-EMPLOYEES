@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
+import { Radio } from "lucide-react";
 import { useTalkAnam } from "../context/talk-anam-context";
 
 function formatElapsed(seconds: number): string {
@@ -54,12 +55,15 @@ export function TalkSessionMeta({
     <div className="flex shrink-0 flex-col items-end gap-1 text-sm tabular-nums">
       <div className="flex items-center gap-4">
         {isLive ? (
-          <span className="flex items-center gap-2 text-white/80">
-            <span className="size-2 rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.55)]" />
+          <span className="flex items-center gap-1.5 text-white/80">
+            <Radio className="size-3.5 stroke-[1.5]" aria-hidden />
             {t("live")}
           </span>
         ) : (
-          <span className="text-white/40">{t("idle")}</span>
+          <span className="flex items-center gap-1.5 text-white/40">
+            <Radio className="size-3.5 stroke-[1.5] opacity-50" aria-hidden />
+            {t("idle")}
+          </span>
         )}
         <span className="text-white/55">{formatElapsed(elapsedSeconds)}</span>
       </div>

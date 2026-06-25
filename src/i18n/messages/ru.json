@@ -335,6 +335,8 @@
       "connecting": "Подключение…",
       "live": "В эфире",
       "remaining": "осталось {remaining} · лимит {limit}",
+      "statusOnline": "Онлайн",
+      "statusSecure": "Защищено",
       "mobileTabStage": "Сцена",
       "mobileTabChat": "Чат",
       "chat": {
