@@ -134,6 +134,13 @@
       "when": 1780834380000,
       "tag": "0018_digital_employees_v2",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1782409986599,
+      "tag": "0019_hq_department",
+      "breakpoints": true
     }
   ]
 }

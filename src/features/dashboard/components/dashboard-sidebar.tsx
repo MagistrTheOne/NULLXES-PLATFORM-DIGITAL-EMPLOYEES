@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import {
   BarChart3,
+  Building2,
   LayoutDashboard,
   Settings,
   Users,
@@ -28,6 +29,7 @@ import { SidebarUserSection } from "./sidebar-user-section";
 const NAV_ITEMS = [
   { labelKey: "dashboard", href: "/dashboard", icon: LayoutDashboard },
   { labelKey: "employees", href: "/dashboard/employees", icon: Users },
+  { labelKey: "hq", href: "/dashboard/hq", icon: Building2 },
   { labelKey: "analytics", href: "/dashboard/analytics", icon: BarChart3 },
   { labelKey: "settings", href: "/settings", icon: Settings },
 ] as const;

@@ -1,0 +1,27 @@
+import { and, eq } from "drizzle-orm";
+import { digitalEmployee } from "@/entities/digital-employee/schema";
+import { db } from "@/shared/db/client";
+import type { HqDepartment } from "../types";
+
+/**
+ * Persist a manual department assignment, scoped to the organization so an
+ * actor can never touch employees outside their workspace.
+ */
+export async function updateEmployeeDepartment(input: {
+  organizationId: string;
+  employeeId: string;
+  department: HqDepartment | null;
+}): Promise<boolean> {
+  const updated = await db
+    .update(digitalEmployee)
+    .set({ department: input.department })
+    .where(
+      and(
+        eq(digitalEmployee.id, input.employeeId),
+        eq(digitalEmployee.organizationId, input.organizationId),
+      ),
+    )
+    .returning({ id: digitalEmployee.id });
+
+  return updated.length > 0;
+}

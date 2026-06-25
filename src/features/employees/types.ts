@@ -42,6 +42,7 @@ export type EmployeeListItem = {
   id: string;
   name: string;
   role: string;
+  department: string | null;
   status: EmployeeStatus;
   avatarProvider: AvatarProvider;
   brainProvider: BrainProvider;

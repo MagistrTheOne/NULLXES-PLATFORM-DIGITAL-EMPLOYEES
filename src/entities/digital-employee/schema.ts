@@ -29,6 +29,7 @@ export const digitalEmployee = pgTable("digital_employee", {
   name: text("name").notNull(),
   description: text("description"),
   role: text("role").notNull(),
+  department: text("department"),
   status: employeeStatusEnum("status").notNull().default("draft"),
   avatarProvider: avatarProviderEnum("avatar_provider").notNull(),
   brainProvider: brainProviderEnum("brain_provider").notNull(),

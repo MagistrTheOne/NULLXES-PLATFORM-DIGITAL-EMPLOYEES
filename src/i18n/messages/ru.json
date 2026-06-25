@@ -3,6 +3,7 @@
     "nav": {
       "dashboard": "Панель",
       "employees": "Цифровые сотрудники",
+      "hq": "NULLXES HQ",
       "analytics": "Аналитика",
       "settings": "Настройки",
       "navigation": "Навигация"
@@ -830,6 +831,80 @@
       "brainAnthropic": "Anthropic Claude",
       "brainGoogle": "Google Gemini",
       "brainNullxes": "NULLXES Brain"
+    }
+  },
+  "hq": {
+    "title": "NULLXES HQ",
+    "subtitle": "Ваша цифровая команда — вживую на этаже штаб-квартиры.",
+    "live": "В эфире",
+    "systemOnline": "Система в сети",
+    "tabs": {
+      "office": "Офис",
+      "directory": "Список",
+      "design": "Дизайн"
+    },
+    "office": {
+      "loading": "Готовим штаб-квартиру…",
+      "empty": "Пока некого разместить на этаже.",
+      "placeholder": "Здесь рендерится живой 3D-офис."
+    },
+    "directory": {
+      "unassigned": "Без отдела",
+      "headcount": "{count} на этаже",
+      "noEmployees": "В этом отделе нет сотрудников.",
+      "viewProfile": "Открыть профиль"
+    },
+    "design": {
+      "title": "Дизайн этажа",
+      "description": "Назначьте каждому цифровому сотруднику отдел. Расстановка — следующим шагом.",
+      "department": "Отдел",
+      "save": "Сохранить",
+      "saved": "Назначение сохранено",
+      "empty": "Пока некого распределять по отделам."
+    },
+    "departments": {
+      "reception": "Ресепшен",
+      "sales": "Продажи",
+      "support": "Поддержка клиентов",
+      "hr": "HR",
+      "analytics": "Аналитика",
+      "executive": "Этаж руководства"
+    },
+    "activity": {
+      "idle": "Простой",
+      "inSession": "В сессии",
+      "working": "В работе",
+      "queued": "{count} в очереди",
+      "activeChats": "{count} активных чатов",
+      "documents": "{count} документов",
+      "interview": "Собеседование"
+    },
+    "metrics": {
+      "active": "{count} активных"
+    },
+    "legend": {
+      "active": "Активен",
+      "busy": "Занят",
+      "idle": "Простой",
+      "offline": "Не в сети"
+    },
+    "profile": {
+      "emptyTitle": "Сотрудник не выбран",
+      "emptyHint": "Выберите сотрудника на этаже, чтобы увидеть профиль.",
+      "openProfile": "Открыть профиль агента",
+      "fields": {
+        "status": "Статус",
+        "currentTask": "Текущая задача",
+        "department": "Отдел",
+        "model": "Модель",
+        "runtime": "В работе",
+        "tasksToday": "Задач сегодня",
+        "sessions": "Сессии"
+      },
+      "actions": {
+        "talk": "Разговор",
+        "settings": "Настройки"
+      }
     }
   },
   "analytics": {

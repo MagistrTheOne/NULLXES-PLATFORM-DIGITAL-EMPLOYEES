@@ -3,6 +3,7 @@
     "nav": {
       "dashboard": "Dashboard",
       "employees": "Digital Employees",
+      "hq": "NULLXES HQ",
       "analytics": "Analytics",
       "settings": "Settings",
       "navigation": "Navigation"
@@ -830,6 +831,80 @@
       "brainAnthropic": "Anthropic Claude",
       "brainGoogle": "Google Gemini",
       "brainNullxes": "NULLXES Brain"
+    }
+  },
+  "hq": {
+    "title": "NULLXES HQ",
+    "subtitle": "Your digital workforce, live across the headquarters floor.",
+    "live": "Live",
+    "systemOnline": "System Online",
+    "tabs": {
+      "office": "Office",
+      "directory": "Directory",
+      "design": "Design"
+    },
+    "office": {
+      "loading": "Preparing the headquarters…",
+      "empty": "No digital employees to place on the floor yet.",
+      "placeholder": "The live 3D office renders here."
+    },
+    "directory": {
+      "unassigned": "Unassigned",
+      "headcount": "{count} on floor",
+      "noEmployees": "No employees in this department.",
+      "viewProfile": "Open profile"
+    },
+    "design": {
+      "title": "Floor design",
+      "description": "Assign each digital employee to a department. Layout positions come next.",
+      "department": "Department",
+      "save": "Save assignment",
+      "saved": "Assignment saved",
+      "empty": "No digital employees to assign yet."
+    },
+    "departments": {
+      "reception": "Reception",
+      "sales": "Sales",
+      "support": "Customer Support",
+      "hr": "HR",
+      "analytics": "Analytics",
+      "executive": "Executive Floor"
+    },
+    "activity": {
+      "idle": "Idle",
+      "inSession": "In session",
+      "working": "Working",
+      "queued": "{count} queued",
+      "activeChats": "{count} active chats",
+      "documents": "{count} documents",
+      "interview": "Interview"
+    },
+    "metrics": {
+      "active": "{count} active"
+    },
+    "legend": {
+      "active": "Active",
+      "busy": "Busy",
+      "idle": "Idle",
+      "offline": "Offline"
+    },
+    "profile": {
+      "emptyTitle": "No employee selected",
+      "emptyHint": "Select someone on the floor to view their profile.",
+      "openProfile": "Open Agent Profile",
+      "fields": {
+        "status": "Status",
+        "currentTask": "Current Task",
+        "department": "Department",
+        "model": "Model",
+        "runtime": "Runtime",
+        "tasksToday": "Tasks Today",
+        "sessions": "Sessions"
+      },
+      "actions": {
+        "talk": "Talk",
+        "settings": "Settings"
+      }
     }
   },
   "analytics": {

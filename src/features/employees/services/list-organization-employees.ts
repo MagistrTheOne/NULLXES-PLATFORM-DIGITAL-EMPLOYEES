@@ -150,6 +150,7 @@ export async function listOrganizationEmployees(
       id: employee.id,
       name: employee.name,
       role: employee.role,
+      department: employee.department,
       status: employee.status,
       avatarProvider: employee.avatarProvider,
       brainProvider: employee.brainProvider,

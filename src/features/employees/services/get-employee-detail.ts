@@ -91,6 +91,7 @@ export async function getEmployeeDetailShell(
     id: employee.id,
     name: employee.name,
     role: employee.role,
+    department: employee.department,
     status: employee.status,
     description: employee.description,
     avatarProvider: employee.avatarProvider,
