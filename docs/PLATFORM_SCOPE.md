@@ -2,7 +2,7 @@
 
 Legend: **✅** done (backend + frontend where applicable) · **🟡** partial / placeholder · **⬜** not started
 
-Last updated: Sprint C follow-up (i18n completion).
+Last updated: 2026-06-26 (Conversations + Talk workspace + shadcn preset).
 
 ---
 
