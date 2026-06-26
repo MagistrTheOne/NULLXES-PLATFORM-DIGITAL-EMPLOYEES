@@ -86,10 +86,10 @@ export function OfficeEmployee({ employee }: { employee: SceneEmployee }) {
   const homePoint = (): [number, number] =>
     override ?? [employee.position[0], employee.position[1]];
   const deskPoint = (): [number, number] => homePoint();
-  const coffeePoint = (): [number, number] => [
-    employee.roam.maxX,
-    employee.roam.maxZ,
-  ];
+
+  // Real central coffee station in the atrium (for occasional visits)
+  const COFFEE_STATION: [number, number] = [-1.8, -7.2];
+  const coffeePoint = (): [number, number] => COFFEE_STATION;
   const randomPoint = (): [number, number] => {
     const obstacles = getStaticObstacles();
     for (let attempt = 0; attempt < 6; attempt += 1) {
@@ -295,6 +295,15 @@ export function OfficeEmployee({ employee }: { employee: SceneEmployee }) {
         } else if (employee.speechText) {
           emitThought(time);
           nextDecisionAt.current = time + 8 + rng.current() * 6;
+        }
+      }
+
+      // Coffee station visit: linger a bit longer when we arrived (живность)
+      const distToCoffee = Math.hypot(posRef.current.x + 1.8, posRef.current.z + 7.2);
+      if (distToCoffee < 1.3 && !employee.meetingTarget && !employee.task) {
+        // pause as if grabbing a coffee
+        if (time >= nextDecisionAt.current - 1) {
+          nextDecisionAt.current = time + 8 + rng.current() * 7;
         }
       }
 
