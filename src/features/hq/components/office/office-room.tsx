@@ -1,15 +1,20 @@
 "use client";
 
 import { Html, RoundedBox } from "@react-three/drei";
+import { useFrame } from "@react-three/fiber";
+import { useRef } from "react";
+import type { Mesh } from "three";
 import {
   WALL_HEIGHT,
   WALL_THICKNESS,
+  getDeskPositions,
   type RoomDef,
 } from "../../lib/office-layout";
 import type { SceneRoom } from "./scene-types";
 
 const WALL_COLOR = "#e9e9e9";
 const DESK_COLOR = "#141414";
+const CHAIR_COLOR = "#1f1f1f";
 
 function Wall({
   position,
@@ -26,36 +31,126 @@ function Wall({
   );
 }
 
-function Desk({ position }: { position: [number, number] }) {
+function Desk({ position, seed = 0 }: { position: [number, number]; seed?: number }) {
   const [x, z] = position;
+
+  // Deterministic variation per desk (0..1 values)
+  const r = (n: number) => ((seed * 17 + n * 31) % 1000) / 1000;
+
+  const hasCup = r(1) > 0.25;
+  const hasPapers = r(2) > 0.2;
+  const hasKeyboard = r(3) > 0.35;
+  const hasTinyPlant = r(4) > 0.55;
+
   return (
     <group position={[x, 0, z]}>
+      {/* Desktop surface */}
       <RoundedBox
-        args={[1.1, 0.32, 0.62]}
-        radius={0.05}
+        args={[1.15, 0.06, 0.68]}
+        radius={0.04}
         smoothness={3}
-        position={[0, 0.2, 0]}
+        position={[0, 0.26, 0]}
         castShadow
         receiveShadow
       >
-        <meshStandardMaterial color={DESK_COLOR} roughness={0.5} metalness={0.2} />
+        <meshStandardMaterial color={DESK_COLOR} roughness={0.45} metalness={0.15} />
       </RoundedBox>
-      {/* Monitor */}
-      <mesh position={[0, 0.5, -0.12]} castShadow>
-        <boxGeometry args={[0.42, 0.26, 0.03]} />
-        <meshStandardMaterial
-          color="#0a0a0a"
-          roughness={0.3}
-          metalness={0.4}
-          emissive="#1a1a1a"
-          emissiveIntensity={0.4}
-        />
+
+      {/* Legs */}
+      <mesh position={[-0.42, 0.13, -0.22]} castShadow>
+        <boxGeometry args={[0.06, 0.26, 0.06]} />
+        <meshStandardMaterial color="#0f0f0f" roughness={0.8} />
       </mesh>
+      <mesh position={[0.42, 0.13, -0.22]} castShadow>
+        <boxGeometry args={[0.06, 0.26, 0.06]} />
+        <meshStandardMaterial color="#0f0f0f" roughness={0.8} />
+      </mesh>
+      <mesh position={[-0.42, 0.13, 0.22]} castShadow>
+        <boxGeometry args={[0.06, 0.26, 0.06]} />
+        <meshStandardMaterial color="#0f0f0f" roughness={0.8} />
+      </mesh>
+      <mesh position={[0.42, 0.13, 0.22]} castShadow>
+        <boxGeometry args={[0.06, 0.26, 0.06]} />
+        <meshStandardMaterial color="#0f0f0f" roughness={0.8} />
+      </mesh>
+
+      {/* Animated Monitor (gentle breathing for liveliness) */}
+      <Monitor position={[0, 0.52, -0.14]} />
+
+      {/* Monitor stand */}
+      <mesh position={[0, 0.32, -0.08]} castShadow>
+        <boxGeometry args={[0.08, 0.12, 0.08]} />
+        <meshStandardMaterial color="#111111" roughness={0.6} />
+      </mesh>
+
+      {/* === Desk Clutter (живность) === */}
+
+      {/* Coffee cup */}
+      {hasCup && (
+        <group position={[-0.28 + r(5) * 0.12, 0.33, 0.12 - r(6) * 0.18]}>
+          {/* Cup body */}
+          <mesh castShadow>
+            <cylinderGeometry args={[0.055, 0.048, 0.09, 12]} />
+            <meshStandardMaterial color="#1c1c1c" roughness={0.7} metalness={0.1} />
+          </mesh>
+          {/* Coffee inside */}
+          <mesh position={[0, 0.035, 0]}>
+            <cylinderGeometry args={[0.048, 0.048, 0.01, 12]} />
+            <meshStandardMaterial color="#0a0a0a" roughness={0.9} />
+          </mesh>
+          {/* Handle */}
+          <mesh position={[0.07, 0.01, 0]} rotation={[0, 0, 1.2]}>
+            <torusGeometry args={[0.028, 0.012, 6, 10, 2.8]} />
+            <meshStandardMaterial color="#1c1c1c" roughness={0.7} />
+          </mesh>
+        </group>
+      )}
+
+      {/* Stack of papers / notebook */}
+      {hasPapers && (
+        <group position={[0.22 + r(7) * 0.08, 0.33, -0.08 + r(8) * 0.1]} rotation={[0, r(9) * 0.6 - 0.3, 0]}>
+          <mesh castShadow>
+            <boxGeometry args={[0.18, 0.008, 0.24]} />
+            <meshStandardMaterial color="#d8d8d8" roughness={0.95} />
+          </mesh>
+          <mesh position={[0, 0.01, 0]} castShadow>
+            <boxGeometry args={[0.17, 0.006, 0.23]} />
+            <meshStandardMaterial color="#c8c8c8" roughness={0.95} />
+          </mesh>
+          {/* Pen on papers */}
+          <mesh position={[0.02, 0.02, -0.02]} rotation={[0, 0.6, 0.1]} castShadow>
+            <cylinderGeometry args={[0.004, 0.004, 0.12, 4]} />
+            <meshStandardMaterial color="#111111" roughness={0.6} />
+          </mesh>
+        </group>
+      )}
+
+      {/* Small keyboard */}
+      {hasKeyboard && (
+        <mesh position={[0.05, 0.33, 0.18]} rotation={[0.02, 0.1, 0]} castShadow>
+          <boxGeometry args={[0.22, 0.012, 0.08]} />
+          <meshStandardMaterial color="#0f0f0f" roughness={0.75} />
+        </mesh>
+      )}
+
+      {/* Tiny plant on desk (some desks) */}
+      {hasTinyPlant && (
+        <group position={[-0.35, 0.33, -0.18]}>
+          <mesh>
+            <cylinderGeometry args={[0.028, 0.024, 0.06, 8]} />
+            <meshStandardMaterial color="#1a1a1a" roughness={0.8} />
+          </mesh>
+          <mesh position={[0, 0.07, 0]}>
+            <icosahedronGeometry args={[0.04, 0]} />
+            <meshStandardMaterial color="#122a22" roughness={0.9} />
+          </mesh>
+        </group>
+      )}
     </group>
   );
 }
 
-function Plant({ position }: { position: [number, number] }) {
+export function Plant({ position }: { position: [number, number] }) {
   const [x, z] = position;
   return (
     <group position={[x, 0, z]}>
@@ -71,6 +166,37 @@ function Plant({ position }: { position: [number, number] }) {
   );
 }
 
+/**
+ * Very subtle breathing on the monitor screen.
+ * Creates a quiet "alive" feeling without being distracting.
+ */
+function Monitor({ position }: { position: [number, number, number] }) {
+  const ref = useRef<Mesh>(null);
+
+  useFrame((state) => {
+    if (ref.current) {
+      const mat = ref.current.material as any;
+      if (mat && "emissiveIntensity" in mat) {
+        // Very gentle sine wave, slow breathing
+        mat.emissiveIntensity = 0.28 + Math.sin(state.clock.elapsedTime * 0.9) * 0.07;
+      }
+    }
+  });
+
+  return (
+    <mesh ref={ref} position={position} castShadow>
+      <boxGeometry args={[0.46, 0.28, 0.04]} />
+      <meshStandardMaterial
+        color="#0a0a0a"
+        roughness={0.3}
+        metalness={0.45}
+        emissive="#121212"
+        emissiveIntensity={0.35}
+      />
+    </mesh>
+  );
+}
+
 function deskPositions(room: RoomDef): Array<[number, number]> {
   const count = Math.min(3, Math.max(1, Math.round((room.w * room.d) / 22)));
   const spread = room.w * 0.5;
@@ -82,6 +208,39 @@ function deskPositions(room: RoomDef): Array<[number, number]> {
     const fx = count === 1 ? 0.5 : index / (count - 1);
     return [room.x - spread / 2 + fx * spread, z] as [number, number];
   });
+}
+
+/** Small scattered papers on the floor (живность) */
+function FloorPaper({ position, rot = 0 }: { position: [number, number]; rot?: number }) {
+  const [x, z] = position;
+  return (
+    <group position={[x, 0.015, z]} rotation={[0, rot, 0]}>
+      <mesh>
+        <planeGeometry args={[0.22, 0.16]} />
+        <meshStandardMaterial color="#1f1f1f" roughness={0.95} side={2} />
+      </mesh>
+      <mesh position={[0.01, 0.001, -0.01]} rotation={[0, 0.2, 0]}>
+        <planeGeometry args={[0.18, 0.13]} />
+        <meshStandardMaterial color="#252525" roughness={0.95} side={2} />
+      </mesh>
+    </group>
+  );
+}
+
+/** Loose cable on the floor */
+function FloorCable({ from, to }: { from: [number, number]; to: [number, number] }) {
+  const [x1, z1] = from;
+  const [x2, z2] = to;
+  const midX = (x1 + x2) / 2;
+  const midZ = (z1 + z2) / 2;
+  const len = Math.hypot(x2 - x1, z2 - z1);
+  const angle = Math.atan2(x2 - x1, z2 - z1);
+  return (
+    <mesh position={[midX, 0.013, midZ]} rotation={[0, angle + Math.PI / 2, 0]}>
+      <cylinderGeometry args={[0.008, 0.008, len, 4]} />
+      <meshStandardMaterial color="#0c0c0c" roughness={0.95} />
+    </mesh>
+  );
 }
 
 export function OfficeRoom({ room }: { room: SceneRoom }) {
@@ -112,6 +271,16 @@ export function OfficeRoom({ room }: { room: SceneRoom }) {
         />
       </mesh>
 
+      {/* Subtle carpet / zone marker closer to desks (helps read the map) */}
+      <mesh
+        rotation={[-Math.PI / 2, 0, 0]}
+        position={[def.x, 0.013, def.z - def.d * 0.12]}
+        receiveShadow
+      >
+        <planeGeometry args={[def.w * 0.78, def.d * 0.58]} />
+        <meshStandardMaterial color="#121212" roughness={0.65} metalness={0.1} />
+      </mesh>
+
       {def.walls.north ? (
         <Wall
           position={[def.x, wallY, def.z - halfD]}
@@ -137,13 +306,49 @@ export function OfficeRoom({ room }: { room: SceneRoom }) {
         />
       ) : null}
 
-      {deskPositions(def).map((position, index) => (
-        <Desk key={`desk-${index}`} position={position} />
+      {/* Richer furniture layout per room */}
+      {getDeskPositions(def).map((position, index) => (
+        <Desk
+          key={`desk-${index}`}
+          position={position}
+          seed={(def.x * 100 + def.z * 10 + index) | 0}
+        />
       ))}
 
-      {def.w * def.d > 30 ? (
-        <Plant position={[def.x - halfW + 0.7, def.z + halfD - 0.7]} />
+      {/* Add a few more chairs and small details to make rooms feel occupied */}
+      {getDeskPositions(def).map((position, index) => {
+        const [dx, dz] = position;
+        // simple chair behind desk
+        return (
+          <group key={`chair-${index}`} position={[dx, 0, dz + 0.55]}>
+            <mesh position={[0, 0.22, 0]} castShadow>
+              <boxGeometry args={[0.38, 0.08, 0.38]} />
+              <meshStandardMaterial color={CHAIR_COLOR} roughness={0.7} />
+            </mesh>
+            {/* backrest */}
+            <mesh position={[0, 0.42, -0.12]} castShadow>
+              <boxGeometry args={[0.36, 0.32, 0.06]} />
+              <meshStandardMaterial color={CHAIR_COLOR} roughness={0.7} />
+            </mesh>
+          </group>
+        );
+      })}
+
+      {def.w * def.d > 28 ? (
+        <>
+          <Plant position={[def.x - halfW + 0.65, def.z + halfD - 0.65]} />
+          <Plant position={[def.x + halfW - 0.65, def.z - halfD + 0.55]} />
+        </>
       ) : null}
+
+      {/* Floor papers + cables for lived-in feel (only in bigger rooms) */}
+      {def.w * def.d > 26 && (
+        <>
+          <FloorPaper position={[def.x - 1.6, def.z + 1.1]} rot={0.6} />
+          <FloorPaper position={[def.x + 1.4, def.z - 0.9]} rot={-0.9} />
+          <FloorCable from={[def.x - 1.1, def.z + 0.9]} to={[def.x - 0.4, def.z + 1.3]} />
+        </>
+      )}
 
       <Html
         position={[def.x, WALL_HEIGHT + 0.22, labelZ]}

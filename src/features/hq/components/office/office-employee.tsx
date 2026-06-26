@@ -4,7 +4,12 @@ import { Suspense, useEffect, useRef, useState } from "react";
 import { Html } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { Group, Vector3 } from "three";
-import { FLOOR_HALF, STATUS_COLORS } from "../../lib/office-layout";
+import {
+  FLOOR_HALF,
+  STATUS_COLORS,
+  getStaticObstacles,
+  resolveMovement,
+} from "../../lib/office-layout";
 import { MEETING_POINT } from "../../lib/standup";
 import { useOfficeStore } from "../../store/use-office-store";
 import { CharacterModel } from "./character-model";
@@ -51,7 +56,8 @@ export function OfficeEmployee({ employee }: { employee: SceneEmployee }) {
 
   const isSelected = selectedId === employee.id;
   const color = STATUS_COLORS[employee.status];
-  const bodyColor = employee.status === "offline" ? "#2a2a2a" : "#161616";
+  // Slightly lifted dark gray so the fallback figure doesn't disappear into black
+  const bodyColor = employee.status === "offline" ? "#2f2f2f" : "#2a2a2a";
 
   const [thought, setThought] = useState<string | null>(null);
   const [bubbleKind, setBubbleKind] = useState<"thought" | "reaction">(
@@ -82,10 +88,22 @@ export function OfficeEmployee({ employee }: { employee: SceneEmployee }) {
     employee.roam.maxX,
     employee.roam.maxZ,
   ];
-  const randomPoint = (): [number, number] => [
-    employee.roam.minX + rng.current() * (employee.roam.maxX - employee.roam.minX),
-    employee.roam.minZ + rng.current() * (employee.roam.maxZ - employee.roam.minZ),
-  ];
+  const randomPoint = (): [number, number] => {
+    const obstacles = getStaticObstacles();
+    for (let attempt = 0; attempt < 6; attempt += 1) {
+      const x =
+        employee.roam.minX + rng.current() * (employee.roam.maxX - employee.roam.minX);
+      const z =
+        employee.roam.minZ + rng.current() * (employee.roam.maxZ - employee.roam.minZ);
+      // crude check: if too close to any obstacle center, retry
+      const tooClose = obstacles.some(
+        (o) => Math.hypot(x - o.x, z - o.z) < Math.max(o.halfW, o.halfD) + 0.45,
+      );
+      if (!tooClose) return [x, z];
+    }
+    // fallback to desk if we can't find a clean spot quickly
+    return deskPoint();
+  };
 
   const emitThought = (time: number) => {
     if (employee.speechText) {
@@ -238,11 +256,30 @@ export function OfficeEmployee({ employee }: { employee: SceneEmployee }) {
     if (dist > 0.08) {
       movingRef.current = true;
       tmpDir.normalize();
-      posRef.current.addScaledVector(tmpDir, Math.min(dist, WALK_SPEED * delta));
+
+      const step = Math.min(dist, WALK_SPEED * delta);
+      const desiredX = posRef.current.x + tmpDir.x * step;
+      const desiredZ = posRef.current.z + tmpDir.z * step;
+
+      // Resolve against walls + desks + central props
+      const obstacles = getStaticObstacles();
+      const [resolvedX, resolvedZ] = resolveMovement(
+        posRef.current.x,
+        posRef.current.z,
+        desiredX,
+        desiredZ,
+        obstacles,
+        0.30, // character radius
+      );
+
+      posRef.current.x = resolvedX;
+      posRef.current.z = resolvedZ;
+
       const targetYaw = Math.atan2(tmpDir.x, tmpDir.z);
       root.rotation.y += (targetYaw - root.rotation.y) * Math.min(1, delta * 8);
     } else {
       movingRef.current = false;
+
       // Face the ring center while standing in the meeting.
       if (employee.meetingTarget) {
         const faceYaw = Math.atan2(
@@ -258,10 +295,43 @@ export function OfficeEmployee({ employee }: { employee: SceneEmployee }) {
           nextDecisionAt.current = time + 8 + rng.current() * 6;
         }
       }
+
+      // === Idle micro-movements (живность) ===
+      // When just standing at desk, occasionally do a very slow "look around".
+      // This gives the feeling that agents are "thinking" or "resting".
+      if (
+        !employee.meetingTarget &&
+        !employee.task &&
+        employee.plan.movement !== "wander" &&
+        employee.plan.anchor === "desk"
+      ) {
+        // Slow breathing + very gentle periodic head turn (look left/right)
+        const idleLook = Math.sin(time * 0.35 + idlePhase.current) * 0.18; // ~ ±10°
+        const targetIdleYaw = Math.atan2(
+          MEETING_POINT[0] - posRef.current.x,
+          MEETING_POINT[1] - posRef.current.z,
+        );
+        // Blend between facing desk direction and occasional glance
+        root.rotation.y = targetIdleYaw + idleLook;
+      }
     }
 
+    // Final safety clamps (scene bounds + collision)
     posRef.current.x = clampToScene(posRef.current.x);
     posRef.current.z = clampToScene(posRef.current.z);
+
+    const finalObstacles = getStaticObstacles();
+    const [finalX, finalZ] = resolveMovement(
+      posRef.current.x,
+      posRef.current.z,
+      posRef.current.x,
+      posRef.current.z,
+      finalObstacles,
+      0.30,
+    );
+    posRef.current.x = finalX;
+    posRef.current.z = finalZ;
+
     root.position.x = posRef.current.x;
     root.position.z = posRef.current.z;
 
@@ -282,8 +352,13 @@ export function OfficeEmployee({ employee }: { employee: SceneEmployee }) {
         bodyRef.current.position.y = Math.sin(time * 1 + idlePhase.current) * 0.015;
         bodyRef.current.rotation.x = 0;
       } else {
-        bodyRef.current.position.y = Math.sin(time * 1.4 + idlePhase.current) * 0.02;
-        bodyRef.current.rotation.x = 0;
+        // Default idle at desk — more "alive" breathing + occasional lean
+        const breathe = Math.sin(time * 1.35 + idlePhase.current) * 0.022;
+        const lean = Math.sin(time * 0.22 + idlePhase.current * 0.7) * 0.035;
+        const twist = Math.sin(time * 0.18 + idlePhase.current) * 0.04; // micro torso turn
+        bodyRef.current.position.y = breathe;
+        bodyRef.current.rotation.x = lean;
+        bodyRef.current.rotation.y = twist;
       }
     }
 
@@ -358,23 +433,31 @@ export function OfficeEmployee({ employee }: { employee: SceneEmployee }) {
               />
             </mesh>
 
-            {/* Arms */}
-            <mesh position={[-0.19, 0.6, 0]} rotation={[0, 0, 0.2]} castShadow>
+            {/* Arms — slightly more relaxed when idle at desk */}
+            <mesh
+              position={[-0.19, 0.58, 0.04]}
+              rotation={[0.1, 0, 0.55]}
+              castShadow
+            >
               <capsuleGeometry args={[0.045, 0.3, 4, 8]} />
               <meshStandardMaterial color={bodyColor} roughness={0.6} />
             </mesh>
-            <mesh position={[0.19, 0.6, 0]} rotation={[0, 0, -0.2]} castShadow>
+            <mesh
+              position={[0.19, 0.58, 0.04]}
+              rotation={[0.1, 0, -0.55]}
+              castShadow
+            >
               <capsuleGeometry args={[0.045, 0.3, 4, 8]} />
               <meshStandardMaterial color={bodyColor} roughness={0.6} />
             </mesh>
 
-            {/* Head */}
+            {/* Head (fallback when no GLB model) */}
             <mesh position={[0, 0.92, 0]} castShadow>
               <sphereGeometry args={[0.13, 18, 18]} />
               <meshStandardMaterial
-                color="#dcdcdc"
-                roughness={0.4}
-                metalness={0.05}
+                color="#c8b8a8"
+                roughness={0.55}
+                metalness={0.03}
               />
             </mesh>
           </>

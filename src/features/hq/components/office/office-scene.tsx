@@ -9,7 +9,7 @@ import { useOfficeStore } from "../../store/use-office-store";
 import { OfficeEmployee } from "./office-employee";
 import { HQ_MODELS } from "./office-models";
 import { OfficeProps } from "./office-props";
-import { OfficeRoom } from "./office-room";
+import { OfficeRoom, Plant } from "./office-room";
 import type { SceneEmployee, SceneRoom } from "./scene-types";
 
 /** Overhead ceiling-light positions (x, z) over each department cluster. */
@@ -59,17 +59,17 @@ function MarbleFloor() {
     <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
       <planeGeometry args={[90, 90]} />
       <MeshReflectorMaterial
-        color="#43464b"
-        metalness={0.45}
-        roughness={0.6}
-        blur={[300, 100]}
+        color="#3a3c40"
+        metalness={0.35}
+        roughness={0.65}
+        blur={[280, 90]}
         resolution={1024}
-        mixBlur={1.2}
-        mixStrength={3}
-        depthScale={1}
-        minDepthThreshold={0.4}
-        maxDepthThreshold={1.4}
-        mirror={0.4}
+        mixBlur={1.0}
+        mixStrength={2.1}
+        depthScale={0.9}
+        minDepthThreshold={0.35}
+        maxDepthThreshold={1.5}
+        mirror={0.3}
       />
     </mesh>
   );
@@ -138,17 +138,21 @@ export default function OfficeScene({
       gl={{ antialias: true, preserveDrawingBuffer: false }}
       dpr={[1, 2]}
       onPointerMissed={() => selectEmployee(null)}
-      className="!absolute inset-0"
+      className="absolute! inset-0"
     >
-      <color attach="background" args={["#d2d5d9"]} />
-      <fog attach="fog" args={["#d2d5d9", 55, 110]} />
+      {/* Dark elegant background matching the polished marble concept */}
+      <color attach="background" args={["#0f0f0f"]} />
+      <fog attach="fog" args={["#0f0f0f", 48, 95]} />
 
       <Suspense fallback={null}>
-        <ambientLight intensity={0.75} />
-        <hemisphereLight intensity={0.55} groundColor="#9a9da2" color="#ffffff" />
+        {/* Softer, more even base lighting (less "black or white") */}
+        <ambientLight intensity={0.82} />
+        <hemisphereLight intensity={0.65} groundColor="#1f1f1f" color="#c8c8c8" />
+
+        {/* Main key light - reduced intensity for gentler contrast */}
         <directionalLight
           position={[14, 22, 10]}
-          intensity={1.25}
+          intensity={0.95}
           castShadow
           shadow-mapSize={[2048, 2048]}
           shadow-camera-left={-30}
@@ -159,27 +163,30 @@ export default function OfficeScene({
           shadow-camera-far={80}
           shadow-bias={-0.0004}
         />
-        <directionalLight position={[-16, 12, -8]} intensity={0.4} />
 
-        {/* Soft overhead wash, pooling light on the marble like a ceiling. */}
+        {/* Fill light from opposite side for softer modeling */}
+        <directionalLight position={[-18, 14, -10]} intensity={0.55} />
+
+        {/* Gentle overhead ceiling wash */}
         <spotLight
           position={[0, 24, 2]}
-          angle={0.85}
+          angle={0.9}
           penumbra={1}
-          intensity={1.4}
+          intensity={0.95}
           distance={70}
           decay={0}
-          color="#ffffff"
+          color="#e8e8e8"
         />
-        {/* Per-room ceiling glow so each department reads as a lit space. */}
+
+        {/* Subtle per-room ceiling accents (not too bright) */}
         {CEILING_LIGHTS.map(([x, z], index) => (
           <pointLight
             key={index}
             position={[x, 5.5, z]}
-            intensity={0.55}
-            distance={16}
-            decay={1.4}
-            color="#f5f5f5"
+            intensity={0.38}
+            distance={15}
+            decay={1.6}
+            color="#d8d8d8"
           />
         ))}
 
@@ -187,6 +194,48 @@ export default function OfficeScene({
         {rooms.map((room) => (
           <OfficeRoom key={room.def.department} room={room} />
         ))}
+
+        {/* Extra ambient plants around the central atrium for more life */}
+        <Plant position={[-6.5, -3.8]} />
+        <Plant position={[7.2, 4.1]} />
+
+        {/* Scattered floor papers in the open atrium */}
+        <group position={[-3.5, 0.015, -1.2]} rotation={[0, 0.7, 0]}>
+          <mesh>
+            <planeGeometry args={[0.2, 0.15]} />
+            <meshStandardMaterial color="#1c1c1c" roughness={0.95} side={2} />
+          </mesh>
+        </group>
+        <group position={[4.1, 0.015, 2.8]} rotation={[0, -1.1, 0]}>
+          <mesh>
+            <planeGeometry args={[0.17, 0.12]} />
+            <meshStandardMaterial color="#222222" roughness={0.95} side={2} />
+          </mesh>
+        </group>
+
+        {/* Simple coffee station in the atrium (visual liveliness) */}
+        <group position={[-1.8, 0, -7.2]}>
+          {/* Counter */}
+          <mesh position={[0, 0.42, 0]} castShadow receiveShadow>
+            <boxGeometry args={[1.8, 0.08, 0.7]} />
+            <meshStandardMaterial color="#181818" roughness={0.6} />
+          </mesh>
+          {/* Coffee machine body */}
+          <mesh position={[-0.35, 0.72, 0]} castShadow>
+            <boxGeometry args={[0.42, 0.52, 0.46]} />
+            <meshStandardMaterial color="#121212" roughness={0.5} metalness={0.15} />
+          </mesh>
+          {/* Drip area highlight */}
+          <mesh position={[-0.35, 0.52, 0.28]} castShadow>
+            <boxGeometry args={[0.28, 0.08, 0.08]} />
+            <meshStandardMaterial color="#0a0a0a" />
+          </mesh>
+          {/* Cup on counter */}
+          <mesh position={[0.55, 0.52, 0.1]} castShadow>
+            <cylinderGeometry args={[0.05, 0.045, 0.1, 10]} />
+            <meshStandardMaterial color="#1f1f1f" roughness={0.7} />
+          </mesh>
+        </group>
 
         {HQ_MODELS.props ? (
           <Suspense fallback={null}>

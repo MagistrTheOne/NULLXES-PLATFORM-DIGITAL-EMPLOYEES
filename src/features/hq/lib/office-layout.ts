@@ -84,6 +84,188 @@ export const FLOOR_HALF = 22;
 export const WALL_HEIGHT = 1.5;
 export const WALL_THICKNESS = 0.16;
 
+/** Simple axis-aligned box obstacle for collision (center + half extents on XZ). */
+export type Obstacle = {
+  x: number;
+  z: number;
+  halfW: number;
+  halfD: number;
+};
+
+/**
+ * Build static collision obstacles from the current room layout + furniture.
+ * Walls are thin boxes on the outer sides. Desks are small rectangles.
+ * This is intentionally conservative so characters don't clip geometry.
+ */
+export function getStaticObstacles(): Obstacle[] {
+  const obstacles: Obstacle[] = [];
+
+  // Room walls (thin colliders)
+  for (const room of Object.values(OFFICE_ROOMS)) {
+    const halfW = room.w / 2;
+    const halfD = room.d / 2;
+
+    if (room.walls.north) {
+      obstacles.push({ x: room.x, z: room.z - halfD, halfW, halfD: WALL_THICKNESS / 2 + 0.05 });
+    }
+    if (room.walls.south) {
+      obstacles.push({ x: room.x, z: room.z + halfD, halfW, halfD: WALL_THICKNESS / 2 + 0.05 });
+    }
+    if (room.walls.west) {
+      obstacles.push({ x: room.x - halfW, z: room.z, halfW: WALL_THICKNESS / 2 + 0.05, halfD });
+    }
+    if (room.walls.east) {
+      obstacles.push({ x: room.x + halfW, z: room.z, halfW: WALL_THICKNESS / 2 + 0.05, halfD });
+    }
+  }
+
+  // Desks (approximate footprint of the Desk component)
+  // Desk is roughly 1.1 x 0.62 on the floor.
+  const deskHalfW = 0.58;
+  const deskHalfD = 0.35;
+
+  for (const room of Object.values(OFFICE_ROOMS)) {
+    const deskPos = getDeskPositions(room);
+    for (const [dx, dz] of deskPos) {
+      obstacles.push({ x: dx, z: dz, halfW: deskHalfW, halfD: deskHalfD });
+    }
+  }
+
+  // Rough bounding box for the central props cluster (the big OfficeProps GLB)
+  obstacles.push({ x: 0, z: 0.8, halfW: 3.2, halfD: 2.8 });
+
+  // Coffee station counter (near the back of atrium)
+  obstacles.push({ x: -1.8, z: -7.2, halfW: 0.95, halfD: 0.4 });
+
+  return obstacles;
+}
+
+/**
+ * Resolve a desired movement against a list of axis-aligned obstacles.
+ * Simple "slide" resolution: move as far as possible on X then Z (or vice-versa).
+ * radius = character collision radius (approx 0.28-0.35 for low-poly figures).
+ */
+export function resolveMovement(
+  fromX: number,
+  fromZ: number,
+  desiredX: number,
+  desiredZ: number,
+  obstacles: Obstacle[],
+  radius = 0.32,
+): [number, number] {
+  let x = fromX;
+  let z = fromZ;
+
+  const dx = desiredX - fromX;
+  const dz = desiredZ - fromZ;
+  const stepLen = Math.hypot(dx, dz);
+  if (stepLen < 0.0001) return [x, z];
+
+  // Normalize direction
+  const nx = dx / stepLen;
+  const nz = dz / stepLen;
+
+  // Try full step first
+  let tx = x + dx;
+  let tz = z + dz;
+
+  if (!intersectsAny(tx, tz, obstacles, radius)) {
+    return [tx, tz];
+  }
+
+  // Slide on X
+  const slideX = x + nx * stepLen;
+  if (!intersectsAny(slideX, z, obstacles, radius)) {
+    x = slideX;
+  } else {
+    // push out on X
+    x = pushOutX(x, z, obstacles, radius);
+  }
+
+  // Slide on Z from the new X
+  const slideZ = z + nz * stepLen;
+  if (!intersectsAny(x, slideZ, obstacles, radius)) {
+    z = slideZ;
+  } else {
+    z = pushOutZ(x, z, obstacles, radius);
+  }
+
+  // Final clamp against all
+  return [clampAgainst(x, z, obstacles, radius)[0], clampAgainst(x, z, obstacles, radius)[1]];
+}
+
+function intersectsAny(x: number, z: number, obstacles: Obstacle[], r: number): boolean {
+  for (const o of obstacles) {
+    const minX = o.x - o.halfW - r;
+    const maxX = o.x + o.halfW + r;
+    const minZ = o.z - o.halfD - r;
+    const maxZ = o.z + o.halfD + r;
+    if (x >= minX && x <= maxX && z >= minZ && z <= maxZ) return true;
+  }
+  return false;
+}
+
+function pushOutX(x: number, z: number, obstacles: Obstacle[], r: number): number {
+  let best = x;
+  for (const o of obstacles) {
+    const left = o.x - o.halfW - r;
+    const right = o.x + o.halfW + r;
+    if (z >= o.z - o.halfD - r && z <= o.z + o.halfD + r) {
+      if (x > o.x) best = Math.max(best, right);
+      else best = Math.min(best, left);
+    }
+  }
+  return best;
+}
+
+function pushOutZ(x: number, z: number, obstacles: Obstacle[], r: number): number {
+  let best = z;
+  for (const o of obstacles) {
+    const top = o.z - o.halfD - r;
+    const bot = o.z + o.halfD + r;
+    if (x >= o.x - o.halfW - r && x <= o.x + o.halfW + r) {
+      if (z > o.z) best = Math.max(best, bot);
+      else best = Math.min(best, top);
+    }
+  }
+  return best;
+}
+
+function clampAgainst(x: number, z: number, obstacles: Obstacle[], r: number): [number, number] {
+  let cx = x;
+  let cz = z;
+  for (const o of obstacles) {
+    const minX = o.x - o.halfW - r;
+    const maxX = o.x + o.halfW + r;
+    const minZ = o.z - o.halfD - r;
+    const maxZ = o.z + o.halfD + r;
+    cx = Math.max(minX, Math.min(maxX, cx));
+    cz = Math.max(minZ, Math.min(maxZ, cz));
+  }
+  return [cx, cz];
+}
+
+/**
+ * Returns desk center positions inside a room (same logic used for visuals).
+ * Kept here so collision obstacles stay perfectly in sync with rendered desks.
+ */
+export function getDeskPositions(room: RoomDef): Array<[number, number]> {
+  // Allow a bit more furniture in larger rooms for a fuller map feel
+  const count = Math.min(4, Math.max(1, Math.round((room.w * room.d) / 18)));
+  const spread = room.w * 0.52;
+  const z = room.z - room.d * 0.16;
+  if (count === 1) {
+    return [[room.x, z]];
+  }
+  return Array.from({ length: count }, (_, index) => {
+    const fx = count === 1 ? 0.5 : index / (count - 1);
+    return [room.x - spread / 2 + fx * spread, z] as [number, number];
+  });
+}
+
+// Backwards-compatible alias for internal use
+const deskPositions = getDeskPositions;
+
 /**
  * Place N employees on a tidy grid inside a room footprint, biased toward the
  * open (atrium-facing) half so they read as "at their desks".

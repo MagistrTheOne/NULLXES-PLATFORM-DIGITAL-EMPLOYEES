@@ -2,6 +2,7 @@
 
 import { getLocale } from "next-intl/server";
 import { requireWorkspacePermissionOrThrowMessage } from "@/features/workspace";
+import { isTransientDatabaseError } from "@/shared/errors/is-transient-database-error";
 import { getHqState } from "../services/get-hq-state";
 import {
   generateEmployeeThoughts,
@@ -11,7 +12,8 @@ import {
 /**
  * Produce LLM-generated lofi thoughts for the workspace roster. Cached with a
  * TTL in the service; `force` bypasses it (manual refresh). Returns {} on any
- * failure so the floor silently falls back to the curated pool.
+ * failure (including transient DB outages) so the floor silently falls back
+ * to the curated pool.
  */
 export async function generateHqThoughtsAction(
   force = false,
@@ -35,7 +37,23 @@ export async function generateHqThoughtsAction(
       })),
       force,
     });
-  } catch {
+  } catch (error: unknown) {
+    // This is a best-effort background action.
+    // Transient database errors (Neon fetch failures, etc.) are expected
+    // during brief connectivity hiccups — degrade silently.
+    if (
+      isTransientDatabaseError(error) ||
+      (error instanceof Error &&
+        error.message.includes("database temporarily unreachable"))
+    ) {
+      return {};
+    }
+
+    // Other failures (LLM provider, unexpected errors) also degrade.
+    // Only surface in development for non-transient cases.
+    if (process.env.NODE_ENV !== "production") {
+      console.warn("[HQ] generateHqThoughtsAction failed", error);
+    }
     return {};
   }
 }
