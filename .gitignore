@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# HQ 3D office models (GLB, FBX, textures — large binaries, currently WIP)
+# We'll add final versions later when assembling the full concept office.
+public/models/

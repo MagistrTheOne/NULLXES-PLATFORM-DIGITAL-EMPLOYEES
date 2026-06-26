@@ -1,5 +1,11 @@
 /**
- * 3D assets for the headquarters scene. Drop GLB files into `public/models/`.
+ * 3D assets for the headquarters scene.
+ *
+ * Models live in `public/models/` (currently gitignored during iteration).
+ * Female character updated to the provided low-poly girl model for Somnia
+ * (and other female employees). Textures + final materials will be integrated
+ * when the full office concept (walls, props, etc.) is assembled.
+ *
  * Characters are auto-normalized at runtime (scaled to CHARACTER_HEIGHT, feet
  * on the floor, recentered) so source scale/origin don't matter. CHARACTER_YAW
  * corrects facing if a model walks backwards.
@@ -9,7 +15,10 @@ export const HQ_MODELS: {
   props: string | null;
 } = {
   characters: {
-    female: "/models/femalelow.glb",
+    // Updated female model (Somnia + other female employees).
+    // Source: public/models/female_low_model/femalelow.glb
+    // Textures / additional animations (CharacterIdle.fbx) to be integrated later.
+    female: "/models/female_low_model/femalelow.glb",
     male: "/models/male.glb",
   },
   props: "/models/60s_office_props.glb",

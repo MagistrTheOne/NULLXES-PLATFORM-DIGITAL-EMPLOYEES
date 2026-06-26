@@ -7,40 +7,44 @@ import type { GLTFLoader } from "three-stdlib";
  */
 let textureStubPatched = false;
 
+function isHqModelTextureUrl(url: string): boolean {
+  return (
+    typeof url === "string" &&
+    (url.startsWith("blob:") ||
+      url.includes("/models/") ||
+      url.includes("femalelow") ||
+      url.includes("female_low_model") ||
+      url.includes("male.glb") ||
+      url.includes("60s_office"))
+  );
+}
+
 /**
- * Patch TextureLoader at the prototype level as early as possible.
- * This is the most reliable way to kill "Couldn't load texture blob:..." errors
- * because GLTFLoader (and drei's wrappers) create many TextureLoader instances,
- * and some loads for embedded GLB images can bypass per-instance patches.
+ * Patch TextureLoader + ImageLoader at the prototype level as early as possible.
  *
- * We only stub loads that look like they come from our office GLBs (blob: or /models/).
- * All other texture loads in the app are left untouched.
+ * GLTFLoader (and drei's useGLTF) create many loader instances for embedded
+ * textures. Some code paths in GLTFLoader go through TextureLoader, others
+ * through ImageLoader (especially for bufferView images turned into blob: URLs).
+ *
+ * We stub both so that "Couldn't load texture blob:..." never fires for our
+ * HQ office models. All other texture loads in the app are untouched.
  */
 export function ensureGltfTexturesAreStubbed(): void {
   if (typeof window === "undefined" || textureStubPatched) return;
   textureStubPatched = true;
 
-  const proto = THREE.TextureLoader.prototype as any;
-  const originalLoad = proto.load as Function;
+  // --- TextureLoader ---
+  const texProto = THREE.TextureLoader.prototype as any;
+  const originalTexLoad = texProto.load as Function;
 
-  proto.load = function patchedTextureLoad(
+  texProto.load = function patchedTextureLoad(
     this: any,
     url: string,
     onLoad?: (texture: THREE.Texture) => void,
     onProgress?: any,
     onError?: (error: unknown) => void,
   ) {
-    const isSuspicious =
-      typeof url === "string" &&
-      (url.startsWith("blob:") ||
-        url.includes("/models/") ||
-        url.includes("femalelow") ||
-        url.includes("male.glb") ||
-        url.includes("60s_office"));
-
-    if (isSuspicious) {
-      // Return a tiny solid canvas texture instead of trying to fetch the real one.
-      // This prevents the GLTFLoader internal "Couldn't load texture blob:..." errors.
+    if (isHqModelTextureUrl(url)) {
       try {
         const canvas = document.createElement("canvas");
         canvas.width = 1;
@@ -53,19 +57,50 @@ export function ensureGltfTexturesAreStubbed(): void {
         const texture = new THREE.CanvasTexture(canvas);
         texture.needsUpdate = true;
 
-        // Mimic async load so consumers that expect a promise-like behavior are happy.
         Promise.resolve().then(() => onLoad?.(texture));
         return texture;
       } catch (err) {
-        // Last resort: let the original run (it will probably log the same error).
         if (onError) onError(err);
-        return originalLoad.call(this, url, onLoad, onProgress, onError);
+        return originalTexLoad.call(this, url, onLoad, onProgress, onError);
       }
     }
-
-    // Normal path for everything else.
-    return originalLoad.call(this, url, onLoad, onProgress, onError);
+    return originalTexLoad.call(this, url, onLoad, onProgress, onError);
   };
+
+  // --- ImageLoader (critical for many embedded GLB textures) ---
+  // GLTFLoader often does: new ImageLoader(manager).load(blobUrl, onImage, ...)
+  // and logs the "Couldn't load texture" error from its own onError wrapper.
+  const imgProto = (THREE as any).ImageLoader?.prototype as any;
+  if (imgProto && typeof imgProto.load === "function") {
+    const originalImgLoad = imgProto.load as Function;
+
+    imgProto.load = function patchedImageLoad(
+      this: any,
+      url: string,
+      onLoad?: (image: HTMLImageElement | HTMLCanvasElement | ImageBitmap) => void,
+      onProgress?: any,
+      onError?: (error: unknown) => void,
+    ) {
+      if (isHqModelTextureUrl(url)) {
+        try {
+          // Provide a minimal valid image so GLTFLoader can proceed without error.
+          const img = new Image();
+          // 1x1 black PNG data URL (immediately "loaded")
+          img.src =
+            "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==";
+          img.width = 1;
+          img.height = 1;
+
+          Promise.resolve().then(() => onLoad?.(img));
+          return img;
+        } catch (err) {
+          if (onError) onError(err);
+          return originalImgLoad.call(this, url, onLoad, onProgress, onError);
+        }
+      }
+      return originalImgLoad.call(this, url, onLoad, onProgress, onError);
+    };
+  }
 }
 
 // Apply the patch as soon as this module is evaluated on the client.
@@ -139,41 +174,64 @@ export function configureGltfLoaderNoTextures(loader: GLTFLoader): void {
   // Make sure the global safety net is active even if this per-loader path is used.
   ensureGltfTexturesAreStubbed();
 
+  // Stub the TextureLoader attached to this GLTFLoader instance (if any).
   const texLoader = (loader as any).textureLoader;
-  if (!texLoader || typeof texLoader.load !== "function") {
-    return;
+  if (texLoader && typeof texLoader.load === "function") {
+    const originalLoad = texLoader.load.bind(texLoader);
+
+    texLoader.load = (
+      _url: string,
+      onLoad?: (texture: THREE.Texture) => void,
+      _onProgress?: any,
+      onError?: (error: unknown) => void,
+    ) => {
+      try {
+        const canvas = document.createElement("canvas");
+        canvas.width = 1;
+        canvas.height = 1;
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          ctx.fillStyle = "#222222";
+          ctx.fillRect(0, 0, 1, 1);
+        }
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.needsUpdate = true;
+
+        Promise.resolve().then(() => onLoad?.(texture));
+        return texture;
+      } catch (err) {
+        if (onError) onError(err);
+        return originalLoad(_url, onLoad, _onProgress, onError);
+      }
+    };
   }
 
-  const originalLoad = texLoader.load.bind(texLoader);
+  // Best-effort: some GLTFLoader setups also keep an ImageLoader reference.
+  const imgLoader = (loader as any).imageLoader;
+  if (imgLoader && typeof imgLoader.load === "function") {
+    const originalImgLoad = imgLoader.load.bind(imgLoader);
 
-  texLoader.load = (
-    _url: string,
-    onLoad?: (texture: THREE.Texture) => void,
-    _onProgress?: any,
-    onError?: (error: unknown) => void,
-  ) => {
-    try {
-      const canvas = document.createElement("canvas");
-      canvas.width = 1;
-      canvas.height = 1;
-      const ctx = canvas.getContext("2d");
-      if (ctx) {
-        ctx.fillStyle = "#222222";
-        ctx.fillRect(0, 0, 1, 1);
+    imgLoader.load = (
+      _url: string,
+      onLoad?: (image: any) => void,
+      _onProgress?: any,
+      onError?: (error: unknown) => void,
+    ) => {
+      if (isHqModelTextureUrl(_url)) {
+        try {
+          const img = new Image();
+          img.src =
+            "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==";
+          img.width = 1;
+          img.height = 1;
+          Promise.resolve().then(() => onLoad?.(img));
+          return img;
+        } catch (err) {
+          if (onError) onError(err);
+          return originalImgLoad(_url, onLoad, _onProgress, onError);
+        }
       }
-      const texture = new THREE.CanvasTexture(canvas);
-      texture.needsUpdate = true;
-
-      // Mimic async load (same as the global TextureLoader prototype patch)
-      // so that drei's useGLTF / GLTFLoader internal promise chains and
-      // downstream consumers receive the callback asynchronously.
-      Promise.resolve().then(() => onLoad?.(texture));
-      return texture;
-    } catch (err) {
-      // Extremely unlikely fallback
-      if (onError) onError(err);
-      // Try the original as last resort (will likely fail the same way)
-      return originalLoad(_url, onLoad, _onProgress, onError);
-    }
-  };
+      return originalImgLoad(_url, onLoad, _onProgress, onError);
+    };
+  }
 }

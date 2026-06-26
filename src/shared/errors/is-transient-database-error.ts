@@ -19,6 +19,7 @@ function isTransientMessage(message: string): boolean {
     normalized.includes("error connecting to database") ||
     normalized.includes("neondberror") ||
     normalized.includes("failed to get session") ||
+    normalized.includes("database temporarily unreachable") ||
     normalized.includes("econnreset") ||
     normalized.includes("etimedout") ||
     normalized.includes("socket hang up")
