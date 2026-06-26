@@ -15,15 +15,16 @@ export const HQ_MODELS: {
   props: string | null;
 } = {
   characters: {
-    // GLB paths are only used in development (local files in public/models/).
-    // public/models/ is gitignored — do not commit large binaries.
-    // On production builds (Vercel etc.) we fall back to solid primitive characters
-    // which are fully styled and animated. When final models + textures are ready,
-    // set the paths and remove from .gitignore (or host the assets externally).
-    female:
-      process.env.NODE_ENV === "development"
-        ? "/models/female_low_model/femalelow.glb"
-        : null,
+    // Female model (low-poly girl) is the one provided for Somnia + other female employees.
+    // Path points to the folder the user added: public/models/female_low_model/femalelow.glb
+    // This model is used for all characters resolved as "female" via resolveCharacterGender
+    // (Somnia, Kira, Kaira, Lili, etc. are explicitly mapped).
+    //
+    // public/models/ is gitignored during asset iteration. When you have the files locally
+    // they will be used. On deploys without the assets, we fall back to styled primitives.
+    female: "/models/female_low_model/femalelow.glb",
+
+    // Male model is still optional / dev-only for now.
     male:
       process.env.NODE_ENV === "development" ? "/models/male.glb" : null,
   },
