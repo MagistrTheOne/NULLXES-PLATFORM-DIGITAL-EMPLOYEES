@@ -4,6 +4,7 @@ import {
   isPendingOrganizationSettingsMigrationError,
 } from "@/shared/errors/is-missing-relation-error";
 import { db } from "@/shared/db/client";
+import { withDatabaseRetry } from "@/shared/db/with-database-retry";
 import { organizationSettings } from "./schema";
 import {
   organizationSettingsMigrationPendingMessage,
@@ -25,6 +26,12 @@ export class OrganizationSettingsMigrationPendingError extends Error {
 }
 
 export async function ensureOrganizationSettings(
+  organizationId: string,
+): Promise<typeof organizationSettings.$inferSelect> {
+  return withDatabaseRetry(() => loadOrCreateOrganizationSettings(organizationId));
+}
+
+async function loadOrCreateOrganizationSettings(
   organizationId: string,
 ): Promise<typeof organizationSettings.$inferSelect> {
   let existing: typeof organizationSettings.$inferSelect | undefined;

@@ -5,14 +5,24 @@ import { eq } from "drizzle-orm";
 import { membership } from "@/entities/membership/schema";
 import {
   ensureOrganizationSettings,
+  OrganizationSettingsMigrationPendingError,
   OrganizationSettingsTableMissingError,
 } from "@/entities/organization-settings/ensure-organization-settings";
 import { resolveWorkspace } from "@/features/workspace";
 import type { WorkspaceContext } from "@/features/workspace";
 import { db } from "@/shared/db/client";
+import { isTransientDatabaseError } from "@/shared/errors/is-transient-database-error";
+import { withDatabaseRetry } from "@/shared/db/with-database-retry";
 import { provisionDefaultWorkspace } from "./provision-default-workspace";
 
 async function loadWorkspace(
+  userId: string,
+  displayName: string,
+): Promise<WorkspaceContext> {
+  return withDatabaseRetry(() => resolveWorkspaceForUser(userId, displayName));
+}
+
+async function resolveWorkspaceForUser(
   userId: string,
   displayName: string,
 ): Promise<WorkspaceContext> {
@@ -31,7 +41,12 @@ async function loadWorkspace(
   try {
     await ensureOrganizationSettings(workspace.organization.id);
   } catch (error: unknown) {
-    if (!(error instanceof OrganizationSettingsTableMissingError)) {
+    const canContinueWithoutSettings =
+      error instanceof OrganizationSettingsTableMissingError ||
+      error instanceof OrganizationSettingsMigrationPendingError ||
+      isTransientDatabaseError(error);
+
+    if (!canContinueWithoutSettings) {
       throw error;
     }
   }

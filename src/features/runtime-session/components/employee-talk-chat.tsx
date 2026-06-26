@@ -327,7 +327,7 @@ export function EmployeeTalkChat({
       unavailableLabel={t("unavailable")}
     >
       <NullxesStreamWorkspace config={streamWorkspaceConfig}>
-        <Chat client={client}>
+        <Chat client={client} theme="str-chat__theme-dark">
           <Channel channel={channel}>
             <Window>
               <NullxesConversationLayout>
@@ -388,6 +388,7 @@ export function EmployeeTalkChat({
                 <NullxesMessageList />
 
                 <MessageComposer
+                  asyncMessagesMultiSendEnabled
                   audioRecordingEnabled
                   hideSendButton
                   maxRows={6}

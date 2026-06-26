@@ -1,29 +1,21 @@
 export default function EmployeeTalkLoading() {
   return (
-    <div className="employee-talk-shell mx-auto flex w-full flex-col gap-5">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="flex min-w-0 items-center gap-4">
-          <div className="h-9 w-20 animate-pulse rounded-md bg-white/6" />
-          <div className="space-y-2">
-            <div className="h-8 w-48 animate-pulse rounded-md bg-white/8" />
-            <div className="h-4 w-64 animate-pulse rounded-md bg-white/5" />
-          </div>
-        </div>
-        <div className="h-8 w-36 animate-pulse rounded-full bg-white/6" />
+    <div className="employee-talk-shell mx-auto flex min-h-[min(88dvh,920px)] w-full flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#0a0a0a]">
+      <div className="border-b border-white/8 px-4 py-3.5 lg:px-5">
+        <div className="mb-2 h-3 w-16 animate-pulse rounded bg-white/5" />
+        <div className="h-6 w-48 animate-pulse rounded-md bg-white/8" />
+        <div className="mt-2 h-3 w-64 animate-pulse rounded bg-white/5" />
       </div>
 
-      <div className="grid min-h-[min(70dvh,640px)] min-h-0 gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
-        <div className="space-y-4">
+      <div className="grid min-h-0 flex-1 lg:grid-cols-[minmax(0,1fr)_300px] xl:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="flex min-h-0 flex-col border-white/8 lg:border-r">
           <div
-            className="aspect-video w-full animate-pulse rounded-xl bg-white/4"
+            className="aspect-video w-full animate-pulse bg-white/4 lg:min-h-[280px]"
             style={{ minHeight: "min(45dvh, 360px)" }}
           />
-          <div className="flex justify-center gap-3 py-4">
-            <div className="h-11 w-36 animate-pulse rounded-full bg-white/8" />
-            <div className="h-11 w-24 animate-pulse rounded-full bg-white/6" />
-          </div>
+          <div className="min-h-[240px] flex-1 animate-pulse bg-white/3 lg:min-h-0" />
         </div>
-        <div className="min-h-[min(45dvh,360px)] animate-pulse rounded-xl border border-white/10 bg-white/3 lg:min-h-0" />
+        <div className="hidden min-h-0 animate-pulse bg-white/3 lg:block" />
       </div>
     </div>
   );

@@ -3,6 +3,7 @@ import { endOfUtcDay, startOfUtcDay } from "@/features/analytics/lib/date-range"
 import { employeeTask } from "@/entities/task/schema";
 import { employeeSession } from "@/entities/session/schema";
 import { db } from "@/shared/db/client";
+import { withDatabaseRetry } from "@/shared/db/with-database-retry";
 
 export type TalkAgentPanelStats = {
   conversationsToday: number;
@@ -23,6 +24,10 @@ export type TalkAgentPanel = {
 export async function getTalkAgentPanel(
   employeeId: string,
 ): Promise<TalkAgentPanel> {
+  return withDatabaseRetry(() => loadTalkAgentPanel(employeeId));
+}
+
+async function loadTalkAgentPanel(employeeId: string): Promise<TalkAgentPanel> {
   const now = new Date();
 
   const [statsRow, taskRow] = await Promise.all([

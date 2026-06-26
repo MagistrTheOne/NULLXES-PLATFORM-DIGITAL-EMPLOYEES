@@ -7,6 +7,19 @@
   min-height: min(72dvh, 760px);
 }
 
+.nullxes-conversation-layout.str-chat,
+.nullxes-conversation-layout .str-chat {
+  height: 100%;
+  min-height: 0;
+  background: #000;
+}
+
+.nullxes-conversation-layout .str-chat__message-list,
+.nullxes-conversation-layout .str-chat__main-panel,
+.nullxes-conversation-layout .str-chat__main-panel-inner {
+  background: #000;
+}
+
 @media (min-width: 1280px) {
   .conversations-workspace {
     min-height: min(80dvh, 840px);

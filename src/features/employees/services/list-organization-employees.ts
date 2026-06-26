@@ -7,6 +7,7 @@ import { digitalEmployee } from "@/entities/digital-employee/schema";
 import { employeeProviderConfig } from "@/entities/provider-config/schema";
 import { knowledgeSource } from "@/entities/knowledge/schema";
 import { db } from "@/shared/db/client";
+import { withDatabaseRetry } from "@/shared/db/with-database-retry";
 import { isAnamAvatarTalkReady } from "../lib/resolve-anam-avatar-talk-readiness";
 import { readProviderFailureReason } from "../lib/resolve-talk-readiness";
 import type { EmployeeListItem } from "../types";
@@ -59,6 +60,15 @@ function encodeCursor(createdAt: Date, id: string): string {
 }
 
 export async function listOrganizationEmployees(
+  organizationId: string,
+  options?: { cursor?: string; limit?: number },
+): Promise<EmployeeListPage> {
+  return withDatabaseRetry(() =>
+    loadOrganizationEmployeesPage(organizationId, options),
+  );
+}
+
+async function loadOrganizationEmployeesPage(
   organizationId: string,
   options?: { cursor?: string; limit?: number },
 ): Promise<EmployeeListPage> {

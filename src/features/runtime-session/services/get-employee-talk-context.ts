@@ -9,6 +9,7 @@ import { digitalEmployee } from "@/entities/digital-employee/schema";
 import { employeeProviderConfig } from "@/entities/provider-config/schema";
 import { employeeRuntime } from "@/entities/runtime/schema";
 import { db } from "@/shared/db/client";
+import { withDatabaseRetry } from "@/shared/db/with-database-retry";
 import {
   isAnamAvatarTalkReady,
   resolveAnamPersonaVoiceId,
@@ -31,6 +32,15 @@ function readProvisioningStatus(
 }
 
 async function loadEmployeeTalkContext(
+  organizationId: string,
+  employeeId: string,
+): Promise<EmployeeTalkContext | null> {
+  return withDatabaseRetry(() =>
+    queryEmployeeTalkContext(organizationId, employeeId),
+  );
+}
+
+async function queryEmployeeTalkContext(
   organizationId: string,
   employeeId: string,
 ): Promise<EmployeeTalkContext | null> {

@@ -30,7 +30,7 @@ export default async function ConversationsPage({
     typeof resolved.employee === "string" ? resolved.employee : undefined;
 
   const page = await listOrganizationEmployees(workspace.organization.id, {
-    limit: 100,
+    limit: 1000,
   });
 
   const talkReady = page.items.filter((employee) => employee.canTalk);

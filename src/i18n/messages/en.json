@@ -924,11 +924,30 @@
     "detailsTitle": "Details",
     "feedbackUp": "Helpful",
     "feedbackDown": "Not helpful",
+    "voice": {
+      "recording": "Recording voice message…",
+      "paused": "Recording paused",
+      "review": "Review recording",
+      "transcribing": "Transcribing…",
+      "cancel": "Cancel recording",
+      "send": "Send voice message",
+      "play": "Play voice message",
+      "pause": "Pause voice message",
+      "noAudio": "No audio captured",
+      "transcribeFailed": "Transcription failed"
+    },
     "openProfile": "Open profile",
     "mainThread": "Main",
     "roster": "Workforce",
     "emptyRoster": "No talk-ready employees yet.",
-    "pickEmployee": "Select an employee to open their conversation workspace."
+    "pickEmployee": "Select an employee to open their conversation workspace.",
+    "error": {
+      "title": "Conversations unavailable",
+      "database": "Could not reach the database to load conversations. Check your network and database connection, then try again.",
+      "generic": "Something went wrong while loading the conversations workspace.",
+      "tryAgain": "Try again",
+      "backToDashboard": "Back to dashboard"
+    }
   },
   "hq": {
     "title": "NULLXES HQ",

@@ -2,6 +2,7 @@ import { and, desc, eq, gte, lte } from "drizzle-orm";
 import { endOfUtcDay, startOfUtcDay } from "@/features/analytics/lib/date-range";
 import { employeeSession } from "@/entities/session/schema";
 import { db } from "@/shared/db/client";
+import { withDatabaseRetry } from "@/shared/db/with-database-retry";
 
 export type TalkActivityKind =
   | "connected"
@@ -20,6 +21,13 @@ export type TalkActivityItem = {
  * today's employee_session rows — no new tables.
  */
 export async function getTalkAgentActivity(
+  employeeId: string,
+  limit = 8,
+): Promise<TalkActivityItem[]> {
+  return withDatabaseRetry(() => loadTalkAgentActivity(employeeId, limit));
+}
+
+async function loadTalkAgentActivity(
   employeeId: string,
   limit = 8,
 ): Promise<TalkActivityItem[]> {

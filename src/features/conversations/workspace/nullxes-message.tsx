@@ -23,7 +23,22 @@ import {
 import { useMessageContext } from "stream-chat-react";
 import { cn } from "@/lib/utils";
 import { regenerateTalkMessage } from "@/features/runtime-session/lib/talk-regenerate-bridge";
+import { NullxesVoiceMessage } from "./nullxes-voice-message";
 import type { NullxesWorkspaceSurface } from "./types";
+
+type VoiceRecordingAttachment = {
+  type?: string;
+  asset_url?: string;
+  duration?: number;
+  mime_type?: string;
+  waveform_data?: number[];
+};
+
+function getVoiceAttachment(
+  attachments: VoiceRecordingAttachment[] | undefined,
+): VoiceRecordingAttachment | undefined {
+  return attachments?.find((attachment) => attachment.type === "voiceRecording");
+}
 
 function formatMessageTime(value: Date | string | undefined): string {
   if (!value) {
@@ -243,6 +258,9 @@ export function NullxesMessage({
     : (message.user?.name ?? agentDisplayName);
 
   const text = message.text?.trim() ?? "";
+  const voiceAttachment = getVoiceAttachment(
+    message.attachments as VoiceRecordingAttachment[] | undefined,
+  );
   const createdAt = message.created_at
     ? new Date(message.created_at)
     : undefined;
@@ -278,9 +296,17 @@ export function NullxesMessage({
           </time>
         </div>
 
-        <p className="whitespace-pre-wrap text-sm leading-relaxed text-white/85">
-          {text}
-        </p>
+        {voiceAttachment ? (
+          <NullxesVoiceMessage
+            attachment={voiceAttachment}
+            transcript={text || undefined}
+            compact
+          />
+        ) : (
+          <p className="whitespace-pre-wrap text-sm leading-relaxed text-white/85">
+            {text}
+          </p>
+        )}
 
         {!mine && text ? (
           <NullxesMessageActions
@@ -322,7 +348,12 @@ export function NullxesMessage({
             ) : null}
           </div>
 
-          {text ? (
+          {voiceAttachment ? (
+            <NullxesVoiceMessage
+              attachment={voiceAttachment}
+              transcript={text || undefined}
+            />
+          ) : text ? (
             <p className="whitespace-pre-wrap text-sm font-normal leading-relaxed text-white/85">
               {text}
             </p>

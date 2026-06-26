@@ -1,11 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
-import { ArrowLeft } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { completeTalkSessionAction } from "../actions/employee-session";
 import { TalkAnamProvider, useTalkAnam } from "../context/talk-anam-context";
 import {
@@ -26,7 +22,6 @@ function TalkSessionShell({
   sessionLimitSeconds,
   ...roomProps
 }: EmployeeTalkSessionInputProps & { employeeName: string }) {
-  const tCommon = useTranslations("common.actions");
   const router = useRouter();
   const { stopSession } = useTalkAnam();
   const [activeSession, setActiveSession] = useState<ActiveTalkSession | null>(
@@ -117,19 +112,7 @@ function TalkSessionShell({
 
   return (
     <>
-      <div className="flex min-h-0 flex-1 flex-col gap-3 pb-[env(safe-area-inset-bottom)]">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="w-fit shrink-0 text-white/50 hover:bg-white/5 hover:text-white"
-          asChild
-        >
-          <Link href="/dashboard/employees">
-            <ArrowLeft className="size-3.5" />
-            {tCommon("back")}
-          </Link>
-        </Button>
-
+      <div className="flex min-h-0 flex-1 flex-col pb-[env(safe-area-inset-bottom)]">
         <EmployeeTalkRoom
           {...roomProps}
           employeeName={employeeName}

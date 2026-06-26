@@ -1,6 +1,7 @@
 "use server";
 
 import { requireWorkspacePermissionOrThrowMessage } from "@/features/workspace";
+import { isTransientDatabaseError } from "@/shared/errors/is-transient-database-error";
 import {
   createTalkChatSession,
   type TalkChatCredentials,
@@ -44,6 +45,13 @@ export async function connectTalkChatSessionAction(
 
     return { ok: true, chatSession };
   } catch (error: unknown) {
+    if (isTransientDatabaseError(error)) {
+      return {
+        ok: false,
+        message: "Database is temporarily unreachable. Please try again.",
+      };
+    }
+
     return {
       ok: false,
       message: error instanceof Error ? error.message : "Access denied",

@@ -1,8 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Activity, ChevronDown, ShieldCheck } from "lucide-react";
+import { Activity, ArrowLeft, ChevronDown, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useTalkAnam } from "../context/talk-anam-context";
@@ -31,6 +32,7 @@ export function TalkWorkspaceHeader({
   onLimitReached?: () => void;
 }) {
   const t = useTranslations("employees.talk");
+  const tCommon = useTranslations("common.actions");
   const { isLive } = useTalkAnam();
   const [elapsed, setElapsed] = useState(0);
   const [collapsed, setCollapsed] = useState(false);
@@ -60,6 +62,13 @@ export function TalkWorkspaceHeader({
     <header className="flex shrink-0 flex-col border-b border-white/8">
       <div className="flex flex-wrap items-start justify-between gap-3 px-4 py-3.5 lg:px-5">
         <div className="min-w-0">
+          <Link
+            href="/dashboard/employees"
+            className="mb-2 inline-flex items-center gap-1.5 text-[11px] text-white/45 transition-colors hover:text-white/75"
+          >
+            <ArrowLeft className="size-3 stroke-[1.5]" />
+            {tCommon("back")}
+          </Link>
           <h1 className="text-base font-medium tracking-tight text-white lg:text-lg">
             {t("title", { name: employeeName })}
           </h1>

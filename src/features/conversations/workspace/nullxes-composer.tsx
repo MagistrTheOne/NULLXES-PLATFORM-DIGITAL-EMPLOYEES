@@ -1,16 +1,14 @@
 "use client";
 
-import { Mic } from "lucide-react";
 import { useTranslations } from "next-intl";
-import {
-  StartRecordingAudioButton,
-  TextareaComposer,
-} from "stream-chat-react";
+import { TextareaComposer, useMessageComposerContext } from "stream-chat-react";
 import { cn } from "@/lib/utils";
 import {
   NullxesAttachButton,
   NullxesSendButton,
+  NullxesVoiceButton,
 } from "./nullxes-composer-actions";
+import { NullxesVoiceRecorder } from "./nullxes-voice-recorder";
 import type { NullxesWorkspaceSurface } from "./types";
 
 export function NullxesComposerUI({
@@ -27,17 +25,34 @@ export function NullxesComposerUI({
     (surface === "conversations"
       ? t("composerPlaceholder")
       : tChat("placeholder"));
+  const { recordingController } = useMessageComposerContext();
+  const isRecording = Boolean(recordingController.recordingState);
+
+  if (isRecording) {
+    return (
+      <div
+        className={cn(
+          "flex shrink-0 flex-col items-center border-t border-white/8 bg-black px-6 py-5",
+          surface === "conversations"
+            ? "pb-6"
+            : "pb-[max(1.25rem,env(safe-area-inset-bottom))]",
+        )}
+      >
+        <NullxesVoiceRecorder />
+      </div>
+    );
+  }
 
   return (
     <div
       className={cn(
-        "shrink-0 border-t border-white/8 bg-black px-6 py-5",
+        "flex shrink-0 flex-col items-center border-t border-white/8 bg-black px-6 py-5",
         surface === "conversations" ? "pb-6" : "pb-[max(1.25rem,env(safe-area-inset-bottom))]",
       )}
     >
       <div
         className={cn(
-          "mx-auto flex w-full max-w-3xl items-end gap-2 rounded-full border border-white/8 bg-black px-3 py-2",
+          "flex w-full max-w-2xl items-end gap-2 rounded-full border border-white/8 bg-[#0a0a0a] px-3 py-2",
           surface === "talk" && "max-w-none rounded-2xl px-4 py-3",
         )}
       >
@@ -47,29 +62,19 @@ export function NullxesComposerUI({
           <TextareaComposer
             minRows={1}
             maxRows={6}
-            additionalTextareaProps={{
-              placeholder: resolvedPlaceholder,
-              className:
-                "max-h-24 min-h-6 w-full resize-none border-0 bg-transparent px-2 py-2 text-sm leading-relaxed text-white outline-none placeholder:text-white/35",
-            }}
+            placeholder={resolvedPlaceholder}
+            containerClassName="w-full"
+            className="max-h-24 min-h-6 w-full resize-none border-0 bg-transparent px-2 py-2 text-sm leading-relaxed text-white caret-white outline-none placeholder:text-white/35"
           />
         </div>
 
-        <StartRecordingAudioButton>
-          <button
-            type="button"
-            className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-white/45 transition-colors hover:bg-white/4 hover:text-white"
-            aria-label="Voice message"
-          >
-            <Mic className="size-4 stroke-[1.5]" />
-          </button>
-        </StartRecordingAudioButton>
+        <NullxesVoiceButton />
 
         <NullxesSendButton />
       </div>
 
       {surface === "conversations" ? (
-        <p className="mx-auto mt-3 max-w-3xl text-center text-[10px] font-normal leading-relaxed text-white/28">
+        <p className="mt-3 max-w-2xl text-center text-[10px] font-normal leading-relaxed text-white/28">
           {t("composerHint")}
         </p>
       ) : null}
