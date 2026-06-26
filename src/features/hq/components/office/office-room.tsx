@@ -75,7 +75,7 @@ function Desk({ position, seed = 0 }: { position: [number, number]; seed?: numbe
       </mesh>
 
       {/* Animated Monitor (gentle breathing for liveliness) */}
-      <Monitor position={[0, 0.52, -0.14]} />
+      <Monitor position={[0, 0.52, -0.14]} seed={seed} />
 
       {/* Monitor stand */}
       <mesh position={[0, 0.32, -0.08]} castShadow>
@@ -179,11 +179,14 @@ export function Plant({ position, phase = 0 }: { position: [number, number]; pha
 }
 
 /**
- * Very subtle breathing on the monitor screen.
- * Creates a quiet "alive" feeling without being distracting.
+ * Very subtle breathing on the monitor screen + faint varied "content".
+ * Different desks look like they have different work on screen (very low contrast).
  */
-function Monitor({ position }: { position: [number, number, number] }) {
+function Monitor({ position, seed = 0 }: { position: [number, number, number]; seed?: number }) {
   const ref = useRef<Mesh>(null);
+
+  // Deterministic screen variation (0,1,2,3)
+  const variant = Math.abs(seed) % 4;
 
   useFrame((state) => {
     if (ref.current) {
@@ -196,16 +199,84 @@ function Monitor({ position }: { position: [number, number, number] }) {
   });
 
   return (
-    <mesh ref={ref} position={position} castShadow>
-      <boxGeometry args={[0.46, 0.28, 0.04]} />
-      <meshStandardMaterial
-        color="#0a0a0a"
-        roughness={0.3}
-        metalness={0.45}
-        emissive="#121212"
-        emissiveIntensity={0.35}
-      />
-    </mesh>
+    <group position={position}>
+      {/* Base screen glass */}
+      <mesh ref={ref} castShadow>
+        <boxGeometry args={[0.46, 0.28, 0.04]} />
+        <meshStandardMaterial
+          color="#0a0a0a"
+          roughness={0.3}
+          metalness={0.45}
+          emissive="#121212"
+          emissiveIntensity={0.35}
+        />
+      </mesh>
+
+      {/* Faint varied screen content (almost invisible unless looked at) */}
+      {variant === 0 && (
+        <>
+          {/* Two text-like rows */}
+          <mesh position={[0, 0.04, 0.025]}>
+            <boxGeometry args={[0.32, 0.008, 0.002]} />
+            <meshStandardMaterial color="#1f1f1f" roughness={0.9} />
+          </mesh>
+          <mesh position={[0, -0.03, 0.025]}>
+            <boxGeometry args={[0.28, 0.008, 0.002]} />
+            <meshStandardMaterial color="#1f1f1f" roughness={0.9} />
+          </mesh>
+        </>
+      )}
+
+      {variant === 1 && (
+        <>
+          {/* "Code" vertical bars + small accents */}
+          <mesh position={[-0.08, 0, 0.025]}>
+            <boxGeometry args={[0.006, 0.18, 0.002]} />
+            <meshStandardMaterial color="#202020" roughness={0.9} />
+          </mesh>
+          <mesh position={[0.03, 0.02, 0.025]}>
+            <boxGeometry args={[0.14, 0.006, 0.002]} />
+            <meshStandardMaterial color="#1c1c1c" roughness={0.9} />
+          </mesh>
+          <mesh position={[0.03, -0.02, 0.025]}>
+            <boxGeometry args={[0.1, 0.006, 0.002]} />
+            <meshStandardMaterial color="#1c1c1c" roughness={0.9} />
+          </mesh>
+        </>
+      )}
+
+      {variant === 2 && (
+        <>
+          {/* Subtle grid / table feel */}
+          {[ -0.06, 0.06 ].map((y, i) => (
+            <mesh key={i} position={[0, y, 0.025]}>
+              <boxGeometry args={[0.34, 0.004, 0.002]} />
+              <meshStandardMaterial color="#1e1e1e" roughness={0.9} />
+            </mesh>
+          ))}
+          {[ -0.1, 0.1 ].map((x, i) => (
+            <mesh key={i + 10} position={[x, 0, 0.025]}>
+              <boxGeometry args={[0.004, 0.16, 0.002]} />
+              <meshStandardMaterial color="#1e1e1e" roughness={0.9} />
+            </mesh>
+          ))}
+        </>
+      )}
+
+      {variant === 3 && (
+        <>
+          {/* One main "window" + status line */}
+          <mesh position={[0, 0.01, 0.025]}>
+            <boxGeometry args={[0.26, 0.14, 0.002]} />
+            <meshStandardMaterial color="#181818" roughness={0.9} />
+          </mesh>
+          <mesh position={[0, -0.08, 0.025]}>
+            <boxGeometry args={[0.36, 0.004, 0.002]} />
+            <meshStandardMaterial color="#222222" roughness={0.9} />
+          </mesh>
+        </>
+      )}
+    </group>
   );
 }
 
