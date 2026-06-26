@@ -163,7 +163,11 @@ export function configureGltfLoaderNoTextures(loader: GLTFLoader): void {
       }
       const texture = new THREE.CanvasTexture(canvas);
       texture.needsUpdate = true;
-      onLoad?.(texture);
+
+      // Mimic async load (same as the global TextureLoader prototype patch)
+      // so that drei's useGLTF / GLTFLoader internal promise chains and
+      // downstream consumers receive the callback asynchronously.
+      Promise.resolve().then(() => onLoad?.(texture));
       return texture;
     } catch (err) {
       // Extremely unlikely fallback
