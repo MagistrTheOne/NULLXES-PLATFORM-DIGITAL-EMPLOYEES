@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
+import { useGLTF } from "@react-three/drei";
 import { useTranslations } from "next-intl";
 import { Loader2, Maximize2, Minus, Plus, Sparkles } from "lucide-react";
 import type { OrthographicCamera } from "three";
@@ -20,7 +21,7 @@ import {
   planHqBehavior,
 } from "../lib/hq-behavior-planner";
 import { resolveActivityBadgeLabel } from "../lib/resolve-activity-label";
-import { pickCharacterModel } from "./office/office-models";
+import { HQ_MODELS, pickCharacterModel } from "./office/office-models";
 import type { EmployeeThoughtsMap } from "../services/generate-employee-thoughts";
 import type { HqRuntimeStatus, HqState } from "../types";
 import type { SceneEmployee, SceneRoom } from "./office/scene-types";
@@ -63,6 +64,21 @@ export function HqOfficeCanvas({
   const activeThoughts = tLofi.raw("thoughtsActive") as string[];
   const reactions = tLofi.raw("reactions") as string[];
   const meetingLabel = tLofi("meeting");
+
+  // Preload GLTF models from within a React component context.
+  // This avoids calling useGLTF.preload at module initialization time.
+  useEffect(() => {
+    const { characters, props } = HQ_MODELS;
+    if (characters.female) {
+      useGLTF.preload(characters.female);
+    }
+    if (characters.male) {
+      useGLTF.preload(characters.male);
+    }
+    if (props) {
+      useGLTF.preload(props);
+    }
+  }, []);
 
   // Coarse ticking clock (1s) so standups can start/end without a render loop.
   const [nowSeconds, setNowSeconds] = useState(() => Date.now() / 1000);

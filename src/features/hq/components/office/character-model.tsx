@@ -5,7 +5,7 @@ import { useGLTF } from "@react-three/drei";
 import { Box3, Vector3, type Object3D } from "three";
 import { SkeletonUtils } from "three-stdlib";
 import { applySolidGltfMaterials } from "./apply-gltf-materials";
-import { CHARACTER_HEIGHT, CHARACTER_YAW, HQ_MODELS } from "./office-models";
+import { CHARACTER_HEIGHT, CHARACTER_YAW } from "./office-models";
 
 /**
  * Renders a GLB character, auto-normalized: scaled to CHARACTER_HEIGHT, feet on
@@ -42,15 +42,4 @@ export function CharacterModel({ url }: { url: string }) {
       </group>
     </group>
   );
-}
-
-const { characters, props } = HQ_MODELS;
-if (characters.female) {
-  useGLTF.preload(characters.female);
-}
-if (characters.male) {
-  useGLTF.preload(characters.male);
-}
-if (props) {
-  useGLTF.preload(props);
 }

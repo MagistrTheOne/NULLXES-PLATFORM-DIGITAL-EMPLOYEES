@@ -57,8 +57,16 @@ export function NullxesVoiceMessage({
       return;
     }
 
-    void audio.play().then(() => {
-      setPlaying(true);
+    // We intentionally do not use `void` to ignore rejections.
+    // Handle the promise so that failures (autoplay policy, load errors,
+    // unsupported format, etc.) do not cause unhandled rejections and do
+    // not leave the play button in a broken state.
+    audio.play().catch((error) => {
+      setPlaying(false);
+      if (process.env.NODE_ENV !== 'production') {
+        // eslint-disable-next-line no-console
+        console.warn('Voice message playback failed to start', error);
+      }
     });
   };
 
@@ -100,10 +108,16 @@ export function NullxesVoiceMessage({
             ref={audioRef}
             src={attachment.asset_url}
             preload="metadata"
+            onPlay={() => {
+              setPlaying(true);
+            }}
             onEnded={() => {
               setPlaying(false);
             }}
             onPause={() => {
+              setPlaying(false);
+            }}
+            onError={() => {
               setPlaying(false);
             }}
             className="hidden"
