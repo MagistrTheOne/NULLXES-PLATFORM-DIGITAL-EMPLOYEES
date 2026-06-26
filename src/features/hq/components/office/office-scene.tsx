@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useRef } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { MeshReflectorMaterial, OrbitControls } from "@react-three/drei";
-import { Vector3 } from "three";
+import { PCFShadowMap, Vector3 } from "three";
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import { useOfficeStore } from "../../store/use-office-store";
 import { OfficeEmployee } from "./office-employee";
@@ -195,7 +195,12 @@ export default function OfficeScene({
       shadows
       orthographic
       camera={{ position: [22, 18, 22], zoom: 34, near: 1, far: 240 }}
-      gl={{ antialias: true, preserveDrawingBuffer: false }}
+      gl={{
+        antialias: true,
+        preserveDrawingBuffer: false,
+        // Explicit non-deprecated shadow map (avoids PCFSoftShadowMap warning)
+        shadowMap: { enabled: true, type: PCFShadowMap },
+      }}
       dpr={[1, 2]}
       onPointerMissed={() => selectEmployee(null)}
       className="absolute! inset-0"

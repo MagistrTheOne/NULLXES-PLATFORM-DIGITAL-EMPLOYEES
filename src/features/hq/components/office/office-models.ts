@@ -15,13 +15,22 @@ export const HQ_MODELS: {
   props: string | null;
 } = {
   characters: {
-    // Updated female model (Somnia + other female employees).
-    // Source: public/models/female_low_model/femalelow.glb
-    // Textures / additional animations (CharacterIdle.fbx) to be integrated later.
-    female: "/models/female_low_model/femalelow.glb",
-    male: "/models/male.glb",
+    // GLB paths are only used in development (local files in public/models/).
+    // public/models/ is gitignored — do not commit large binaries.
+    // On production builds (Vercel etc.) we fall back to solid primitive characters
+    // which are fully styled and animated. When final models + textures are ready,
+    // set the paths and remove from .gitignore (or host the assets externally).
+    female:
+      process.env.NODE_ENV === "development"
+        ? "/models/female_low_model/femalelow.glb"
+        : null,
+    male:
+      process.env.NODE_ENV === "development" ? "/models/male.glb" : null,
   },
-  props: "/models/60s_office_props.glb",
+  props:
+    process.env.NODE_ENV === "development"
+      ? "/models/60s_office_props.glb"
+      : null,
 };
 
 /** Target world height for character models (scene unit ≈ 1m-ish). */
