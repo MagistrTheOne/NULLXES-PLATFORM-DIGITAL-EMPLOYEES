@@ -4,12 +4,17 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { MessageSquare } from "lucide-react";
+import {
+  Sheet,
+  SheetContent,
+} from "@/components/ui/sheet";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import type { EmployeeListItem } from "@/features/employees/types";
 import { TalkAnamProvider } from "@/features/runtime-session/context/talk-anam-context";
 import type { TalkAgentDetails } from "@/features/runtime-session/components/talk-agent-details";
 import type { TalkViewer } from "@/features/runtime-session/components/talk-viewer-card";
 import { ConversationsChatPane } from "./conversations-chat-pane";
-import { ConversationsDetailsRail } from "./conversations-details-rail";
+import { ConversationsInspector } from "./conversations-inspector";
 import {
   ConversationsInbox,
   useConversationsThreads,
@@ -69,91 +74,95 @@ export function ConversationsScreen({
   };
 
   return (
-    <div className="conversations-screen flex min-h-[min(88dvh,920px)] flex-col gap-5">
-      <div className="conversations-page-header flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="min-w-0 shrink-0">
-          <h1 className="text-2xl font-medium tracking-tight text-white">
-            {t("title")}
-          </h1>
-          <p className="mt-1 text-sm text-white/55">{t("subtitle")}</p>
+    <TooltipProvider delayDuration={300}>
+      <div className="conversations-screen flex min-h-[min(88dvh,920px)] flex-col gap-8">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0 shrink-0">
+            <h1 className="text-2xl font-medium tracking-tight text-white">
+              {t("title")}
+            </h1>
+            <p className="mt-2 text-sm font-normal text-white/55">
+              {t("subtitle")}
+            </p>
+          </div>
+          <ConversationsToolbar
+            query={searchQuery}
+            onQueryChange={setSearchQuery}
+            onNewConversation={handleNewConversation}
+          />
         </div>
-        <ConversationsToolbar
-          query={searchQuery}
-          onQueryChange={setSearchQuery}
-          onNewConversation={handleNewConversation}
-        />
-      </div>
 
-      <div className="conversations-workspace grid min-h-0 flex-1 overflow-hidden rounded-2xl border border-white/10 bg-[#0a0a0a] lg:grid-cols-[280px_minmax(0,1fr)] xl:grid-cols-[280px_minmax(0,1fr)_300px]">
-        <ConversationsInbox
-          className="hidden lg:flex"
-          employees={employees}
-          selectedEmployee={selected}
-          activeThreadId={activeThreadId}
-          onSelectEmployee={handleSelectEmployee}
-          onSelectThread={selectThread}
-          searchQuery={searchQuery}
-        />
+        <div className="conversations-workspace grid min-h-0 flex-1 overflow-hidden border border-white/8 bg-[#0a0a0a] lg:grid-cols-[300px_minmax(0,1fr)] xl:grid-cols-[300px_minmax(0,1fr)_340px]">
+          <ConversationsInbox
+            className="hidden lg:flex"
+            employees={employees}
+            selectedEmployee={selected}
+            activeThreadId={activeThreadId}
+            onSelectEmployee={handleSelectEmployee}
+            onSelectThread={selectThread}
+            searchQuery={searchQuery}
+          />
 
-        <div className="flex min-h-0 min-w-0 flex-col">
+          <div className="flex min-h-0 min-w-0 flex-col">
+            {selected && resolvedDetails ? (
+              <TalkAnamProvider>
+                <ConversationsChatPane
+                  employee={selected}
+                  threadId={activeThreadId}
+                  brainModelLabel={brainModelLabel}
+                  viewerName={viewer.name}
+                  viewerImage={viewer.image}
+                  detailsOpen={mobileDetailsOpen}
+                  onToggleDetails={() => setMobileDetailsOpen((value) => !value)}
+                />
+              </TalkAnamProvider>
+            ) : (
+              <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6 text-center">
+                <MessageSquare className="size-10 stroke-[1.25] text-white/20" />
+                <p className="max-w-sm text-sm font-normal text-white/45">
+                  {t("pickEmployee")}
+                </p>
+              </div>
+            )}
+          </div>
+
           {selected && resolvedDetails ? (
-            <TalkAnamProvider>
-              <ConversationsChatPane
-                employee={selected}
-                threadId={activeThreadId}
-                brainModelLabel={brainModelLabel}
-                viewerName={viewer.name}
-                viewerImage={viewer.image}
-                detailsOpen={mobileDetailsOpen}
-                onToggleDetails={() => setMobileDetailsOpen((value) => !value)}
+            <div className="hidden min-h-0 border-l border-white/8 xl:flex">
+              <ConversationsInspector
+                className="w-[340px]"
+                details={resolvedDetails}
+                departmentLabel={departmentLabel}
               />
-            </TalkAnamProvider>
-          ) : (
-            <div className="flex flex-1 flex-col items-center justify-center gap-3 px-6 text-center">
-              <MessageSquare className="size-10 stroke-[1.25] text-white/20" />
-              <p className="max-w-sm text-sm text-white/45">{t("pickEmployee")}</p>
             </div>
-          )}
+          ) : null}
         </div>
 
         {selected && resolvedDetails ? (
-          <ConversationsDetailsRail
-            className="hidden xl:flex"
-            details={resolvedDetails}
-            departmentLabel={departmentLabel}
-          />
-        ) : null}
-
-        {selected && resolvedDetails && mobileDetailsOpen ? (
-          <div className="absolute inset-0 z-20 flex lg:hidden">
-            <button
-              type="button"
-              className="flex-1 bg-black/60"
-              onClick={() => setMobileDetailsOpen(false)}
-              aria-label={t("closeDetails")}
-            />
-            <div className="w-[min(100%,320px)]">
-              <ConversationsDetailsRail
+          <Sheet open={mobileDetailsOpen} onOpenChange={setMobileDetailsOpen}>
+            <SheetContent
+              side="right"
+              className="w-[min(100%,340px)] gap-0 border-white/8 bg-[#0a0a0a] p-0"
+            >
+              <ConversationsInspector
                 details={resolvedDetails}
                 departmentLabel={departmentLabel}
-                className="h-full shadow-2xl"
+                className="h-full"
               />
-            </div>
-          </div>
+            </SheetContent>
+          </Sheet>
         ) : null}
-      </div>
 
-      {/* Mobile inbox strip */}
-      <div className="max-h-40 overflow-hidden rounded-xl border border-white/10 bg-[#0a0a0a] lg:hidden">
-        <ConversationsInbox
-          employees={employees}
-          selectedEmployee={selected}
-          activeThreadId={activeThreadId}
-          onSelectEmployee={handleSelectEmployee}
-          onSelectThread={selectThread}
-          searchQuery={searchQuery}
-        />
+        <div className="max-h-48 overflow-hidden border border-white/8 bg-[#0a0a0a] lg:hidden">
+          <ConversationsInbox
+            employees={employees}
+            selectedEmployee={selected}
+            activeThreadId={activeThreadId}
+            onSelectEmployee={handleSelectEmployee}
+            onSelectThread={selectThread}
+            searchQuery={searchQuery}
+          />
+        </div>
       </div>
-    </div>
+    </TooltipProvider>
   );
 }

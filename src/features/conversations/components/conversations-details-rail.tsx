@@ -1,10 +1,10 @@
 "use client";
 
-import { useTranslations } from "next-intl";
-import { TalkAgentDetailsPanel } from "@/features/runtime-session/components/talk-agent-details";
 import type { TalkAgentDetails } from "@/features/runtime-session/components/talk-agent-details";
 import { cn } from "@/lib/utils";
+import { ConversationsInspector } from "./conversations-inspector";
 
+/** @deprecated Use ConversationsInspector directly */
 export function ConversationsDetailsRail({
   details,
   departmentLabel,
@@ -14,27 +14,11 @@ export function ConversationsDetailsRail({
   departmentLabel: string | null;
   className?: string;
 }) {
-  const t = useTranslations("conversations");
-
   return (
-    <aside
-      className={cn(
-        "conversations-details-rail flex h-full min-h-0 flex-col border-l border-white/8 bg-[#0a0a0a]",
-        className,
-      )}
-    >
-      <div className="conversations-pane-header flex shrink-0 items-center border-b border-white/8 px-4">
-        <p className="text-[10px] font-medium tracking-[0.16em] text-white/40 uppercase">
-          {t("detailsTitle")}
-        </p>
-      </div>
-      <TalkAgentDetailsPanel
-        embedded
-        variant="conversations"
-        details={details}
-        departmentLabel={departmentLabel}
-        showTitle={false}
-      />
-    </aside>
+    <ConversationsInspector
+      details={details}
+      departmentLabel={departmentLabel}
+      className={cn("border-l border-white/8", className)}
+    />
   );
 }

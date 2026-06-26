@@ -3,7 +3,17 @@
 import { useTranslations } from "next-intl";
 import { Filter, Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+  InputGroupText,
+} from "@/components/ui/input-group";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export function ConversationsToolbar({
   query,
@@ -17,31 +27,44 @@ export function ConversationsToolbar({
   const t = useTranslations("conversations");
 
   return (
-    <div className="conversations-toolbar flex w-full shrink-0 flex-col gap-2.5 sm:w-auto sm:flex-row sm:items-center sm:justify-end">
-      <div className="conversations-search relative w-full sm:w-[280px]">
-        <Search className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-white/35" />
-        <Input
+    <div className="flex w-full shrink-0 flex-col gap-2 sm:w-auto sm:flex-row sm:items-center sm:justify-end">
+      <InputGroup className="h-10 w-full border-white/8 bg-white/[0.02] shadow-none sm:w-[280px] has-[[data-slot=input-group-control]:focus-visible]:border-white/16 has-[[data-slot=input-group-control]:focus-visible]:ring-0">
+        <InputGroupAddon align="inline-start" className="text-white/35">
+          <Search className="size-4" />
+        </InputGroupAddon>
+        <InputGroupInput
           value={query}
           onChange={(event) => onQueryChange(event.target.value)}
           placeholder={t("searchPlaceholder")}
-          className="h-10 rounded-xl border-white/10 bg-white/[0.04] pr-14 pl-10 text-sm text-white shadow-none transition-colors placeholder:text-white/35 focus-visible:border-white/16 focus-visible:bg-white/[0.06] focus-visible:ring-0"
+          className="text-sm text-white placeholder:text-white/35"
         />
-        <kbd className="pointer-events-none absolute top-1/2 right-3 hidden -translate-y-1/2 rounded-md border border-white/10 bg-white/[0.04] px-1.5 py-0.5 text-[10px] font-medium text-white/35 sm:inline">
-          ⌘K
-        </kbd>
-      </div>
+        <InputGroupAddon align="inline-end" className="hidden sm:flex">
+          <InputGroupText>
+            <kbd className="rounded-md border border-white/8 bg-white/[0.03] px-1.5 py-0.5 text-[10px] font-medium text-white/35">
+              ⌘K
+            </kbd>
+          </InputGroupText>
+        </InputGroupAddon>
+      </InputGroup>
+
       <div className="flex items-center gap-2">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="size-10 shrink-0 border-white/8 bg-white/[0.02] text-white/60 hover:bg-white/[0.04] hover:text-white"
+            >
+              <Filter className="size-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Filter</TooltipContent>
+        </Tooltip>
+
         <Button
           type="button"
-          variant="outline"
-          size="icon"
-          className="size-10 shrink-0 rounded-xl border-white/10 bg-white/[0.04] text-white/60 hover:bg-white/[0.07] hover:text-white"
-        >
-          <Filter className="size-4" />
-        </Button>
-        <Button
-          type="button"
-          className="h-10 shrink-0 gap-1.5 rounded-xl px-3.5 text-xs font-medium"
+          className="h-10 shrink-0 gap-2 px-4 text-xs font-medium"
           onClick={onNewConversation}
         >
           <Plus className="size-4" />

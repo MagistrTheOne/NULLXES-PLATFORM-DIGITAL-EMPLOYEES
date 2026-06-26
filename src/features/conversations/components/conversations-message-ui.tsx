@@ -9,7 +9,18 @@ import {
   ThumbsDown,
   ThumbsUp,
 } from "lucide-react";
-import { Avatar, useMessageContext } from "stream-chat-react";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { useMessageContext } from "stream-chat-react";
 import { cn } from "@/lib/utils";
 import { regenerateTalkMessage } from "@/features/runtime-session/lib/talk-regenerate-bridge";
 
@@ -26,6 +37,32 @@ function formatMessageTime(value: Date | string | undefined): string {
     minute: "2-digit",
     hour12: false,
   }).format(date);
+}
+
+function MessageAvatar({
+  imageUrl,
+  name,
+}: {
+  imageUrl?: string | null;
+  name: string;
+}) {
+  const initials = name
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? "")
+    .join("");
+
+  return (
+    <Avatar size="sm" className="mt-0.5 shrink-0 bg-black">
+      {imageUrl ? (
+        <AvatarImage src={imageUrl} alt={name} className="object-cover" />
+      ) : null}
+      <AvatarFallback className="rounded-full bg-black text-[10px] text-white/50">
+        {initials || "?"}
+      </AvatarFallback>
+    </Avatar>
+  );
 }
 
 export function ConversationsMessageUI({
@@ -51,7 +88,6 @@ export function ConversationsMessageUI({
   const avatarImage = mine
     ? (viewerImage ?? message.user?.image)
     : message.user?.image;
-  const avatarName = senderLabel;
   const text = message.text?.trim() ?? "";
   const createdAt = message.created_at
     ? new Date(message.created_at)
@@ -89,24 +125,20 @@ export function ConversationsMessageUI({
   return (
     <article
       className={cn(
-        "conversations-message group px-5 py-3",
+        "conversations-message group mx-auto w-full max-w-3xl px-6 py-8",
         mine ? "conversations-message--mine" : "conversations-message--agent",
       )}
     >
-      <div className="flex gap-3">
-        <Avatar
-          imageUrl={avatarImage ?? undefined}
-          userName={avatarName}
-          size="md"
-        />
+      <div className="flex gap-4">
+        <MessageAvatar imageUrl={avatarImage} name={senderLabel} />
 
         <div className="min-w-0 flex-1">
-          <div className="mb-1.5 flex items-center gap-2">
-            <span className="truncate text-xs font-medium text-white/90">
+          <div className="mb-3 flex items-center gap-2">
+            <span className="truncate text-sm font-medium text-white">
               {senderLabel}
             </span>
             <time
-              className="shrink-0 text-[10px] text-white/35 tabular-nums"
+              className="shrink-0 text-xs font-normal text-white/35 tabular-nums"
               dateTime={createdAt?.toISOString()}
             >
               {formatMessageTime(createdAt)}
@@ -120,55 +152,76 @@ export function ConversationsMessageUI({
           </div>
 
           {text ? (
-            <div
-              className={cn(
-                "conversations-message-bubble inline-block max-w-[min(560px,100%)] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed text-white/88",
-                mine ? "bg-white/10" : "bg-white/[0.05]",
-              )}
-            >
-              <p className="whitespace-pre-wrap">{text}</p>
-            </div>
+            <p className="whitespace-pre-wrap text-sm font-normal leading-relaxed text-white/85">
+              {text}
+            </p>
           ) : null}
 
           {!mine && text ? (
-            <div className="mt-1.5 flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
-              <button
-                type="button"
-                onClick={() => {
-                  void handleCopy();
-                }}
-                className="inline-flex size-7 items-center justify-center rounded-lg text-white/40 transition-colors hover:bg-white/6 hover:text-white/75"
-                aria-label={copied ? tChat("copied") : tChat("copy")}
-              >
-                <Copy className="size-3.5" />
-              </button>
-              <button
-                type="button"
-                className="inline-flex size-7 items-center justify-center rounded-lg text-white/40 transition-colors hover:bg-white/6 hover:text-white/75"
-                aria-label={t("feedbackUp")}
-              >
-                <ThumbsUp className="size-3.5" />
-              </button>
-              <button
-                type="button"
-                className="inline-flex size-7 items-center justify-center rounded-lg text-white/40 transition-colors hover:bg-white/6 hover:text-white/75"
-                aria-label={t("feedbackDown")}
-              >
-                <ThumbsDown className="size-3.5" />
-              </button>
-              <button
-                type="button"
-                disabled={regenerating}
-                onClick={() => {
-                  void handleRegenerate();
-                }}
-                className="inline-flex size-7 items-center justify-center rounded-lg text-white/40 transition-colors hover:bg-white/6 hover:text-white/75 disabled:opacity-40"
-                aria-label={tChat("regenerate")}
-              >
-                <RotateCcw
-                  className={cn("size-3.5", regenerating && "animate-spin")}
-                />
-              </button>
+            <div className="mt-4 flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    className="size-8 text-white/40 hover:bg-white/[0.04] hover:text-white/75"
+                    onClick={() => {
+                      void handleCopy();
+                    }}
+                  >
+                    <Copy className="size-3.5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">
+                  {copied ? tChat("copied") : tChat("copy")}
+                </TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    className="size-8 text-white/40 hover:bg-white/[0.04] hover:text-white/75"
+                  >
+                    <ThumbsUp className="size-3.5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">{t("feedbackUp")}</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    className="size-8 text-white/40 hover:bg-white/[0.04] hover:text-white/75"
+                  >
+                    <ThumbsDown className="size-3.5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">{t("feedbackDown")}</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    disabled={regenerating}
+                    className="size-8 text-white/40 hover:bg-white/[0.04] hover:text-white/75 disabled:opacity-40"
+                    onClick={() => {
+                      void handleRegenerate();
+                    }}
+                  >
+                    <RotateCcw
+                      className={cn("size-3.5", regenerating && "animate-spin")}
+                    />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">{tChat("regenerate")}</TooltipContent>
+              </Tooltip>
             </div>
           ) : null}
         </div>

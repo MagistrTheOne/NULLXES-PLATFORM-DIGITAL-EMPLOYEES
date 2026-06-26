@@ -1,13 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
-import { UserRound } from "lucide-react";
-import { AvatarIdlePreview } from "@/features/employees/components/avatar-idle-preview";
+import { ArrowRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { listTalkThreadsAction } from "@/features/runtime-session/actions/list-talk-threads";
 import type { TalkThreadItem } from "@/features/runtime-session/components/talk-sessions-sidebar";
+import { ConversationAvatar } from "./conversation-avatar";
 import type { ConversationEmployee } from "./conversations-screen";
 
 type InboxTab = "all" | "unread" | "mentions";
@@ -55,6 +60,56 @@ function createThreadId(): string {
     return crypto.randomUUID();
   }
   return `t${Date.now()}${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function ConversationListItem({
+  active,
+  onClick,
+  avatar,
+  name,
+  preview,
+  meta,
+  time,
+}: {
+  active: boolean;
+  onClick: () => void;
+  avatar: ReactNode;
+  name: string;
+  preview: string;
+  meta?: string;
+  time?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      data-active={active}
+      className={cn(
+        "flex w-full items-start gap-3 rounded-lg p-4 text-left transition-colors",
+        "hover:bg-white/[0.03] data-[active=true]:bg-white/[0.06]",
+      )}
+    >
+      {avatar}
+      <span className="min-w-0 flex-1">
+        <span className="flex items-center justify-between gap-2">
+          <span className="truncate text-sm font-medium text-white">{name}</span>
+          {time ? (
+            <span className="shrink-0 text-[10px] font-normal text-white/35 tabular-nums">
+              {time}
+            </span>
+          ) : null}
+        </span>
+        {meta ? (
+          <span className="mt-0.5 block truncate text-xs font-normal text-white/40">
+            {meta}
+          </span>
+        ) : null}
+        <span className="mt-1 block truncate text-xs font-normal text-white/55">
+          {preview}
+        </span>
+      </span>
+    </button>
+  );
 }
 
 export function ConversationsInbox({
@@ -118,134 +173,111 @@ export function ConversationsInbox({
   return (
     <aside
       className={cn(
-        "conversations-inbox flex h-full min-h-0 flex-col border-r border-white/8 bg-[#0a0a0a]",
+        "flex h-full min-h-0 flex-col border-r border-white/8 bg-[#0a0a0a]",
         className,
       )}
     >
-      <div className="conversations-pane-header flex shrink-0 items-end gap-5 border-b border-white/8 px-4">
-        {(["all", "unread", "mentions"] as const).map((value) => (
-          <button
-            key={value}
-            type="button"
-            onClick={() => setTab(value)}
-            className={cn(
-              "border-b-2 pb-3 pt-4 text-[10px] font-medium uppercase tracking-[0.14em] transition-colors",
-              tab === value
-                ? "border-white text-white"
-                : "border-transparent text-white/35 hover:text-white/55",
-            )}
-          >
-            {t(`tabs.${value}`)}
-          </button>
-        ))}
-      </div>
-
-      <div className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto px-2 py-2">
-        {filteredEmployees.map((employee) => {
-          const isSelected = employee.id === selectedEmployee?.id;
-          const isMainActive = isSelected && activeThreadId === null;
-          return (
-            <button
-              key={employee.id}
-              type="button"
-              onClick={() => {
-                onSelectEmployee(employee.id);
-                onSelectThread(null);
-              }}
-              className={cn(
-                "flex w-full items-start gap-2.5 rounded-xl px-2.5 py-2.5 text-left transition-colors",
-                isMainActive ? "bg-white/8" : "hover:bg-white/4",
-              )}
-            >
-              <span className="relative flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/10 bg-black">
-                {employee.avatarPreviewUrl &&
-                employee.avatarProvisioningStatus === "ready" ? (
-                  <AvatarIdlePreview
-                    src={employee.avatarPreviewUrl}
-                    alt={employee.name}
-                    sizes="40px"
-                  />
-                ) : (
-                  <UserRound className="size-4 text-white/40" />
-                )}
-                <span className="absolute -bottom-0.5 -right-0.5 size-2 rounded-full border border-[#0a0a0a] bg-emerald-400" />
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="flex items-center justify-between gap-2">
-                  <span className="truncate text-xs font-medium text-white">
-                    {employee.name}
-                  </span>
-                </span>
-                <span className="mt-0.5 block truncate text-[10px] text-white/40">
-                  {employee.role}
-                </span>
-                {isSelected ? (
-                  <span className="mt-1 block truncate text-[11px] text-white/55">
-                    {t("previewMain")}
-                  </span>
-                ) : null}
-              </span>
-            </button>
-          );
-        })}
-
-        {selectedEmployee && tab === "all"
-          ? threads.map((thread) => {
-              const active = thread.threadId === activeThreadId;
-              return (
-                <button
-                  key={thread.threadId ?? "thread"}
-                  type="button"
-                  onClick={() => onSelectThread(thread.threadId)}
-                  className={cn(
-                    "flex w-full items-start gap-2.5 rounded-xl px-2.5 py-2.5 text-left transition-colors",
-                    active ? "bg-white/8" : "hover:bg-white/4",
-                  )}
-                >
-                  <span className="flex size-10 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/6 text-[10px] font-medium text-white/70">
-                    {threadInitials(thread.title)}
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="flex items-center justify-between gap-2">
-                      <span className="truncate text-xs font-medium text-white">
-                        {thread.title}
-                      </span>
-                      <span className="shrink-0 text-[10px] text-white/35 tabular-nums">
-                        {formatInboxTime(thread.lastMessageAt)}
-                      </span>
-                    </span>
-                    <span className="mt-0.5 block truncate text-[10px] text-white/40">
-                      {selectedEmployee.name} · {selectedEmployee.role}
-                    </span>
-                    <span className="mt-1 block truncate text-[11px] text-white/55">
-                      {t("previewThread")}
-                    </span>
-                  </span>
-                </button>
-              );
-            })
-          : null}
-
-        {filteredEmployees.length === 0 ? (
-          <p className="px-2 py-6 text-center text-xs text-white/40">
-            {t("emptyRoster")}
-          </p>
-        ) : null}
-
-        {loading ? (
-          <p className="px-2 py-2 text-center text-[10px] text-white/30">
-            {t("loadingThreads")}
-          </p>
-        ) : null}
-      </div>
-
-      <div className="shrink-0 border-t border-white/8 p-2">
-        <Link
-          href="/dashboard/conversations"
-          className="flex w-full items-center justify-center rounded-lg py-2 text-[11px] text-white/45 transition-colors hover:bg-white/4 hover:text-white/70"
+      <div className="shrink-0 border-b border-white/8 px-4 py-4">
+        <Tabs
+          value={tab}
+          onValueChange={(value) => setTab(value as InboxTab)}
+          className="gap-0"
         >
-          {t("viewAll")}
-        </Link>
+          <TabsList
+            variant="line"
+            className="h-auto w-full justify-start gap-6 rounded-none bg-transparent p-0"
+          >
+            {(["all", "unread", "mentions"] as const).map((value) => (
+              <TabsTrigger
+                key={value}
+                value={value}
+                className="rounded-none border-0 border-b-2 border-transparent bg-transparent px-0 pb-3 pt-0 text-[10px] font-medium uppercase tracking-[0.14em] text-white/35 shadow-none data-[state=active]:border-white data-[state=active]:bg-transparent data-[state=active]:text-white"
+              >
+                {t(`tabs.${value}`)}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
+      </div>
+
+      <ScrollArea className="min-h-0 flex-1">
+        <div className="flex flex-col gap-1 p-2">
+          {filteredEmployees.map((employee) => {
+            const isSelected = employee.id === selectedEmployee?.id;
+            const isMainActive = isSelected && activeThreadId === null;
+            return (
+              <ConversationListItem
+                key={employee.id}
+                active={isMainActive}
+                onClick={() => {
+                  onSelectEmployee(employee.id);
+                  onSelectThread(null);
+                }}
+                avatar={
+                  <ConversationAvatar
+                    name={employee.name}
+                    previewUrl={employee.avatarPreviewUrl}
+                    ready={employee.avatarProvisioningStatus === "ready"}
+                    online
+                    size="default"
+                  />
+                }
+                name={employee.name}
+                meta={employee.role}
+                preview={isSelected ? t("previewMain") : employee.role}
+              />
+            );
+          })}
+
+          {selectedEmployee && tab === "all"
+            ? threads.map((thread) => {
+                const active = thread.threadId === activeThreadId;
+                return (
+                  <ConversationListItem
+                    key={thread.threadId ?? "thread"}
+                    active={active}
+                    onClick={() => onSelectThread(thread.threadId)}
+                    avatar={
+                      <span className="flex size-8 shrink-0 items-center justify-center rounded-full border border-white/8 bg-white/[0.04] text-[10px] font-medium text-white/70">
+                        {threadInitials(thread.title)}
+                      </span>
+                    }
+                    name={thread.title}
+                    meta={`${selectedEmployee.name} · ${selectedEmployee.role}`}
+                    preview={t("previewThread")}
+                    time={formatInboxTime(thread.lastMessageAt)}
+                  />
+                );
+              })
+            : null}
+
+          {loading ? (
+            <div className="flex flex-col gap-2 p-2">
+              <Skeleton className="h-16 rounded-lg bg-white/[0.04]" />
+              <Skeleton className="h-16 rounded-lg bg-white/[0.04]" />
+            </div>
+          ) : null}
+
+          {filteredEmployees.length === 0 ? (
+            <p className="px-4 py-8 text-center text-xs font-normal text-white/40">
+              {t("emptyRoster")}
+            </p>
+          ) : null}
+        </div>
+      </ScrollArea>
+
+      <Separator className="bg-white/8" />
+      <div className="shrink-0 p-2">
+        <Button
+          variant="ghost"
+          className="h-10 w-full justify-center gap-2 text-xs font-normal text-white/45 hover:bg-white/[0.04] hover:text-white/70"
+          asChild
+        >
+          <Link href="/dashboard/conversations">
+            {t("viewAll")}
+            <ArrowRight className="size-3.5" />
+          </Link>
+        </Button>
       </div>
     </aside>
   );

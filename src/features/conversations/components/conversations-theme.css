@@ -7,30 +7,9 @@
   min-height: min(72dvh, 760px);
 }
 
-.conversations-pane-header {
-  min-height: 3.25rem;
-}
-
-.conversations-inbox {
-  width: 100%;
-  min-width: 0;
-}
-
-.conversations-details-rail {
-  min-width: 0;
-}
-
-.conversations-detail-row {
-  width: 100%;
-}
-
 .conversations-chat-pane .employee-talk-chat-panel {
   min-height: 0;
   height: 100%;
-}
-
-.conversations-details-rail .talk-agent-details-profile-avatar {
-  border-radius: 9999px;
 }
 
 /* ── Stream shell (conversations only) ── */
@@ -80,8 +59,8 @@
 .conversations-chat-stream .str-chat__message-list-scroll {
   min-width: 0;
   width: 100%;
-  padding-top: 0.5rem;
-  padding-bottom: 0.5rem;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
 }
 
 .conversations-chat-body .str-chat__empty-channel,
@@ -98,7 +77,7 @@
   display: none !important;
 }
 
-/* Hide default Stream message chrome — custom ConversationsMessageUI renders bubbles. */
+/* Timeline — hide default Stream message chrome */
 .conversations-chat-body .str-chat__message,
 .conversations-chat-stream .str-chat__message {
   background: transparent !important;
@@ -120,29 +99,12 @@
   max-width: none !important;
 }
 
-.conversations-chat-body .str-chat__avatar,
-.conversations-chat-stream .conversations-message .str-chat__avatar {
-  width: 2rem;
-  height: 2rem;
-  flex-shrink: 0;
-  border-radius: 9999px;
-  overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.conversations-chat-body .str-chat__avatar-image,
-.conversations-chat-stream .conversations-message .str-chat__avatar-image {
-  object-fit: cover;
-  width: 100%;
-  height: 100%;
-}
-
 .conversations-chat-body .str-chat__date-separator,
 .conversations-chat-stream .str-chat__date-separator {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 1rem 1.25rem;
+  padding: 1.5rem 1.5rem;
   background: transparent;
 }
 
@@ -150,7 +112,7 @@
 .conversations-chat-stream .str-chat__date-separator-date {
   border-radius: 9999px;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.03);
+  background: transparent;
   padding: 0.25rem 0.75rem;
   font-size: 10px;
   font-weight: 500;
@@ -159,17 +121,18 @@
   color: rgba(255, 255, 255, 0.45);
 }
 
-/* ── Composer pill ── */
+/* ── Composer — single pill surface (InputGroup-like) ── */
 
 .conversations-composer-shell {
   flex-shrink: 0;
-  padding: 0.75rem 1rem 0.625rem;
+  padding: 1rem 1.5rem 1.5rem;
   background: #0a0a0a;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .conversations-composer-inner {
   width: 100%;
-  max-width: 44rem;
+  max-width: 48rem;
   margin-inline: auto;
 }
 
@@ -185,16 +148,17 @@
   align-items: center;
   gap: 0.25rem;
   margin: 0;
-  padding: 0.3125rem 0.375rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 1rem;
-  background: rgba(255, 255, 255, 0.04);
-  transition: border-color 0.15s ease, background-color 0.15s ease;
+  min-height: 3.5rem;
+  max-height: 4.5rem;
+  padding: 0.375rem 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.02);
+  transition: border-color 0.15s ease;
 }
 
 .conversations-composer-shell .str-chat__message-composer-form:focus-within {
-  border-color: rgba(255, 255, 255, 0.16);
-  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.14);
 }
 
 .conversations-composer-shell .str-chat__message-composer-input {
@@ -205,17 +169,19 @@
 .conversations-composer-shell .str-chat__message-composer textarea,
 .conversations-composer-shell .str-chat__message-textarea textarea {
   width: 100%;
-  min-height: 1.375rem;
-  max-height: 7rem;
+  min-height: 1.5rem;
+  max-height: 4rem;
   resize: none;
   border: none;
   background: transparent;
-  padding: 0.4375rem 0.375rem;
+  padding: 0.5rem 0.375rem;
   color: #ffffff;
   font-size: 0.875rem;
-  line-height: 1.4;
+  font-weight: 400;
+  line-height: 1.45;
   outline: none;
   box-shadow: none;
+  field-sizing: content;
 }
 
 .conversations-composer-shell .str-chat__message-composer textarea::placeholder,
@@ -227,6 +193,7 @@
 .conversations-composer-shell .str-chat__attachment-selector,
 .conversations-composer-shell [class*="AttachmentSelector"] {
   flex-shrink: 0;
+  order: -1;
 }
 
 .conversations-composer-shell .str-chat__message-composer button,
@@ -236,8 +203,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 1.875rem;
-  height: 1.875rem;
+  width: 2rem;
+  height: 2rem;
   flex-shrink: 0;
   border: none;
   border-radius: 9999px;
@@ -249,30 +216,28 @@
 .conversations-composer-shell .str-chat__message-composer button:hover,
 .conversations-composer-shell .str-chat__send-button:hover,
 .conversations-composer-shell [class*="SendButton"]:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.06);
   color: rgba(255, 255, 255, 0.85);
 }
 
 .conversations-composer-shell .str-chat__send-button,
 .conversations-composer-shell [class*="SendButton"] {
-  width: 2rem;
-  height: 2rem;
-  margin-left: 0.125rem;
-  background: rgba(255, 255, 255, 0.92);
+  background: #ffffff;
   color: #000000;
 }
 
 .conversations-composer-shell .str-chat__send-button:hover,
 .conversations-composer-shell [class*="SendButton"]:hover {
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.92);
   color: #000000;
 }
 
 .conversations-composer-hint {
-  margin: 0.375rem 0 0;
-  padding: 0 0.25rem;
+  margin: 0.5rem 0 0;
+  padding: 0;
   text-align: center;
   font-size: 10px;
+  font-weight: 400;
   line-height: 1.4;
   color: rgba(255, 255, 255, 0.28);
 }

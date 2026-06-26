@@ -7,11 +7,22 @@ import {
   Info,
   Loader2,
   MoreHorizontal,
-  UserRound,
   Video,
 } from "lucide-react";
-import { AvatarIdlePreview } from "@/features/employees/components/avatar-idle-preview";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { ConversationAvatar } from "./conversation-avatar";
 import type { ConversationEmployee } from "./conversations-screen";
 
 const EmployeeTalkChat = dynamic(
@@ -49,27 +60,21 @@ export function ConversationsChatPane({
   const t = useTranslations("conversations");
 
   return (
-    <div className="conversations-chat-pane flex h-full min-h-0 min-w-0 flex-col bg-[#0a0a0a]">
-      <header className="conversations-pane-header flex shrink-0 items-center justify-between gap-3 border-b border-white/8 px-4">
+    <div className="flex h-full min-h-0 min-w-0 flex-col bg-[#0a0a0a]">
+      <header className="flex h-16 shrink-0 items-center justify-between gap-4 border-b border-white/8 px-6">
         <div className="flex min-w-0 items-center gap-3">
-          <span className="relative flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/10 bg-black">
-            {employee.avatarPreviewUrl &&
-            employee.avatarProvisioningStatus === "ready" ? (
-              <AvatarIdlePreview
-                src={employee.avatarPreviewUrl}
-                alt={employee.name}
-                sizes="36px"
-              />
-            ) : (
-              <UserRound className="size-4 text-white/40" />
-            )}
-            <span className="absolute -bottom-0.5 -right-0.5 size-2 rounded-full border border-[#0a0a0a] bg-emerald-400" />
-          </span>
+          <ConversationAvatar
+            name={employee.name}
+            previewUrl={employee.avatarPreviewUrl}
+            ready={employee.avatarProvisioningStatus === "ready"}
+            online
+            size="default"
+          />
           <div className="min-w-0">
             <p className="truncate text-sm font-medium text-white">
               {employee.name}
             </p>
-            <p className="flex items-center gap-1.5 truncate text-[11px] text-white/45">
+            <p className="flex items-center gap-2 truncate text-xs font-normal text-white/45">
               <span className="size-1.5 shrink-0 rounded-full bg-emerald-400" />
               {t("online")} · {employee.role}
             </p>
@@ -77,35 +82,68 @@ export function ConversationsChatPane({
         </div>
 
         <div className="flex shrink-0 items-center gap-1">
-          <Link
-            href={`/dashboard/employees/${employee.id}/talk`}
-            className="flex size-8 items-center justify-center rounded-lg text-white/45 transition-colors hover:bg-white/6 hover:text-white"
-            aria-label={t("openTalk")}
-          >
-            <Video className="size-4 stroke-[1.5]" />
-          </Link>
-          <button
-            type="button"
-            onClick={onToggleDetails}
-            className={cn(
-              "flex size-8 items-center justify-center rounded-lg transition-colors hover:bg-white/6 hover:text-white lg:hidden",
-              detailsOpen ? "bg-white/8 text-white" : "text-white/45",
-            )}
-            aria-label={t("toggleDetails")}
-          >
-            <Info className="size-4 stroke-[1.5]" />
-          </button>
-          <button
-            type="button"
-            className="flex size-8 items-center justify-center rounded-lg text-white/45 transition-colors hover:bg-white/6 hover:text-white"
-            aria-label={t("more")}
-          >
-            <MoreHorizontal className="size-4 stroke-[1.5]" />
-          </button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                className="size-9 text-white/45 hover:bg-white/[0.04] hover:text-white"
+                asChild
+              >
+                <Link
+                  href={`/dashboard/employees/${employee.id}/talk`}
+                  aria-label={t("openTalk")}
+                >
+                  <Video className="size-4 stroke-[1.5]" />
+                </Link>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>{t("openTalk")}</TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                onClick={onToggleDetails}
+                className={cn(
+                  "size-9 hover:bg-white/[0.04] hover:text-white xl:hidden",
+                  detailsOpen ? "bg-white/[0.06] text-white" : "text-white/45",
+                )}
+                aria-label={t("toggleDetails")}
+              >
+                <Info className="size-4 stroke-[1.5]" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>{t("toggleDetails")}</TooltipContent>
+          </Tooltip>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                className="size-9 text-white/45 hover:bg-white/[0.04] hover:text-white"
+                aria-label={t("more")}
+              >
+                <MoreHorizontal className="size-4 stroke-[1.5]" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="border-white/8 bg-[#111111]">
+              <DropdownMenuItem asChild>
+                <Link href={`/dashboard/employees/${employee.id}`}>
+                  {t("openProfile")}
+                </Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </header>
 
-      <div className="employee-talk-chat-panel conversations-chat-body flex min-h-0 flex-1 flex-col overflow-hidden">
+      <div className="employee-talk-chat-panel conversations-chat-body flex min-h-0 flex-1 flex-col">
         <EmployeeTalkChat
           key={`${employee.id}-${threadId ?? "main"}`}
           embedded
