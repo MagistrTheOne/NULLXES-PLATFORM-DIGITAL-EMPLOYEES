@@ -351,6 +351,12 @@
       "remaining": "{remaining} remaining · limit {limit}",
       "statusOnline": "Online",
       "statusSecure": "Secure",
+      "details": "Details",
+      "conversation": "Conversation",
+      "inspector": {
+        "title": "Inspector",
+        "description": "Agent profile, sessions and your identity."
+      },
       "mobileTabStage": "Stage",
       "mobileTabChat": "Chat",
       "mobileTabDetails": "Details",

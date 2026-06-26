@@ -7,6 +7,7 @@ import {
   Loader2,
   Mic,
   MicOff,
+  PanelRightOpen,
   PhoneOff,
   Play,
   Square,
@@ -14,19 +15,18 @@ import {
   VideoOff,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import type { TalkAgentDetails } from "./talk-agent-details";
-import { TalkAgentDetailsPanel } from "./talk-agent-details";
-import { TalkChatWorkspace } from "./talk-chat-workspace";
+import { TalkInspector } from "./talk-inspector";
+import { TalkStatusBar } from "./talk-status-bar";
 import type { TalkViewer } from "./talk-viewer-card";
 import type { TalkChatCredentials } from "../services/create-talk-chat-session";
 import { useTalkAnam } from "../context/talk-anam-context";
+import { useTalkThreads } from "../lib/use-talk-threads";
 import { startTalkSessionAction } from "../actions/employee-session";
 import { prefetchAnamTalkSessionAction } from "../actions/prefetch-anam-talk-session";
 import type { TalkVoiceMode } from "../services/resolve-talk-voice-mode";
 import { TalkLocalCameraPip } from "./talk-local-camera-pip";
-import { useTalkDesktopLayout } from "../lib/use-talk-desktop-layout";
 import "./employee-talk-theme.css";
 
 const EmployeeAnamStage = dynamic(
@@ -37,6 +37,19 @@ const EmployeeAnamStage = dynamic(
     loading: () => (
       <div className="flex h-full w-full items-center justify-center bg-black/40">
         <Loader2 className="size-5 animate-spin text-white/50" />
+      </div>
+    ),
+  },
+);
+
+const EmployeeTalkChat = dynamic(
+  () =>
+    import("./employee-talk-chat").then((module) => module.EmployeeTalkChat),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="employee-talk-chat-fallback flex h-full items-center justify-center">
+        <Loader2 className="size-4 animate-spin text-white/50" />
       </div>
     ),
   },
@@ -311,8 +324,9 @@ export type EmployeeTalkRoomProps = EmployeeTalkSessionInputProps & {
 
 function TalkRoomLayout(props: EmployeeTalkRoomProps) {
   const t = useTranslations("employees.talk");
-  const isDesktop = useTalkDesktopLayout();
   const prefetchedTokenRef = useRef<string | null>(null);
+  const threads = useTalkThreads(props.employeeId);
+  const [inspectorOpen, setInspectorOpen] = useState(false);
 
   useEffect(() => {
     if (props.activeSession) {
@@ -326,66 +340,56 @@ function TalkRoomLayout(props: EmployeeTalkRoomProps) {
     });
   }, [props.activeSession, props.employeeId]);
 
-  if (isDesktop === null) {
-    return (
-      <div className="employee-talk-workspace employee-talk-shell mx-auto flex min-h-[min(70dvh,640px)] items-center justify-center">
-        <Loader2 className="size-5 animate-spin text-white/50" />
-      </div>
-    );
-  }
-
-  if (isDesktop) {
-    return (
-      <div className="employee-talk-workspace employee-talk-shell mx-auto w-full">
-        <div className="flex min-h-0 flex-col gap-4">
-          <TalkStagePanel {...props} prefetchedTokenRef={prefetchedTokenRef} />
-          <TalkChatWorkspace
-            employeeId={props.employeeId}
-            employeeName={props.employeeName}
-            chatSession={props.chatSession}
-            brainModelLabel={props.brainModelLabel}
-            activeSession={props.activeSession}
-            isSessionLive={Boolean(props.activeSession)}
-            agentDetails={props.agentDetails}
-            viewer={props.viewer}
-            variant="full"
-            className="min-h-[min(42dvh,480px)]"
-          />
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="employee-talk-workspace employee-talk-shell mx-auto w-full">
-      <Tabs
-        defaultValue="stage"
-        className="employee-talk-mobile-tabs flex min-h-[min(70dvh,640px)] flex-col"
-      >
-        <TabsList className="mb-3 grid h-10 w-full shrink-0 grid-cols-3 rounded-lg border border-white/10 bg-white/4 p-1">
-          <TabsTrigger value="stage">{t("mobileTabStage")}</TabsTrigger>
-          <TabsTrigger value="chat">{t("mobileTabChat")}</TabsTrigger>
-          <TabsTrigger value="details">{t("mobileTabDetails")}</TabsTrigger>
-        </TabsList>
-        <TabsContent value="stage" className="employee-talk-mobile-tab-panel mt-0 flex min-h-0 flex-1 flex-col">
-          <TalkStagePanel {...props} prefetchedTokenRef={prefetchedTokenRef} />
-        </TabsContent>
-        <TabsContent value="chat" className="employee-talk-mobile-tab-panel mt-0 flex min-h-0 flex-1 flex-col">
-          <TalkChatWorkspace
-            employeeId={props.employeeId}
-            employeeName={props.employeeName}
-            chatSession={props.chatSession}
-            brainModelLabel={props.brainModelLabel}
-            activeSession={props.activeSession}
-            isSessionLive={Boolean(props.activeSession)}
-            variant="compact"
-            className="min-h-0 flex-1"
-          />
-        </TabsContent>
-        <TabsContent value="details" className="employee-talk-mobile-tab-panel mt-0 flex min-h-0 flex-1 flex-col">
-          <TalkAgentDetailsPanel details={props.agentDetails} />
-        </TabsContent>
-      </Tabs>
+      {/* One living canvas: video stage → status bar → conversation. */}
+      <div className="flex min-h-0 flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#0a0a0a]">
+        <div className="flex justify-center bg-black/30 px-3 pt-3">
+          <div className="w-full lg:max-w-[68%]">
+            <TalkStagePanel {...props} prefetchedTokenRef={prefetchedTokenRef} />
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between gap-3 border-y border-white/8 px-4 py-2.5">
+          <TalkStatusBar modelLabel={props.brainModelLabel} />
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => setInspectorOpen(true)}
+            className="h-7 shrink-0 gap-1.5 px-2.5 text-[11px] text-white/60 hover:bg-white/6 hover:text-white"
+          >
+            <PanelRightOpen className="size-3.5" />
+            {t("details")}
+          </Button>
+        </div>
+
+        <div className="flex min-h-0 flex-1 flex-col">
+          <div className="employee-talk-chat-panel flex min-h-0 flex-1 flex-col overflow-hidden">
+            <EmployeeTalkChat
+              key={`${props.employeeId}-${threads.activeThreadId ?? "main"}`}
+              chatSession={threads.activeThreadId ? null : props.chatSession}
+              employeeId={props.employeeId}
+              employeeName={props.employeeName}
+              threadId={threads.activeThreadId}
+              brainModelLabel={props.brainModelLabel}
+              employeeSessionId={props.activeSession?.sessionId}
+              isSessionLive={Boolean(props.activeSession)}
+              voiceMode={props.activeSession?.voiceMode ?? "anam"}
+              viewerName={props.viewer.name}
+              viewerImage={props.viewer.image}
+            />
+          </div>
+        </div>
+      </div>
+
+      <TalkInspector
+        open={inspectorOpen}
+        onOpenChange={setInspectorOpen}
+        agentDetails={props.agentDetails}
+        viewer={props.viewer}
+        threads={threads}
+      />
     </div>
   );
 }

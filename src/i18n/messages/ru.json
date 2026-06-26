@@ -351,6 +351,12 @@
       "remaining": "осталось {remaining} · лимит {limit}",
       "statusOnline": "Онлайн",
       "statusSecure": "Защищено",
+      "details": "Детали",
+      "conversation": "Разговор",
+      "inspector": {
+        "title": "Инспектор",
+        "description": "Профиль агента, беседы и ваш профиль."
+      },
       "mobileTabStage": "Сцена",
       "mobileTabChat": "Чат",
       "mobileTabDetails": "Детали",
