@@ -42,6 +42,8 @@ export function OfficeEmployee({ employee }: { employee: SceneEmployee }) {
   const bodyRef = useRef<Group>(null);
   const legLeftRef = useRef<Group>(null);
   const legRightRef = useRef<Group>(null);
+  const armLeftRef = useRef<Group>(null);
+  const armRightRef = useRef<Group>(null);
   const [hovered, setHovered] = useState(false);
   const selectedId = useOfficeStore((state) => state.selectedEmployeeId);
   const selectEmployee = useOfficeStore((state) => state.selectEmployee);
@@ -398,6 +400,33 @@ export function OfficeEmployee({ employee }: { employee: SceneEmployee }) {
       }
     }
 
+    // Occasional stretch / arm raise when sitting idle (живность)
+    if (shouldSit && armLeftRef.current && armRightRef.current) {
+      const t = time * 0.065;
+      const left = Math.max(0, Math.sin(t + idlePhase.current) - 0.62) * 3.5;
+      const right = Math.max(0, Math.sin(t * 0.91 + 3.7) - 0.62) * 3.5;
+
+      // left arm
+      armLeftRef.current.rotation.z = 0.55 + left * 0.55;
+      armLeftRef.current.position.y = 0.58 + left * 0.06;
+      armLeftRef.current.position.x = -0.19 - left * 0.02;
+
+      // right arm
+      armRightRef.current.rotation.z = -0.55 - right * 0.55;
+      armRightRef.current.position.y = 0.58 + right * 0.06;
+      armRightRef.current.position.x = 0.19 + right * 0.02;
+    } else {
+      // reset to relaxed pose
+      if (armLeftRef.current) {
+        armLeftRef.current.rotation.z = 0.55;
+        armLeftRef.current.position.set(-0.19, 0.58, 0.04);
+      }
+      if (armRightRef.current) {
+        armRightRef.current.rotation.z = -0.55;
+        armRightRef.current.position.set(0.19, 0.58, 0.04);
+      }
+    }
+
     const targetScale = hovered || isSelected ? 1.12 : 1;
     scaleTarget.setScalar(targetScale);
     root.scale.lerp(scaleTarget, 0.18);
@@ -456,23 +485,19 @@ export function OfficeEmployee({ employee }: { employee: SceneEmployee }) {
               />
             </mesh>
 
-            {/* Arms — slightly more relaxed when idle at desk */}
-            <mesh
-              position={[-0.19, 0.58, 0.04]}
-              rotation={[0.1, 0, 0.55]}
-              castShadow
-            >
-              <capsuleGeometry args={[0.045, 0.3, 4, 8]} />
-              <meshStandardMaterial color={bodyColor} roughness={0.6} />
-            </mesh>
-            <mesh
-              position={[0.19, 0.58, 0.04]}
-              rotation={[0.1, 0, -0.55]}
-              castShadow
-            >
-              <capsuleGeometry args={[0.045, 0.3, 4, 8]} />
-              <meshStandardMaterial color={bodyColor} roughness={0.6} />
-            </mesh>
+            {/* Arms — support micro stretch when idle */}
+            <group ref={armLeftRef} position={[-0.19, 0.58, 0.04]} rotation={[0.1, 0, 0.55]}>
+              <mesh castShadow>
+                <capsuleGeometry args={[0.045, 0.3, 4, 8]} />
+                <meshStandardMaterial color={bodyColor} roughness={0.6} />
+              </mesh>
+            </group>
+            <group ref={armRightRef} position={[0.19, 0.58, 0.04]} rotation={[0.1, 0, -0.55]}>
+              <mesh castShadow>
+                <capsuleGeometry args={[0.045, 0.3, 4, 8]} />
+                <meshStandardMaterial color={bodyColor} roughness={0.6} />
+              </mesh>
+            </group>
 
             {/* Head (fallback when no GLB model) */}
             <mesh position={[0, 0.92, 0]} castShadow>
