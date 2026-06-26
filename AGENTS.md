@@ -3,6 +3,9 @@
 
 This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
 <!-- END:nextjs-agent-rules -->
+
+**Technical reference (2026-06-26):** [`docs/AGENT_REFERENCE_2026-06-26.md`](docs/AGENT_REFERENCE_2026-06-26.md) — API routes, features, schema, env vars, recent fixes. Index: [`docs/README.md`](docs/README.md).
+
 <!-- ====================================================== -->
 
 <!-- FRAMEWORK RULES -->

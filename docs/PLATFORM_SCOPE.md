@@ -85,8 +85,9 @@ Locale switching: **Settings → General → Language** (persisted to `organizat
 
 | Module | Backend | Frontend | Notes |
 |--------|---------|----------|-------|
-| Anam live avatar session | ✅ | ✅ | |
-| Stream Chat sidebar | ✅ | ✅ | |
+| Anam live avatar session | ✅ | ✅ | Inspector panel, status bar |
+| Stream Chat sidebar + threads | ✅ | ✅ | Multi-thread channels |
+| Conversations workspace | ✅ | ✅ | `/dashboard/conversations` — 3-pane, bubble UI |
 | Session recording + limits | ✅ | ✅ | Free plan 2 min cap |
 | Public API sessions | ✅ | — | `/api/v1/sessions` |
 
