@@ -8,20 +8,16 @@ function applyEnvFile(filePath: string, override: boolean): void {
 
   const content = readFileSync(filePath, "utf8");
 
-  for (const rawLine of content.split(/\r?\n/)) {
-    const line = rawLine.trim();
-    if (!line || line.startsWith("#")) {
-      continue;
-    }
+  // Robust parser: extract KEY=VALUE pairs even if newlines are missing.
+  // Matches sequences like FOO=barBAZ=qux or normal lines.
+  const keyValueRegex = /([A-Z_][A-Z0-9_]*)\s*=\s*("[^"]*"|'[^']*'|[^\s=]+)/g;
 
-    const separatorIndex = line.indexOf("=");
-    if (separatorIndex <= 0) {
-      continue;
-    }
+  let match: RegExpExecArray | null;
+  while ((match = keyValueRegex.exec(content)) !== null) {
+    const key = match[1];
+    let value = match[2] ?? "";
 
-    const key = line.slice(0, separatorIndex).trim();
-    let value = line.slice(separatorIndex + 1).trim();
-
+    // Strip surrounding quotes if present
     if (
       (value.startsWith('"') && value.endsWith('"')) ||
       (value.startsWith("'") && value.endsWith("'"))
@@ -29,10 +25,16 @@ function applyEnvFile(filePath: string, override: boolean): void {
       value = value.slice(1, -1);
     }
 
-    if (/[A-Z][A-Z0-9_]*=/.test(value)) {
-      console.warn(
-        `[loadEnvFiles] Skipping malformed "${key}" in ${filePath} (paste without newline?)`,
-      );
+    value = value.trim();
+
+    // If the extracted value still looks like it glommed another key (shouldn't with regex),
+    // take only up to the next KEY pattern.
+    const nextKeyMatch = value.match(/[A-Z_][A-Z0-9_]*=/);
+    if (nextKeyMatch) {
+      value = value.slice(0, nextKeyMatch.index).trim();
+    }
+
+    if (!key || !value) {
       continue;
     }
 

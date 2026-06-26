@@ -48,6 +48,11 @@ export function isDevelopmentRuntime(): boolean {
   return process.env.NODE_ENV === "development";
 }
 
+/** True during `next build` (production build phase). */
+export function isBuildPhase(): boolean {
+  return process.env.NEXT_PHASE === "phase-production-build";
+}
+
 /** Vercel injects these at build and runtime — used when local URLs are copied to prod env. */
 export function getVercelDeploymentUrl(): string | undefined {
   const production = readOptionalEnv("VERCEL_PROJECT_PRODUCTION_URL");
@@ -81,7 +86,10 @@ export function resolveAppBaseUrl(): string {
     return vercelUrl;
   }
 
-  if (isDevelopmentRuntime()) {
+  if (isDevelopmentRuntime() || isBuildPhase()) {
+    // During local dev or `npm run build` (where no BETTER_AUTH_URL may be set),
+    // use localhost as a safe default. At runtime on Vercel the injected
+    // VERCEL_* vars or the real BETTER_AUTH_URL will take precedence.
     return "http://localhost:3000";
   }
 
@@ -92,18 +100,32 @@ export function resolveAppBaseUrl(): string {
 
 export function getDatabaseUrl(): string {
   const url = sanitizeEnvValue(process.env.DATABASE_URL);
-  if (!url) {
-    throw new Error("DATABASE_URL is not set");
+  if (url) {
+    return url;
   }
-  return url;
+
+  if (isDevelopmentRuntime() || isBuildPhase()) {
+    // Safe dummy for local dev and `npm run build`.
+    // Real connection is never made from the dummy during build.
+    return "postgresql://dummy:dummy@localhost:5432/dummy";
+  }
+
+  throw new Error("DATABASE_URL is not set");
 }
 
 export function getBetterAuthSecret(): string {
   const secret = sanitizeEnvValue(process.env.BETTER_AUTH_SECRET);
-  if (!secret) {
-    throw new Error("BETTER_AUTH_SECRET is not set");
+  if (secret) {
+    return secret;
   }
-  return secret;
+
+  if (isDevelopmentRuntime() || isBuildPhase()) {
+    // 32+ char placeholder is enough for local/build.
+    // Production deployments must provide a strong real secret.
+    return "build-time-insecure-secret-for-local-build-only-32chars";
+  }
+
+  throw new Error("BETTER_AUTH_SECRET is not set");
 }
 
 export function getBetterAuthUrl(): string {
@@ -201,7 +223,9 @@ export function getDataEncryptionKey(): string {
     return configured;
   }
 
-  if (isDevelopmentRuntime()) {
+  if (isDevelopmentRuntime() || isBuildPhase()) {
+    // Derive a deterministic key from the (possibly dummy) secret for build/dev.
+    // Real prod must set a strong DATA_ENCRYPTION_KEY (32 bytes base64).
     return createHash("sha256")
       .update(getBetterAuthSecret())
       .digest("base64");

@@ -7,8 +7,12 @@ import { SkeletonUtils } from "three-stdlib";
 import {
   applySolidGltfMaterials,
   configureGltfLoaderNoTextures,
+  ensureGltfTexturesAreStubbed,
 } from "./apply-gltf-materials";
 import { CHARACTER_HEIGHT, CHARACTER_YAW } from "./office-models";
+
+// Run as early as this module is evaluated on the client.
+ensureGltfTexturesAreStubbed();
 
 /**
  * Renders a GLB character, auto-normalized: scaled to CHARACTER_HEIGHT, feet on
@@ -22,6 +26,9 @@ export function CharacterModel({ url }: { url: string }) {
   const { scene } = useGLTF(url, undefined, undefined, configureGltfLoaderNoTextures);
 
   const { object, scale, offset } = useMemo(() => {
+    // Extra safety: the prototype patch should already be active, but ensure here too.
+    ensureGltfTexturesAreStubbed();
+
     // Strip any textures that may already exist on the cached source scene
     // (from previous loads or HMR). This + the loader patch stops repeated
     // "Couldn't load texture blob:..." errors.

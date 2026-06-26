@@ -22,7 +22,13 @@ import {
 } from "../lib/hq-behavior-planner";
 import { resolveActivityBadgeLabel } from "../lib/resolve-activity-label";
 import { HQ_MODELS, pickCharacterModel } from "./office/office-models";
-import { configureGltfLoaderNoTextures } from "./office/apply-gltf-materials";
+import {
+  configureGltfLoaderNoTextures,
+  ensureGltfTexturesAreStubbed,
+} from "./office/apply-gltf-materials";
+
+// Ensure the global TextureLoader stub is active before any model component or preload runs.
+ensureGltfTexturesAreStubbed();
 import type { EmployeeThoughtsMap } from "../services/generate-employee-thoughts";
 import type { HqRuntimeStatus, HqState } from "../types";
 import type { SceneEmployee, SceneRoom } from "./office/scene-types";
@@ -68,9 +74,10 @@ export function HqOfficeCanvas({
 
   // Preload GLTF models from within a React component context.
   // This avoids calling useGLTF.preload at module initialization time.
-  // We pass the no-texture configurator so the loader never tries to fetch
-  // texture blobs from the GLBs.
+  // We pass the no-texture configurator + ensure the global stub is on.
   useEffect(() => {
+    ensureGltfTexturesAreStubbed();
+
     const { characters, props } = HQ_MODELS;
     if (characters.female) {
       useGLTF.preload(characters.female, undefined, undefined, configureGltfLoaderNoTextures);

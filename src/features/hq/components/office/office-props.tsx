@@ -6,8 +6,12 @@ import { Box3, Vector3, type Object3D } from "three";
 import {
   applySolidGltfMaterials,
   configureGltfLoaderNoTextures,
+  ensureGltfTexturesAreStubbed,
 } from "./apply-gltf-materials";
 import { HQ_MODELS, PROPS_PLACEMENT } from "./office-models";
+
+// Run as early as this module is evaluated on the client.
+ensureGltfTexturesAreStubbed();
 
 /**
  * Renders the furnished props scene as one configurable area: normalized so its
@@ -19,6 +23,9 @@ export function OfficeProps({ url }: { url: string }) {
   const { scene } = useGLTF(url, undefined, undefined, configureGltfLoaderNoTextures);
 
   const { object, scale, offset } = useMemo(() => {
+    // Extra safety: the prototype patch should already be active.
+    ensureGltfTexturesAreStubbed();
+
     // Clear textures on the cached source to avoid repeated load failures.
     scene.traverse((node: any) => {
       if (node.isMesh && node.material) {
