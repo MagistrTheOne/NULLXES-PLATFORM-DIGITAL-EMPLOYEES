@@ -3,7 +3,7 @@
 import { Html, RoundedBox } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { useRef } from "react";
-import type { Mesh } from "three";
+import type { Group as ThreeGroup, Mesh } from "three";
 import {
   WALL_HEIGHT,
   WALL_THICKNESS,
@@ -150,10 +150,22 @@ function Desk({ position, seed = 0 }: { position: [number, number]; seed?: numbe
   );
 }
 
-export function Plant({ position }: { position: [number, number] }) {
+export function Plant({ position, phase = 0 }: { position: [number, number]; phase?: number }) {
   const [x, z] = position;
+  const groupRef = useRef<ThreeGroup>(null);
+
+  useFrame((state) => {
+    if (groupRef.current) {
+      const t = state.clock.elapsedTime * 0.12 + phase;
+      // Extremely gentle sway + tiny height bob. Feels alive but not distracting.
+      groupRef.current.rotation.y = Math.sin(t) * 0.025; // ~1.4°
+      groupRef.current.rotation.x = Math.sin(t * 0.7 + 1.3) * 0.012;
+      groupRef.current.position.y = Math.sin(t * 1.1) * 0.003;
+    }
+  });
+
   return (
-    <group position={[x, 0, z]}>
+    <group ref={groupRef} position={[x, 0, z]}>
       <mesh position={[0, 0.18, 0]} castShadow>
         <cylinderGeometry args={[0.16, 0.13, 0.36, 16]} />
         <meshStandardMaterial color="#0d0d0d" roughness={0.6} />
@@ -336,8 +348,14 @@ export function OfficeRoom({ room }: { room: SceneRoom }) {
 
       {def.w * def.d > 28 ? (
         <>
-          <Plant position={[def.x - halfW + 0.65, def.z + halfD - 0.65]} />
-          <Plant position={[def.x + halfW - 0.65, def.z - halfD + 0.55]} />
+          <Plant
+            position={[def.x - halfW + 0.65, def.z + halfD - 0.65]}
+            phase={((def.x + def.z) * 0.9) % (Math.PI * 2)}
+          />
+          <Plant
+            position={[def.x + halfW - 0.65, def.z - halfD + 0.55]}
+            phase={((def.x - def.z) * 1.1 + 2) % (Math.PI * 2)}
+          />
         </>
       ) : null}
 

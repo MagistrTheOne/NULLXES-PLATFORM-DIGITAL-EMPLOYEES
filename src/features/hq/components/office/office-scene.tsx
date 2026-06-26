@@ -196,8 +196,8 @@ export default function OfficeScene({
         ))}
 
         {/* Extra ambient plants around the central atrium for more life */}
-        <Plant position={[-6.5, -3.8]} />
-        <Plant position={[7.2, 4.1]} />
+        <Plant position={[-6.5, -3.8]} phase={1.7} />
+        <Plant position={[7.2, 4.1]} phase={4.2} />
 
         {/* Scattered floor papers in the open atrium */}
         <group position={[-3.5, 0.015, -1.2]} rotation={[0, 0.7, 0]}>
