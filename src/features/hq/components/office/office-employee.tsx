@@ -88,6 +88,12 @@ export function OfficeEmployee({ employee }: { employee: SceneEmployee }) {
   ];
 
   const emitThought = (time: number) => {
+    if (employee.speechText) {
+      setBubbleKind("thought");
+      setThought(employee.speechText);
+      thoughtHideAt.current = time + 5;
+      return;
+    }
     const pool = employee.thoughts;
     if (pool.length > 0) {
       setBubbleKind("thought");
@@ -108,12 +114,15 @@ export function OfficeEmployee({ employee }: { employee: SceneEmployee }) {
     thoughtHideAt.current = clockRef.current + 3.5;
   };
 
-  // Autonomous "lofi" decision loop. Active employees move often; idle ones
-  // mostly linger at the desk but occasionally wander, grab a coffee, or just
-  // surface a thought. Offline employees stay put and never think.
+  // Autonomous wander only when the behavior planner allows it.
   const decide = (time: number) => {
-    if (employee.behavior === "still") {
-      goal.current.set(employee.position[0], 0, employee.position[1]);
+    if (
+      employee.behavior === "still" ||
+      employee.behavior === "desk" ||
+      employee.plan.movement !== "wander"
+    ) {
+      const [x, z] = deskPoint();
+      goal.current.set(x, 0, z);
       return;
     }
     const roll = rng.current();
@@ -136,12 +145,18 @@ export function OfficeEmployee({ employee }: { employee: SceneEmployee }) {
     nextDecisionAt.current = time + gap;
   };
 
-  // Reset the goal when behavior, seat, or manual placement changes.
+  // Reset the goal when behavior, plan, seat, or manual placement changes.
   useEffect(() => {
     const [hx, hz] = override ?? [employee.position[0], employee.position[1]];
     goal.current.set(hx, 0, hz);
     movingRef.current = false;
-  }, [employee.behavior, employee.position, override]);
+  }, [
+    employee.behavior,
+    employee.plan.intent,
+    employee.plan.movement,
+    employee.position,
+    override,
+  ]);
 
   useFrame((state, delta) => {
     const root = rootRef.current;
@@ -207,6 +222,12 @@ export function OfficeEmployee({ employee }: { employee: SceneEmployee }) {
       // Standup: head to the assigned atrium ring slot and hold there.
       if (employee.meetingTarget) {
         goal.current.set(employee.meetingTarget[0], 0, employee.meetingTarget[1]);
+      } else if (
+        employee.plan.movement === "none" &&
+        employee.plan.anchor === "desk"
+      ) {
+        const [x, z] = deskPoint();
+        goal.current.set(x, 0, z);
       }
     }
 
@@ -230,7 +251,12 @@ export function OfficeEmployee({ employee }: { employee: SceneEmployee }) {
         );
         root.rotation.y += (faceYaw - root.rotation.y) * Math.min(1, delta * 6);
       } else if (!employee.task && time >= nextDecisionAt.current) {
-        decide(time);
+        if (employee.plan.movement === "wander") {
+          decide(time);
+        } else if (employee.speechText) {
+          emitThought(time);
+          nextDecisionAt.current = time + 8 + rng.current() * 6;
+        }
       }
     }
 
@@ -240,12 +266,33 @@ export function OfficeEmployee({ employee }: { employee: SceneEmployee }) {
     root.position.z = posRef.current.z;
 
     const moving = movingRef.current;
+    const animation = employee.plan.animation;
+
     if (bodyRef.current) {
-      bodyRef.current.position.y = moving
-        ? Math.abs(Math.sin(time * 9)) * 0.05
-        : Math.sin(time * 1.4 + idlePhase.current) * 0.02;
+      if (moving) {
+        bodyRef.current.position.y = Math.abs(Math.sin(time * 9)) * 0.05;
+        bodyRef.current.rotation.x = 0;
+      } else if (animation === "type") {
+        bodyRef.current.position.y = Math.sin(time * 6 + idlePhase.current) * 0.035;
+        bodyRef.current.rotation.x = -0.06;
+      } else if (animation === "listen") {
+        bodyRef.current.position.y = Math.sin(time * 1.2 + idlePhase.current) * 0.025;
+        bodyRef.current.rotation.x = Math.sin(time * 0.9) * 0.035;
+      } else if (animation === "stand") {
+        bodyRef.current.position.y = Math.sin(time * 1 + idlePhase.current) * 0.015;
+        bodyRef.current.rotation.x = 0;
+      } else {
+        bodyRef.current.position.y = Math.sin(time * 1.4 + idlePhase.current) * 0.02;
+        bodyRef.current.rotation.x = 0;
+      }
     }
-    const swing = moving ? Math.sin(time * 9) * 0.5 : 0;
+
+    const swing =
+      moving || animation === "walk"
+        ? Math.sin(time * 9) * 0.5
+        : animation === "type"
+          ? Math.sin(time * 7) * 0.12
+          : 0;
     if (legLeftRef.current) {
       legLeftRef.current.rotation.x = swing;
     }

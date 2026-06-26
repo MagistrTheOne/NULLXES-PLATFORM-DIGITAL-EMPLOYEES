@@ -1,4 +1,5 @@
 import type { RoomDef } from "../../lib/office-layout";
+import type { HqBehaviorPlan } from "../../lib/hq-behavior-types";
 import type { HqRuntimeStatus } from "../../types";
 
 /**
@@ -15,12 +16,17 @@ export type SceneEmployee = {
   /** Interior bounds the employee roams within (keeps them inside the room). */
   roam: { minX: number; maxX: number; minZ: number; maxZ: number };
   /**
-   * Ambient behavior:
-   *  - "roam"  active/busy: moves around often
-   *  - "lofi"  idle: mostly at desk, occasional wander / coffee / a thought
-   *  - "still" offline: frozen at the desk
+   * Legacy motion bucket (compat). Prefer `plan.movement` + `plan.animation`.
+   *  - "desk"  anchored at seat — talk / type / queue
+   *  - "lofi"  idle wander within room
+   *  - "roam"  path walk (floor errand)
+   *  - "still" offline — frozen at desk
    */
-  behavior: "roam" | "lofi" | "still";
+  behavior: "roam" | "lofi" | "still" | "desk";
+  /** Semantic simulation plan from HQBehaviorPlanner. */
+  plan: HqBehaviorPlan;
+  /** Real focus text for speech bubbles (overrides lofi when set). */
+  speechText: string | null;
   /** Curated lofi thought lines (resolved i18n) shown periodically in a bubble. */
   thoughts: string[];
   /** NULLXES/kavka-style one-liners shown when the user grabs/drops the figure. */

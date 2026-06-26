@@ -14,6 +14,11 @@ import {
 import { DEPARTMENT_ORDER } from "../lib/department-layout";
 import { buildErrandPath } from "../lib/nav-graph";
 import { computeStandup } from "../lib/standup";
+import { deriveActivitySignals } from "../lib/derive-employee-activity";
+import {
+  behaviorFromPlan,
+  planHqBehavior,
+} from "../lib/hq-behavior-planner";
 import { resolveActivityBadgeLabel } from "../lib/resolve-activity-label";
 import { pickCharacterModel } from "./office/office-models";
 import type { EmployeeThoughtsMap } from "../services/generate-employee-thoughts";
@@ -96,15 +101,22 @@ export function HqOfficeCanvas({
         employee.activity.badge,
         tActivity,
       );
-      const isActive =
-        employee.runtimeStatus === "active" ||
-        employee.runtimeStatus === "busy";
-      const behavior: SceneEmployee["behavior"] =
-        employee.runtimeStatus === "offline"
-          ? "still"
-          : isActive
-            ? "roam"
-            : "lofi";
+      const meetingTarget = standup.get(employee.id) ?? null;
+      const signals = deriveActivitySignals({
+        status: employee.status,
+        isLive: employee.isLive,
+        activity: employee.activity,
+        task: employee.task,
+      });
+      const plan = planHqBehavior({
+        employee,
+        signals,
+        taskBadgeLabel: taskLabel,
+        hasStandup: meetingTarget !== null,
+      });
+      const behavior = behaviorFromPlan(plan, employee.runtimeStatus);
+      const useLofiThoughts =
+        plan.intent === "idle" && !plan.speechText && !employee.task;
       return {
         id: employee.id,
         name: employee.name,
@@ -113,14 +125,16 @@ export function HqOfficeCanvas({
         position: positions[index] ?? [room.x, room.z],
         roam,
         behavior,
+        plan,
+        speechText: plan.speechText ?? null,
         thoughts:
           llmThoughts[employee.id] && llmThoughts[employee.id].length > 0
             ? llmThoughts[employee.id]
-            : isActive
-              ? activeThoughts
-              : idleThoughts,
+            : useLofiThoughts
+              ? idleThoughts
+              : activeThoughts,
         reactions,
-        meetingTarget: standup.get(employee.id) ?? null,
+        meetingTarget,
         meetingLabel,
         modelUrl: pickCharacterModel(employee.name),
         task: employee.task

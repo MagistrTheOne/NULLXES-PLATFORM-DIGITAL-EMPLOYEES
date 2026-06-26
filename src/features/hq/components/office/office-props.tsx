@@ -3,7 +3,8 @@
 import { useMemo } from "react";
 import { useGLTF } from "@react-three/drei";
 import { Box3, Vector3, type Object3D } from "three";
-import { PROPS_PLACEMENT } from "./office-models";
+import { applySolidGltfMaterials } from "./apply-gltf-materials";
+import { HQ_MODELS, PROPS_PLACEMENT } from "./office-models";
 
 /**
  * Renders the furnished props scene as one configurable area: normalized so its
@@ -14,7 +15,8 @@ export function OfficeProps({ url }: { url: string }) {
   const { scene } = useGLTF(url);
 
   const { object, scale, offset } = useMemo(() => {
-    const root = scene as Object3D;
+    const root = scene.clone(true) as Object3D;
+    applySolidGltfMaterials(root, { variant: "prop" });
     const box = new Box3().setFromObject(root);
     const size = new Vector3();
     const center = new Vector3();

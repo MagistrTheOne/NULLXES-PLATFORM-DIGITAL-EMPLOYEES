@@ -1,6 +1,12 @@
 import type { EmployeeStatus } from "@/entities/digital-employee";
 import type { HqTaskSnapshot } from "../queries/get-employee-task-snapshots";
-import type { HqActivity, HqRuntimeStatus } from "../types";
+import type {
+  HqActiveTask,
+  HqActivity,
+  HqActivityKind,
+  HqRuntimeStatus,
+} from "../types";
+import type { HqActivitySignals, HqActivityTrigger } from "./hq-behavior-types";
 
 type ActivityInput = {
   isLive: boolean;
@@ -51,4 +57,58 @@ export function deriveEmployeeActivity(input: ActivityInput): HqActivity {
   }
 
   return { kind: "idle", badge: null };
+}
+
+type EmployeeSignalInput = {
+  status: EmployeeStatus;
+  isLive: boolean;
+  activity: HqActivity;
+  task: HqActiveTask | null;
+};
+
+/**
+ * Decompress derived activity into planner triggers without collapsing semantics
+ * early. Preserves `activity.kind` for badges while exposing why motion runs.
+ */
+export function deriveActivitySignals(
+  input: EmployeeSignalInput,
+): HqActivitySignals {
+  if (input.status !== "active") {
+    return { trigger: "offline", focusText: null };
+  }
+
+  if (input.task) {
+    return {
+      trigger: "floor_errand",
+      focusText: input.task.label,
+    };
+  }
+
+  if (input.isLive) {
+    return { trigger: "live_session", focusText: null };
+  }
+
+  const kind: HqActivityKind = input.activity.kind;
+
+  if (kind === "working") {
+    return {
+      trigger: "task_in_progress",
+      focusText: input.activity.badge?.text ?? null,
+    };
+  }
+
+  if (kind === "queued") {
+    return {
+      trigger: "task_queued",
+      focusText: null,
+    };
+  }
+
+  return { trigger: "idle", focusText: null };
+}
+
+export function resolveActivityTrigger(
+  input: EmployeeSignalInput,
+): HqActivityTrigger {
+  return deriveActivitySignals(input).trigger;
 }

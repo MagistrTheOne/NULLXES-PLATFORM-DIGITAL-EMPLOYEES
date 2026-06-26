@@ -6,6 +6,13 @@ export type ParsedHqCommand = {
   matchedTerm: string;
 };
 
+/** Chat-derived floor intent (movement is decided by HQBehaviorPlanner). */
+export type HqChatIntent = {
+  kind: "navigate";
+  destination: HqTaskDestination;
+  matchedTerm: string;
+};
+
 /**
  * Movement verbs (ru/en) that signal a floor errand. We require one of these so
  * normal conversation that merely mentions "sales" or "analytics" does not
@@ -66,9 +73,20 @@ const DESTINATION_ALIASES: Array<{
 ];
 
 /**
+ * Parse chat text into a semantic HQ intent. Returns null for normal conversation.
+ * Persisted as `hq_task`; the behavior planner maps navigate → walk_path.
+ */
+export function parseHqIntent(input: string): HqChatIntent | null {
+  const command = parseHqCommand(input);
+  if (!command) {
+    return null;
+  }
+  return { kind: "navigate", ...command };
+}
+
+/**
  * Parse a free-text agent-chat message into a floor errand, or null when it is
- * not a navigation command. Matching is case-insensitive and accent-tolerant
- * enough for ru/en day-to-day phrasing ("сходи в CRM", "go to analytics").
+ * not a navigation command. Prefer `parseHqIntent` at integration boundaries.
  */
 export function parseHqCommand(input: string): ParsedHqCommand | null {
   const text = input.trim().toLowerCase();

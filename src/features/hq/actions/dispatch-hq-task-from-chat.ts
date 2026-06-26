@@ -3,7 +3,7 @@
 import { getLocale } from "next-intl/server";
 import type { HqTaskDestination } from "@/entities/hq-task";
 import { requireWorkspacePermissionOrThrowMessage } from "@/features/workspace";
-import { parseHqCommand } from "../lib/parse-hq-command";
+import { parseHqIntent } from "../lib/parse-hq-command";
 import { buildHqTaskLabel, createHqTask } from "../services/dispatch-hq-task";
 
 /**
@@ -16,10 +16,11 @@ export async function dispatchHqTaskFromChatAction(
   employeeId: string,
   text: string,
 ): Promise<{ dispatched: boolean; destination?: HqTaskDestination }> {
-  const parsed = parseHqCommand(text);
-  if (!parsed) {
+  const intent = parseHqIntent(text);
+  if (!intent || intent.kind !== "navigate") {
     return { dispatched: false };
   }
+  const parsed = intent;
 
   try {
     const workspace = await requireWorkspacePermissionOrThrowMessage(
