@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Inter } from "next/font/google";
+import { Geist, Geist_Mono, Inter, Figtree } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { loadMessages } from "@/i18n/load-messages";
 import { getRequestLocale } from "@/i18n/request";
@@ -7,7 +7,15 @@ import { IntlProvider } from "@/shared/i18n/intl-provider";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
+const figtreeHeading = Figtree({
+  subsets: ["latin"],
+  variable: "--font-heading",
+});
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-sans",
+});
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -36,11 +44,11 @@ export default async function RootLayout({
     <html
       lang={locale}
       className={cn(
-        "dark h-full antialiased",
+        "dark h-full antialiased font-sans",
         geistSans.variable,
         geistMono.variable,
-        "font-sans",
         inter.variable,
+        figtreeHeading.variable,
       )}
     >
       <body className="flex min-h-full flex-col">
