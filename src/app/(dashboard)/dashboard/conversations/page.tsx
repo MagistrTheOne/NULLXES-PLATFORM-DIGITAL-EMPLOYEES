@@ -12,6 +12,7 @@ import { getTalkAgentActivity } from "@/features/runtime-session/queries/get-tal
 import { buildTalkAgentDetails } from "@/features/runtime-session/lib/build-talk-agent-details";
 import { formatBrainModelDisplay } from "@/features/brain/lib/format-brain-model-display";
 import { resolveBrainModelForProvider } from "@/features/settings/lib/brain-model-defaults";
+import { isTransientDatabaseError } from "@/shared/errors/is-transient-database-error";
 
 export default async function ConversationsPage({
   searchParams,
@@ -29,9 +30,19 @@ export default async function ConversationsPage({
   const requestedEmployeeId =
     typeof resolved.employee === "string" ? resolved.employee : undefined;
 
-  const page = await listOrganizationEmployees(workspace.organization.id, {
-    limit: 1000,
-  });
+  let page;
+  try {
+    page = await listOrganizationEmployees(workspace.organization.id, {
+      limit: 1000,
+    });
+  } catch (error: unknown) {
+    // If the employee list itself fails transiently, surface it so the
+    // conversations error boundary shows the friendly DB message.
+    if (isTransientDatabaseError(error)) {
+      throw new Error("Failed to load conversations workspace: database temporarily unreachable");
+    }
+    throw error;
+  }
 
   const talkReady = page.items.filter((employee) => employee.canTalk);
   const selectedId =

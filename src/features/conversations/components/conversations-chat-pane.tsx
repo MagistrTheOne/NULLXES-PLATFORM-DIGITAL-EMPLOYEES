@@ -40,7 +40,7 @@ export function ConversationsChatPane({
   onToggleDetails: () => void;
 }) {
   return (
-    <div className="flex h-full min-h-0 min-w-0 flex-col bg-black">
+    <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col bg-black">
       <NullxesConversationHeader
         employeeId={employee.id}
         name={employee.name}
@@ -50,6 +50,7 @@ export function ConversationsChatPane({
         avatarReady={employee.avatarProvisioningStatus === "ready"}
         detailsOpen={detailsOpen}
         onToggleDetails={onToggleDetails}
+        modelLabel={brainModelLabel}
       />
 
       <div className="flex min-h-0 flex-1 flex-col">

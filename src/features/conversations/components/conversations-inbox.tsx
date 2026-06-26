@@ -75,7 +75,7 @@ function ConversationListItem({
   onClick: () => void;
   avatar: ReactNode;
   name: string;
-  preview: string;
+  preview?: string;
   meta?: string;
   time?: string;
 }) {
@@ -85,28 +85,35 @@ function ConversationListItem({
       onClick={onClick}
       data-active={active}
       className={cn(
-        "flex w-full items-start gap-3 rounded-lg p-4 text-left transition-colors",
-        "hover:bg-white/3 data-[active=true]:bg-white/6",
+        "flex w-full items-start gap-3.5 rounded-xl py-3 px-3 text-left transition-all",
+        "bg-white/1.5 hover:bg-white/4",
+        active
+          ? "bg-white/8 shadow-sm ring-1 ring-inset ring-white/10"
+          : "",
       )}
     >
       {avatar}
-      <span className="min-w-0 flex-1">
-        <span className="flex items-center justify-between gap-2">
+      <span className="min-w-0 flex-1 space-y-1">
+        <div className="flex items-baseline justify-between gap-2">
           <span className="truncate text-sm font-medium text-white">{name}</span>
           {time ? (
             <span className="shrink-0 text-[10px] font-normal text-white/35 tabular-nums">
               {time}
             </span>
           ) : null}
-        </span>
+        </div>
+
         {meta ? (
-          <span className="mt-0.5 block truncate text-xs font-normal text-white/40">
-            {meta}
-          </span>
+          <div className="text-[11px] font-normal leading-tight text-white/35">
+            <span className="line-clamp-1">{meta}</span>
+          </div>
         ) : null}
-        <span className="mt-1 block truncate text-xs font-normal text-white/55">
-          {preview}
-        </span>
+
+        {preview ? (
+          <div className="text-xs font-normal leading-snug text-white/60">
+            <span className="line-clamp-2">{preview}</span>
+          </div>
+        ) : null}
       </span>
     </button>
   );
@@ -120,6 +127,7 @@ export function ConversationsInbox({
   onSelectThread,
   searchQuery,
   className,
+  threadsVersion = 0,
 }: {
   employees: ConversationEmployee[];
   selectedEmployee: ConversationEmployee | null;
@@ -128,6 +136,7 @@ export function ConversationsInbox({
   onSelectThread: (threadId: string | null) => void;
   searchQuery: string;
   className?: string;
+  threadsVersion?: number;
 }) {
   const t = useTranslations("conversations");
   const [tab, setTab] = useState<InboxTab>("all");
@@ -150,25 +159,22 @@ export function ConversationsInbox({
     return () => {
       cancelled = true;
     };
-  }, [selectedEmployee]);
-
-  const talkReady = useMemo(
-    () => employees.filter((employee) => employee.canTalk),
-    [employees],
-  );
+  }, [selectedEmployee, threadsVersion]);
 
   const normalizedSearch = searchQuery.trim().toLowerCase();
 
+  const baseList = useMemo(() => employees, [employees]);
+
   const filteredEmployees = useMemo(() => {
     if (!normalizedSearch) {
-      return talkReady;
+      return baseList;
     }
-    return talkReady.filter(
+    return baseList.filter(
       (employee) =>
         employee.name.toLowerCase().includes(normalizedSearch) ||
-        employee.role.toLowerCase().includes(normalizedSearch),
+        (employee.role || "").toLowerCase().includes(normalizedSearch),
     );
-  }, [normalizedSearch, talkReady]);
+  }, [normalizedSearch, baseList]);
 
   return (
     <aside
@@ -201,7 +207,7 @@ export function ConversationsInbox({
       </div>
 
       <ScrollArea className="min-h-0 flex-1">
-        <div className="flex flex-col gap-1 p-2">
+        <div className="flex flex-col gap-3 p-2">
           {filteredEmployees.map((employee) => {
             const isSelected = employee.id === selectedEmployee?.id;
             const isMainActive = isSelected && activeThreadId === null;
@@ -224,13 +230,31 @@ export function ConversationsInbox({
                 }
                 name={employee.name}
                 meta={employee.role}
-                preview={isSelected ? t("previewMain") : employee.role}
+                preview={isSelected ? t("previewMain") : undefined}
               />
             );
           })}
 
-          {selectedEmployee && tab === "all"
-            ? threads.map((thread) => {
+          {selectedEmployee && tab === "all" ? (
+            <div className="mt-2 border-t border-white/8 pt-3">
+              {/* Optimistic new conversation (if activeThreadId not yet in remote list) */}
+              {activeThreadId &&
+              !threads.some((t) => t.threadId === activeThreadId) ? (
+                <ConversationListItem
+                  active
+                  onClick={() => onSelectThread(activeThreadId)}
+                  avatar={
+                    <span className="flex size-8 shrink-0 items-center justify-center rounded-full border border-white/8 bg-white/4 text-[10px] font-medium text-white/70">
+                      NC
+                    </span>
+                  }
+                  name="New conversation"
+                  meta={`${selectedEmployee.name} · ${selectedEmployee.role}`}
+                  preview={t("previewThread")}
+                />
+              ) : null}
+
+              {threads.map((thread) => {
                 const active = thread.threadId === activeThreadId;
                 return (
                   <ConversationListItem
@@ -248,8 +272,9 @@ export function ConversationsInbox({
                     time={formatInboxTime(thread.lastMessageAt)}
                   />
                 );
-              })
-            : null}
+              })}
+            </div>
+          ) : null}
 
           {loading ? (
             <div className="flex flex-col gap-2 p-2">

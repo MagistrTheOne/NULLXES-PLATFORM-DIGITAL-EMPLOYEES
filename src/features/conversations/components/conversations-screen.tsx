@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { MessageSquare } from "lucide-react";
 import {
@@ -19,13 +19,17 @@ import {
   ConversationsInbox,
   useConversationsThreads,
 } from "./conversations-inbox";
-import { ConversationsToolbar } from "./conversations-toolbar";
+import {
+  ConversationsToolbar,
+  type ConversationsFilterState,
+} from "./conversations-toolbar";
 import "./conversations-theme.css";
 import "@/features/runtime-session/components/employee-talk-theme.css";
+import { connectTalkChatSessionAction } from "@/features/runtime-session/actions/connect-talk-chat-session";
 
 export type ConversationEmployee = Pick<
   EmployeeListItem,
-  "id" | "name" | "role" | "avatarPreviewUrl" | "avatarProvisioningStatus" | "canTalk"
+  "id" | "name" | "role" | "department" | "avatarPreviewUrl" | "avatarProvisioningStatus" | "canTalk"
 >;
 
 export function ConversationsScreen({
@@ -47,8 +51,37 @@ export function ConversationsScreen({
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [mobileDetailsOpen, setMobileDetailsOpen] = useState(false);
+  const [threadsVersion, setThreadsVersion] = useState(0);
+
+  const [conversationFilter, setConversationFilter] = useState<ConversationsFilterState>({
+    departments: [],
+    employeeIds: [],
+    onlyReady: false,
+  });
 
   const talkReady = employees.filter((employee) => employee.canTalk);
+
+  const filteredForList = useMemo(() => {
+    let list = talkReady;
+
+    const { departments, employeeIds, onlyReady } = conversationFilter;
+
+    // Explicit employee selection takes precedence (user picked specific ones)
+    if (employeeIds.length > 0) {
+      list = list.filter((e) => employeeIds.includes(e.id));
+    }
+
+    if (departments.length > 0) {
+      list = list.filter((e) => e.department && departments.includes(e.department));
+    }
+
+    if (onlyReady) {
+      list = list.filter((e) => e.avatarProvisioningStatus === "ready");
+    }
+
+    return list;
+  }, [conversationFilter, talkReady]);
+
   const selected =
     talkReady.find((employee) => employee.id === selectedEmployeeId) ??
     talkReady[0] ??
@@ -70,7 +103,12 @@ export function ConversationsScreen({
     if (!selected) {
       return;
     }
-    createThread();
+    const threadId = createThread();
+    // Sync/create the thread channel in Stream (and any related metadata).
+    // Fire-and-forget so the UI feels instant; the chat connect will also ensure it.
+    void connectTalkChatSessionAction(selected.id, threadId).catch(() => undefined);
+    // Bump to force the inbox to re-fetch threads list (for real sync from Stream)
+    setThreadsVersion((v) => v + 1);
   };
 
   return (
@@ -89,21 +127,26 @@ export function ConversationsScreen({
             query={searchQuery}
             onQueryChange={setSearchQuery}
             onNewConversation={handleNewConversation}
+            filter={conversationFilter}
+            onFilterChange={setConversationFilter}
+            filterCount={`${filteredForList.length}/${talkReady.length}`}
+            allEmployees={talkReady}
           />
         </div>
 
-        <div className="conversations-workspace grid min-h-0 flex-1 overflow-hidden border border-white/8 bg-[#0a0a0a] lg:grid-cols-[300px_minmax(0,1fr)] xl:grid-cols-[300px_minmax(0,1fr)_340px]">
+        <div className="conversations-workspace grid h-full min-h-0 flex-1 overflow-hidden border border-white/8 bg-[#0a0a0a] lg:grid-cols-[300px_minmax(0,1fr)] xl:grid-cols-[300px_minmax(0,1fr)_340px]">
           <ConversationsInbox
             className="hidden lg:flex"
-            employees={employees}
+            employees={filteredForList}
             selectedEmployee={selected}
             activeThreadId={activeThreadId}
             onSelectEmployee={handleSelectEmployee}
             onSelectThread={selectThread}
             searchQuery={searchQuery}
+            threadsVersion={threadsVersion}
           />
 
-          <div className="flex min-h-0 min-w-0 flex-col">
+          <div className="flex h-full min-h-0 min-w-0 flex-col">
             {selected && resolvedDetails ? (
               <TalkAnamProvider>
                 <ConversationsChatPane
@@ -118,7 +161,7 @@ export function ConversationsScreen({
                 />
               </TalkAnamProvider>
             ) : (
-              <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6 text-center">
+              <div className="flex h-full flex-1 flex-col items-center justify-center gap-4 px-6 text-center">
                 <MessageSquare className="size-10 stroke-[1.25] text-white/20" />
                 <p className="max-w-sm text-sm font-normal text-white/45">
                   {t("pickEmployee")}
@@ -155,7 +198,7 @@ export function ConversationsScreen({
 
         <div className="max-h-48 overflow-hidden border border-white/8 bg-[#0a0a0a] lg:hidden">
           <ConversationsInbox
-            employees={employees}
+            employees={filteredForList}
             selectedEmployee={selected}
             activeThreadId={activeThreadId}
             onSelectEmployee={handleSelectEmployee}

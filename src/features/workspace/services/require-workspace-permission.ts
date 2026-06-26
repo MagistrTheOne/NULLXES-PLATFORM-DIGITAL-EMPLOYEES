@@ -2,6 +2,7 @@ import { requireAuth } from "@/features/auth/services/require-auth";
 import { ensureWorkspace } from "@/features/auth/services/ensure-workspace";
 import type { WorkspaceAccessCheck, WorkspaceContext } from "../types";
 import { assertWorkspaceAccess } from "./assert-workspace-access";
+import { isTransientDatabaseError } from "@/shared/errors/is-transient-database-error";
 
 export class WorkspaceAccessDeniedError extends Error {
   constructor(check: WorkspaceAccessCheck) {
@@ -14,7 +15,15 @@ export async function requireWorkspacePermission(
   check: WorkspaceAccessCheck,
 ): Promise<WorkspaceContext> {
   const session = await requireAuth();
-  const workspace = await ensureWorkspace(session.user.id, session.user.name);
+  let workspace: WorkspaceContext;
+  try {
+    workspace = await ensureWorkspace(session.user.id, session.user.name);
+  } catch (error: unknown) {
+    if (isTransientDatabaseError(error)) {
+      throw new Error("Failed to get session: database temporarily unreachable");
+    }
+    throw error;
+  }
 
   try {
     assertWorkspaceAccess(workspace.permissions, check);
@@ -50,6 +59,9 @@ export async function requireWorkspacePermissionOrThrowMessage(
   } catch (error: unknown) {
     if (error instanceof WorkspaceAccessDeniedError) {
       throw new Error(workspaceAccessDeniedMessage(check));
+    }
+    if (isTransientDatabaseError(error)) {
+      throw new Error("Database is temporarily unreachable. Please try again.");
     }
     throw error;
   }

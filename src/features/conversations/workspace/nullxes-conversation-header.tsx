@@ -28,6 +28,7 @@ export function NullxesConversationHeader({
   online = true,
   detailsOpen,
   onToggleDetails,
+  modelLabel,
 }: {
   employeeId: string;
   name: string;
@@ -38,6 +39,7 @@ export function NullxesConversationHeader({
   online?: boolean;
   detailsOpen?: boolean;
   onToggleDetails?: () => void;
+  modelLabel?: string | null;
 }) {
   const t = useTranslations("conversations");
 
@@ -58,7 +60,12 @@ export function NullxesConversationHeader({
           size="default"
         />
         <div className="min-w-0">
-          <p className="truncate text-sm font-medium text-white">{name}</p>
+          <div className="flex items-center gap-2">
+            <p className="truncate text-sm font-medium text-white">{name}</p>
+            <span className="rounded-full bg-emerald-500/20 px-1.5 py-px text-[10px] font-medium text-emerald-400">
+              Live
+            </span>
+          </div>
           <p className="mt-0.5 flex items-center gap-2 truncate text-xs font-normal text-white/45">
             <span
               className={cn(
@@ -67,6 +74,7 @@ export function NullxesConversationHeader({
               )}
             />
             {subtitleParts.join(" · ")}
+            {modelLabel ? ` · ${modelLabel}` : null}
           </p>
         </div>
       </div>
