@@ -910,6 +910,8 @@
     "loadingThreads": "Loading threads…",
     "viewAll": "View all conversations",
     "online": "Online",
+    "offline": "Offline",
+    "typingIndicator": "Typing…",
     "openTalk": "Open live talk",
     "toggleDetails": "Toggle details",
     "closeDetails": "Close details",

@@ -910,6 +910,8 @@
     "loadingThreads": "Загрузка тредов…",
     "viewAll": "Все разговоры",
     "online": "Онлайн",
+    "offline": "Не в сети",
+    "typingIndicator": "Печатает…",
     "openTalk": "Открыть live talk",
     "toggleDetails": "Показать детали",
     "closeDetails": "Закрыть детали",

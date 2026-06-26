@@ -42,7 +42,7 @@ export function ConversationAvatar({
         </AvatarFallback>
       )}
       {online ? (
-        <AvatarBadge className="bg-emerald-400 ring-[#0a0a0a]" />
+        <AvatarBadge className="bg-white/70 ring-black" />
       ) : null}
     </Avatar>
   );

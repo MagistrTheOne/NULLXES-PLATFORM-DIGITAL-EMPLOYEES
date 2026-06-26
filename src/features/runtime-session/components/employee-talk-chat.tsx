@@ -3,7 +3,7 @@
 import "stream-chat-react/css/index.css";
 import { Component, type ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Loader2, MessageSquare, RotateCcw, Trash2 } from "lucide-react";
+import { Loader2, RotateCcw, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -16,18 +16,19 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { cn } from "@/lib/utils";
-import type { Channel as StreamChannel } from "stream-chat";
-import type { StreamChat } from "stream-chat";
+import {
+  NullxesConversationLayout,
+  NullxesMessageList,
+  NullxesStreamWorkspace,
+} from "@/features/conversations/workspace";
 import {
   Channel,
   Chat,
   MessageComposer,
-  MessageList,
   Window,
 } from "stream-chat-react";
-import { ConversationsMessageUI } from "@/features/conversations/components/conversations-message-ui";
-import { TalkMessageUI } from "./talk-message-ui";
+import type { Channel as StreamChannel } from "stream-chat";
+import type { StreamChat } from "stream-chat";
 import type { TalkChatCredentials } from "../services/create-talk-chat-session";
 import { attachTalkChatPipeline } from "../lib/attach-talk-chat-pipeline";
 import { useTalkAnam } from "../context/talk-anam-context";
@@ -40,16 +41,8 @@ import {
   retainTalkChatMount,
 } from "../lib/talk-chat-connection";
 import type { TalkVoiceMode } from "../services/resolve-talk-voice-mode";
-type TalkChatUiState = "connecting" | "ready" | "unavailable";
 
-function TalkChatEmptyState({ message }: { message: string }) {
-  return (
-    <div className="flex h-full flex-col items-center justify-center gap-3 px-6 text-center">
-      <MessageSquare className="size-10 stroke-[1.25] text-white/25" />
-      <p className="max-w-[220px] text-sm leading-relaxed text-white/45">{message}</p>
-    </div>
-  );
-}
+type TalkChatUiState = "connecting" | "ready" | "unavailable";
 
 function TalkChatFallback({
   state,
@@ -65,7 +58,7 @@ function TalkChatFallback({
   retryLabel: string;
 }) {
   return (
-    <div className="employee-talk-chat-fallback flex h-full flex-col items-center justify-center gap-3 px-4 text-center">
+    <div className="flex h-full min-h-48 flex-col items-center justify-center gap-3 px-4 text-center">
       {state === "connecting" ? (
         <>
           <Loader2 className="size-4 animate-spin text-white/50" />
@@ -249,18 +242,6 @@ export function EmployeeTalkChat({
   ]);
 
   useEffect(() => {
-    if (uiState !== "ready") {
-      return;
-    }
-
-    const root = document.querySelector(".employee-talk-chat-panel");
-    const textarea = root?.querySelector("textarea");
-    if (textarea) {
-      textarea.setAttribute("placeholder", t("placeholder"));
-    }
-  }, [uiState, t]);
-
-  useEffect(() => {
     if (uiState !== "ready" || !channel) {
       registerTalkChatBridge({ employeeId: null });
       return;
@@ -329,122 +310,94 @@ export function EmployeeTalkChat({
     );
   }
 
+  const streamWorkspaceConfig = {
+    surface,
+    agentDisplayName: employeeName,
+    viewerName,
+    viewerImage,
+    emptyMessage: isConversationsSurface ? tConversations("emptyChat") : t("empty"),
+    composerPlaceholder: isConversationsSurface
+      ? tConversations("composerPlaceholder")
+      : undefined,
+  } as const;
+
   return (
     <TalkChatErrorBoundary
       onError={() => setUiState("unavailable")}
       unavailableLabel={t("unavailable")}
     >
-      <div
-        className={cn(
-          "employee-talk-chat-surface relative flex h-full min-h-0 flex-1 flex-col overflow-hidden",
-          isConversationsSurface && "conversations-chat-stream",
-        )}
-      >
-        <Chat client={client} theme="str-chat__theme-dark">
-          <Channel
-            channel={channel}
-            EmptyPlaceholder={
-              <TalkChatEmptyState
-                message={
-                  isConversationsSurface ? tConversations("emptyChat") : t("empty")
-                }
-              />
-            }
-          >
+      <NullxesStreamWorkspace config={streamWorkspaceConfig}>
+        <Chat client={client}>
+          <Channel channel={channel}>
             <Window>
-              {!embedded ? (
-                <div className="employee-talk-chat-header border-b border-white/10 px-4 py-3">
-                  <div className="employee-talk-chat-header-actions">
-                    <div className="flex min-w-0 flex-col">
-                      <span className="text-[11px] font-medium tracking-[0.12em] text-white/50 uppercase">
-                        {t("title")}
-                      </span>
-                      {brainModelLabel ? (
-                        <span className="truncate text-[10px] text-white/30">
-                          {brainModelLabel}
+              <NullxesConversationLayout>
+                {!embedded ? (
+                  <div className="shrink-0 border-b border-white/8 px-4 py-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex min-w-0 flex-col gap-0.5">
+                        <span className="truncate text-sm font-medium text-white">
+                          {employeeName}
                         </span>
-                      ) : null}
-                    </div>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          disabled={isClearingHistory}
-                          className="h-7 gap-1.5 px-2 text-[11px] text-white/45 hover:bg-white/6 hover:text-white/70"
-                        >
-                          <Trash2 className="size-3.5" />
-                          {t("clearHistory")}
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent className="border-white/10 bg-[#111111] text-white">
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>{t("clearHistoryTitle")}</AlertDialogTitle>
-                          <AlertDialogDescription className="text-white/60">
-                            {t("clearHistoryDescription")}
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel className="border-white/12 bg-transparent text-white/70 hover:bg-white/6 hover:text-white">
-                            {t("clearHistoryCancel")}
-                          </AlertDialogCancel>
-                          <AlertDialogAction
-                            className="bg-white text-black hover:bg-white/90"
-                            onClick={() => {
-                              void handleClearHistory();
-                            }}
+                        {brainModelLabel ? (
+                          <span className="truncate text-xs text-white/35">
+                            {brainModelLabel}
+                          </span>
+                        ) : null}
+                      </div>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            disabled={isClearingHistory}
+                            className="h-8 gap-1.5 px-2 text-xs text-white/45 hover:bg-white/4 hover:text-white/75"
                           >
-                            {isClearingHistory ? t("clearHistoryClearing") : t("clearHistoryConfirm")}
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+                            <Trash2 className="size-3.5" />
+                            {t("clearHistory")}
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent className="border-white/8 bg-[#111111] text-white">
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>{t("clearHistoryTitle")}</AlertDialogTitle>
+                            <AlertDialogDescription className="text-white/60">
+                              {t("clearHistoryDescription")}
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel className="border-white/12 bg-transparent text-white/70 hover:bg-white/4 hover:text-white">
+                              {t("clearHistoryCancel")}
+                            </AlertDialogCancel>
+                            <AlertDialogAction
+                              className="bg-white text-black hover:bg-white/90"
+                              onClick={() => {
+                                void handleClearHistory();
+                              }}
+                            >
+                              {isClearingHistory
+                                ? t("clearHistoryClearing")
+                                : t("clearHistoryConfirm")}
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
                   </div>
-                </div>
-              ) : null}
-              <div className="employee-talk-chat-messages relative min-h-0 min-w-0 flex-1">
-                <MessageList
-                  Message={() =>
-                    isConversationsSurface ? (
-                      <ConversationsMessageUI
-                        agentDisplayName={employeeName}
-                        viewerName={viewerName}
-                        viewerImage={viewerImage}
-                      />
-                    ) : (
-                      <TalkMessageUI
-                        agentDisplayName={employeeName}
-                        viewerName={viewerName}
-                        viewerImage={viewerImage}
-                      />
-                    )
-                  }
-                  noGroupByUser
+                ) : null}
+
+                <NullxesMessageList />
+
+                <MessageComposer
+                  audioRecordingEnabled
+                  hideSendButton
+                  maxRows={6}
+                  minRows={1}
                 />
-              </div>
-              {isConversationsSurface ? (
-                <div className="conversations-composer-shell">
-                  <div className="conversations-composer-inner">
-                    <MessageComposer
-                      additionalTextareaProps={{
-                        placeholder: tConversations("composerPlaceholder"),
-                      }}
-                      maxRows={6}
-                      minRows={1}
-                    />
-                    <p className="conversations-composer-hint">
-                      {tConversations("composerHint")}
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                <MessageComposer />
-              )}
+              </NullxesConversationLayout>
             </Window>
           </Channel>
         </Chat>
-      </div>
+      </NullxesStreamWorkspace>
     </TalkChatErrorBoundary>
   );
 }

@@ -86,7 +86,7 @@ function ConversationListItem({
       data-active={active}
       className={cn(
         "flex w-full items-start gap-3 rounded-lg p-4 text-left transition-colors",
-        "hover:bg-white/[0.03] data-[active=true]:bg-white/[0.06]",
+        "hover:bg-white/3 data-[active=true]:bg-white/6",
       )}
     >
       {avatar}
@@ -238,7 +238,7 @@ export function ConversationsInbox({
                     active={active}
                     onClick={() => onSelectThread(thread.threadId)}
                     avatar={
-                      <span className="flex size-8 shrink-0 items-center justify-center rounded-full border border-white/8 bg-white/[0.04] text-[10px] font-medium text-white/70">
+                      <span className="flex size-8 shrink-0 items-center justify-center rounded-full border border-white/8 bg-white/4 text-[10px] font-medium text-white/70">
                         {threadInitials(thread.title)}
                       </span>
                     }
@@ -253,8 +253,8 @@ export function ConversationsInbox({
 
           {loading ? (
             <div className="flex flex-col gap-2 p-2">
-              <Skeleton className="h-16 rounded-lg bg-white/[0.04]" />
-              <Skeleton className="h-16 rounded-lg bg-white/[0.04]" />
+              <Skeleton className="h-16 rounded-lg bg-white/4" />
+              <Skeleton className="h-16 rounded-lg bg-white/4" />
             </div>
           ) : null}
 
@@ -270,7 +270,7 @@ export function ConversationsInbox({
       <div className="shrink-0 p-2">
         <Button
           variant="ghost"
-          className="h-10 w-full justify-center gap-2 text-xs font-normal text-white/45 hover:bg-white/[0.04] hover:text-white/70"
+          className="h-10 w-full justify-center gap-2 text-xs font-normal text-white/45 hover:bg-white/4 hover:text-white/70"
           asChild
         >
           <Link href="/dashboard/conversations">

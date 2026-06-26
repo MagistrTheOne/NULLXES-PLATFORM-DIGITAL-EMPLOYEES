@@ -110,6 +110,7 @@ export function ConversationsScreen({
                   employee={selected}
                   threadId={activeThreadId}
                   brainModelLabel={brainModelLabel}
+                  departmentLabel={departmentLabel}
                   viewerName={viewer.name}
                   viewerImage={viewer.image}
                   detailsOpen={mobileDetailsOpen}

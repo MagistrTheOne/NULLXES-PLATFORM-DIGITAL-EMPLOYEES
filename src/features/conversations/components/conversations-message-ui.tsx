@@ -165,7 +165,7 @@ export function ConversationsMessageUI({
                     type="button"
                     variant="ghost"
                     size="icon-sm"
-                    className="size-8 text-white/40 hover:bg-white/[0.04] hover:text-white/75"
+                    className="size-8 text-white/40 hover:bg-white/4 hover:text-white/75"
                     onClick={() => {
                       void handleCopy();
                     }}
@@ -183,7 +183,7 @@ export function ConversationsMessageUI({
                     type="button"
                     variant="ghost"
                     size="icon-sm"
-                    className="size-8 text-white/40 hover:bg-white/[0.04] hover:text-white/75"
+                    className="size-8 text-white/40 hover:bg-white/4 hover:text-white/75"
                   >
                     <ThumbsUp className="size-3.5" />
                   </Button>
@@ -196,7 +196,7 @@ export function ConversationsMessageUI({
                     type="button"
                     variant="ghost"
                     size="icon-sm"
-                    className="size-8 text-white/40 hover:bg-white/[0.04] hover:text-white/75"
+                    className="size-8 text-white/40 hover:bg-white/4 hover:text-white/75"
                   >
                     <ThumbsDown className="size-3.5" />
                   </Button>
@@ -210,7 +210,7 @@ export function ConversationsMessageUI({
                     variant="ghost"
                     size="icon-sm"
                     disabled={regenerating}
-                    className="size-8 text-white/40 hover:bg-white/[0.04] hover:text-white/75 disabled:opacity-40"
+                    className="size-8 text-white/40 hover:bg-white/4 hover:text-white/75 disabled:opacity-40"
                     onClick={() => {
                       void handleRegenerate();
                     }}
