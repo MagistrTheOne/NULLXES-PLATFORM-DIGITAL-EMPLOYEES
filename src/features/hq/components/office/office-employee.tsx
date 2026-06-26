@@ -338,6 +338,17 @@ export function OfficeEmployee({ employee }: { employee: SceneEmployee }) {
     const moving = movingRef.current;
     const animation = employee.plan.animation;
 
+    // Sitting posture when settled at desk (visual liveliness)
+    const shouldSit =
+      !moving &&
+      employee.plan.anchor === "desk" &&
+      !employee.meetingTarget &&
+      !employee.task;
+
+    // Sink the character a little when sitting (works for both GLB and fallback)
+    const sitOffsetY = shouldSit ? -0.16 : 0;
+    root.position.y = liftY.current + sitOffsetY;
+
     if (bodyRef.current) {
       if (moving) {
         bodyRef.current.position.y = Math.abs(Math.sin(time * 9)) * 0.05;
@@ -354,10 +365,12 @@ export function OfficeEmployee({ employee }: { employee: SceneEmployee }) {
       } else {
         // Default idle at desk — more "alive" breathing + occasional lean
         const breathe = Math.sin(time * 1.35 + idlePhase.current) * 0.022;
-        const lean = Math.sin(time * 0.22 + idlePhase.current * 0.7) * 0.035;
+        const baseLean = Math.sin(time * 0.22 + idlePhase.current * 0.7) * 0.035;
         const twist = Math.sin(time * 0.18 + idlePhase.current) * 0.04; // micro torso turn
+        // Extra gentle forward lean when "sitting"
+        const sitLean = shouldSit ? 0.22 : 0;
         bodyRef.current.position.y = breathe;
-        bodyRef.current.rotation.x = lean;
+        bodyRef.current.rotation.x = baseLean + sitLean;
         bodyRef.current.rotation.y = twist;
       }
     }
@@ -368,11 +381,21 @@ export function OfficeEmployee({ employee }: { employee: SceneEmployee }) {
         : animation === "type"
           ? Math.sin(time * 7) * 0.12
           : 0;
+
     if (legLeftRef.current) {
-      legLeftRef.current.rotation.x = swing;
+      if (shouldSit) {
+        // Relaxed seated leg angle (slight asymmetry + micro move)
+        legLeftRef.current.rotation.x = 0.95 + Math.sin(time * 0.6 + idlePhase.current) * 0.015;
+      } else {
+        legLeftRef.current.rotation.x = swing;
+      }
     }
     if (legRightRef.current) {
-      legRightRef.current.rotation.x = -swing;
+      if (shouldSit) {
+        legRightRef.current.rotation.x = 0.88 + Math.sin(time * 0.65 + 1.1) * 0.015;
+      } else {
+        legRightRef.current.rotation.x = -swing;
+      }
     }
 
     const targetScale = hovered || isSelected ? 1.12 : 1;
