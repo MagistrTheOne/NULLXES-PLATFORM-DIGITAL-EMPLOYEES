@@ -16,6 +16,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { cn } from "@/lib/utils";
 import type { Channel as StreamChannel } from "stream-chat";
 import type { StreamChat } from "stream-chat";
 import {
@@ -25,6 +26,7 @@ import {
   MessageList,
   Window,
 } from "stream-chat-react";
+import { ConversationsMessageUI } from "@/features/conversations/components/conversations-message-ui";
 import { TalkMessageUI } from "./talk-message-ui";
 import type { TalkChatCredentials } from "../services/create-talk-chat-session";
 import { attachTalkChatPipeline } from "../lib/attach-talk-chat-pipeline";
@@ -136,6 +138,7 @@ export function EmployeeTalkChat({
   viewerName,
   viewerImage,
   embedded = false,
+  surface = "talk",
 }: {
   chatSession: TalkChatCredentials | null;
   employeeId: string;
@@ -148,9 +151,12 @@ export function EmployeeTalkChat({
   viewerName?: string;
   viewerImage?: string | null;
   embedded?: boolean;
+  surface?: "talk" | "conversations";
 }) {
   const t = useTranslations("employees.talk.chat");
+  const tConversations = useTranslations("conversations");
   const tTalk = useTranslations("employees.talk");
+  const isConversationsSurface = surface === "conversations";
   const { getClient } = useTalkAnam();
   const [activeChatSession, setActiveChatSession] =
     useState<TalkChatCredentials | null>(chatSession);
@@ -328,11 +334,22 @@ export function EmployeeTalkChat({
       onError={() => setUiState("unavailable")}
       unavailableLabel={t("unavailable")}
     >
-      <div className="employee-talk-chat-surface relative flex h-full min-h-0 flex-1 flex-col overflow-hidden">
+      <div
+        className={cn(
+          "employee-talk-chat-surface relative flex h-full min-h-0 flex-1 flex-col overflow-hidden",
+          isConversationsSurface && "conversations-chat-stream",
+        )}
+      >
         <Chat client={client} theme="str-chat__theme-dark">
           <Channel
             channel={channel}
-            EmptyPlaceholder={<TalkChatEmptyState message={t("empty")} />}
+            EmptyPlaceholder={
+              <TalkChatEmptyState
+                message={
+                  isConversationsSurface ? tConversations("emptyChat") : t("empty")
+                }
+              />
+            }
           >
             <Window>
               {!embedded ? (
@@ -388,17 +405,40 @@ export function EmployeeTalkChat({
               ) : null}
               <div className="employee-talk-chat-messages relative min-h-0 min-w-0 flex-1">
                 <MessageList
-                  Message={() => (
-                    <TalkMessageUI
-                      agentDisplayName={employeeName}
-                      viewerName={viewerName}
-                      viewerImage={viewerImage}
-                    />
-                  )}
+                  Message={() =>
+                    isConversationsSurface ? (
+                      <ConversationsMessageUI
+                        agentDisplayName={employeeName}
+                        viewerName={viewerName}
+                        viewerImage={viewerImage}
+                      />
+                    ) : (
+                      <TalkMessageUI
+                        agentDisplayName={employeeName}
+                        viewerName={viewerName}
+                        viewerImage={viewerImage}
+                      />
+                    )
+                  }
                   noGroupByUser
                 />
               </div>
-              <MessageComposer />
+              {isConversationsSurface ? (
+                <div className="conversations-composer-shell">
+                  <MessageComposer
+                    additionalTextareaProps={{
+                      placeholder: tConversations("composerPlaceholder"),
+                    }}
+                    maxRows={6}
+                    minRows={1}
+                  />
+                  <p className="conversations-composer-hint">
+                    {tConversations("composerHint")}
+                  </p>
+                </div>
+              ) : (
+                <MessageComposer />
+              )}
             </Window>
           </Channel>
         </Chat>

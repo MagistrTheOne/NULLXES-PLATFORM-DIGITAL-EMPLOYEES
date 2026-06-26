@@ -16,13 +16,243 @@
   height: 100%;
 }
 
-.conversations-chat-body .str-chat__message-composer {
-  background: #0a0a0a;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-}
-
 .conversations-details-rail .talk-agent-details-profile-avatar {
   border-radius: 9999px;
+}
+
+/* ── Stream shell (conversations only) ── */
+
+.conversations-chat-body .str-chat,
+.conversations-chat-body .str-chat__channel,
+.conversations-chat-body .str-chat__container,
+.conversations-chat-stream.str-chat__theme-dark {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+  background: #0a0a0a;
+}
+
+.conversations-chat-body .str-chat__main-panel,
+.conversations-chat-stream .str-chat__main-panel {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+}
+
+.conversations-chat-body .employee-talk-chat-messages,
+.conversations-chat-stream .employee-talk-chat-messages {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.conversations-chat-body .str-chat__message-list,
+.conversations-chat-stream .str-chat__message-list {
+  flex: 1;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: #0a0a0a;
+}
+
+.conversations-chat-body .str-chat__message-list-scroll,
+.conversations-chat-stream .str-chat__message-list-scroll {
+  min-width: 0;
+  width: 100%;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+.conversations-chat-body .str-chat__empty-channel,
+.conversations-chat-body .str-chat__empty-channel-text,
+.conversations-chat-stream .str-chat__empty-channel,
+.conversations-chat-stream .str-chat__empty-channel-text {
+  display: none !important;
+}
+
+.conversations-chat-body .str-chat__connection-error,
+.conversations-chat-body .str-chat__error,
+.conversations-chat-stream .str-chat__connection-error,
+.conversations-chat-stream .str-chat__error {
+  display: none !important;
+}
+
+/* Hide default Stream message chrome — custom ConversationsMessageUI renders bubbles. */
+.conversations-chat-body .str-chat__message,
+.conversations-chat-stream .str-chat__message {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.conversations-chat-body .str-chat__message-bubble,
+.conversations-chat-stream .str-chat__message-bubble {
+  display: none !important;
+}
+
+.conversations-chat-body .str-chat__message-inner,
+.conversations-chat-stream .str-chat__message-inner {
+  margin: 0 !important;
+  padding: 0 !important;
+  max-width: none !important;
+}
+
+.conversations-chat-body .str-chat__avatar,
+.conversations-chat-stream .conversations-message .str-chat__avatar {
+  width: 2rem;
+  height: 2rem;
+  flex-shrink: 0;
+  border-radius: 9999px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.conversations-chat-body .str-chat__avatar-image,
+.conversations-chat-stream .conversations-message .str-chat__avatar-image {
+  object-fit: cover;
+  width: 100%;
+  height: 100%;
+}
+
+.conversations-chat-body .str-chat__date-separator,
+.conversations-chat-stream .str-chat__date-separator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem 1.25rem;
+  background: transparent;
+}
+
+.conversations-chat-body .str-chat__date-separator-date,
+.conversations-chat-stream .str-chat__date-separator-date {
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  padding: 0.25rem 0.75rem;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+/* ── Composer pill ── */
+
+.conversations-composer-shell {
+  flex-shrink: 0;
+  padding: 0.75rem 1rem 0.5rem;
+  background: #0a0a0a;
+}
+
+.conversations-composer-shell .str-chat__message-composer {
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+}
+
+.conversations-composer-shell .str-chat__message-composer-form {
+  display: flex;
+  align-items: flex-end;
+  gap: 0;
+  margin: 0;
+  padding: 0.375rem 0.375rem 0.375rem 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 1.25rem;
+  background: rgba(255, 255, 255, 0.04);
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.conversations-composer-shell .str-chat__message-composer-form:focus-within {
+  border-color: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.conversations-composer-shell .str-chat__message-composer-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.conversations-composer-shell .str-chat__message-composer textarea,
+.conversations-composer-shell .str-chat__message-textarea textarea {
+  width: 100%;
+  min-height: 1.5rem;
+  max-height: 8rem;
+  resize: none;
+  border: none;
+  background: transparent;
+  padding: 0.375rem 0.5rem;
+  color: #ffffff;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  outline: none;
+  box-shadow: none;
+}
+
+.conversations-composer-shell .str-chat__message-composer textarea::placeholder,
+.conversations-composer-shell .str-chat__message-textarea textarea::placeholder {
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.conversations-composer-shell .str-chat__file-input-container,
+.conversations-composer-shell .str-chat__attachment-selector,
+.conversations-composer-shell [class*="AttachmentSelector"] {
+  flex-shrink: 0;
+}
+
+.conversations-composer-shell .str-chat__message-composer button,
+.conversations-composer-shell .str-chat__send-button,
+.conversations-composer-shell [class*="SendButton"],
+.conversations-composer-shell [class*="AttachmentSelector"] button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 9999px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.45);
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.conversations-composer-shell .str-chat__message-composer button:hover,
+.conversations-composer-shell .str-chat__send-button:hover,
+.conversations-composer-shell [class*="SendButton"]:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.conversations-composer-shell .str-chat__send-button,
+.conversations-composer-shell [class*="SendButton"] {
+  background: rgba(255, 255, 255, 0.92);
+  color: #000000;
+}
+
+.conversations-composer-shell .str-chat__send-button:hover,
+.conversations-composer-shell [class*="SendButton"]:hover {
+  background: #ffffff;
+  color: #000000;
+}
+
+.conversations-composer-hint {
+  margin: 0.375rem 0 0;
+  padding: 0 0.25rem;
+  text-align: center;
+  font-size: 10px;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.28);
 }
 
 @media (min-width: 1280px) {

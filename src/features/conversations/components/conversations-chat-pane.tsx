@@ -109,6 +109,7 @@ export function ConversationsChatPane({
         <EmployeeTalkChat
           key={`${employee.id}-${threadId ?? "main"}`}
           embedded
+          surface="conversations"
           chatSession={null}
           employeeId={employee.id}
           employeeName={employee.name}
@@ -120,10 +121,6 @@ export function ConversationsChatPane({
           viewerImage={viewerImage}
         />
       </div>
-
-      <p className="shrink-0 border-t border-white/8 px-4 py-2 text-center text-[10px] text-white/30">
-        {t("composerHint")}
-      </p>
     </div>
   );
 }

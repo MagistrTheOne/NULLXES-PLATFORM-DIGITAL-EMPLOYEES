@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { TalkAgentDetailsPanel } from "@/features/runtime-session/components/talk-agent-details";
 import type { TalkAgentDetails } from "@/features/runtime-session/components/talk-agent-details";
 import { cn } from "@/lib/utils";
@@ -13,6 +14,8 @@ export function ConversationsDetailsRail({
   departmentLabel: string | null;
   className?: string;
 }) {
+  const t = useTranslations("conversations");
+
   return (
     <aside
       className={cn(
@@ -20,6 +23,11 @@ export function ConversationsDetailsRail({
         className,
       )}
     >
+      <div className="shrink-0 border-b border-white/8 px-4 py-3">
+        <p className="text-[10px] font-medium tracking-[0.16em] text-white/40 uppercase">
+          {t("detailsTitle")}
+        </p>
+      </div>
       <TalkAgentDetailsPanel
         embedded
         details={details}
