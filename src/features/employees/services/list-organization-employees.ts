@@ -104,22 +104,37 @@ async function loadOrganizationEmployeesPage(
 
   const employeeIds = pageRows.map((employee) => employee.id);
 
-  const [knowledgeCounts, providerConfigs] = await Promise.all([
-    db
-      .select({
-        employeeId: knowledgeSource.employeeId,
-        knowledgeSourcesCount: sql<number>`cast(count(*) as int)`.mapWith(
-          Number,
-        ),
-      })
-      .from(knowledgeSource)
-      .where(inArray(knowledgeSource.employeeId, employeeIds))
-      .groupBy(knowledgeSource.employeeId),
-    db
-      .select()
-      .from(employeeProviderConfig)
-      .where(inArray(employeeProviderConfig.employeeId, employeeIds)),
-  ]);
+  // Secondary data (knowledge counts + provider configs) is best-effort.
+  // During transient DB outages we still return the employee list with
+  // sensible defaults so the UI can render instead of a hard failure.
+  let knowledgeCounts: Array<{
+    employeeId: string;
+    knowledgeSourcesCount: number;
+  }> = [];
+  let providerConfigs: Array<any> = [];
+
+  try {
+    [knowledgeCounts, providerConfigs] = await withDatabaseRetry(() =>
+      Promise.all([
+        db
+          .select({
+            employeeId: knowledgeSource.employeeId,
+            knowledgeSourcesCount: sql<number>`cast(count(*) as int)`.mapWith(
+              Number,
+            ),
+          })
+          .from(knowledgeSource)
+          .where(inArray(knowledgeSource.employeeId, employeeIds))
+          .groupBy(knowledgeSource.employeeId),
+        db
+          .select()
+          .from(employeeProviderConfig)
+          .where(inArray(employeeProviderConfig.employeeId, employeeIds)),
+      ]),
+    );
+  } catch {
+    // Ignore transient failures for augmentation data. Defaults will be used.
+  }
 
   const countByEmployeeId = new Map(
     knowledgeCounts.map((row) => [row.employeeId, row.knowledgeSourcesCount]),

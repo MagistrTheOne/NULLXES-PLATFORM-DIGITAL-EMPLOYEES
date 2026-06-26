@@ -49,40 +49,45 @@ export default async function ConversationsPage({
   let departmentLabel: string | null = null;
 
   if (selectedId) {
-    const employee = await getEmployeeTalkContext(
-      workspace.organization.id,
-      selectedId,
-    );
-
-    if (employee?.canTalk) {
-      const [panel, activity, locale, tHq] = await Promise.all([
-        getTalkAgentPanel(employee.id),
-        getTalkAgentActivity(employee.id),
-        getLocale(),
-        getTranslations("hq.departments"),
-      ]);
-
-      const departmentSlug = resolveEmployeeDepartment(
-        employee.department,
-        employee.role,
+    try {
+      const employee = await getEmployeeTalkContext(
+        workspace.organization.id,
+        selectedId,
       );
-      departmentLabel = tHq(departmentSlug);
 
-      brainModelLabel = formatBrainModelDisplay({
-        provider: employee.brainProvider,
-        modelId: resolveBrainModelForProvider(
-          employee.brainProvider,
-          employee.brainModel,
-        ),
-      });
+      if (employee?.canTalk) {
+        const [panel, activity, locale, tHq] = await Promise.all([
+          getTalkAgentPanel(employee.id),
+          getTalkAgentActivity(employee.id),
+          getLocale(),
+          getTranslations("hq.departments"),
+        ]);
 
-      agentDetails = buildTalkAgentDetails({
-        employee,
-        panel,
-        locale,
-        activity,
-        modelLabel: brainModelLabel,
-      });
+        const departmentSlug = resolveEmployeeDepartment(
+          employee.department,
+          employee.role,
+        );
+        departmentLabel = tHq(departmentSlug);
+
+        brainModelLabel = formatBrainModelDisplay({
+          provider: employee.brainProvider,
+          modelId: resolveBrainModelForProvider(
+            employee.brainProvider,
+            employee.brainModel,
+          ),
+        });
+
+        agentDetails = buildTalkAgentDetails({
+          employee,
+          panel,
+          locale,
+          activity,
+          modelLabel: brainModelLabel,
+        });
+      }
+    } catch {
+      // Secondary details (panel/activity) failed (e.g. transient DB).
+      // Main employees list is still shown; details panel will be empty.
     }
   }
 
