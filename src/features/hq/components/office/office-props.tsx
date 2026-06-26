@@ -3,7 +3,10 @@
 import { useMemo } from "react";
 import { useGLTF } from "@react-three/drei";
 import { Box3, Vector3, type Object3D } from "three";
-import { applySolidGltfMaterials } from "./apply-gltf-materials";
+import {
+  applySolidGltfMaterials,
+  configureGltfLoaderNoTextures,
+} from "./apply-gltf-materials";
 import { HQ_MODELS, PROPS_PLACEMENT } from "./office-models";
 
 /**
@@ -12,9 +15,41 @@ import { HQ_MODELS, PROPS_PLACEMENT } from "./office-models";
  * configured position. Tweak PROPS_PLACEMENT to move/scale it.
  */
 export function OfficeProps({ url }: { url: string }) {
-  const { scene } = useGLTF(url);
+  // Same no-texture patch as characters so props GLB doesn't emit blob errors.
+  const { scene } = useGLTF(url, undefined, undefined, configureGltfLoaderNoTextures);
 
   const { object, scale, offset } = useMemo(() => {
+    // Clear textures on the cached source to avoid repeated load failures.
+    scene.traverse((node: any) => {
+      if (node.isMesh && node.material) {
+        const mats = Array.isArray(node.material) ? node.material : [node.material];
+        mats.forEach((mat: any) => {
+          const keys = [
+            "map",
+            "lightMap",
+            "aoMap",
+            "emissiveMap",
+            "bumpMap",
+            "normalMap",
+            "displacementMap",
+            "roughnessMap",
+            "metalnessMap",
+            "alphaMap",
+            "envMap",
+          ] as const;
+          keys.forEach((k) => {
+            if (mat[k]) {
+              try {
+                mat[k].dispose?.();
+              } catch {}
+              mat[k] = null;
+            }
+          });
+          mat.needsUpdate = true;
+        });
+      }
+    });
+
     const root = scene.clone(true) as Object3D;
     applySolidGltfMaterials(root, { variant: "prop" });
     const box = new Box3().setFromObject(root);

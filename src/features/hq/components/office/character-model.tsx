@@ -4,7 +4,10 @@ import { useMemo } from "react";
 import { useGLTF } from "@react-three/drei";
 import { Box3, Vector3, type Object3D } from "three";
 import { SkeletonUtils } from "three-stdlib";
-import { applySolidGltfMaterials } from "./apply-gltf-materials";
+import {
+  applySolidGltfMaterials,
+  configureGltfLoaderNoTextures,
+} from "./apply-gltf-materials";
 import { CHARACTER_HEIGHT, CHARACTER_YAW } from "./office-models";
 
 /**
@@ -14,9 +17,44 @@ import { CHARACTER_HEIGHT, CHARACTER_YAW } from "./office-models";
  * handled by the parent group in `office-employee.tsx`.
  */
 export function CharacterModel({ url }: { url: string }) {
-  const { scene } = useGLTF(url);
+  // Install a no-op texture loader for this asset load. Prevents the GLTFLoader
+  // from creating/attempting blob: texture loads for embedded maps.
+  const { scene } = useGLTF(url, undefined, undefined, configureGltfLoaderNoTextures);
 
   const { object, scale, offset } = useMemo(() => {
+    // Strip any textures that may already exist on the cached source scene
+    // (from previous loads or HMR). This + the loader patch stops repeated
+    // "Couldn't load texture blob:..." errors.
+    scene.traverse((node: any) => {
+      if (node.isMesh && node.material) {
+        const mats = Array.isArray(node.material) ? node.material : [node.material];
+        mats.forEach((mat: any) => {
+          const keys = [
+            "map",
+            "lightMap",
+            "aoMap",
+            "emissiveMap",
+            "bumpMap",
+            "normalMap",
+            "displacementMap",
+            "roughnessMap",
+            "metalnessMap",
+            "alphaMap",
+            "envMap",
+          ] as const;
+          keys.forEach((k) => {
+            if (mat[k]) {
+              try {
+                mat[k].dispose?.();
+              } catch {}
+              mat[k] = null;
+            }
+          });
+          mat.needsUpdate = true;
+        });
+      }
+    });
+
     const cloned = SkeletonUtils.clone(scene) as Object3D;
     applySolidGltfMaterials(cloned, { variant: "character" });
     const box = new Box3().setFromObject(cloned);

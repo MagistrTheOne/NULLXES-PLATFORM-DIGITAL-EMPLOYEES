@@ -22,6 +22,7 @@ import {
 } from "../lib/hq-behavior-planner";
 import { resolveActivityBadgeLabel } from "../lib/resolve-activity-label";
 import { HQ_MODELS, pickCharacterModel } from "./office/office-models";
+import { configureGltfLoaderNoTextures } from "./office/apply-gltf-materials";
 import type { EmployeeThoughtsMap } from "../services/generate-employee-thoughts";
 import type { HqRuntimeStatus, HqState } from "../types";
 import type { SceneEmployee, SceneRoom } from "./office/scene-types";
@@ -67,16 +68,18 @@ export function HqOfficeCanvas({
 
   // Preload GLTF models from within a React component context.
   // This avoids calling useGLTF.preload at module initialization time.
+  // We pass the no-texture configurator so the loader never tries to fetch
+  // texture blobs from the GLBs.
   useEffect(() => {
     const { characters, props } = HQ_MODELS;
     if (characters.female) {
-      useGLTF.preload(characters.female);
+      useGLTF.preload(characters.female, undefined, undefined, configureGltfLoaderNoTextures);
     }
     if (characters.male) {
-      useGLTF.preload(characters.male);
+      useGLTF.preload(characters.male, undefined, undefined, configureGltfLoaderNoTextures);
     }
     if (props) {
-      useGLTF.preload(props);
+      useGLTF.preload(props, undefined, undefined, configureGltfLoaderNoTextures);
     }
   }, []);
 

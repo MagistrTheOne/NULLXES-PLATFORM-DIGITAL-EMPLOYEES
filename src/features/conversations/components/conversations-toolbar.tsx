@@ -25,7 +25,7 @@ import {
 import { cn } from "@/lib/utils";
 import type { ConversationEmployee } from "./conversations-screen";
 
-export const ALL_DEPARTMENTS = [
+const ALL_DEPARTMENTS = [
   "reception",
   "sales",
   "support",
