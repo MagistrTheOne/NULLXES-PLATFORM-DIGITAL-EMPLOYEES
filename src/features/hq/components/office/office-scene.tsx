@@ -118,6 +118,66 @@ function CameraRig({
   return null;
 }
 
+/**
+ * Very quiet wall clock. Slow moving hands for a tiny bit of passing time feel.
+ */
+function WallClock({
+  position,
+  rotation = [0, 0, 0],
+}: {
+  position: [number, number, number];
+  rotation?: [number, number, number];
+}) {
+  const minuteRef = useRef<any>(null);
+  const hourRef = useRef<any>(null);
+
+  useFrame((state) => {
+    const t = state.clock.elapsedTime * 0.015; // very slow
+    if (minuteRef.current) {
+      minuteRef.current.rotation.z = -t * 6;
+    }
+    if (hourRef.current) {
+      hourRef.current.rotation.z = -t * 0.5;
+    }
+  });
+
+  return (
+    <group position={position} rotation={rotation}>
+      {/* Face */}
+      <mesh>
+        <circleGeometry args={[0.32]} />
+        <meshStandardMaterial color="#121212" roughness={0.8} />
+      </mesh>
+      {/* Subtle rim */}
+      <mesh>
+        <ringGeometry args={[0.32, 0.34, 32]} />
+        <meshStandardMaterial color="#1f1f1f" roughness={0.7} />
+      </mesh>
+      {/* Center */}
+      <mesh position={[0, 0, 0.01]}>
+        <circleGeometry args={[0.03]} />
+        <meshStandardMaterial color="#2a2a2a" />
+      </mesh>
+
+      {/* Hour hand (pivot at clock center) */}
+      <group ref={hourRef}>
+        <mesh position={[0, 0.09, 0.02]}>
+          <boxGeometry args={[0.025, 0.18, 0.01]} />
+          <meshStandardMaterial color="#3a3a3a" />
+        </mesh>
+      </group>
+
+      {/* Minute hand (pivot at clock center) */}
+      <group ref={minuteRef}>
+        <mesh position={[0, 0.13, 0.025]}>
+          <boxGeometry args={[0.018, 0.26, 0.01]} />
+          <meshStandardMaterial color="#4a4a4a" />
+        </mesh>
+      </group>
+    </group>
+  );
+}
+
 export default function OfficeScene({
   rooms,
   employees,
@@ -236,6 +296,9 @@ export default function OfficeScene({
             <meshStandardMaterial color="#1f1f1f" roughness={0.7} />
           </mesh>
         </group>
+
+        {/* Subtle wall clock (quiet liveliness) */}
+        <WallClock position={[-9.2, 2.15, -3.8]} rotation={[0, 1.05, 0]} />
 
         {HQ_MODELS.props ? (
           <Suspense fallback={null}>
