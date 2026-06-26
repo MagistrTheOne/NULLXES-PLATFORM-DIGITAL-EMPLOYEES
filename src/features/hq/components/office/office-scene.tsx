@@ -195,11 +195,12 @@ export default function OfficeScene({
       shadows
       orthographic
       camera={{ position: [22, 18, 22], zoom: 34, near: 1, far: 240 }}
-      gl={{
-        antialias: true,
-        preserveDrawingBuffer: false,
-        // Explicit non-deprecated shadow map (avoids PCFSoftShadowMap warning)
-        shadowMap: { enabled: true, type: PCFShadowMap },
+      gl={{ antialias: true, preserveDrawingBuffer: false }}
+      // Explicitly set a non-deprecated shadow map type via onCreated.
+      // Passing shadowMap inside gl is not valid (gl only takes WebGLRendererParameters).
+      onCreated={({ gl }) => {
+        gl.shadowMap.enabled = true;
+        gl.shadowMap.type = PCFShadowMap;
       }}
       dpr={[1, 2]}
       onPointerMissed={() => selectEmployee(null)}
