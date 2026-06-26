@@ -7,18 +7,15 @@ import {
   Loader2,
   Mic,
   MicOff,
-  PanelRightOpen,
-  PhoneOff,
   Play,
   Square,
   Video,
   VideoOff,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import type { TalkAgentDetails } from "./talk-agent-details";
-import { TalkInspector } from "./talk-inspector";
-import { TalkStatusBar } from "./talk-status-bar";
+import { TalkInspectorPanel } from "./talk-inspector-panel";
+import { TalkWorkspaceHeader } from "./talk-workspace-header";
 import type { TalkViewer } from "./talk-viewer-card";
 import type { TalkChatCredentials } from "../services/create-talk-chat-session";
 import { useTalkAnam } from "../context/talk-anam-context";
@@ -61,53 +58,24 @@ export type ActiveTalkSession = {
   voiceMode: TalkVoiceMode;
 };
 
-function TalkIconControl({
-  ariaLabel,
-  disabled,
-  onClick,
-  children,
-}: {
-  ariaLabel: string;
-  disabled?: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      aria-label={ariaLabel}
-      disabled={disabled}
-      onClick={onClick}
-      className={cn(
-        "flex size-11 shrink-0 items-center justify-center rounded-full border border-white/12 bg-white/4 text-white transition-colors",
-        "hover:bg-white/8 disabled:pointer-events-none disabled:opacity-40",
-      )}
-    >
-      {children}
-    </button>
-  );
-}
-
-function TalkControlsBar({
-  cameraEnabled,
-  onCameraToggle,
+function TalkStageControls({
   employeeId,
   activeSession,
   onSessionStarted,
   onStopSession,
-  onLeaveSession,
   sessionBusy,
   prefetchedTokenRef,
+  cameraEnabled,
+  onCameraToggle,
 }: {
-  cameraEnabled: boolean;
-  onCameraToggle: () => void;
   employeeId: string;
   activeSession: ActiveTalkSession | null;
   onSessionStarted: (session: ActiveTalkSession) => void;
   onStopSession: () => Promise<void>;
-  onLeaveSession: () => Promise<void>;
   sessionBusy: boolean;
   prefetchedTokenRef: React.MutableRefObject<string | null>;
+  cameraEnabled: boolean;
+  onCameraToggle: () => void;
 }) {
   const t = useTranslations("employees.talk");
   const { micMuted, micPermission, toggleMic, isLive } = useTalkAnam();
@@ -120,7 +88,6 @@ function TalkControlsBar({
     try {
       const prefetchedSessionToken = prefetchedTokenRef.current ?? undefined;
       prefetchedTokenRef.current = null;
-
       const result = await startTalkSessionAction(employeeId, {
         prefetchedSessionToken,
       });
@@ -142,7 +109,6 @@ function TalkControlsBar({
     if (prefetchedTokenRef.current || activeSession) {
       return;
     }
-
     void prefetchAnamTalkSessionAction(employeeId).then((result) => {
       if (result.ok) {
         prefetchedTokenRef.current = result.sessionToken;
@@ -150,153 +116,85 @@ function TalkControlsBar({
     });
   };
 
-  const handleStop = async () => {
-    if (!activeSession || sessionBusy) {
-      return;
-    }
-    await onStopSession();
-  };
-
-  const controlsDisabled = sessionBusy || isStarting;
+  const disabled = sessionBusy || isStarting;
 
   return (
-    <div className="employee-talk-controls flex flex-col items-center gap-2 py-4">
+    <div className="absolute inset-x-0 bottom-0 z-20 flex flex-col items-center gap-2 bg-gradient-to-t from-black/80 via-black/45 to-transparent px-4 pb-4 pt-10">
       {startError ? (
-        <p className="max-w-md text-center text-xs text-white/55" role="alert">
+        <p className="max-w-sm text-center text-[11px] text-white/55" role="alert">
           {startError}
         </p>
       ) : null}
       {activeSession && micPermission === "denied" ? (
-        <p className="max-w-md text-center text-xs text-red-300/80" role="alert">
+        <p className="max-w-sm text-center text-[11px] text-red-300/80" role="alert">
           {t("stage.micPermissionDenied")}
         </p>
       ) : null}
-      {activeSession && micPermission === "pending" ? (
-        <p className="max-w-md text-center text-xs text-white/55">
-          {t("stage.micPermissionPending")}
-        </p>
-      ) : null}
-      <div className="flex flex-wrap items-center justify-center gap-3">
+      <div className="flex flex-wrap items-center justify-center gap-2">
         {!activeSession ? (
           <Button
             type="button"
-            disabled={controlsDisabled}
-            className="h-11 rounded-full px-5 text-sm"
+            disabled={disabled}
+            className="h-9 rounded-full px-4 text-xs"
             onMouseEnter={warmPrefetch}
             onFocus={warmPrefetch}
             onClick={() => {
               void handleStart();
             }}
           >
-            <Play className="size-4" />
+            <Play className="size-3.5" />
             {isStarting ? t("starting") : t("startSession")}
           </Button>
         ) : (
           <>
-            <TalkIconControl
-              ariaLabel={
+            <button
+              type="button"
+              aria-label={
                 micMuted ? t("controls.unmuteMic") : t("controls.muteMic")
               }
-              disabled={!isLive || controlsDisabled}
+              disabled={!isLive || disabled}
               onClick={toggleMic}
+              className="flex size-9 items-center justify-center rounded-full border border-white/12 bg-black/55 text-white backdrop-blur-sm transition-colors hover:bg-white/10 disabled:opacity-40"
             >
-              <span className="relative flex items-center justify-center">
-                {micMuted ? (
-                  <MicOff className="size-4 stroke-[1.5]" />
-                ) : (
-                  <Mic className="size-4 stroke-[1.5]" />
-                )}
-              </span>
-            </TalkIconControl>
-            <TalkIconControl
-              ariaLabel={
+              {micMuted ? (
+                <MicOff className="size-3.5 stroke-[1.5]" />
+              ) : (
+                <Mic className="size-3.5 stroke-[1.5]" />
+              )}
+            </button>
+            <button
+              type="button"
+              aria-label={
                 cameraEnabled
                   ? t("controls.turnOffCamera")
                   : t("controls.turnOnCamera")
               }
-              disabled={controlsDisabled}
+              disabled={disabled}
               onClick={onCameraToggle}
+              className="flex size-9 items-center justify-center rounded-full border border-white/12 bg-black/55 text-white backdrop-blur-sm transition-colors hover:bg-white/10 disabled:opacity-40"
             >
               {cameraEnabled ? (
-                <Video className="size-4 stroke-[1.5]" />
+                <Video className="size-3.5 stroke-[1.5]" />
               ) : (
-                <VideoOff className="size-4 stroke-[1.5]" />
+                <VideoOff className="size-3.5 stroke-[1.5]" />
               )}
-            </TalkIconControl>
+            </button>
             <Button
               type="button"
-              disabled={controlsDisabled}
+              disabled={disabled}
               variant="outline"
-              className="h-11 rounded-full border-white/12 bg-white/4 px-5 text-sm text-white hover:bg-white/8"
+              size="sm"
+              className="h-9 rounded-full border-white/12 bg-black/55 px-3 text-xs text-white backdrop-blur-sm hover:bg-white/10"
               onClick={() => {
-                void handleStop();
+                void onStopSession();
               }}
             >
-              <Square className="size-4" />
+              <Square className="size-3.5" />
               {sessionBusy ? t("stopping") : t("stopSession")}
             </Button>
           </>
         )}
-        <Button
-          type="button"
-          disabled={sessionBusy}
-          variant="destructive"
-          className="h-11 rounded-full px-5 text-sm"
-          onClick={() => {
-            void onLeaveSession();
-          }}
-        >
-          <PhoneOff className="size-4" />
-          {t("leave")}
-        </Button>
       </div>
-    </div>
-  );
-}
-
-function TalkStagePanel({
-  actorUserName,
-  employeeName,
-  employeeId,
-  avatarPreviewUrl,
-  activeSession,
-  onActiveSessionChange,
-  onStopSession,
-  onLeaveSession,
-  sessionBusy,
-  prefetchedTokenRef,
-}: EmployeeTalkRoomProps & {
-  prefetchedTokenRef: React.MutableRefObject<string | null>;
-}) {
-  const [cameraEnabled, setCameraEnabled] = useState(false);
-
-  return (
-    <div className="employee-talk-primary flex min-h-0 min-w-0 flex-col">
-      <div className="employee-talk-stage-wrap relative min-h-0 w-full">
-        <EmployeeAnamStage
-          employeeId={employeeId}
-          employeeName={employeeName}
-          employeeSessionId={activeSession?.sessionId ?? ""}
-          avatarPreviewUrl={avatarPreviewUrl}
-          sessionToken={activeSession?.sessionToken ?? null}
-          voiceMode={activeSession?.voiceMode ?? "anam"}
-        />
-        <TalkLocalCameraPip
-          enabled={cameraEnabled}
-          userName={actorUserName}
-        />
-      </div>
-      <TalkControlsBar
-        cameraEnabled={cameraEnabled}
-        employeeId={employeeId}
-        activeSession={activeSession}
-        onSessionStarted={onActiveSessionChange}
-        onStopSession={onStopSession}
-        onLeaveSession={onLeaveSession}
-        sessionBusy={sessionBusy}
-        prefetchedTokenRef={prefetchedTokenRef}
-        onCameraToggle={() => setCameraEnabled((current) => !current)}
-      />
     </div>
   );
 }
@@ -311,6 +209,7 @@ export type EmployeeTalkSessionInputProps = {
   brainModelLabel: string | null;
   agentDetails: TalkAgentDetails;
   viewer: TalkViewer;
+  departmentLabel: string | null;
 };
 
 export type EmployeeTalkRoomProps = EmployeeTalkSessionInputProps & {
@@ -319,81 +218,117 @@ export type EmployeeTalkRoomProps = EmployeeTalkSessionInputProps & {
   onActiveSessionChange: (session: ActiveTalkSession | null) => void;
   onStopSession: () => Promise<void>;
   onLeaveSession: () => Promise<void>;
+  onSessionLimitReached: () => void;
   sessionBusy: boolean;
 };
 
-function TalkRoomLayout(props: EmployeeTalkRoomProps) {
-  const t = useTranslations("employees.talk");
+export function EmployeeTalkRoom({
+  employeeName,
+  employeeId,
+  avatarPreviewUrl,
+  actorUserName,
+  chatSession,
+  brainModelLabel,
+  agentDetails,
+  viewer,
+  departmentLabel,
+  sessionLimitSeconds,
+  activeSession,
+  onActiveSessionChange,
+  onStopSession,
+  onLeaveSession,
+  onSessionLimitReached,
+  sessionBusy,
+}: EmployeeTalkRoomProps) {
   const prefetchedTokenRef = useRef<string | null>(null);
-  const threads = useTalkThreads(props.employeeId);
-  const [inspectorOpen, setInspectorOpen] = useState(false);
+  const threads = useTalkThreads(employeeId);
+  const [cameraEnabled, setCameraEnabled] = useState(false);
 
   useEffect(() => {
-    if (props.activeSession) {
+    if (activeSession) {
       return;
     }
-
-    void prefetchAnamTalkSessionAction(props.employeeId).then((result) => {
+    void prefetchAnamTalkSessionAction(employeeId).then((result) => {
       if (result.ok) {
         prefetchedTokenRef.current = result.sessionToken;
       }
     });
-  }, [props.activeSession, props.employeeId]);
+  }, [activeSession, employeeId]);
 
   return (
-    <div className="employee-talk-workspace employee-talk-shell mx-auto w-full">
-      {/* One living canvas: video stage → status bar → conversation. */}
-      <div className="flex min-h-0 flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#0a0a0a]">
-        <div className="flex justify-center bg-black/30 px-3 pt-3">
-          <div className="w-full lg:max-w-[68%]">
-            <TalkStagePanel {...props} prefetchedTokenRef={prefetchedTokenRef} />
+    <div className="talk-workspace-shell employee-talk-workspace employee-talk-shell mx-auto flex min-h-[min(88dvh,920px)] w-full flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#0a0a0a]">
+      <TalkWorkspaceHeader
+        employeeName={employeeName}
+        sessionLimitSeconds={sessionLimitSeconds}
+        sessionBusy={sessionBusy}
+        onEndSession={() => {
+          void onLeaveSession();
+        }}
+        onLimitReached={onSessionLimitReached}
+      />
+
+      <div className="grid min-h-0 flex-1 lg:grid-cols-[minmax(0,1fr)_300px] xl:grid-cols-[minmax(0,1fr)_320px]">
+        {/* Left — video + conversation (single column stack). */}
+        <div className="flex min-h-0 min-w-0 flex-col border-white/8 lg:border-r">
+          <div className="talk-workspace-stage relative min-h-[220px] shrink-0 bg-black lg:min-h-[280px] lg:flex-[5]">
+            <EmployeeAnamStage
+              employeeId={employeeId}
+              employeeName={employeeName}
+              employeeSessionId={activeSession?.sessionId ?? ""}
+              avatarPreviewUrl={avatarPreviewUrl}
+              sessionToken={activeSession?.sessionToken ?? null}
+              voiceMode={activeSession?.voiceMode ?? "anam"}
+            />
+            <TalkLocalCameraPip
+              enabled={cameraEnabled}
+              userName={actorUserName}
+            />
+            <TalkStageControls
+              employeeId={employeeId}
+              activeSession={activeSession}
+              onSessionStarted={onActiveSessionChange}
+              onStopSession={onStopSession}
+              sessionBusy={sessionBusy}
+              prefetchedTokenRef={prefetchedTokenRef}
+              cameraEnabled={cameraEnabled}
+              onCameraToggle={() => setCameraEnabled((value) => !value)}
+            />
           </div>
-        </div>
 
-        <div className="flex items-center justify-between gap-3 border-y border-white/8 px-4 py-2.5">
-          <TalkStatusBar modelLabel={props.brainModelLabel} />
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => setInspectorOpen(true)}
-            className="h-7 shrink-0 gap-1.5 px-2.5 text-[11px] text-white/60 hover:bg-white/6 hover:text-white"
-          >
-            <PanelRightOpen className="size-3.5" />
-            {t("details")}
-          </Button>
-        </div>
-
-        <div className="flex min-h-0 flex-1 flex-col">
-          <div className="employee-talk-chat-panel flex min-h-0 flex-1 flex-col overflow-hidden">
+          <div className="employee-talk-chat-panel talk-workspace-chat flex min-h-[240px] min-w-0 flex-col overflow-hidden lg:min-h-0 lg:flex-[4]">
             <EmployeeTalkChat
-              key={`${props.employeeId}-${threads.activeThreadId ?? "main"}`}
-              chatSession={threads.activeThreadId ? null : props.chatSession}
-              employeeId={props.employeeId}
-              employeeName={props.employeeName}
+              key={`${employeeId}-${threads.activeThreadId ?? "main"}`}
+              embedded
+              chatSession={threads.activeThreadId ? null : chatSession}
+              employeeId={employeeId}
+              employeeName={employeeName}
               threadId={threads.activeThreadId}
-              brainModelLabel={props.brainModelLabel}
-              employeeSessionId={props.activeSession?.sessionId}
-              isSessionLive={Boolean(props.activeSession)}
-              voiceMode={props.activeSession?.voiceMode ?? "anam"}
-              viewerName={props.viewer.name}
-              viewerImage={props.viewer.image}
+              brainModelLabel={brainModelLabel}
+              employeeSessionId={activeSession?.sessionId}
+              isSessionLive={Boolean(activeSession)}
+              voiceMode={activeSession?.voiceMode ?? "anam"}
+              viewerName={viewer.name}
+              viewerImage={viewer.image}
             />
           </div>
         </div>
+
+        {/* Right — permanent inspector rail (desktop). */}
+        <div className="hidden min-h-0 lg:flex">
+          <TalkInspectorPanel
+            details={agentDetails}
+            departmentLabel={departmentLabel}
+          />
+        </div>
       </div>
 
-      <TalkInspector
-        open={inspectorOpen}
-        onOpenChange={setInspectorOpen}
-        agentDetails={props.agentDetails}
-        viewer={props.viewer}
-        threads={threads}
-      />
+      {/* Mobile inspector below the canvas. */}
+      <div className="max-h-[min(42dvh,360px)] min-h-0 border-t border-white/8 lg:hidden">
+        <TalkInspectorPanel
+          details={agentDetails}
+          departmentLabel={departmentLabel}
+        />
+      </div>
     </div>
   );
-}
-
-export function EmployeeTalkRoom(props: EmployeeTalkRoomProps) {
-  return <TalkRoomLayout {...props} />;
 }

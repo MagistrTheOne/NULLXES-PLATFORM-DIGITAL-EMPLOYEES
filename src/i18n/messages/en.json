@@ -353,6 +353,15 @@
       "statusSecure": "Secure",
       "details": "Details",
       "conversation": "Conversation",
+      "endSession": "End session",
+      "workspaceSubtitle": "Live session · Secure connection",
+      "inspectorTabs": {
+        "details": "Details",
+        "activity": "Activity",
+        "notes": "Notes",
+        "activityEmpty": "No activity recorded today.",
+        "notesEmpty": "Session notes will appear here."
+      },
       "inspector": {
         "title": "Inspector",
         "description": "Agent profile, sessions and your identity."
@@ -366,6 +375,8 @@
         "offline": "Offline",
         "model": "Model",
         "language": "Language",
+        "department": "Department",
+        "currentActivity": "Current Activity",
         "currentTask": "Current Task",
         "currentTaskHint": "Handling user requests",
         "currentTaskNone": "Standing by",
@@ -887,6 +898,24 @@
   "conversations": {
     "title": "Conversations",
     "subtitle": "Message your digital employees across threads — text-first workspace.",
+    "searchPlaceholder": "Search conversations…",
+    "newConversation": "New conversation",
+    "tabs": {
+      "all": "All",
+      "unread": "Unread",
+      "mentions": "Mentions"
+    },
+    "previewMain": "Continue the conversation…",
+    "previewThread": "Open thread",
+    "loadingThreads": "Loading threads…",
+    "viewAll": "View all conversations",
+    "online": "Online",
+    "openTalk": "Open live talk",
+    "toggleDetails": "Toggle details",
+    "closeDetails": "Close details",
+    "more": "More options",
+    "composerHint": "Enter to send · Shift + Enter for new line",
+    "mainThread": "Main",
     "roster": "Workforce",
     "emptyRoster": "No talk-ready employees yet.",
     "pickEmployee": "Select an employee to open their conversation workspace."

@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { TalkStatusCluster } from "./talk-status-cluster";
 import { completeTalkSessionAction } from "../actions/employee-session";
 import { TalkAnamProvider, useTalkAnam } from "../context/talk-anam-context";
 import {
@@ -14,7 +13,6 @@ import {
   type ActiveTalkSession,
   type EmployeeTalkSessionInputProps,
 } from "./employee-talk-room";
-import { TalkSessionMeta } from "./talk-session-meta";
 import { useTalkSessionLifecycle } from "../lib/use-talk-session-lifecycle";
 import { TalkSessionRatingDialog } from "./talk-session-rating-dialog";
 
@@ -28,7 +26,6 @@ function TalkSessionShell({
   sessionLimitSeconds,
   ...roomProps
 }: EmployeeTalkSessionInputProps & { employeeName: string }) {
-  const t = useTranslations("employees.talk");
   const tCommon = useTranslations("common.actions");
   const router = useRouter();
   const { stopSession } = useTalkAnam();
@@ -50,7 +47,11 @@ function TalkSessionShell({
   useTalkSessionLifecycle(activeSession?.sessionId ?? null, skipAbandonRef);
 
   const finalizeSession = useCallback(
-    async (sessionId: string, afterComplete: PendingSessionEnd["afterComplete"], rating?: number) => {
+    async (
+      sessionId: string,
+      afterComplete: PendingSessionEnd["afterComplete"],
+      rating?: number,
+    ) => {
       setIsEndingSession(true);
       try {
         await completeTalkSessionAction(sessionId, rating);
@@ -68,7 +69,10 @@ function TalkSessionShell({
   );
 
   const beginSessionEnd = useCallback(
-    async (session: ActiveTalkSession, afterComplete: PendingSessionEnd["afterComplete"]) => {
+    async (
+      session: ActiveTalkSession,
+      afterComplete: PendingSessionEnd["afterComplete"],
+    ) => {
       skipAbandonRef.current = true;
       await stopSession();
       setActiveSession(null);
@@ -81,7 +85,6 @@ function TalkSessionShell({
     if (!activeSession || isEndingSession) {
       return;
     }
-
     await beginSessionEnd(activeSession, "stay");
   }, [activeSession, beginSessionEnd, isEndingSession]);
 
@@ -114,36 +117,19 @@ function TalkSessionShell({
 
   return (
     <>
-      <div className="flex min-h-0 flex-1 flex-col gap-5 pb-[env(safe-area-inset-bottom)]">
-        <div className="flex flex-col flex-wrap items-start justify-between gap-4 md:flex-row">
-          <div className="flex min-w-0 items-center gap-4">
-            <Button
-              variant="ghost"
-              className="shrink-0 text-white/60 hover:bg-white/5 hover:text-white"
-              asChild
-            >
-              <Link href="/dashboard/employees">
-                <ArrowLeft className="size-4" />
-                {tCommon("back")}
-              </Link>
-            </Button>
-            <div className="min-w-0">
-              <h1 className="text-2xl font-medium tracking-tight text-white">
-                {t("title", { name: employeeName })}
-              </h1>
-              <p className="mt-1 text-sm text-white/60">{t("subtitle")}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-5">
-            <TalkStatusCluster />
-            <TalkSessionMeta
-              sessionLimitSeconds={sessionLimitSeconds}
-              onLimitReached={() => {
-                void handleSessionLimitReached();
-              }}
-            />
-          </div>
-        </div>
+      <div className="flex min-h-0 flex-1 flex-col gap-3 pb-[env(safe-area-inset-bottom)]">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="w-fit shrink-0 text-white/50 hover:bg-white/5 hover:text-white"
+          asChild
+        >
+          <Link href="/dashboard/employees">
+            <ArrowLeft className="size-3.5" />
+            {tCommon("back")}
+          </Link>
+        </Button>
+
         <EmployeeTalkRoom
           {...roomProps}
           employeeName={employeeName}
@@ -152,6 +138,9 @@ function TalkSessionShell({
           onActiveSessionChange={setActiveSession}
           onStopSession={handleStopSession}
           onLeaveSession={handleLeaveSession}
+          onSessionLimitReached={() => {
+            void handleSessionLimitReached();
+          }}
           sessionBusy={isEndingSession || isLimitLeaving || Boolean(pendingEnd)}
         />
       </div>
@@ -164,7 +153,6 @@ function TalkSessionShell({
           if (!pendingEnd) {
             return;
           }
-
           void finalizeSession(
             pendingEnd.sessionId,
             pendingEnd.afterComplete,
@@ -175,7 +163,6 @@ function TalkSessionShell({
           if (!pendingEnd) {
             return;
           }
-
           void finalizeSession(pendingEnd.sessionId, pendingEnd.afterComplete);
         }}
       />

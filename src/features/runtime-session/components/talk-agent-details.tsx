@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { ArrowRight, UserRound } from "lucide-react";
 import { AvatarIdlePreview } from "@/features/employees/components/avatar-idle-preview";
 import { formatDurationSeconds } from "@/features/analytics/lib/format-duration";
+import { cn } from "@/lib/utils";
 import type { TalkAgentPanelStats } from "../queries/get-talk-agent-panel";
 import type { TalkActivityItem } from "../queries/get-talk-agent-activity";
 
@@ -62,9 +63,13 @@ const ACTIVITY_DOT: Record<
 export function TalkAgentDetailsPanel({
   details,
   embedded = false,
+  departmentLabel = null,
+  showTitle = true,
 }: {
   details: TalkAgentDetails;
   embedded?: boolean;
+  departmentLabel?: string | null;
+  showTitle?: boolean;
 }) {
   const t = useTranslations("employees.talk.agentPanel");
 
@@ -77,9 +82,14 @@ export function TalkAgentDetailsPanel({
       }
     >
       <div className="flex flex-col gap-4">
-        <SectionLabel>{t("title")}</SectionLabel>
+        {showTitle ? <SectionLabel>{t("title")}</SectionLabel> : null}
         <div className="flex items-start gap-3">
-          <span className="relative flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-black">
+          <span
+            className={cn(
+              "relative flex size-14 shrink-0 items-center justify-center overflow-hidden border border-white/10 bg-black",
+              showTitle ? "rounded-xl" : "rounded-full",
+            )}
+          >
             {details.avatarPreviewUrl && details.avatarReady ? (
               <AvatarIdlePreview
                 src={details.avatarPreviewUrl}
@@ -112,6 +122,9 @@ export function TalkAgentDetailsPanel({
         <div className="flex flex-col gap-2">
           <StatRow label={t("model")} value={details.modelLabel ?? "—"} />
           <StatRow label={t("language")} value={details.language} />
+          {departmentLabel ? (
+            <StatRow label={t("department")} value={departmentLabel} />
+          ) : null}
         </div>
       </div>
 

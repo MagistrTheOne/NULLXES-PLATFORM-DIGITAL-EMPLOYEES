@@ -1,6 +1,7 @@
-import { getLocale } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { requireAuth } from "@/features/auth/services/require-auth";
 import { ensureWorkspace } from "@/features/auth/services/ensure-workspace";
+import { resolveEmployeeDepartment } from "@/features/hq/lib/map-employee-department";
 import { getEmployeeTalkContext } from "@/features/runtime-session/services/get-employee-talk-context";
 import { getTalkAgentPanel } from "@/features/runtime-session/queries/get-talk-agent-panel";
 import { getTalkAgentActivity } from "@/features/runtime-session/queries/get-talk-agent-activity";
@@ -36,11 +37,18 @@ export default async function EmployeeTalkPage({
     ),
   });
 
-  const [panel, activity, locale] = await Promise.all([
+  const [panel, activity, locale, tHq] = await Promise.all([
     getTalkAgentPanel(employee.id),
     getTalkAgentActivity(employee.id),
     getLocale(),
+    getTranslations("hq.departments"),
   ]);
+
+  const departmentSlug = resolveEmployeeDepartment(
+    employee.department,
+    employee.role,
+  );
+  const departmentLabel = tHq(departmentSlug);
 
   const agentDetails = buildTalkAgentDetails({
     employee,
@@ -66,6 +74,7 @@ export default async function EmployeeTalkPage({
         image: workspace.user.image,
         role: workspace.permissions.role,
       }}
+      departmentLabel={departmentLabel}
     />
   );
 }

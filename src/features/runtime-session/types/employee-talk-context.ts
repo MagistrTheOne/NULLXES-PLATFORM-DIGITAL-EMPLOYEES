@@ -24,4 +24,5 @@ export type EmployeeTalkContext = {
   temperature: number;
   maxTokens: number;
   sessionLimitSeconds: number;
+  department: string | null;
 };

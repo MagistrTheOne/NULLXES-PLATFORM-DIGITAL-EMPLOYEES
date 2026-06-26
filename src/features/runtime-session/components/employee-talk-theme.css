@@ -3,12 +3,58 @@
 }
 
 .employee-talk-shell {
-  max-width: 1280px;
+  max-width: 1440px;
 }
 
 @media (min-width: 1536px) {
   .employee-talk-shell {
-    max-width: 1400px;
+    max-width: 1520px;
+  }
+}
+
+.talk-workspace-shell {
+  width: 100%;
+}
+
+.talk-workspace-stage {
+  position: relative;
+  width: 100%;
+}
+
+.talk-workspace-stage .employee-anam-stage,
+.talk-workspace-stage .employee-talk-stage-wrap {
+  height: 100%;
+  min-height: 100%;
+  width: 100%;
+}
+
+.talk-workspace-stage .employee-anam-stage {
+  border-radius: 0;
+  border-left: 0;
+  border-right: 0;
+  border-top: 0;
+}
+
+.talk-workspace-chat {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+@media (min-width: 1024px) {
+  .talk-workspace-shell .talk-workspace-stage {
+    aspect-ratio: 16 / 9;
+    max-height: min(52vh, 520px);
+  }
+
+  .employee-talk-chat-panel.talk-workspace-chat {
+    min-height: 0;
+    height: auto;
+    max-height: none;
+  }
+}
+
+@media (max-width: 1023px) {
+  .talk-workspace-shell {
+    min-height: min(92dvh, 900px);
   }
 }
 

@@ -135,6 +135,7 @@ export function EmployeeTalkChat({
   voiceMode,
   viewerName,
   viewerImage,
+  embedded = false,
 }: {
   chatSession: TalkChatCredentials | null;
   employeeId: string;
@@ -146,6 +147,7 @@ export function EmployeeTalkChat({
   voiceMode: TalkVoiceMode;
   viewerName?: string;
   viewerImage?: string | null;
+  embedded?: boolean;
 }) {
   const t = useTranslations("employees.talk.chat");
   const tTalk = useTranslations("employees.talk");
@@ -333,55 +335,57 @@ export function EmployeeTalkChat({
             EmptyPlaceholder={<TalkChatEmptyState message={t("empty")} />}
           >
             <Window>
-              <div className="employee-talk-chat-header border-b border-white/10 px-4 py-3">
-                <div className="employee-talk-chat-header-actions">
-                  <div className="flex min-w-0 flex-col">
-                    <span className="text-[11px] font-medium tracking-[0.12em] text-white/50 uppercase">
-                      {t("title")}
-                    </span>
-                    {brainModelLabel ? (
-                      <span className="truncate text-[10px] text-white/30">
-                        {brainModelLabel}
+              {!embedded ? (
+                <div className="employee-talk-chat-header border-b border-white/10 px-4 py-3">
+                  <div className="employee-talk-chat-header-actions">
+                    <div className="flex min-w-0 flex-col">
+                      <span className="text-[11px] font-medium tracking-[0.12em] text-white/50 uppercase">
+                        {t("title")}
                       </span>
-                    ) : null}
-                  </div>
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        disabled={isClearingHistory}
-                        className="h-7 gap-1.5 px-2 text-[11px] text-white/45 hover:bg-white/6 hover:text-white/70"
-                      >
-                        <Trash2 className="size-3.5" />
-                        {t("clearHistory")}
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent className="border-white/10 bg-[#111111] text-white">
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>{t("clearHistoryTitle")}</AlertDialogTitle>
-                        <AlertDialogDescription className="text-white/60">
-                          {t("clearHistoryDescription")}
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel className="border-white/12 bg-transparent text-white/70 hover:bg-white/6 hover:text-white">
-                          {t("clearHistoryCancel")}
-                        </AlertDialogCancel>
-                        <AlertDialogAction
-                          className="bg-white text-black hover:bg-white/90"
-                          onClick={() => {
-                            void handleClearHistory();
-                          }}
+                      {brainModelLabel ? (
+                        <span className="truncate text-[10px] text-white/30">
+                          {brainModelLabel}
+                        </span>
+                      ) : null}
+                    </div>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          disabled={isClearingHistory}
+                          className="h-7 gap-1.5 px-2 text-[11px] text-white/45 hover:bg-white/6 hover:text-white/70"
                         >
-                          {isClearingHistory ? t("clearHistoryClearing") : t("clearHistoryConfirm")}
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
+                          <Trash2 className="size-3.5" />
+                          {t("clearHistory")}
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent className="border-white/10 bg-[#111111] text-white">
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>{t("clearHistoryTitle")}</AlertDialogTitle>
+                          <AlertDialogDescription className="text-white/60">
+                            {t("clearHistoryDescription")}
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel className="border-white/12 bg-transparent text-white/70 hover:bg-white/6 hover:text-white">
+                            {t("clearHistoryCancel")}
+                          </AlertDialogCancel>
+                          <AlertDialogAction
+                            className="bg-white text-black hover:bg-white/90"
+                            onClick={() => {
+                              void handleClearHistory();
+                            }}
+                          >
+                            {isClearingHistory ? t("clearHistoryClearing") : t("clearHistoryConfirm")}
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
                 </div>
-              </div>
+              ) : null}
               <div className="employee-talk-chat-messages relative min-h-0 min-w-0 flex-1">
                 <MessageList
                   Message={() => (

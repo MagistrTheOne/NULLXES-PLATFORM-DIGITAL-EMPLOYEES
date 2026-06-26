@@ -102,6 +102,7 @@ async function loadEmployeeTalkContext(
     temperature: runtime?.temperature ?? 0.7,
     maxTokens: runtime?.maxTokens ?? 1024,
     sessionLimitSeconds: runtime?.sessionLimitSeconds ?? 3600,
+    department: employee.department,
   };
 }
 

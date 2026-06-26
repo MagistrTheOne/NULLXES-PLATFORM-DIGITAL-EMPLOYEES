@@ -1,0 +1,32 @@
+.conversations-screen {
+  width: 100%;
+}
+
+.conversations-workspace {
+  position: relative;
+  min-height: min(72dvh, 760px);
+}
+
+.conversations-inbox {
+  width: 100%;
+}
+
+.conversations-chat-pane .employee-talk-chat-panel {
+  min-height: 0;
+  height: 100%;
+}
+
+.conversations-chat-body .str-chat__message-composer {
+  background: #0a0a0a;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.conversations-details-rail .talk-agent-details-profile-avatar {
+  border-radius: 9999px;
+}
+
+@media (min-width: 1280px) {
+  .conversations-workspace {
+    min-height: min(80dvh, 840px);
+  }
+}

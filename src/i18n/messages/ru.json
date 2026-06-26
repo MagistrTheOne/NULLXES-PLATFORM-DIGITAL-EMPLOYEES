@@ -353,6 +353,15 @@
       "statusSecure": "Защищено",
       "details": "Детали",
       "conversation": "Разговор",
+      "endSession": "Завершить сессию",
+      "workspaceSubtitle": "Живая сессия · Защищённое соединение",
+      "inspectorTabs": {
+        "details": "Детали",
+        "activity": "Активность",
+        "notes": "Заметки",
+        "activityEmpty": "Сегодня активности нет.",
+        "notesEmpty": "Заметки сессии появятся здесь."
+      },
       "inspector": {
         "title": "Инспектор",
         "description": "Профиль агента, беседы и ваш профиль."
@@ -366,6 +375,8 @@
         "offline": "Не в сети",
         "model": "Модель",
         "language": "Язык",
+        "department": "Отдел",
+        "currentActivity": "Текущая активность",
         "currentTask": "Текущая задача",
         "currentTaskHint": "Обработка запросов пользователей",
         "currentTaskNone": "Свободен",
@@ -887,6 +898,24 @@
   "conversations": {
     "title": "Разговоры",
     "subtitle": "Переписка с цифровыми сотрудниками в отдельных тредах — текстовый workspace.",
+    "searchPlaceholder": "Поиск разговоров…",
+    "newConversation": "Новый разговор",
+    "tabs": {
+      "all": "Все",
+      "unread": "Непрочит.",
+      "mentions": "Упоминания"
+    },
+    "previewMain": "Продолжить разговор…",
+    "previewThread": "Открыть тред",
+    "loadingThreads": "Загрузка тредов…",
+    "viewAll": "Все разговоры",
+    "online": "Онлайн",
+    "openTalk": "Открыть live talk",
+    "toggleDetails": "Показать детали",
+    "closeDetails": "Закрыть детали",
+    "more": "Ещё",
+    "composerHint": "Enter — отправить · Shift + Enter — новая строка",
+    "mainThread": "Основной",
     "roster": "Команда",
     "emptyRoster": "Пока нет сотрудников, готовых к разговору.",
     "pickEmployee": "Выберите сотрудника, чтобы открыть workspace переписки."

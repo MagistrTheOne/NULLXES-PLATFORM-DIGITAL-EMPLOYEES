@@ -1,8 +1,9 @@
-import { getLocale } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
 import { requireAuth } from "@/features/auth/services/require-auth";
 import { ensureWorkspace } from "@/features/auth/services/ensure-workspace";
 import { hasWorkspaceAccess } from "@/features/workspace";
+import { resolveEmployeeDepartment } from "@/features/hq/lib/map-employee-department";
 import { listOrganizationEmployees } from "@/features/employees";
 import { ConversationsScreen } from "@/features/conversations/components/conversations-screen";
 import { getEmployeeTalkContext } from "@/features/runtime-session/services/get-employee-talk-context";
@@ -45,6 +46,7 @@ export default async function ConversationsPage({
 
   let agentDetails = null;
   let brainModelLabel: string | null = null;
+  let departmentLabel: string | null = null;
 
   if (selectedId) {
     const employee = await getEmployeeTalkContext(
@@ -53,11 +55,18 @@ export default async function ConversationsPage({
     );
 
     if (employee?.canTalk) {
-      const [panel, activity, locale] = await Promise.all([
+      const [panel, activity, locale, tHq] = await Promise.all([
         getTalkAgentPanel(employee.id),
         getTalkAgentActivity(employee.id),
         getLocale(),
+        getTranslations("hq.departments"),
       ]);
+
+      const departmentSlug = resolveEmployeeDepartment(
+        employee.department,
+        employee.role,
+      );
+      departmentLabel = tHq(departmentSlug);
 
       brainModelLabel = formatBrainModelDisplay({
         provider: employee.brainProvider,
@@ -88,6 +97,7 @@ export default async function ConversationsPage({
         image: workspace.user.image,
         role: workspace.permissions.role,
       }}
+      departmentLabel={departmentLabel}
     />
   );
 }
