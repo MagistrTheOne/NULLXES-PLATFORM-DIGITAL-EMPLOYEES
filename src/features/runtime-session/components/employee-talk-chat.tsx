@@ -425,16 +425,18 @@ export function EmployeeTalkChat({
               </div>
               {isConversationsSurface ? (
                 <div className="conversations-composer-shell">
-                  <MessageComposer
-                    additionalTextareaProps={{
-                      placeholder: tConversations("composerPlaceholder"),
-                    }}
-                    maxRows={6}
-                    minRows={1}
-                  />
-                  <p className="conversations-composer-hint">
-                    {tConversations("composerHint")}
-                  </p>
+                  <div className="conversations-composer-inner">
+                    <MessageComposer
+                      additionalTextareaProps={{
+                        placeholder: tConversations("composerPlaceholder"),
+                      }}
+                      maxRows={6}
+                      minRows={1}
+                    />
+                    <p className="conversations-composer-hint">
+                      {tConversations("composerHint")}
+                    </p>
+                  </div>
                 </div>
               ) : (
                 <MessageComposer />

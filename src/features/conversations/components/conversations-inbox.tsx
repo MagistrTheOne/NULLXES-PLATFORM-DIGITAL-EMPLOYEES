@@ -64,6 +64,7 @@ export function ConversationsInbox({
   onSelectEmployee,
   onSelectThread,
   searchQuery,
+  className,
 }: {
   employees: ConversationEmployee[];
   selectedEmployee: ConversationEmployee | null;
@@ -71,6 +72,7 @@ export function ConversationsInbox({
   onSelectEmployee: (employeeId: string) => void;
   onSelectThread: (threadId: string | null) => void;
   searchQuery: string;
+  className?: string;
 }) {
   const t = useTranslations("conversations");
   const [tab, setTab] = useState<InboxTab>("all");
@@ -114,15 +116,20 @@ export function ConversationsInbox({
   }, [normalizedSearch, talkReady]);
 
   return (
-    <aside className="conversations-inbox flex h-full min-h-0 flex-col border-r border-white/8 bg-[#0a0a0a]">
-      <div className="flex shrink-0 items-center gap-4 border-b border-white/8 px-3 pt-3 pb-0">
+    <aside
+      className={cn(
+        "conversations-inbox flex h-full min-h-0 flex-col border-r border-white/8 bg-[#0a0a0a]",
+        className,
+      )}
+    >
+      <div className="conversations-pane-header flex shrink-0 items-end gap-5 border-b border-white/8 px-4">
         {(["all", "unread", "mentions"] as const).map((value) => (
           <button
             key={value}
             type="button"
             onClick={() => setTab(value)}
             className={cn(
-              "border-b-2 pb-2.5 text-[10px] font-medium uppercase tracking-[0.14em] transition-colors",
+              "border-b-2 pb-3 pt-4 text-[10px] font-medium uppercase tracking-[0.14em] transition-colors",
               tab === value
                 ? "border-white text-white"
                 : "border-transparent text-white/35 hover:text-white/55",
@@ -133,7 +140,7 @@ export function ConversationsInbox({
         ))}
       </div>
 
-      <div className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto p-2">
+      <div className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto px-2 py-2">
         {filteredEmployees.map((employee) => {
           const isSelected = employee.id === selectedEmployee?.id;
           const isMainActive = isSelected && activeThreadId === null;

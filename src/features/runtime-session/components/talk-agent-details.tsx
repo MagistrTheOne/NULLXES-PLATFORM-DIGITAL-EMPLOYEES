@@ -31,7 +31,26 @@ function SectionLabel({ children }: { children: string }) {
   );
 }
 
-function StatRow({ label, value }: { label: string; value: string }) {
+function StatRow({
+  label,
+  value,
+  variant = "default",
+}: {
+  label: string;
+  value: string;
+  variant?: "default" | "conversations";
+}) {
+  if (variant === "conversations") {
+    return (
+      <div className="conversations-detail-row grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-3 py-1.5 text-xs">
+        <span className="text-white/45">{label}</span>
+        <span className="max-w-[9.5rem] truncate text-right font-medium text-white/85">
+          {value}
+        </span>
+      </div>
+    );
+  }
+
   return (
     <div className="flex items-center justify-between gap-3 py-2 text-xs">
       <span className="text-white/45">{label}</span>
@@ -65,36 +84,42 @@ export function TalkAgentDetailsPanel({
   embedded = false,
   departmentLabel = null,
   showTitle = true,
+  variant = "default",
 }: {
   details: TalkAgentDetails;
   embedded?: boolean;
   departmentLabel?: string | null;
   showTitle?: boolean;
+  variant?: "default" | "conversations";
 }) {
   const t = useTranslations("employees.talk.agentPanel");
+  const isConversations = variant === "conversations";
 
   return (
     <aside
       className={
         embedded
-          ? "flex h-full min-h-0 flex-col gap-5 overflow-y-auto p-5"
+          ? cn(
+              "flex h-full min-h-0 flex-col overflow-y-auto",
+              isConversations ? "gap-4 p-4" : "gap-5 p-5",
+            )
           : "flex h-full min-h-0 flex-col gap-5 overflow-y-auto rounded-xl border border-white/10 bg-[#0a0a0a] p-5"
       }
     >
-      <div className="flex flex-col gap-4">
+      <div className={cn("flex flex-col", isConversations ? "gap-3" : "gap-4")}>
         {showTitle ? <SectionLabel>{t("title")}</SectionLabel> : null}
         <div className="flex items-start gap-3">
           <span
             className={cn(
-              "relative flex size-14 shrink-0 items-center justify-center overflow-hidden border border-white/10 bg-black",
-              showTitle ? "rounded-xl" : "rounded-full",
+              "relative flex shrink-0 items-center justify-center overflow-hidden border border-white/10 bg-black",
+              showTitle && !isConversations ? "size-14 rounded-xl" : "size-12 rounded-full",
             )}
           >
             {details.avatarPreviewUrl && details.avatarReady ? (
               <AvatarIdlePreview
                 src={details.avatarPreviewUrl}
                 alt={details.name}
-                sizes="56px"
+                sizes={isConversations ? "48px" : "56px"}
               />
             ) : (
               <UserRound className="size-6 stroke-[1.25] text-white/40" />
@@ -119,40 +144,55 @@ export function TalkAgentDetailsPanel({
             </span>
           </div>
         </div>
-        <div className="flex flex-col gap-2">
-          <StatRow label={t("model")} value={details.modelLabel ?? "—"} />
-          <StatRow label={t("language")} value={details.language} />
+        <div className={cn("flex flex-col", isConversations ? "gap-0.5" : "gap-2")}>
+          <StatRow
+            variant={variant}
+            label={t("model")}
+            value={details.modelLabel ?? "—"}
+          />
+          <StatRow
+            variant={variant}
+            label={t("language")}
+            value={details.language}
+          />
           {departmentLabel ? (
-            <StatRow label={t("department")} value={departmentLabel} />
+            <StatRow
+              variant={variant}
+              label={t("department")}
+              value={departmentLabel}
+            />
           ) : null}
         </div>
       </div>
 
       <div className="h-px bg-white/8" />
 
-      <div className="flex flex-col gap-2">
+      <div className={cn("flex flex-col", isConversations ? "gap-1.5" : "gap-2")}>
         <SectionLabel>{t("currentTask")}</SectionLabel>
         <span className="text-sm text-white/85">
           {details.currentTaskTitle ?? t("currentTaskNone")}
         </span>
-        {details.currentTaskTitle ? (
+        {details.currentTaskTitle && !isConversations ? (
           <span className="text-xs text-white/40">{t("currentTaskHint")}</span>
         ) : null}
       </div>
 
       <div className="h-px bg-white/8" />
 
-      <div className="flex flex-col gap-1">
+      <div className={cn("flex flex-col", isConversations ? "gap-0.5" : "gap-1")}>
         <SectionLabel>{t("statistics")}</SectionLabel>
         <StatRow
+          variant={variant}
           label={t("conversationsToday")}
           value={String(details.stats.conversationsToday)}
         />
         <StatRow
+          variant={variant}
           label={t("talkTime")}
           value={formatDurationSeconds(details.stats.talkTimeSeconds)}
         />
         <StatRow
+          variant={variant}
           label={t("satisfaction")}
           value={
             details.stats.satisfaction !== null
@@ -167,11 +207,16 @@ export function TalkAgentDetailsPanel({
           <div className="h-px bg-white/8" />
           <div className="flex flex-col gap-2">
             <SectionLabel>{t("activity")}</SectionLabel>
-            <ul className="flex flex-col gap-2">
+            <ul className="flex flex-col gap-1.5">
               {[...details.activity].reverse().map((item) => (
                 <li
                   key={item.id}
-                  className="flex items-center justify-between gap-3 text-xs"
+                  className={cn(
+                    "text-xs",
+                    isConversations
+                      ? "grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3"
+                      : "flex items-center justify-between gap-3",
+                  )}
                 >
                   <span className="inline-flex min-w-0 items-center gap-2 text-white/70">
                     <span
@@ -191,7 +236,10 @@ export function TalkAgentDetailsPanel({
 
       <Link
         href={`/dashboard/employees/${details.employeeId}`}
-        className="mt-auto flex items-center justify-between rounded-xl border border-white/10 bg-white/3 px-4 py-2.5 text-sm text-white transition-colors hover:bg-white/6"
+        className={cn(
+          "mt-auto flex items-center justify-between rounded-xl border border-white/10 bg-white/3 text-sm text-white transition-colors hover:bg-white/6",
+          isConversations ? "px-3.5 py-2.5" : "px-4 py-2.5",
+        )}
       >
         {t("viewFullProfile")}
         <ArrowRight className="size-4" />

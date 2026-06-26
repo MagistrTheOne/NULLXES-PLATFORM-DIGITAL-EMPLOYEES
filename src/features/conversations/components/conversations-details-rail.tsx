@@ -23,13 +23,14 @@ export function ConversationsDetailsRail({
         className,
       )}
     >
-      <div className="shrink-0 border-b border-white/8 px-4 py-3">
+      <div className="conversations-pane-header flex shrink-0 items-center border-b border-white/8 px-4">
         <p className="text-[10px] font-medium tracking-[0.16em] text-white/40 uppercase">
           {t("detailsTitle")}
         </p>
       </div>
       <TalkAgentDetailsPanel
         embedded
+        variant="conversations"
         details={details}
         departmentLabel={departmentLabel}
         showTitle={false}

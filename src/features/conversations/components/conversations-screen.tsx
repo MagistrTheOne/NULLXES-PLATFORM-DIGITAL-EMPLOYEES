@@ -69,9 +69,9 @@ export function ConversationsScreen({
   };
 
   return (
-    <div className="conversations-screen flex min-h-[min(88dvh,920px)] flex-col gap-4">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <div className="min-w-0">
+    <div className="conversations-screen flex min-h-[min(88dvh,920px)] flex-col gap-5">
+      <div className="conversations-page-header flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0 shrink-0">
           <h1 className="text-2xl font-medium tracking-tight text-white">
             {t("title")}
           </h1>
@@ -84,19 +84,18 @@ export function ConversationsScreen({
         />
       </div>
 
-      <div className="conversations-workspace flex min-h-0 flex-1 overflow-hidden rounded-2xl border border-white/10 bg-[#0a0a0a]">
-        <div className="hidden w-[280px] shrink-0 lg:flex">
-          <ConversationsInbox
-            employees={employees}
-            selectedEmployee={selected}
-            activeThreadId={activeThreadId}
-            onSelectEmployee={handleSelectEmployee}
-            onSelectThread={selectThread}
-            searchQuery={searchQuery}
-          />
-        </div>
+      <div className="conversations-workspace grid min-h-0 flex-1 overflow-hidden rounded-2xl border border-white/10 bg-[#0a0a0a] lg:grid-cols-[280px_minmax(0,1fr)] xl:grid-cols-[280px_minmax(0,1fr)_300px]">
+        <ConversationsInbox
+          className="hidden lg:flex"
+          employees={employees}
+          selectedEmployee={selected}
+          activeThreadId={activeThreadId}
+          onSelectEmployee={handleSelectEmployee}
+          onSelectThread={selectThread}
+          searchQuery={searchQuery}
+        />
 
-        <div className="flex min-w-0 flex-1 flex-col">
+        <div className="flex min-h-0 min-w-0 flex-col">
           {selected && resolvedDetails ? (
             <TalkAnamProvider>
               <ConversationsChatPane
@@ -118,12 +117,11 @@ export function ConversationsScreen({
         </div>
 
         {selected && resolvedDetails ? (
-          <div className="hidden w-[300px] shrink-0 xl:flex">
-            <ConversationsDetailsRail
-              details={resolvedDetails}
-              departmentLabel={departmentLabel}
-            />
-          </div>
+          <ConversationsDetailsRail
+            className="hidden xl:flex"
+            details={resolvedDetails}
+            departmentLabel={departmentLabel}
+          />
         ) : null}
 
         {selected && resolvedDetails && mobileDetailsOpen ? (

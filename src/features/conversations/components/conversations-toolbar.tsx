@@ -17,16 +17,16 @@ export function ConversationsToolbar({
   const t = useTranslations("conversations");
 
   return (
-    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
-      <div className="relative w-full sm:max-w-xs">
-        <Search className="pointer-events-none absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-white/35" />
+    <div className="conversations-toolbar flex w-full shrink-0 flex-col gap-2.5 sm:w-auto sm:flex-row sm:items-center sm:justify-end">
+      <div className="conversations-search relative w-full sm:w-[280px]">
+        <Search className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-white/35" />
         <Input
           value={query}
           onChange={(event) => onQueryChange(event.target.value)}
           placeholder={t("searchPlaceholder")}
-          className="h-9 border-white/10 bg-white/3 pl-9 text-sm text-white placeholder:text-white/35"
+          className="h-10 rounded-xl border-white/10 bg-white/[0.04] pr-14 pl-10 text-sm text-white shadow-none transition-colors placeholder:text-white/35 focus-visible:border-white/16 focus-visible:bg-white/[0.06] focus-visible:ring-0"
         />
-        <kbd className="pointer-events-none absolute top-1/2 right-2.5 hidden -translate-y-1/2 rounded border border-white/10 bg-white/4 px-1.5 py-0.5 text-[10px] text-white/35 sm:inline">
+        <kbd className="pointer-events-none absolute top-1/2 right-3 hidden -translate-y-1/2 rounded-md border border-white/10 bg-white/[0.04] px-1.5 py-0.5 text-[10px] font-medium text-white/35 sm:inline">
           ⌘K
         </kbd>
       </div>
@@ -34,18 +34,17 @@ export function ConversationsToolbar({
         <Button
           type="button"
           variant="outline"
-          size="sm"
-          className="h-9 border-white/10 bg-transparent text-white/70 hover:bg-white/4 hover:text-white"
+          size="icon"
+          className="size-10 shrink-0 rounded-xl border-white/10 bg-white/[0.04] text-white/60 hover:bg-white/[0.07] hover:text-white"
         >
-          <Filter className="size-3.5" />
+          <Filter className="size-4" />
         </Button>
         <Button
           type="button"
-          size="sm"
-          className="h-9 gap-1.5 px-3 text-xs"
+          className="h-10 shrink-0 gap-1.5 rounded-xl px-3.5 text-xs font-medium"
           onClick={onNewConversation}
         >
-          <Plus className="size-3.5" />
+          <Plus className="size-4" />
           {t("newConversation")}
         </Button>
       </div>
