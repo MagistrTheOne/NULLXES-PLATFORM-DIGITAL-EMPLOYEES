@@ -4,6 +4,7 @@ import { Suspense, useEffect, useRef, useState } from "react";
 import { Html } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { Group, Vector3 } from "three";
+import { useControls } from "leva";
 import {
   FLOOR_HALF,
   STATUS_COLORS,
@@ -81,6 +82,14 @@ export function OfficeEmployee({ employee }: { employee: SceneEmployee }) {
   const movingRef = useRef(false);
   const pathIndex = useRef(0);
   const idlePhase = useRef(rng.current() * Math.PI * 2);
+
+  // Leva controls for quick liveliness tuning (max impact, minimal code change)
+  const liveliness = useControls("HQ Liveliness", {
+    breatheSpeed: { value: 1.35, min: 0.1, max: 5, step: 0.05 },
+    breatheAmp:   { value: 0.022, min: 0, max: 0.1, step: 0.001 },
+    idleLeanAmp:  { value: 0.035, min: 0, max: 0.2, step: 0.001 },
+    lookAmp:      { value: 0.18, min: 0, max: 1, step: 0.01 },
+  });
 
   // The "home" desk is the dragged placement when present, else the layout seat.
   const homePoint = (): [number, number] =>
@@ -317,7 +326,8 @@ export function OfficeEmployee({ employee }: { employee: SceneEmployee }) {
         employee.plan.anchor === "desk"
       ) {
         // Slow breathing + very gentle periodic head turn (look left/right)
-        const idleLook = Math.sin(time * 0.35 + idlePhase.current) * 0.18; // ~ ±10°
+        // Tunable via leva
+        const idleLook = Math.sin(time * 0.35 + idlePhase.current) * liveliness.lookAmp;
         const targetIdleYaw = Math.atan2(
           MEETING_POINT[0] - posRef.current.x,
           MEETING_POINT[1] - posRef.current.z,
@@ -375,8 +385,9 @@ export function OfficeEmployee({ employee }: { employee: SceneEmployee }) {
         bodyRef.current.rotation.x = 0;
       } else {
         // Default idle at desk — more "alive" breathing + occasional lean
-        const breathe = Math.sin(time * 1.35 + idlePhase.current) * 0.022;
-        const baseLean = Math.sin(time * 0.22 + idlePhase.current * 0.7) * 0.035;
+        // Values are now tunable via leva (HQ Liveliness panel)
+        const breathe = Math.sin(time * liveliness.breatheSpeed + idlePhase.current) * liveliness.breatheAmp;
+        const baseLean = Math.sin(time * 0.22 + idlePhase.current * 0.7) * liveliness.idleLeanAmp;
         const twist = Math.sin(time * 0.18 + idlePhase.current) * 0.04; // micro torso turn
         // Extra gentle forward lean when "sitting"
         const sitLean = shouldSit ? 0.22 : 0;

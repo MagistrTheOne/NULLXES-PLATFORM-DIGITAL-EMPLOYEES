@@ -15,14 +15,13 @@ export const HQ_MODELS: {
   props: string | null;
 } = {
   characters: {
-    // Female model (low-poly girl) is the one provided for Somnia + other female employees.
-    // Path points to the folder the user added: public/models/female_low_model/femalelow.glb
-    // This model is used for all characters resolved as "female" via resolveCharacterGender
-    // (Somnia, Kira, Kaira, Lili, etc. are explicitly mapped).
+    // New female base model with textures (provided for Somnia + other female employees).
+    // Path: public/models/female_base.glb
+    // This model is used for all characters resolved as "female".
     //
-    // public/models/ is gitignored during asset iteration. When you have the files locally
-    // they will be used. On deploys without the assets, we fall back to styled primitives.
-    female: "/models/female_low_model/femalelow.glb",
+    // Note: public/models/ is gitignored. The model loads locally when the file is present.
+    // On deploys without the asset, we fall back to the styled primitive characters.
+    female: "/models/female_base.glb",
 
     // Male model is still optional / dev-only for now.
     male:

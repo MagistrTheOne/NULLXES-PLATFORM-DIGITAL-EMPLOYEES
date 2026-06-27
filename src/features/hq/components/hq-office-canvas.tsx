@@ -75,8 +75,14 @@ export function HqOfficeCanvas({
   // Preload GLTF models from within a React component context.
   // This avoids calling useGLTF.preload at module initialization time.
   // We pass the no-texture configurator + ensure the global stub is on.
+  //
+  // IMPORTANT: Only preload in development. On production deploys the model files
+  // are not present (gitignored during iteration), so preloading would cause 404s
+  // → texture load failures → context loss.
   useEffect(() => {
     ensureGltfTexturesAreStubbed();
+
+    if (process.env.NODE_ENV !== "development") return;
 
     const { characters, props } = HQ_MODELS;
     if (characters.female) {

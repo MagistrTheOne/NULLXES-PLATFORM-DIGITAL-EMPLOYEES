@@ -4,6 +4,7 @@ import { Html, RoundedBox } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { useRef } from "react";
 import type { Group as ThreeGroup, Mesh } from "three";
+import { useControls } from "leva";
 import {
   WALL_HEIGHT,
   WALL_THICKNESS,
@@ -154,12 +155,18 @@ export function Plant({ position, phase = 0 }: { position: [number, number]; pha
   const [x, z] = position;
   const groupRef = useRef<ThreeGroup>(null);
 
+  // Leva for plant micro-movement (part of liveliness)
+  const plant = useControls("HQ Liveliness", {
+    plantSwaySpeed: { value: 0.12, min: 0.01, max: 1, step: 0.01 },
+    plantSwayAmp:   { value: 0.025, min: 0, max: 0.2, step: 0.001 },
+  }, { collapsed: true });
+
   useFrame((state) => {
     if (groupRef.current) {
-      const t = state.clock.elapsedTime * 0.12 + phase;
+      const t = state.clock.elapsedTime * plant.plantSwaySpeed + phase;
       // Extremely gentle sway + tiny height bob. Feels alive but not distracting.
-      groupRef.current.rotation.y = Math.sin(t) * 0.025; // ~1.4°
-      groupRef.current.rotation.x = Math.sin(t * 0.7 + 1.3) * 0.012;
+      groupRef.current.rotation.y = Math.sin(t) * plant.plantSwayAmp;
+      groupRef.current.rotation.x = Math.sin(t * 0.7 + 1.3) * (plant.plantSwayAmp * 0.5);
       groupRef.current.position.y = Math.sin(t * 1.1) * 0.003;
     }
   });

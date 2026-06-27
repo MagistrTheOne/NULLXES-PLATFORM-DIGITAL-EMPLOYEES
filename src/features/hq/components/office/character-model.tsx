@@ -67,41 +67,50 @@ export function CharacterModel({ url }: { url: string | null }) {
     // Extra safety: the prototype patch should already be active, but ensure here too.
     ensureGltfTexturesAreStubbed();
 
-    // Strip any textures that may already exist on the cached source scene
-    // (from previous loads or HMR). This + the loader patch stops repeated
-    // "Couldn't load texture blob:..." errors.
-    scene.traverse((node: any) => {
-      if (node.isMesh && node.material) {
-        const mats = Array.isArray(node.material) ? node.material : [node.material];
-        mats.forEach((mat: any) => {
-          const keys = [
-            "map",
-            "lightMap",
-            "aoMap",
-            "emissiveMap",
-            "bumpMap",
-            "normalMap",
-            "displacementMap",
-            "roughnessMap",
-            "metalnessMap",
-            "alphaMap",
-            "envMap",
-          ] as const;
-          keys.forEach((k) => {
-            if (mat[k]) {
-              try {
-                mat[k].dispose?.();
-              } catch {}
-              mat[k] = null;
-            }
+    // For older models we aggressively strip textures to avoid blob/CSP issues.
+    // For the new female_base (with good textures) we preserve them.
+    if (!url.includes("female_base")) {
+      // Strip any textures that may already exist on the cached source scene
+      // (from previous loads or HMR). This + the loader patch stops repeated
+      // "Couldn't load texture blob:..." errors.
+      scene.traverse((node: any) => {
+        if (node.isMesh && node.material) {
+          const mats = Array.isArray(node.material) ? node.material : [node.material];
+          mats.forEach((mat: any) => {
+            const keys = [
+              "map",
+              "lightMap",
+              "aoMap",
+              "emissiveMap",
+              "bumpMap",
+              "normalMap",
+              "displacementMap",
+              "roughnessMap",
+              "metalnessMap",
+              "alphaMap",
+              "envMap",
+            ] as const;
+            keys.forEach((k) => {
+              if (mat[k]) {
+                try {
+                  mat[k].dispose?.();
+                } catch {}
+                mat[k] = null;
+              }
+            });
+            mat.needsUpdate = true;
           });
-          mat.needsUpdate = true;
-        });
-      }
-    });
+        }
+      });
+    }
 
     const cloned = SkeletonUtils.clone(scene) as Object3D;
-    applySolidGltfMaterials(cloned, { variant: "character" });
+
+    // For the new textured female_base model, we want to keep its materials/textures.
+    // For other (older) models we continue to force solid colors.
+    if (!url.includes("female_base")) {
+      applySolidGltfMaterials(cloned, { variant: "character" });
+    }
     const box = new Box3().setFromObject(cloned);
     const size = new Vector3();
     const center = new Vector3();

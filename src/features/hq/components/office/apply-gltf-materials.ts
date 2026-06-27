@@ -14,6 +14,7 @@ function isHqModelTextureUrl(url: string): boolean {
       url.includes("/models/") ||
       url.includes("femalelow") ||
       url.includes("female_low_model") ||
+      url.includes("female_base") ||
       url.includes("male.glb") ||
       url.includes("60s_office"))
   );
