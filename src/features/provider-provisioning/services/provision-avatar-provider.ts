@@ -1,8 +1,6 @@
 import type { AvatarProviderConfigPayload } from "@/entities/provider-config";
 import {
   anamFetchWithKeyPool,
-  getAnamApiBaseUrl,
-  getAnamApiKeyBySlot,
   hasAnamCredentials,
 } from "@/shared/config/provider-env";
 import { resolveAvatarProvider } from "@/shared/providers";
@@ -34,41 +32,19 @@ function toFailure(message: string): ProvisionProviderResult {
 async function fetchAnamJson<T>(
   path: string,
   init?: RequestInit,
-  apiKeySlot?: string | null,
+  preferredSlot?: string | null,
 ): Promise<T> {
-  if (apiKeySlot) {
-    const apiKey = getAnamApiKeyBySlot(apiKeySlot);
-    if (!apiKey) {
-      throw new Error("ANAM_API_KEY is not configured");
-    }
-
-    const response = await fetch(`${getAnamApiBaseUrl()}${path}`, {
+  const { response } = await anamFetchWithKeyPool(
+    path,
+    {
       ...init,
       headers: {
-        Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
         ...(init?.headers ?? {}),
       },
-    });
-
-    if (!response.ok) {
-      throw new Error(`Anam request failed with status ${response.status}`);
-    }
-
-    return (await response.json()) as T;
-  }
-
-  const { response } = await anamFetchWithKeyPool(path, {
-    ...init,
-    headers: {
-      "Content-Type": "application/json",
-      ...(init?.headers ?? {}),
     },
-  });
-
-  if (!response.ok) {
-    throw new Error(`Anam request failed with status ${response.status}`);
-  }
+    preferredSlot,
+  );
 
   return (await response.json()) as T;
 }
@@ -205,39 +181,26 @@ export async function provisionAvatarProvider(
     let persona: AnamPersonaResponse;
     let usedApiKeySlot = anamApiKeySlot;
 
-    if (anamApiKeySlot) {
-      persona = await fetchAnamJson<AnamPersonaResponse>(
-        "/personas",
-        {
-          method: "POST",
-          body: JSON.stringify(
-            buildAnamPersonaCreatePayload({
-              name: input.employeeName,
-              avatarId,
-              voiceId,
-            }),
-          ),
-        },
-        anamApiKeySlot,
-      );
-    } else {
-      const { response, slot } = await anamFetchWithKeyPool("/personas", {
+    const personaPayload = buildAnamPersonaCreatePayload({
+      name: input.employeeName,
+      avatarId,
+      voiceId,
+    });
+
+    const { response: personaResponse, slot } = await anamFetchWithKeyPool(
+      "/personas",
+      {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(
-          buildAnamPersonaCreatePayload({
-            name: input.employeeName,
-            avatarId,
-            voiceId,
-          }),
-        ),
-      });
+        body: JSON.stringify(personaPayload),
+      },
+      anamApiKeySlot,
+    );
 
-      persona = (await response.json()) as AnamPersonaResponse;
-      usedApiKeySlot = slot;
-    }
+    persona = (await personaResponse.json()) as AnamPersonaResponse;
+    usedApiKeySlot = slot;
 
     if (!persona.id) {
       throw new Error("Anam create persona returned an invalid response");

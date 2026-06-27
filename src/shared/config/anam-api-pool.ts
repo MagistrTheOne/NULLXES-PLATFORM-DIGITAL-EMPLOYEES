@@ -65,6 +65,23 @@ export function getAnamApiKeysInRotationOrder(): AnamApiKeyPoolEntry[] {
   return [...pool.slice(offset), ...pool.slice(0, offset)];
 }
 
+/** Prefer a known slot (e.g. where the avatar lives), then try the rest on quota errors. */
+export function getAnamApiKeysInOrder(
+  preferredSlot?: AnamApiKeySlot | string | null,
+): AnamApiKeyPoolEntry[] {
+  const pool = getAnamApiKeyPool();
+  if (pool.length <= 1 || !preferredSlot) {
+    return getAnamApiKeysInRotationOrder();
+  }
+
+  const preferredIndex = pool.findIndex((entry) => entry.slot === preferredSlot);
+  if (preferredIndex === -1) {
+    return getAnamApiKeysInRotationOrder();
+  }
+
+  return [...pool.slice(preferredIndex), ...pool.slice(0, preferredIndex)];
+}
+
 export async function readAnamErrorMessage(response: Response): Promise<string> {
   try {
     const payload = (await response.json()) as {
@@ -78,17 +95,35 @@ export async function readAnamErrorMessage(response: Response): Promise<string> 
   }
 }
 
+const ANAM_QUOTA_KEYWORDS = [
+  "one-shot",
+  "concurrent",
+  "maximum",
+  "quota",
+  "limit",
+  "exceeded",
+  "credit",
+  "capacity",
+  "too many",
+  "rate limit",
+  "usage",
+] as const;
+
 export function isAnamAvatarQuotaError(status: number, detail: string): boolean {
-  if (status !== 403) {
-    return false;
+  if (status === 429 || status === 402) {
+    return true;
   }
 
   const normalized = detail.toLowerCase();
-  return (
-    normalized.includes("one-shot") ||
-    normalized.includes("concurrent") ||
-    normalized.includes("maximum")
+  const hasQuotaKeyword = ANAM_QUOTA_KEYWORDS.some((keyword) =>
+    normalized.includes(keyword),
   );
+
+  if (status === 403 || status === 400) {
+    return hasQuotaKeyword;
+  }
+
+  return false;
 }
 
 async function anamFetch(
@@ -121,8 +156,9 @@ export async function anamFetchWithSlot(
 export async function anamFetchWithKeyPool(
   path: string,
   init: RequestInit = {},
+  preferredSlot?: AnamApiKeySlot | string | null,
 ): Promise<{ response: Response; slot: AnamApiKeySlot; label: string }> {
-  const pool = getAnamApiKeysInRotationOrder();
+  const pool = getAnamApiKeysInOrder(preferredSlot);
 
   if (pool.length === 0) {
     throw new Error("ANAM_API_KEY is not configured");

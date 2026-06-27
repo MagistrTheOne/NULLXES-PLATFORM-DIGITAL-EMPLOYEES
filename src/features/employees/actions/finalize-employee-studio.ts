@@ -9,7 +9,7 @@ import {
 import type { AnamApiKeySlot } from "@/shared/config/anam-api-pool";
 import { buildAnamPersonaCreatePayload } from "@/features/runtime-session/lib/build-anam-talk-persona-config";
 import {
-  anamFetchWithSlot,
+  anamFetchWithKeyPool,
   hasAnamCredentials,
   readAnamErrorMessage,
 } from "@/shared/config/provider-env";
@@ -50,8 +50,8 @@ async function createAnamPersona(input: {
   avatarId: string;
   anamVoiceId: string;
   anamApiKeySlot: AnamApiKeySlot;
-}): Promise<string> {
-  const response = await anamFetchWithSlot(
+}): Promise<{ personaId: string; anamApiKeySlot: AnamApiKeySlot }> {
+  const { response, slot } = await anamFetchWithKeyPool(
     "/personas",
     {
       method: "POST",
@@ -79,7 +79,7 @@ async function createAnamPersona(input: {
     throw new Error("Anam persona creation returned an invalid response");
   }
 
-  return persona.id;
+  return { personaId: persona.id, anamApiKeySlot: slot };
 }
 
 export async function finalizeEmployeeStudio(
@@ -131,7 +131,7 @@ export async function finalizeEmployeeStudio(
   try {
     const avatar = await createAnamAvatarFromFile({ file, displayName: name });
     const { anamVoiceId, binding } = await resolveAnamPersonaVoiceId(selectedVoice);
-    const personaId = await createAnamPersona({
+    const persona = await createAnamPersona({
       name,
       role,
       avatarId: avatar.avatarId,
@@ -148,9 +148,9 @@ export async function finalizeEmployeeStudio(
       status: "ready",
       avatarId: avatar.avatarId,
       previewUrl: avatar.previewUrl,
-      personaId,
+      personaId: persona.personaId,
       provider: "anam",
-      anamApiKeySlot: avatar.anamApiKeySlot,
+      anamApiKeySlot: persona.anamApiKeySlot,
       voice: {
         studioVoiceId,
         provider: selectedVoice.provider === "Anam" ? "anam" : "elevenlabs",
