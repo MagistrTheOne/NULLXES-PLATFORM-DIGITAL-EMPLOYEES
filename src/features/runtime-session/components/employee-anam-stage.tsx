@@ -62,8 +62,16 @@ export function EmployeeAnamStage({
     let disposed = false;
     let startGeneration = 0;
     let activeClient: ReturnType<typeof createAnamTalkClient> | null = null;
+    let activeMicStream: MediaStream | null = null;
     let detachVoicePipeline: (() => void) | null = null;
     let detachSessionEvents: (() => void) | null = null;
+
+    const stopMicStream = () => {
+      if (activeMicStream) {
+        activeMicStream.getTracks().forEach((track) => track.stop());
+        activeMicStream = null;
+      }
+    };
 
     async function startAnamSession(): Promise<void> {
       const generation = ++startGeneration;
@@ -132,9 +140,40 @@ export function EmployeeAnamStage({
         setPipelineState,
       });
 
+      // Explicitly acquire the microphone (the Start-session click is the user
+      // gesture) and hand the stream to Anam. Without an explicit input stream
+      // the SDK can negotiate a receive-only audio transceiver, so the persona
+      // never hears the user (no STT → no listening/thinking/speaking states).
+      let micStream: MediaStream | null = null;
+      if (
+        typeof navigator !== "undefined" &&
+        navigator.mediaDevices?.getUserMedia
+      ) {
+        try {
+          setMicPermission("pending");
+          micStream = await navigator.mediaDevices.getUserMedia({
+            audio: true,
+          });
+          if (disposed || generation !== startGeneration) {
+            micStream.getTracks().forEach((track) => track.stop());
+            await anamClient.stopStreaming().catch(() => undefined);
+            return;
+          }
+          activeMicStream = micStream;
+          setMicPermission("granted");
+        } catch {
+          micStream = null;
+          setMicPermission("denied");
+        }
+      }
+
       try {
-        await anamClient.streamToVideoElement(ANAM_VIDEO_ELEMENT_ID);
+        await anamClient.streamToVideoElement(
+          ANAM_VIDEO_ELEMENT_ID,
+          micStream ?? undefined,
+        );
       } catch (error: unknown) {
+        stopMicStream();
         if (
           !disposed &&
           generation === startGeneration &&
@@ -157,6 +196,7 @@ export function EmployeeAnamStage({
       startGeneration += 1;
       detachVoicePipeline?.();
       detachSessionEvents?.();
+      stopMicStream();
       const client = activeClient;
       activeClient = null;
       registerClient(null);

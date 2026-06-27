@@ -105,7 +105,7 @@ export function TalkSessionControls({
               disabled={isDisabled && item.key !== "end"}
               onClick={item.onClick}
               className={cn(
-                "h-auto min-h-10 flex-col gap-1 rounded-xl border border-white/8 bg-white/[0.02] px-2 py-2 text-[10px] font-normal tracking-wide text-white/75 uppercase hover:bg-white/[0.05]",
+                "h-auto min-h-10 flex-col gap-1 rounded-xl border border-white/8 bg-white/2 px-2 py-2 text-[10px] font-normal tracking-wide text-white/75 uppercase hover:bg-white/5",
                 item.destructive &&
                   "border-white/15 text-white hover:bg-white/10 hover:text-white",
                 item.active && "bg-white/10 text-white",

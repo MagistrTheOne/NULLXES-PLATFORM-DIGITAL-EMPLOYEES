@@ -50,7 +50,7 @@ type MetricCardProps = {
 
 function MetricCard({ label, value, detail, seed }: MetricCardProps) {
   return (
-    <div className="talk-workforce-card rounded-xl border border-white/8 bg-white/[0.02] p-3">
+    <div className="talk-workforce-card rounded-xl border border-white/8 bg-white/2 p-3">
       <p className="text-[10px] tracking-[0.14em] text-white/45 uppercase">
         {label}
       </p>

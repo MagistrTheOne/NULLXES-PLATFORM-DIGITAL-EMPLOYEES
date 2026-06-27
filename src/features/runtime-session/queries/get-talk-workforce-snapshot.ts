@@ -59,10 +59,15 @@ export async function getTalkWorkforceSnapshot(
     const operational = systemStatus.filter(
       (item) => item.status === "operational",
     ).length;
+    // Load = share of systems NOT fully operational. All healthy → 0% (Optimal),
+    // everything degraded → 100% (High). The previous formula used the
+    // operational share, which inverted the health indicator.
     const systemLoadPercent =
       systemStatus.length > 0
-        ? Math.round((operational / systemStatus.length) * 100)
-        : 100;
+        ? Math.round(
+            ((systemStatus.length - operational) / systemStatus.length) * 100,
+          )
+        : 0;
 
     const uptimeSeconds = process.uptime();
     const uptimePercent = Math.min(99.99, 99.5 + operational * 0.08);

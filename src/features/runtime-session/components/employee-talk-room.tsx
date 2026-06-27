@@ -330,7 +330,7 @@ export function EmployeeTalkRoom({
   }, [activeSession, employeeId]);
 
   return (
-    <div className="talk-workspace-shell employee-talk-workspace employee-talk-shell mx-auto flex min-h-0 flex-1 w-full flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#0a0a0a] min-h-[min(78dvh,820px)]">
+    <div className="talk-workspace-shell employee-talk-workspace employee-talk-shell mx-auto flex flex-1 w-full flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#0a0a0a] min-h-[min(78dvh,820px)]">
       <TalkWorkspaceHeader
         employeeName={employeeName}
         sessionLimitSeconds={sessionLimitSeconds}
@@ -396,7 +396,7 @@ export function EmployeeTalkRoom({
         </div>
 
         {!focusMode ? (
-          <div className="hidden w-[340px] shrink-0 border-l border-white/8 md:flex">
+          <div className="hidden w-[340px] min-w-0 shrink-0 overflow-hidden border-l border-white/8 md:flex">
             <TalkInspectorPanel
               details={agentDetails}
               departmentLabel={departmentLabel}

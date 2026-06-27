@@ -14,8 +14,8 @@ import { TalkSessionControls } from "./talk-session-controls";
 
 function ConfigCell({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-white/8 bg-white/2 px-3 py-2.5">
-      <p className="text-[10px] tracking-[0.12em] text-white/40 uppercase">
+    <div className="min-w-0 rounded-xl border border-white/8 bg-white/2 px-3 py-2.5">
+      <p className="truncate text-[10px] tracking-[0.12em] text-white/40 uppercase">
         {label}
       </p>
       <p className="mt-1 truncate text-xs font-medium text-white/85">{value}</p>
@@ -145,11 +145,11 @@ export function TalkInspectorPanel({
   const satisfaction = formatSatisfactionPercent(details.stats.satisfaction);
 
   return (
-    <aside className="flex h-full min-h-0 flex-col bg-[#0a0a0a]">
+    <aside className="flex h-full min-h-0 w-full min-w-0 flex-col bg-[#0a0a0a]">
       <Tabs
         value={activeTab}
         onValueChange={setActiveTab}
-        className="flex h-full min-h-0 flex-col gap-0"
+        className="flex h-full min-h-0 w-full min-w-0 flex-col gap-0"
       >
         <TabsList
           variant="line"
@@ -177,9 +177,9 @@ export function TalkInspectorPanel({
 
         <TabsContent
           value="details"
-          className="mt-0 flex min-h-0 flex-1 flex-col overflow-y-auto px-4 py-4"
+          className="mt-0 flex min-h-0 w-full min-w-0 flex-1 flex-col overflow-x-hidden overflow-y-auto px-4 py-4"
         >
-          <div className="flex flex-col gap-4">
+          <div className="flex min-w-0 flex-col gap-4">
             <div className="flex items-start gap-3">
               <span className="relative flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/10 bg-black">
                 {details.avatarPreviewUrl && details.avatarReady ? (
@@ -236,7 +236,7 @@ export function TalkInspectorPanel({
               <span className="text-[10px] font-medium tracking-[0.16em] text-white/35 uppercase">
                 {tPanel("statistics")}
               </span>
-              <div className="space-y-1 rounded-xl border border-white/8 bg-white/[0.02] px-3 py-2">
+              <div className="space-y-1 rounded-xl border border-white/8 bg-white/2 px-3 py-2">
                 <div className="flex items-center justify-between gap-3 py-1 text-xs">
                   <span className="text-white/40">
                     {tPanel("conversationsToday")}
@@ -277,7 +277,7 @@ export function TalkInspectorPanel({
 
           <Link
             href={`/dashboard/employees/${details.employeeId}`}
-            className="mt-auto flex items-center justify-between rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-white transition-colors hover:bg-white/[0.06]"
+            className="mt-auto flex items-center justify-between rounded-xl border border-white/10 bg-white/3 px-4 py-2.5 text-sm text-white transition-colors hover:bg-white/6"
           >
             {tPanel("viewFullProfile")}
             <ArrowRight className="size-4" />
@@ -293,7 +293,7 @@ export function TalkInspectorPanel({
               {[...details.activity].reverse().map((item) => (
                 <li
                   key={item.id}
-                  className="flex items-center justify-between gap-3 rounded-lg border border-white/6 bg-white/[0.02] px-3 py-2 text-xs"
+                  className="flex items-center justify-between gap-3 rounded-lg border border-white/6 bg-white/2 px-3 py-2 text-xs"
                 >
                   <span className="text-white/70">
                     {tPanel(`activityKind.${item.kind}`)}
