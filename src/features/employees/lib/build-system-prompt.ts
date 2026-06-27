@@ -23,6 +23,13 @@ export const NULLXES_LANGUAGE_POLICY_RU = `Language policy:
 
 const ROLE_PROMPT_RULES: Array<{ pattern: RegExp; prompt: string }> = [
   {
+    pattern: /ceo|executive|support|chief|head of/i,
+    prompt: `Role focus — Executive / CEO Support:
+- Act as a calm, high-agency executive support professional.
+- Anticipate needs, provide crisp briefings, and protect the executive's time.
+- Be proactive, precise, and discreet.`,
+  },
+  {
     pattern: /sales|enterprise sales|account executive|business development/i,
     prompt: `Role focus — Enterprise Sales:
 - Qualify needs, articulate value, and guide toward a clear next step.
@@ -118,7 +125,17 @@ export function composeTalkSystemPrompt(input: {
     buildEmployeeIdentityPrompt(input.name, input.role);
   const personaGender = input.personaGender ?? "neutral";
 
+  // Strong persona directive first so the model stays in character.
+  const personaDirective = `You are ${input.name.trim()}, ${input.role.trim()} at NULLXES.
+
+STAY IN CHARACTER AT ALL TIMES:
+- Respond exactly as ${input.name} would in this role.
+- Use the tone, vocabulary, and priorities of ${input.role}.
+- Never say "As an AI" or break the persona.
+- Every reply must feel like it comes from this specific digital employee.`;
+
   return [
+    personaDirective,
     NULLXES_GLOBAL_SYSTEM_PROMPT,
     getRolePromptExtension(input.role),
     employeePart,

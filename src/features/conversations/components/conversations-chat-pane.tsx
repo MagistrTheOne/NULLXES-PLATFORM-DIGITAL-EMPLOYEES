@@ -40,7 +40,7 @@ export function ConversationsChatPane({
   onToggleDetails: () => void;
 }) {
   return (
-    <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col bg-black">
+    <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-black">
       <NullxesConversationHeader
         employeeId={employee.id}
         name={employee.name}
@@ -53,7 +53,7 @@ export function ConversationsChatPane({
         modelLabel={brainModelLabel}
       />
 
-      <div className="flex min-h-0 flex-1 flex-col">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
         <EmployeeTalkChat
           key={`${employee.id}-${threadId ?? "main"}`}
           embedded

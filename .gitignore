@@ -40,6 +40,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# HQ 3D office models (GLB, FBX, textures — large binaries, currently WIP)
-# We'll add final versions later when assembling the full concept office.
-public/models/
+# Note: HQ models are now included so female_base.glb (and future assets) load on prod deploys.
+# Large binaries — consider Git LFS or external hosting for very large future assets.
+# public/models/  (removed to allow model deployment)
