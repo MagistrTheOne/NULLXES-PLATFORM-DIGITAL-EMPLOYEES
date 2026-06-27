@@ -180,7 +180,7 @@ export function EmployeeAnamStage({
     status !== "live" && Boolean(avatarPreviewUrl);
 
   return (
-    <div className="employee-anam-stage relative flex size-full items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-[#0a0a0a]">
+    <div className="employee-anam-stage relative flex size-full items-center justify-center overflow-hidden bg-black">
       {showPhotoPlaceholder ? (
         <div className="absolute inset-0 z-0 flex items-center justify-center">
           <div className="relative size-full">

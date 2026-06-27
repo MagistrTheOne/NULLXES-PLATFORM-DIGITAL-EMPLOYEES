@@ -53,6 +53,8 @@ export function ConversationsChatPane({
         modelLabel={brainModelLabel}
       />
 
+      {/* The actual chat "сетка". Force it to claim all remaining vertical space
+          so on tall 27" 100% the list + composer don't sink or leave a floating gap. */}
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
         <EmployeeTalkChat
           key={`${employee.id}-${threadId ?? "main"}`}

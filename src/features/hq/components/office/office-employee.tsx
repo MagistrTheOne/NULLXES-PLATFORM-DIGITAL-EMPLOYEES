@@ -1,7 +1,6 @@
 "use client";
 
 import { Suspense, useEffect, useRef, useState, Component, type ReactNode } from "react";
-import { Html } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { Group, Vector3 } from "three";
 import { useControls } from "leva";
@@ -39,6 +38,7 @@ import {
 } from "../../lib/office-layout";
 import { MEETING_POINT } from "../../lib/standup";
 import { useOfficeStore } from "../../store/use-office-store";
+import { Html } from "@react-three/drei";
 import { CharacterModel } from "./character-model";
 import type { SceneEmployee } from "./scene-types";
 
@@ -64,7 +64,27 @@ function seededRandom(seed: number): () => number {
   };
 }
 
-export function OfficeEmployee({ employee }: { employee: SceneEmployee }) {
+// Very small "vision encoder" reaction quotes. Characters comment on each other when they notice.
+function pickReactionQuote(self: string, other: string): string {
+  const lines = [
+    `${other} looks focused.`,
+    `Wonder what ${other} is working on.`,
+    `${other} has that serious look again.`,
+    `Should say hi to ${other} later.`,
+    `${other} moves with purpose.`,
+    `Not interrupting ${other} right now.`,
+  ];
+  // Make it slightly personal for known pairs
+  if (self.toLowerCase().includes("somnia") && other.toLowerCase().includes("kaira")) {
+    return "Kaira seems on top of everything.";
+  }
+  if (self.toLowerCase().includes("kaira") && other.toLowerCase().includes("somnia")) {
+    return "Somnia's energy is contagious.";
+  }
+  return lines[Math.floor(Math.random() * lines.length)];
+}
+
+export function OfficeEmployee({ employee, allEmployees = [] }: { employee: SceneEmployee; allEmployees?: SceneEmployee[] }) {
   const rootRef = useRef<Group>(null);
   const bodyRef = useRef<Group>(null);
   const legLeftRef = useRef<Group>(null);
@@ -89,9 +109,8 @@ export function OfficeEmployee({ employee }: { employee: SceneEmployee }) {
   const bodyColor = employee.status === "offline" ? "#2f2f2f" : "#2a2a2a";
 
   const [thought, setThought] = useState<string | null>(null);
-  const [bubbleKind, setBubbleKind] = useState<"thought" | "reaction">(
-    "thought",
-  );
+  const [bubbleKind, setBubbleKind] = useState<"thought" | "reaction">("thought");
+  const [visionQuote, setVisionQuote] = useState<string | null>(null);
 
   // Imperative motion state (kept out of React to avoid re-renders).
   const seed = useRef(
@@ -109,13 +128,21 @@ export function OfficeEmployee({ employee }: { employee: SceneEmployee }) {
   const pathIndex = useRef(0);
   const idlePhase = useRef(rng.current() * Math.PI * 2);
 
-  // Leva controls for quick liveliness tuning (max impact, minimal code change)
-  const liveliness = useControls("HQ Liveliness", {
-    breatheSpeed: { value: 1.35, min: 0.1, max: 5, step: 0.05 },
-    breatheAmp:   { value: 0.022, min: 0, max: 0.1, step: 0.001 },
-    idleLeanAmp:  { value: 0.035, min: 0, max: 0.2, step: 0.001 },
-    lookAmp:      { value: 0.18, min: 0, max: 1, step: 0.01 },
-  });
+  // Vision "encoder" — simple proximity + facing awareness so agents notice each other.
+  const nextVisionCheck = useRef(0);
+  const currentQuote = useRef<{ text: string; until: number } | null>(null);
+
+  // Dev-only liveliness tuning (panel itself is hidden in prod via <Leva> in office-scene).
+  const liveliness = useControls(
+    "HQ Liveliness",
+    {
+      breatheSpeed: { value: 1.35, min: 0.1, max: 5, step: 0.05 },
+      breatheAmp:   { value: 0.022, min: 0, max: 0.1, step: 0.001 },
+      idleLeanAmp:  { value: 0.035, min: 0, max: 0.2, step: 0.001 },
+      lookAmp:      { value: 0.18, min: 0, max: 1, step: 0.01 },
+    },
+    { collapsed: true }
+  );
 
   // The "home" desk is the dragged placement when present, else the layout seat.
   const homePoint = (): [number, number] =>
@@ -330,6 +357,36 @@ export function OfficeEmployee({ employee }: { employee: SceneEmployee }) {
         } else if (employee.speechText) {
           emitThought(time);
           nextDecisionAt.current = time + 8 + rng.current() * 6;
+        }
+      }
+
+      // === Vision "encoder" simulation ===
+      // Agents "see" nearby colleagues (distance + facing) and react with quotes.
+      if (!movingRef.current && time >= nextVisionCheck.current) {
+        nextVisionCheck.current = time + 5.5 + rng.current() * 7.0;
+
+        const others = (allEmployees || []).filter((e) => e.id !== employee.id);
+        for (const other of others) {
+          const dx = other.position[0] - posRef.current.x;
+          const dz = other.position[1] - posRef.current.z;
+          const dist = Math.hypot(dx, dz);
+          if (dist > 3.2 || dist < 0.6) continue;
+
+          const toOtherYaw = Math.atan2(dx, dz);
+          const facingDiff = Math.abs(((root.rotation.y - toOtherYaw + Math.PI * 3) % (Math.PI * 2)) - Math.PI);
+          if (facingDiff > 1.15) continue;
+
+          // React: slight head turn + quote bubble
+          const lookYaw = toOtherYaw + (rng.current() - 0.5) * 0.25;
+          root.rotation.y = root.rotation.y * 0.6 + lookYaw * 0.4;
+
+          const quote = pickReactionQuote(employee.name, other.name);
+          currentQuote.current = { text: quote, until: time + 5.5 + rng.current() * 1.5 };
+          setVisionQuote(quote);
+          // auto-clear the bubble after its lifetime
+          window.setTimeout(() => setVisionQuote((q) => (q === quote ? null : q)), 5800);
+          liftY.current += 0.04;
+          break;
         }
       }
 
@@ -592,6 +649,15 @@ export function OfficeEmployee({ employee }: { employee: SceneEmployee }) {
             }
           >
             {thought}
+          </div>
+        </Html>
+      ) : null}
+
+      {/* Vision quote — agents notice each other and "say" something (vision encoder simulation) */}
+      {visionQuote ? (
+        <Html position={[0, 2.15, 0]} center zIndexRange={[40, 0]} wrapperClass="pointer-events-none">
+          <div className="pointer-events-none max-w-[210px] select-none rounded-2xl border border-white/10 bg-[#111111]/90 px-3 py-1 text-center text-[10px] leading-snug text-white/90 shadow backdrop-blur">
+            {visionQuote}
           </div>
         </Html>
       ) : null}

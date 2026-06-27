@@ -113,7 +113,7 @@ export function ConversationsScreen({
 
   return (
     <TooltipProvider delayDuration={300}>
-      <div className="conversations-screen flex min-h-[min(88dvh,920px)] flex-col gap-8">
+      <div className="conversations-screen flex min-h-[min(92dvh,980px)] flex-col gap-8">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0 shrink-0">
             <h1 className="text-2xl font-medium tracking-tight text-white">
@@ -134,7 +134,7 @@ export function ConversationsScreen({
           />
         </div>
 
-        <div className="conversations-workspace grid min-h-0 flex-1 overflow-hidden border border-white/8 bg-[#0a0a0a] lg:grid-cols-[300px_minmax(0,1fr)] xl:grid-cols-[300px_minmax(0,1fr)_340px]">
+        <div className="conversations-workspace grid min-h-0 flex-1 overflow-hidden border border-white/8 bg-[#0a0a0a] lg:grid-cols-[300px_minmax(0,1fr)] xl:grid-cols-[300px_minmax(0,1fr)_340px] h-full">
           <ConversationsInbox
             className="hidden lg:flex"
             employees={filteredForList}
@@ -146,7 +146,7 @@ export function ConversationsScreen({
             threadsVersion={threadsVersion}
           />
 
-          <div className="flex h-full min-h-0 min-w-0 flex-col">
+          <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col">
             {selected && resolvedDetails ? (
               <TalkAnamProvider>
                 <ConversationsChatPane

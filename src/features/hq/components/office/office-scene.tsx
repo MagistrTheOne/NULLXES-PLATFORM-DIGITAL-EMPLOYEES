@@ -2,11 +2,13 @@
 
 import { Suspense, useEffect, useRef } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { MeshReflectorMaterial, OrbitControls } from "@react-three/drei";
+import { OrbitControls } from "@react-three/drei";
+import { Leva } from "leva";
 import { PCFShadowMap, Vector3 } from "three";
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import { useOfficeStore } from "../../store/use-office-store";
 import { OfficeEmployee } from "./office-employee";
+import { FloorSystem, CeilingSystem } from "./office-architecture";
 import { HQ_MODELS } from "./office-models";
 import { OfficeProps } from "./office-props";
 import { OfficeRoom, Plant } from "./office-room";
@@ -50,27 +52,6 @@ function DragPlane() {
     >
       <planeGeometry args={[200, 200]} />
       <meshBasicMaterial transparent opacity={0} depthWrite={false} />
-    </mesh>
-  );
-}
-
-function MarbleFloor() {
-  return (
-    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
-      <planeGeometry args={[90, 90]} />
-      <MeshReflectorMaterial
-        color="#3a3c40"
-        metalness={0.35}
-        roughness={0.65}
-        blur={[280, 90]}
-        resolution={1024}
-        mixBlur={1.0}
-        mixStrength={2.1}
-        depthScale={0.9}
-        minDepthThreshold={0.35}
-        maxDepthThreshold={1.5}
-        mirror={0.3}
-      />
     </mesh>
   );
 }
@@ -190,22 +171,28 @@ export default function OfficeScene({
   const selectEmployee = useOfficeStore((state) => state.selectEmployee);
   const draggingId = useOfficeStore((state) => state.draggingId);
 
+  const isDev = process.env.NODE_ENV === "development";
+
   return (
-    <Canvas
-      shadows
-      orthographic
-      camera={{ position: [22, 18, 22], zoom: 34, near: 1, far: 240 }}
-      gl={{ antialias: true, preserveDrawingBuffer: false }}
-      // Explicitly set a non-deprecated shadow map type via onCreated.
-      // Passing shadowMap inside gl is not valid (gl only takes WebGLRendererParameters).
-      onCreated={({ gl }) => {
-        gl.shadowMap.enabled = true;
-        gl.shadowMap.type = PCFShadowMap;
-      }}
-      dpr={[1, 2]}
-      onPointerMissed={() => selectEmployee(null)}
-      className="absolute! inset-0"
-    >
+    <>
+      {/* Leva debug panel only in development. Hidden in prod builds. */}
+      <Leva hidden={!isDev} />
+
+      <Canvas
+        shadows
+        orthographic
+        camera={{ position: [22, 18, 22], zoom: 34, near: 1, far: 240 }}
+        gl={{ antialias: true, preserveDrawingBuffer: false }}
+        // Explicitly set a non-deprecated shadow map type via onCreated.
+        // Passing shadowMap inside gl is not valid (gl only takes WebGLRendererParameters).
+        onCreated={({ gl }) => {
+          gl.shadowMap.enabled = true;
+          gl.shadowMap.type = PCFShadowMap;
+        }}
+        dpr={[1, 2]}
+        onPointerMissed={() => selectEmployee(null)}
+        className="absolute! inset-0"
+      >
       {/* Dark elegant background matching the polished marble concept */}
       <color attach="background" args={["#0f0f0f"]} />
       <fog attach="fog" args={["#0f0f0f", 48, 95]} />
@@ -256,7 +243,11 @@ export default function OfficeScene({
           />
         ))}
 
-        <MarbleFloor />
+        {/* Architectural shell — floors (black marble / tech concrete / glass /
+            LED navigation) + overhead ceiling grid, vents and LED petals. */}
+        <FloorSystem />
+        <CeilingSystem />
+
         {rooms.map((room) => (
           <OfficeRoom key={room.def.department} room={room} />
         ))}
@@ -313,7 +304,7 @@ export default function OfficeScene({
         ) : null}
 
         {employees.map((employee) => (
-          <OfficeEmployee key={employee.id} employee={employee} />
+          <OfficeEmployee key={employee.id} employee={employee} allEmployees={employees} />
         ))}
 
         {draggingId ? <DragPlane /> : null}
@@ -336,6 +327,7 @@ export default function OfficeScene({
         enableDamping
         dampingFactor={0.12}
       />
-    </Canvas>
+      </Canvas>
+    </>
   );
 }

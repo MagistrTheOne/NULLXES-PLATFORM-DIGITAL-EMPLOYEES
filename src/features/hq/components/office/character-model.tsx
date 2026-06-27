@@ -118,10 +118,14 @@ export function CharacterModel({ url }: { url: string | null }) {
     box.getCenter(center);
     const height = size.y || 1;
     const nextScale = CHARACTER_HEIGHT / height;
-    // After scaling, recenter x/z on the origin and drop feet to y=0.
+
+    // After scaling, recenter x/z and put feet on y=0.
+    // Some models (especially the textured female) have geometry slightly below the visual sole
+    // or different rest pose. We add a tiny positive bias for female_base so feet sit on the floor.
+    const feetBias = url.includes("female_base") ? 0.035 : 0;
     const nextOffset: [number, number, number] = [
       -center.x * nextScale,
-      -box.min.y * nextScale,
+      -box.min.y * nextScale + feetBias,
       -center.z * nextScale,
     ];
     return { object: cloned, scale: nextScale, offset: nextOffset };

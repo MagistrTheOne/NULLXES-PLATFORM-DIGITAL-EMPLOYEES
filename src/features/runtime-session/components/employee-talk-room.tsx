@@ -25,6 +25,13 @@ import { prefetchAnamTalkSessionAction } from "../actions/prefetch-anam-talk-ses
 import type { TalkVoiceMode } from "../services/resolve-talk-voice-mode";
 import { cn } from "@/lib/utils";
 import { TalkLocalCameraPip } from "./talk-local-camera-pip";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { MessageSquare } from "lucide-react";
 import "./employee-talk-theme.css";
 import "@/features/conversations/components/conversations-theme.css";
 
@@ -69,6 +76,7 @@ function TalkStageControls({
   prefetchedTokenRef,
   cameraEnabled,
   onCameraToggle,
+  onToggleChat,
 }: {
   employeeId: string;
   activeSession: ActiveTalkSession | null;
@@ -78,6 +86,7 @@ function TalkStageControls({
   prefetchedTokenRef: React.MutableRefObject<string | null>;
   cameraEnabled: boolean;
   onCameraToggle: () => void;
+  onToggleChat?: () => void;
 }) {
   const t = useTranslations("employees.talk");
   const { micMuted, micPermission, toggleMic, isLive } = useTalkAnam();
@@ -121,83 +130,110 @@ function TalkStageControls({
   const disabled = sessionBusy || isStarting;
 
   return (
-    <div className="absolute inset-x-0 bottom-0 z-20 flex flex-col items-center gap-2 bg-gradient-to-t from-black/80 via-black/45 to-transparent px-4 pb-4 pt-10">
+    <>
+      {/* Subtle status / error messages above the bar */}
       {startError ? (
-        <p className="max-w-sm text-center text-[11px] text-white/55" role="alert">
+        <p className="absolute inset-x-0 bottom-20 z-30 flex justify-center text-center text-[11px] text-white/55">
           {startError}
         </p>
       ) : null}
       {activeSession && micPermission === "denied" ? (
-        <p className="max-w-sm text-center text-[11px] text-red-300/80" role="alert">
+        <p className="absolute inset-x-0 bottom-20 z-30 flex justify-center text-center text-[11px] text-red-300/80">
           {t("stage.micPermissionDenied")}
         </p>
       ) : null}
-      <div className="flex flex-wrap items-center justify-center gap-2">
-        {!activeSession ? (
-          <Button
-            type="button"
-            disabled={disabled}
-            className="h-9 rounded-full px-4 text-xs"
-            onMouseEnter={warmPrefetch}
-            onFocus={warmPrefetch}
-            onClick={() => {
-              void handleStart();
-            }}
-          >
-            <Play className="size-3.5" />
-            {isStarting ? t("starting") : t("startSession")}
-          </Button>
-        ) : (
-          <>
-            <button
-              type="button"
-              aria-label={
-                micMuted ? t("controls.unmuteMic") : t("controls.muteMic")
-              }
-              disabled={!isLive || disabled}
-              onClick={toggleMic}
-              className="flex size-9 items-center justify-center rounded-full border border-white/12 bg-black/55 text-white backdrop-blur-sm transition-colors hover:bg-white/10 disabled:opacity-40"
-            >
-              {micMuted ? (
-                <MicOff className="size-3.5 stroke-[1.5]" />
-              ) : (
-                <Mic className="size-3.5 stroke-[1.5]" />
-              )}
-            </button>
-            <button
-              type="button"
-              aria-label={
-                cameraEnabled
-                  ? t("controls.turnOffCamera")
-                  : t("controls.turnOnCamera")
-              }
-              disabled={disabled}
-              onClick={onCameraToggle}
-              className="flex size-9 items-center justify-center rounded-full border border-white/12 bg-black/55 text-white backdrop-blur-sm transition-colors hover:bg-white/10 disabled:opacity-40"
-            >
-              {cameraEnabled ? (
-                <Video className="size-3.5 stroke-[1.5]" />
-              ) : (
-                <VideoOff className="size-3.5 stroke-[1.5]" />
-              )}
-            </button>
+
+      {/* Floating call controls — video-call style, centered over the stage (concept match) */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-4 z-30 flex justify-center">
+        <div className="pointer-events-auto flex items-center gap-2 rounded-2xl border border-white/12 bg-black/70 px-2 py-1.5 backdrop-blur-md">
+          {!activeSession ? (
             <Button
               type="button"
               disabled={disabled}
-              variant="outline"
-              size="sm"
-              className="h-9 rounded-full border-white/12 bg-black/55 px-3 text-xs text-white backdrop-blur-sm hover:bg-white/10"
+              onMouseEnter={warmPrefetch}
+              onFocus={warmPrefetch}
               onClick={() => {
-                void onStopSession();
+                void handleStart();
               }}
+              className="h-9 rounded-full bg-white px-5 text-xs font-medium text-black hover:bg-white/90"
             >
-              <Square className="size-3.5" />
-              {sessionBusy ? t("stopping") : t("stopSession")}
+              <Play className="size-3.5" />
+              {isStarting ? t("starting") : t("startSession")}
             </Button>
-          </>
-        )}
+          ) : (
+            <>
+              {/* Mic */}
+              <button
+                type="button"
+                aria-label={
+                  micMuted ? t("controls.unmuteMic") : t("controls.muteMic")
+                }
+                disabled={!isLive || disabled}
+                onClick={toggleMic}
+                className="flex size-9 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-white transition hover:bg-white/10 disabled:opacity-40"
+              >
+                {micMuted ? (
+                  <MicOff className="size-4 stroke-[1.75]" />
+                ) : (
+                  <Mic className="size-4 stroke-[1.75]" />
+                )}
+              </button>
+
+              {/* Camera (local pip) */}
+              <button
+                type="button"
+                aria-label={
+                  cameraEnabled
+                    ? t("controls.turnOffCamera")
+                    : t("controls.turnOnCamera")
+                }
+                disabled={disabled}
+                onClick={onCameraToggle}
+                className="flex size-9 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-white transition hover:bg-white/10 disabled:opacity-40"
+              >
+                {cameraEnabled ? (
+                  <Video className="size-4 stroke-[1.75]" />
+                ) : (
+                  <VideoOff className="size-4 stroke-[1.75]" />
+                )}
+              </button>
+
+              {/* Chat / transcript (opens the messages sheet to keep video area clean) */}
+              {onToggleChat ? (
+                <button
+                  type="button"
+                  aria-label="Open chat"
+                  onClick={onToggleChat}
+                  className="flex size-9 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-white transition hover:bg-white/10"
+                >
+                  <MessageSquare className="size-4 stroke-[1.75]" />
+                </button>
+              ) : null}
+
+              {/* End session — prominent */}
+              <Button
+                type="button"
+                disabled={disabled}
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  void onStopSession();
+                }}
+                className="h-9 rounded-xl border-red-500/40 bg-red-500/10 px-4 text-xs text-red-300 hover:bg-red-500/15 hover:text-red-200"
+              >
+                <Square className="size-3.5" />
+                {sessionBusy ? t("stopping") : t("stopSession")}
+              </Button>
+
+              {/* Subtle quality badge like the reference */}
+              <div className="ml-1 hidden items-center gap-1 rounded-lg border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] tabular-nums text-white/50 sm:flex">
+                HD
+              </div>
+            </>
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 
@@ -245,6 +281,9 @@ export function EmployeeTalkRoom({
   const prefetchedTokenRef = useRef<string | null>(null);
   const threads = useTalkThreads(employeeId);
   const [cameraEnabled, setCameraEnabled] = useState(false);
+  const [showChat, setShowChat] = useState(false);
+
+  const { pipelineState: livePipeline } = useTalkAnam();
 
   useEffect(() => {
     if (activeSession) {
@@ -269,23 +308,15 @@ export function EmployeeTalkRoom({
         onLimitReached={onSessionLimitReached}
       />
 
-      <div className="grid min-h-0 flex-1 md:grid-cols-[minmax(0,1fr)_300px] xl:grid-cols-[minmax(0,1fr)_320px]">
-        {/* Main content area.
-            - On small widths: stack with stage capped so the message grid ("сетка") always gets real estate.
-            - On md+: stage + chat side-by-side (chat gets full row height).
-            This prevents the big portrait from crushing the chat. */}
-        <div className="flex min-h-0 min-w-0 flex-col border-white/8 md:flex-row md:border-r">
-          {/* Stage / visual (video or idle preview).
-              Capped in idle so chat is visible and usable. When live we allow it more room. */}
-          <div
-            className={cn(
-              "talk-workspace-stage relative min-h-[160px] w-full overflow-hidden bg-black",
-              "md:min-h-0 md:w-[52%] md:shrink-0 md:border-r md:border-white/8",
-              activeSession
-                ? "max-h-[min(62vh,560px)]"
-                : "max-h-[min(38vh,320px)]",
-            )}
-          >
+      {/* Video-call centric layout inspired by the concept:
+          - Large immersive stage (video / preview) is the hero.
+          - Floating controls overlaid on the stage (mic, cam, chat toggle, end).
+          - Right panel: agent information exactly as we already provide (Details / Activity / Notes tabs, stats, current activity).
+          - Text chat is available on demand via Sheet (keeps the call UI clean and focused like the reference). */}
+      <div className="flex min-h-0 flex-1 overflow-hidden border-t border-white/8">
+        {/* Stage area — dominant, cinematic video call surface */}
+        <div className="relative flex min-h-0 min-w-0 flex-1 flex-col bg-black">
+          <div className="talk-workspace-stage relative flex-1 overflow-hidden bg-black">
             <EmployeeAnamStage
               employeeId={employeeId}
               employeeName={employeeName}
@@ -307,15 +338,59 @@ export function EmployeeTalkRoom({
               prefetchedTokenRef={prefetchedTokenRef}
               cameraEnabled={cameraEnabled}
               onCameraToggle={() => setCameraEnabled((value) => !value)}
+              onToggleChat={() => setShowChat(true)}
             />
-          </div>
 
-          {/* Chat panel: the "сетка".
-              Always claims significant space. In side-by-side it fills the row height.
-              In stack it gets flex-1 after the capped stage. */}
-          <div className="employee-talk-chat-panel talk-workspace-chat flex min-h-[300px] min-w-0 flex-1 flex-col overflow-hidden md:min-h-0">
+            {/* Bottom-left speaking indicator (concept match) */}
+            {activeSession && livePipeline === "speaking" ? (
+              <div className="absolute bottom-4 left-4 z-20 flex items-center gap-2 rounded-full border border-white/10 bg-black/65 px-2.5 py-1 text-[10px] font-medium text-white/85 backdrop-blur">
+                <span className="flex h-2.5 items-end gap-0.5" aria-hidden>
+                  {[0.6, 1, 0.55, 0.95].map((s, i) => (
+                    <span
+                      key={i}
+                      className="w-0.5 animate-pulse rounded-full bg-emerald-400"
+                      style={{ height: `${s * 100}%`, animationDelay: `${i * 80}ms` }}
+                    />
+                  ))}
+                </span>
+                Speaking
+              </div>
+            ) : null}
+          </div>
+        </div>
+
+        {/* Right — agent info panel (exactly the data and tabs we already have) */}
+        <div className="hidden w-[300px] shrink-0 border-l border-white/8 md:flex">
+          <TalkInspectorPanel
+            details={agentDetails}
+            departmentLabel={departmentLabel}
+          />
+        </div>
+      </div>
+
+      {/* Mobile inspector */}
+      <div className="max-h-[min(42dvh,360px)] min-h-0 border-t border-white/8 md:hidden">
+        <TalkInspectorPanel
+          details={agentDetails}
+          departmentLabel={departmentLabel}
+        />
+      </div>
+
+      {/* On-demand chat / transcript sheet — opened from the floating control bar.
+          This lets the main view stay true to the video-call concept while keeping full chat functionality. */}
+      <Sheet open={showChat} onOpenChange={setShowChat}>
+        <SheetContent
+          side="right"
+          className="w-full border-white/8 bg-[#0a0a0a] p-0 sm:max-w-[380px]"
+        >
+          <SheetHeader className="border-b border-white/8 px-4 py-3">
+            <SheetTitle className="text-sm font-medium">
+              Chat with {employeeName}
+            </SheetTitle>
+          </SheetHeader>
+          <div className="flex h-[calc(100%-3.25rem)] min-h-0 flex-col">
             <EmployeeTalkChat
-              key={`${employeeId}-${threads.activeThreadId ?? "main"}`}
+              key={`sheet-${employeeId}-${threads.activeThreadId ?? "main"}`}
               embedded
               chatSession={threads.activeThreadId ? null : chatSession}
               employeeId={employeeId}
@@ -329,24 +404,8 @@ export function EmployeeTalkRoom({
               viewerImage={viewer.image}
             />
           </div>
-        </div>
-
-        {/* Right — permanent inspector rail (appears from md, matches side-by-side chat). */}
-        <div className="hidden min-h-0 md:flex">
-          <TalkInspectorPanel
-            details={agentDetails}
-            departmentLabel={departmentLabel}
-          />
-        </div>
-      </div>
-
-      {/* Mobile inspector below the canvas. */}
-      <div className="max-h-[min(42dvh,360px)] min-h-0 border-t border-white/8 md:hidden">
-        <TalkInspectorPanel
-          details={agentDetails}
-          departmentLabel={departmentLabel}
-        />
-      </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

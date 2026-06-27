@@ -13,21 +13,76 @@ import {
 } from "../../lib/office-layout";
 import type { SceneRoom } from "./scene-types";
 
-const WALL_COLOR = "#e9e9e9";
 const DESK_COLOR = "#141414";
 const CHAIR_COLOR = "#1f1f1f";
 
+type WallVariant = "concrete" | "accent" | "glass";
+
+/**
+ * Architectural wall with three material languages:
+ *  concrete — white/gray architectural concrete (default, most zones)
+ *  accent   — black panels for executive / critical zones
+ *  glass    — lightly tinted glass for open-space dividers
+ */
 function Wall({
   position,
   args,
+  variant = "concrete",
 }: {
   position: [number, number, number];
   args: [number, number, number];
+  variant?: WallVariant;
 }) {
+  if (variant === "glass") {
+    return (
+      <group position={position}>
+        {/* Tinted glass pane */}
+        <mesh castShadow receiveShadow>
+          <boxGeometry args={args} />
+          <meshStandardMaterial
+            color="#1a1d20"
+            roughness={0.12}
+            metalness={0.4}
+            transparent
+            opacity={0.34}
+          />
+        </mesh>
+        {/* Thin frame top edge for definition */}
+        <mesh position={[0, args[1] / 2 - 0.02, 0]}>
+          <boxGeometry args={[args[0], 0.04, args[2] + 0.01]} />
+          <meshStandardMaterial color="#0c0c0c" roughness={0.6} metalness={0.2} />
+        </mesh>
+      </group>
+    );
+  }
+
+  if (variant === "accent") {
+    return (
+      <group position={position}>
+        {/* Black accent panel */}
+        <mesh castShadow receiveShadow>
+          <boxGeometry args={args} />
+          <meshStandardMaterial color="#0b0b0c" roughness={0.5} metalness={0.18} />
+        </mesh>
+        {/* Subtle recessed light reveal near the top (premium exec feel) */}
+        <mesh position={[0, args[1] / 2 - 0.12, 0]}>
+          <boxGeometry args={[args[0] * 0.96, 0.015, args[2] + 0.01]} />
+          <meshStandardMaterial
+            color="#ffffff"
+            emissive="#ffffff"
+            emissiveIntensity={0.5}
+            toneMapped={false}
+          />
+        </mesh>
+      </group>
+    );
+  }
+
+  // concrete (default)
   return (
     <mesh position={position} castShadow receiveShadow>
       <boxGeometry args={args} />
-      <meshStandardMaterial color={WALL_COLOR} roughness={0.82} metalness={0.02} />
+      <meshStandardMaterial color="#dadcdd" roughness={0.9} metalness={0.02} />
     </mesh>
   );
 }
@@ -155,11 +210,15 @@ export function Plant({ position, phase = 0 }: { position: [number, number]; pha
   const [x, z] = position;
   const groupRef = useRef<ThreeGroup>(null);
 
-  // Leva for plant micro-movement (part of liveliness)
-  const plant = useControls("HQ Liveliness", {
-    plantSwaySpeed: { value: 0.12, min: 0.01, max: 1, step: 0.01 },
-    plantSwayAmp:   { value: 0.025, min: 0, max: 0.2, step: 0.001 },
-  }, { collapsed: true });
+  // Dev-only tuning (the Leva panel itself is hidden in prod via <Leva> in office-scene).
+  const plant = useControls(
+    "HQ Liveliness",
+    {
+      plantSwaySpeed: { value: 0.12, min: 0.01, max: 1, step: 0.01 },
+      plantSwayAmp:   { value: 0.025, min: 0, max: 0.2, step: 0.001 },
+    },
+    { collapsed: true }
+  );
 
   useFrame((state) => {
     if (groupRef.current) {
@@ -339,6 +398,11 @@ export function OfficeRoom({ room }: { room: SceneRoom }) {
   const halfD = def.d / 2;
   const wallY = WALL_HEIGHT / 2;
 
+  // Executive / critical zones get black accent panels; everything else uses
+  // architectural concrete. (Glass dividers are reserved for open-space edges.)
+  const wallVariant: WallVariant =
+    def.department === "executive" ? "accent" : "concrete";
+
   const labelZ = def.walls.north
     ? def.z - halfD
     : def.walls.south
@@ -375,24 +439,28 @@ export function OfficeRoom({ room }: { room: SceneRoom }) {
         <Wall
           position={[def.x, wallY, def.z - halfD]}
           args={[def.w, WALL_HEIGHT, WALL_THICKNESS]}
+          variant={wallVariant}
         />
       ) : null}
       {def.walls.south ? (
         <Wall
           position={[def.x, wallY, def.z + halfD]}
           args={[def.w, WALL_HEIGHT, WALL_THICKNESS]}
+          variant={wallVariant}
         />
       ) : null}
       {def.walls.west ? (
         <Wall
           position={[def.x - halfW, wallY, def.z]}
           args={[WALL_THICKNESS, WALL_HEIGHT, def.d]}
+          variant={wallVariant}
         />
       ) : null}
       {def.walls.east ? (
         <Wall
           position={[def.x + halfW, wallY, def.z]}
           args={[WALL_THICKNESS, WALL_HEIGHT, def.d]}
+          variant={wallVariant}
         />
       ) : null}
 
