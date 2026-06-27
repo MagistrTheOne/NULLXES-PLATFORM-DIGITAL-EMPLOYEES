@@ -12,7 +12,7 @@ export function NullxesScrollArea({ children }: { children?: ReactNode }) {
 
 export function NullxesMessageListWrapper({ children }: { children?: ReactNode }) {
   return (
-    <div className="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-black">
+    <div className="nullxes-message-list-wrapper relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-black">
       {/* Force the inner Stream message list (or custom content) to be the scroller.
           This prevents the whole chat/page from shifting down when messages load or composer changes. */}
       <div className="flex-1 overflow-y-auto [scrollbar-gutter:stable]">

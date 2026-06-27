@@ -25,6 +25,7 @@ import { prefetchAnamTalkSessionAction } from "../actions/prefetch-anam-talk-ses
 import type { TalkVoiceMode } from "../services/resolve-talk-voice-mode";
 import { TalkLocalCameraPip } from "./talk-local-camera-pip";
 import "./employee-talk-theme.css";
+import "@/features/conversations/components/conversations-theme.css";
 
 const EmployeeAnamStage = dynamic(
   () =>
@@ -268,9 +269,12 @@ export function EmployeeTalkRoom({
       />
 
       <div className="grid min-h-0 flex-1 lg:grid-cols-[minmax(0,1fr)_300px] xl:grid-cols-[minmax(0,1fr)_320px]">
-        {/* Left — video + conversation (single column stack). */}
-        <div className="flex min-h-0 min-w-0 flex-col border-white/8 lg:border-r">
-          <div className="talk-workspace-stage relative min-h-[220px] shrink-0 bg-black lg:min-h-[280px] lg:flex-[5]">
+        {/* Main content: on mobile — stage on top of chat (stack).
+            On desktop (lg+) — stage + chat side-by-side so the message grid
+            ("сетка") always has full available height and is clearly visible. */}
+        <div className="flex min-h-0 min-w-0 flex-col border-white/8 lg:flex-row lg:border-r">
+          {/* Stage / visual (video or idle preview) */}
+          <div className="talk-workspace-stage relative min-h-[220px] w-full shrink-0 overflow-hidden bg-black lg:min-h-0 lg:w-[56%] lg:shrink-0 lg:border-r lg:border-white/8">
             <EmployeeAnamStage
               employeeId={employeeId}
               employeeName={employeeName}
@@ -295,7 +299,9 @@ export function EmployeeTalkRoom({
             />
           </div>
 
-          <div className="employee-talk-chat-panel talk-workspace-chat flex min-h-[240px] min-w-0 flex-col overflow-hidden lg:min-h-0 lg:flex-[4]">
+          {/* Chat panel — now side-by-side on lg+, gets full height.
+              This is the "сетка" — message list must be prominent and tall. */}
+          <div className="employee-talk-chat-panel talk-workspace-chat flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
             <EmployeeTalkChat
               key={`${employeeId}-${threads.activeThreadId ?? "main"}`}
               embedded

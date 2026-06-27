@@ -20,6 +20,13 @@
   background: #000;
 }
 
+/* Consistent readable message grid column in conversations surface too */
+.nullxes-conversation-layout .str-chat__message-list .str-chat__ul {
+  max-width: 680px;
+  margin-inline: auto;
+  padding-inline: 12px;
+}
+
 @media (min-width: 1280px) {
   .conversations-workspace {
     min-height: min(80dvh, 840px);
