@@ -15,12 +15,13 @@ export const HQ_MODELS: {
   props: string | null;
 } = {
   characters: {
-    // New female base model with textures (provided for Somnia + other female employees).
+    // Female base model with textures (for Somnia + other female employees).
     // Path: public/models/female_base.glb
-    // This model is used for all characters resolved as "female".
+    // Used for characters resolved as "female".
     //
-    // Note: public/models/ is gitignored. The model loads locally when the file is present.
-    // On deploys without the asset, we fall back to the styled primitive characters.
+    // The model is now committed (removed from .gitignore) so it deploys to Vercel.
+    // If the GLB fails to load at runtime (rare network/asset issue), we gracefully
+    // fall back to the styled primitive character via error boundary.
     female: "/models/female_base.glb",
 
     // Male model is still optional / dev-only for now.

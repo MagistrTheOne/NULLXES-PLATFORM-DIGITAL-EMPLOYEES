@@ -1,10 +1,36 @@
 "use client";
 
-import { Suspense, useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState, Component, type ReactNode } from "react";
 import { Html } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { Group, Vector3 } from "three";
 import { useControls } from "leva";
+
+// Error boundary to prevent a single failing GLTF (e.g. 404 on prod) from destroying the WebGL context.
+class ModelErrorBoundary extends Component<
+  { children: ReactNode; fallback?: ReactNode },
+  { hasError: boolean }
+> {
+  state = { hasError: false };
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: unknown) {
+    // Log but don't crash the scene
+    if (process.env.NODE_ENV !== "production") {
+      console.warn("[HQ] CharacterModel failed to load, falling back to primitive.", error);
+    }
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback ?? null;
+    }
+    return this.props.children;
+  }
+}
 import {
   FLOOR_HALF,
   STATUS_COLORS,
@@ -477,7 +503,9 @@ export function OfficeEmployee({ employee }: { employee: SceneEmployee }) {
       >
         {employee.modelUrl ? (
           <Suspense fallback={null}>
-            <CharacterModel url={employee.modelUrl} />
+            <ModelErrorBoundary>
+              <CharacterModel url={employee.modelUrl} />
+            </ModelErrorBoundary>
           </Suspense>
         ) : (
           <>
