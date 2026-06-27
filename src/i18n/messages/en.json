@@ -376,6 +376,7 @@
         "model": "Model",
         "language": "Language",
         "department": "Department",
+        "timezone": "Timezone",
         "currentActivity": "Current Activity",
         "currentTask": "Current Task",
         "currentTaskHint": "Handling user requests",
@@ -431,11 +432,38 @@
         "muteMic": "Mute microphone",
         "unmuteMic": "Unmute microphone",
         "turnOffCamera": "Turn off camera",
-        "turnOnCamera": "Turn on camera"
+        "turnOnCamera": "Turn on camera",
+        "shareSession": "Share session"
+      },
+      "workforce": {
+        "liveSessions": "Live Sessions",
+        "liveSessionsDetail": "Active now",
+        "employeesOnline": "Employees Online",
+        "employeesOnlineDetail": "{online} of {total}",
+        "tasksInProgress": "Tasks In Progress",
+        "tasksInProgressDetail": "Across workforce",
+        "systemLoad": "System Load",
+        "loadOptimal": "Optimal",
+        "loadModerate": "Moderate",
+        "loadHigh": "High",
+        "uptime": "Uptime"
+      },
+      "sessionControls": {
+        "title": "Session Controls",
+        "transfer": "Transfer",
+        "invite": "Invite",
+        "notes": "Notes",
+        "muteAgent": "Mute agent",
+        "focusMode": "Focus mode",
+        "exitFocus": "Exit focus",
+        "endSession": "End session"
       },
       "stage": {
         "goodConnection": "Good connection",
         "fullscreen": "Fullscreen",
+        "tagline": "Beyond Limits",
+        "hudEvolutionary": "Evolutionary Layer",
+        "hudQuantum": "Quantum Link",
         "cameraUnavailable": "Camera unavailable",
         "you": "You",
         "anamClosed": "Anam connection closed",

@@ -14,7 +14,7 @@ import { attachTalkVoicePipeline } from "@/features/runtime-session/lib/attach-t
 import { createAnamTalkClient } from "@/features/runtime-session/lib/create-anam-talk-client";
 import type { TalkVoiceMode } from "@/features/runtime-session/services/resolve-talk-voice-mode";
 import { AvatarIdlePreview } from "@/features/employees/components/avatar-idle-preview";
-import { TalkStageChrome } from "./talk-stage-chrome";
+import { TalkStageHud } from "./talk-stage-hud";
 
 const ANAM_VIDEO_ELEMENT_ID = "nullxes-anam-persona-video";
 
@@ -203,7 +203,7 @@ export function EmployeeAnamStage({
         }`}
       />
 
-      <TalkStageChrome employeeName={employeeName} />
+      <TalkStageHud employeeName={employeeName} />
 
       {status === "connecting" ? (
         <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-2 bg-black/55">

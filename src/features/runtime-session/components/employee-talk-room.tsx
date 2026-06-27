@@ -8,13 +8,23 @@ import {
   Mic,
   MicOff,
   Play,
+  Share2,
   Square,
   Video,
   VideoOff,
+  MessageSquare,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import type { TalkAgentDetails } from "./talk-agent-details";
 import { TalkInspectorPanel } from "./talk-inspector-panel";
+import { TalkWorkforceStrip } from "./talk-workforce-strip";
+import type { TalkWorkforceSnapshot } from "../queries/get-talk-workforce-snapshot";
 import { TalkWorkspaceHeader } from "./talk-workspace-header";
 import type { TalkViewer } from "./talk-viewer-card";
 import type { TalkChatCredentials } from "../services/create-talk-chat-session";
@@ -25,13 +35,6 @@ import { prefetchAnamTalkSessionAction } from "../actions/prefetch-anam-talk-ses
 import type { TalkVoiceMode } from "../services/resolve-talk-voice-mode";
 import { cn } from "@/lib/utils";
 import { TalkLocalCameraPip } from "./talk-local-camera-pip";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
-import { MessageSquare } from "lucide-react";
 import "./employee-talk-theme.css";
 import "@/features/conversations/components/conversations-theme.css";
 
@@ -77,6 +80,7 @@ function TalkStageControls({
   cameraEnabled,
   onCameraToggle,
   onToggleChat,
+  onShare,
 }: {
   employeeId: string;
   activeSession: ActiveTalkSession | null;
@@ -87,6 +91,7 @@ function TalkStageControls({
   cameraEnabled: boolean;
   onCameraToggle: () => void;
   onToggleChat?: () => void;
+  onShare?: () => void;
 }) {
   const t = useTranslations("employees.talk");
   const { micMuted, micPermission, toggleMic, isLive } = useTalkAnam();
@@ -144,7 +149,7 @@ function TalkStageControls({
       ) : null}
 
       {/* Floating call controls — video-call style, centered over the stage (concept match) */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-4 z-30 flex justify-center">
+      <div className="pointer-events-none absolute inset-x-0 bottom-16 z-30 flex justify-center lg:bottom-14">
         <div className="pointer-events-auto flex items-center gap-2 rounded-2xl border border-white/12 bg-black/70 px-2 py-1.5 backdrop-blur-md">
           {!activeSession ? (
             <Button
@@ -198,6 +203,19 @@ function TalkStageControls({
                 )}
               </button>
 
+              {/* Share */}
+              {onShare ? (
+                <button
+                  type="button"
+                  aria-label={t("controls.shareSession")}
+                  disabled={disabled}
+                  onClick={onShare}
+                  className="flex size-9 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-white transition hover:bg-white/10 disabled:opacity-40"
+                >
+                  <Share2 className="size-4 stroke-[1.75]" />
+                </button>
+              ) : null}
+
               {/* Chat / transcript (opens the messages sheet to keep video area clean) */}
               {onToggleChat ? (
                 <button
@@ -219,7 +237,7 @@ function TalkStageControls({
                 onClick={() => {
                   void onStopSession();
                 }}
-                className="h-9 rounded-xl border-red-500/40 bg-red-500/10 px-4 text-xs text-red-300 hover:bg-red-500/15 hover:text-red-200"
+                className="h-9 rounded-xl border-white/20 bg-white/5 px-4 text-xs text-white hover:bg-white/10"
               >
                 <Square className="size-3.5" />
                 {sessionBusy ? t("stopping") : t("stopSession")}
@@ -248,6 +266,7 @@ export type EmployeeTalkSessionInputProps = {
   agentDetails: TalkAgentDetails;
   viewer: TalkViewer;
   departmentLabel: string | null;
+  workforceSnapshot: TalkWorkforceSnapshot;
 };
 
 export type EmployeeTalkRoomProps = EmployeeTalkSessionInputProps & {
@@ -270,6 +289,7 @@ export function EmployeeTalkRoom({
   agentDetails,
   viewer,
   departmentLabel,
+  workforceSnapshot,
   sessionLimitSeconds,
   activeSession,
   onActiveSessionChange,
@@ -282,8 +302,21 @@ export function EmployeeTalkRoom({
   const threads = useTalkThreads(employeeId);
   const [cameraEnabled, setCameraEnabled] = useState(false);
   const [showChat, setShowChat] = useState(false);
+  const [focusMode, setFocusMode] = useState(false);
+  const t = useTranslations("employees.talk");
 
-  const { pipelineState: livePipeline } = useTalkAnam();
+  const handleShare = async () => {
+    const url = window.location.href;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: document.title, url });
+        return;
+      } catch {
+        // fall through to clipboard
+      }
+    }
+    await navigator.clipboard.writeText(url);
+  };
 
   useEffect(() => {
     if (activeSession) {
@@ -314,9 +347,8 @@ export function EmployeeTalkRoom({
           - Right panel: agent information exactly as we already provide (Details / Activity / Notes tabs, stats, current activity).
           - Text chat is available on demand via Sheet (keeps the call UI clean and focused like the reference). */}
       <div className="flex min-h-0 flex-1 overflow-hidden border-t border-white/8">
-        {/* Stage area — dominant, cinematic video call surface */}
         <div className="relative flex min-h-0 min-w-0 flex-1 flex-col bg-black">
-          <div className="talk-workspace-stage relative flex-1 overflow-hidden bg-black">
+          <div className="talk-workspace-stage relative min-h-0 flex-1 overflow-hidden bg-black">
             <EmployeeAnamStage
               employeeId={employeeId}
               employeeName={employeeName}
@@ -339,42 +371,72 @@ export function EmployeeTalkRoom({
               cameraEnabled={cameraEnabled}
               onCameraToggle={() => setCameraEnabled((value) => !value)}
               onToggleChat={() => setShowChat(true)}
+              onShare={() => {
+                void handleShare();
+              }}
             />
-
-            {/* Bottom-left speaking indicator (concept match) */}
-            {activeSession && livePipeline === "speaking" ? (
-              <div className="absolute bottom-4 left-4 z-20 flex items-center gap-2 rounded-full border border-white/10 bg-black/65 px-2.5 py-1 text-[10px] font-medium text-white/85 backdrop-blur">
-                <span className="flex h-2.5 items-end gap-0.5" aria-hidden>
-                  {[0.6, 1, 0.55, 0.95].map((s, i) => (
-                    <span
-                      key={i}
-                      className="w-0.5 animate-pulse rounded-full bg-emerald-400"
-                      style={{ height: `${s * 100}%`, animationDelay: `${i * 80}ms` }}
-                    />
-                  ))}
-                </span>
-                Speaking
+            {focusMode ? (
+              <div className="absolute top-4 right-4 z-30">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setFocusMode(false)}
+                  className="h-8 border-white/15 bg-black/70 text-xs text-white/80 hover:bg-white/10"
+                >
+                  {t("sessionControls.exitFocus")}
+                </Button>
               </div>
             ) : null}
           </div>
+
+          <div className="talk-workforce-panel shrink-0 border-t border-white/8 bg-[#0a0a0a] p-3">
+            <TalkWorkforceStrip snapshot={workforceSnapshot} />
+          </div>
         </div>
 
-        {/* Right — agent info panel (exactly the data and tabs we already have) */}
-        <div className="hidden w-[300px] shrink-0 border-l border-white/8 md:flex">
+        {!focusMode ? (
+          <div className="hidden w-[340px] shrink-0 border-l border-white/8 md:flex">
+            <TalkInspectorPanel
+              details={agentDetails}
+              departmentLabel={departmentLabel}
+              onEndSession={() => {
+                void onLeaveSession();
+              }}
+              onFocusMode={() => setFocusMode(true)}
+              focusMode={focusMode}
+              sessionBusy={sessionBusy}
+            />
+          </div>
+        ) : null}
+      </div>
+
+      {!focusMode ? (
+        <div className="max-h-[min(42dvh,360px)] min-h-0 border-t border-white/8 md:hidden">
           <TalkInspectorPanel
             details={agentDetails}
             departmentLabel={departmentLabel}
+            onEndSession={() => {
+              void onLeaveSession();
+            }}
+            onFocusMode={() => setFocusMode(true)}
+            focusMode={focusMode}
+            sessionBusy={sessionBusy}
           />
         </div>
-      </div>
-
-      {/* Mobile inspector */}
-      <div className="max-h-[min(42dvh,360px)] min-h-0 border-t border-white/8 md:hidden">
-        <TalkInspectorPanel
-          details={agentDetails}
-          departmentLabel={departmentLabel}
-        />
-      </div>
+      ) : (
+        <div className="flex justify-center border-t border-white/8 px-4 py-2 md:hidden">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => setFocusMode(false)}
+            className="text-xs text-white/60"
+          >
+            {t("sessionControls.exitFocus")}
+          </Button>
+        </div>
+      )}
 
       {/* On-demand chat / transcript sheet — opened from the floating control bar.
           This lets the main view stay true to the video-call concept while keeping full chat functionality. */}

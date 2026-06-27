@@ -376,6 +376,7 @@
         "model": "Модель",
         "language": "Язык",
         "department": "Отдел",
+        "timezone": "Часовой пояс",
         "currentActivity": "Текущая активность",
         "currentTask": "Текущая задача",
         "currentTaskHint": "Обработка запросов пользователей",
@@ -431,11 +432,38 @@
         "muteMic": "Выключить микрофон",
         "unmuteMic": "Включить микрофон",
         "turnOffCamera": "Выключить камеру",
-        "turnOnCamera": "Включить камеру"
+        "turnOnCamera": "Включить камеру",
+        "shareSession": "Поделиться сессией"
+      },
+      "workforce": {
+        "liveSessions": "Живые сессии",
+        "liveSessionsDetail": "Сейчас активны",
+        "employeesOnline": "Сотрудники онлайн",
+        "employeesOnlineDetail": "{online} из {total}",
+        "tasksInProgress": "Задачи в работе",
+        "tasksInProgressDetail": "По всей команде",
+        "systemLoad": "Нагрузка системы",
+        "loadOptimal": "Оптимально",
+        "loadModerate": "Умеренно",
+        "loadHigh": "Высокая",
+        "uptime": "Uptime"
+      },
+      "sessionControls": {
+        "title": "Управление сессией",
+        "transfer": "Перевести",
+        "invite": "Пригласить",
+        "notes": "Заметки",
+        "muteAgent": "Заглушить агента",
+        "focusMode": "Режим фокуса",
+        "exitFocus": "Выйти из фокуса",
+        "endSession": "Завершить сессию"
       },
       "stage": {
         "goodConnection": "Хорошее соединение",
         "fullscreen": "На весь экран",
+        "tagline": "Beyond Limits",
+        "hudEvolutionary": "Evolutionary Layer",
+        "hudQuantum": "Quantum Link",
         "cameraUnavailable": "Камера недоступна",
         "you": "Вы",
         "anamClosed": "Соединение с Anam закрыто",
