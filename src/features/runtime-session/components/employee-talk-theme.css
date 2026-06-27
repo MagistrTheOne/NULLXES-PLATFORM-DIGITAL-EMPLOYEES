@@ -39,15 +39,17 @@
   border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-/* Desktop: stage + chat are side-by-side (see employee-talk-room).
-   The chat "сетка" (message list) now gets the full height of the workspace row,
-   so it is always visible and usable. */
-@media (min-width: 1024px) {
+/* In stacked mode the chat grid must claim the remaining space after the capped stage. */
+.employee-talk-chat-panel.talk-workspace-chat {
+  flex: 1 1 0;
+  min-height: 300px;
+}
+
+/* On md+ we switch to side-by-side (stage | chat). Chat fills the full height of the row. */
+@media (min-width: 768px) {
   .talk-workspace-shell .talk-workspace-stage {
-    /* In side-by-side we let the stage fill the shared row height.
-       No more aggressive aspect + max-height that used to crush the chat below. */
     aspect-ratio: auto;
-    max-height: none;
+    max-height: none; /* the component controls per-idle/live max-h */
   }
 
   .talk-workspace-chat {
@@ -121,15 +123,7 @@
   }
 }
 
-@media (min-width: 1024px) {
-  .employee-talk-chat-panel {
-    /* In the new side-by-side layout the chat panel shares full row height.
-       We no longer force a small min-height that could hide the message grid. */
-    height: 100%;
-    max-height: none;
-    min-height: 0;
-  }
-}
+/* Legacy overrides cleaned — sizing is now driven by the room component + the rules above. */
 
 /* === Message grid ("сетка") visibility and height fixes === */
 
@@ -152,15 +146,22 @@
   background: #000;
 }
 
-/* Make the message list area ("сетка") visually distinct and clearly "there".
-   This is the dedicated chat grid/pane. Give it presence so it doesn't disappear
-   into a black void. */
-.talk-workspace-chat .str-chat__message-list {
-  background: #0a0a0a;
+/* === Full "сетка" (message grid) improvements === */
+
+/* The chat column gets its own subtle surface so the grid is clearly visible
+   and doesn't disappear into the black void of the stage. */
+.talk-workspace-chat {
+  background: #000;
 }
 
-/* Nice readable column for the actual messages inside the grid.
-   Feels intentional, not full-bleed wall of text. */
+.talk-workspace-chat .str-chat__message-list {
+  background: #0a0a0a;
+  /* Subtle border to separate the grid from stage/controls */
+  border-left: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* Readable, centered column for messages — looks like a proper grid, not wall-to-wall text.
+   Prevents long lines and makes the list feel intentional. */
 .talk-workspace-chat .str-chat__message-list .str-chat__ul {
   max-width: 680px;
   margin-inline: auto;
@@ -174,31 +175,59 @@
   }
 }
 
-/* Subtle separation so the chat grid feels like its own surface */
-@media (min-width: 1024px) {
-  .talk-workspace-chat {
-    background: #000;
-  }
+/* Ensure the Stream layout + our wrappers form a solid flex column from top to bottom.
+   This is critical so only the message list scrolls and nothing "shifts" when
+   composer grows, header collapses, or messages load. */
+.talk-workspace-chat .nullxes-conversation-layout,
+.talk-workspace-chat .nullxes-conversation-layout.str-chat,
+.talk-workspace-chat .str-chat {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
-/* The wrapper we provide for the scroller */
+.talk-workspace-chat .str-chat__main-panel,
+.talk-workspace-chat .str-chat__main-panel-inner {
+  min-height: 0;
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* The actual scroll container for the сетка */
+.talk-workspace-chat .str-chat__message-list {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+/* Our Nullxes wrappers must participate in the height chain */
 .talk-workspace-chat .nullxes-scroll-area,
 .talk-workspace-chat .nullxes-message-list-wrapper {
   min-height: 0;
   flex: 1 1 0;
-  background: #000;
+  background: #0a0a0a;
 }
 
-/* Inner scroller — this is what actually holds the messages */
 .talk-workspace-chat .nullxes-message-list-wrapper > div {
   min-height: 0;
 }
 
-/* Composer should stay at the bottom, never push the whole thing */
+/* Composer locked at bottom, never pushes the list or the whole pane */
 .talk-workspace-chat .str-chat__message-input {
   flex-shrink: 0;
   background: #000;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Smaller, less obtrusive empty state so it doesn't dominate when grid is first shown */
+.talk-workspace-chat .str-chat__empty-channel,
+.talk-workspace-chat .nullxes-empty-state {
+  padding: 1.25rem 1rem;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.45);
 }
 
 .employee-talk-controls {

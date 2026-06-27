@@ -23,6 +23,7 @@ import { useTalkThreads } from "../lib/use-talk-threads";
 import { startTalkSessionAction } from "../actions/employee-session";
 import { prefetchAnamTalkSessionAction } from "../actions/prefetch-anam-talk-session";
 import type { TalkVoiceMode } from "../services/resolve-talk-voice-mode";
+import { cn } from "@/lib/utils";
 import { TalkLocalCameraPip } from "./talk-local-camera-pip";
 import "./employee-talk-theme.css";
 import "@/features/conversations/components/conversations-theme.css";
@@ -257,7 +258,7 @@ export function EmployeeTalkRoom({
   }, [activeSession, employeeId]);
 
   return (
-    <div className="talk-workspace-shell employee-talk-workspace employee-talk-shell mx-auto flex min-h-[min(88dvh,920px)] w-full flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#0a0a0a]">
+    <div className="talk-workspace-shell employee-talk-workspace employee-talk-shell mx-auto flex min-h-0 flex-1 w-full flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#0a0a0a] min-h-[min(78dvh,820px)]">
       <TalkWorkspaceHeader
         employeeName={employeeName}
         sessionLimitSeconds={sessionLimitSeconds}
@@ -268,13 +269,23 @@ export function EmployeeTalkRoom({
         onLimitReached={onSessionLimitReached}
       />
 
-      <div className="grid min-h-0 flex-1 lg:grid-cols-[minmax(0,1fr)_300px] xl:grid-cols-[minmax(0,1fr)_320px]">
-        {/* Main content: on mobile — stage on top of chat (stack).
-            On desktop (lg+) — stage + chat side-by-side so the message grid
-            ("сетка") always has full available height and is clearly visible. */}
-        <div className="flex min-h-0 min-w-0 flex-col border-white/8 lg:flex-row lg:border-r">
-          {/* Stage / visual (video or idle preview) */}
-          <div className="talk-workspace-stage relative min-h-[220px] w-full shrink-0 overflow-hidden bg-black lg:min-h-0 lg:w-[56%] lg:shrink-0 lg:border-r lg:border-white/8">
+      <div className="grid min-h-0 flex-1 md:grid-cols-[minmax(0,1fr)_300px] xl:grid-cols-[minmax(0,1fr)_320px]">
+        {/* Main content area.
+            - On small widths: stack with stage capped so the message grid ("сетка") always gets real estate.
+            - On md+: stage + chat side-by-side (chat gets full row height).
+            This prevents the big portrait from crushing the chat. */}
+        <div className="flex min-h-0 min-w-0 flex-col border-white/8 md:flex-row md:border-r">
+          {/* Stage / visual (video or idle preview).
+              Capped in idle so chat is visible and usable. When live we allow it more room. */}
+          <div
+            className={cn(
+              "talk-workspace-stage relative min-h-[160px] w-full overflow-hidden bg-black",
+              "md:min-h-0 md:w-[52%] md:shrink-0 md:border-r md:border-white/8",
+              activeSession
+                ? "max-h-[min(62vh,560px)]"
+                : "max-h-[min(38vh,320px)]",
+            )}
+          >
             <EmployeeAnamStage
               employeeId={employeeId}
               employeeName={employeeName}
@@ -299,9 +310,10 @@ export function EmployeeTalkRoom({
             />
           </div>
 
-          {/* Chat panel — now side-by-side on lg+, gets full height.
-              This is the "сетка" — message list must be prominent and tall. */}
-          <div className="employee-talk-chat-panel talk-workspace-chat flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+          {/* Chat panel: the "сетка".
+              Always claims significant space. In side-by-side it fills the row height.
+              In stack it gets flex-1 after the capped stage. */}
+          <div className="employee-talk-chat-panel talk-workspace-chat flex min-h-[300px] min-w-0 flex-1 flex-col overflow-hidden md:min-h-0">
             <EmployeeTalkChat
               key={`${employeeId}-${threads.activeThreadId ?? "main"}`}
               embedded
@@ -319,8 +331,8 @@ export function EmployeeTalkRoom({
           </div>
         </div>
 
-        {/* Right — permanent inspector rail (desktop). */}
-        <div className="hidden min-h-0 lg:flex">
+        {/* Right — permanent inspector rail (appears from md, matches side-by-side chat). */}
+        <div className="hidden min-h-0 md:flex">
           <TalkInspectorPanel
             details={agentDetails}
             departmentLabel={departmentLabel}
@@ -329,7 +341,7 @@ export function EmployeeTalkRoom({
       </div>
 
       {/* Mobile inspector below the canvas. */}
-      <div className="max-h-[min(42dvh,360px)] min-h-0 border-t border-white/8 lg:hidden">
+      <div className="max-h-[min(42dvh,360px)] min-h-0 border-t border-white/8 md:hidden">
         <TalkInspectorPanel
           details={agentDetails}
           departmentLabel={departmentLabel}

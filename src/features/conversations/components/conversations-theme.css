@@ -12,19 +12,44 @@
   height: 100%;
   min-height: 0;
   background: #000;
+  display: flex;
+  flex-direction: column;
 }
 
 .nullxes-conversation-layout .str-chat__message-list,
 .nullxes-conversation-layout .str-chat__main-panel,
 .nullxes-conversation-layout .str-chat__main-panel-inner {
   background: #000;
+  min-height: 0;
 }
 
-/* Consistent readable message grid column in conversations surface too */
+/* Make the message grid ("сетка") a distinct, stable surface */
+.nullxes-conversation-layout .str-chat__message-list {
+  background: #0a0a0a;
+  flex: 1 1 0;
+}
+
+/* Consistent readable message grid column */
 .nullxes-conversation-layout .str-chat__message-list .str-chat__ul {
   max-width: 680px;
   margin-inline: auto;
   padding-inline: 12px;
+}
+
+/* Strong scroller + no layout shift when composer or list changes */
+.nullxes-conversation-layout .nullxes-message-list-wrapper {
+  min-height: 0;
+  flex: 1 1 0;
+}
+
+.nullxes-conversation-layout .nullxes-message-list-wrapper > div {
+  min-height: 0;
+}
+
+.nullxes-conversation-layout .str-chat__message-input {
+  flex-shrink: 0;
+  background: #000;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 @media (min-width: 1280px) {
