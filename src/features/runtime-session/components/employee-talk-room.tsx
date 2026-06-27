@@ -94,9 +94,15 @@ function TalkStageControls({
   onShare?: () => void;
 }) {
   const t = useTranslations("employees.talk");
-  const { micMuted, micPermission, toggleMic, isLive } = useTalkAnam();
+  const { micMuted, micPermission, toggleMic, isLive, pipelineState } =
+    useTalkAnam();
   const [isStarting, setIsStarting] = useState(false);
   const [startError, setStartError] = useState<string | null>(null);
+
+  // Green only when the persona can actually hear: live, permission granted,
+  // and not muted. Red whenever input is blocked/muted/not yet granted.
+  const micHearing = isLive && micPermission === "granted" && !micMuted;
+  const micListening = pipelineState === "listening";
 
   const handleStart = async () => {
     setIsStarting(true);
@@ -167,21 +173,41 @@ function TalkStageControls({
             </Button>
           ) : (
             <>
-              {/* Mic */}
+              {/* Mic — status dot: green = persona can hear you, red = it can't */}
               <button
                 type="button"
                 aria-label={
                   micMuted ? t("controls.unmuteMic") : t("controls.muteMic")
                 }
+                title={
+                  micHearing
+                    ? t("controls.micHearing")
+                    : t("controls.micNotHearing")
+                }
                 disabled={!isLive || disabled}
                 onClick={toggleMic}
-                className="flex size-9 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-white transition hover:bg-white/10 disabled:opacity-40"
+                className={cn(
+                  "relative flex size-9 items-center justify-center rounded-xl border bg-white/5 text-white transition hover:bg-white/10 disabled:opacity-40",
+                  micHearing
+                    ? "border-emerald-400/50"
+                    : "border-red-500/50",
+                )}
               >
                 {micMuted ? (
                   <MicOff className="size-4 stroke-[1.75]" />
                 ) : (
                   <Mic className="size-4 stroke-[1.75]" />
                 )}
+                <span
+                  aria-hidden
+                  className={cn(
+                    "absolute -top-0.5 -right-0.5 size-2.5 rounded-full border-2 border-black",
+                    micHearing
+                      ? "bg-emerald-400"
+                      : "bg-red-500",
+                    micHearing && micListening && "animate-pulse",
+                  )}
+                />
               </button>
 
               {/* Camera (local pip) */}

@@ -77,6 +77,22 @@ export function TalkAnamProvider({ children }: { children: ReactNode }) {
       const state = active.getInputAudioState();
       setMicMuted(state.isMuted);
       userMutedMicRef.current = state.isMuted;
+
+      // Mirror the SDK's authoritative permission state so the live mic
+      // indicator stays accurate even if an event was missed.
+      switch (state.permissionState) {
+        case "granted":
+          setMicPermission("granted");
+          break;
+        case "denied":
+          setMicPermission("denied");
+          break;
+        case "pending":
+          setMicPermission("pending");
+          break;
+        default:
+          break;
+      }
     } catch {
       // ignore SDK state read errors
     }

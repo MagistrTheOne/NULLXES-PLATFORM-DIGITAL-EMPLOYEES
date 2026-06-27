@@ -433,7 +433,9 @@
         "unmuteMic": "Включить микрофон",
         "turnOffCamera": "Выключить камеру",
         "turnOnCamera": "Включить камеру",
-        "shareSession": "Поделиться сессией"
+        "shareSession": "Поделиться сессией",
+        "micHearing": "Микрофон активен — сотрудник вас слышит",
+        "micNotHearing": "Микрофон не активен — сотрудник вас не слышит"
       },
       "workforce": {
         "liveSessions": "Живые сессии",

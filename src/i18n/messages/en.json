@@ -433,7 +433,9 @@
         "unmuteMic": "Unmute microphone",
         "turnOffCamera": "Turn off camera",
         "turnOnCamera": "Turn on camera",
-        "shareSession": "Share session"
+        "shareSession": "Share session",
+        "micHearing": "Microphone active — the employee can hear you",
+        "micNotHearing": "Microphone not active — the employee can't hear you"
       },
       "workforce": {
         "liveSessions": "Live Sessions",
