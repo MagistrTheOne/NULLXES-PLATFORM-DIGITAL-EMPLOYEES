@@ -82,20 +82,47 @@ Commits agents should treat as current behavior:
 
 ### 4.1 Public REST API (`/api/v1/*`)
 
-Auth: `Authorization: Bearer nx_<api_key>`  
+Auth: `Authorization: Bearer nx_live_<api_key>` (legacy `nx_` keys still accepted)  
 Middleware: `src/features/public-api/middleware/authenticate-api-key.ts`  
-OpenAPI: `public/openapi.yaml` → served at **`GET /api/docs`**
+Scopes: `src/features/public-api/lib/api-scopes.ts`  
+OpenAPI: `public/openapi.yaml` → **`GET /api/docs`**
 
-| Method | Path | Purpose |
-|--------|------|---------|
-| GET, POST | `/api/v1/employees` | List / create employees |
-| GET, PATCH, DELETE | `/api/v1/employees/[id]` | Employee CRUD + outbound webhooks |
-| POST | `/api/v1/employees/[id]/tasks` | Queue async task `{ title, message, dueAt?, callbackUrl? }` |
-| GET | `/api/v1/sessions` | List talk sessions (`?limit=`, max 100) |
-| GET | `/api/v1/sessions/[id]` | Session detail |
-| POST | `/api/v1/workforce/assign` | Auto-route message to best employee — **implemented, not yet in OpenAPI** |
+| Scope | Routes |
+|-------|--------|
+| `employees:read` | `GET /employees`, `GET /employees/:id` |
+| `employees:write` | `POST /employees`, `PATCH/DELETE /employees/:id` |
+| `sessions:read` | `GET /sessions`, `GET /sessions/:id` |
+| `tasks:write` | `POST /employees/:id/tasks`, `POST /workforce/assign` |
 
-### 4.2 Internal / session APIs
+Key bundles in Settings → Security: **Read-only**, **Workforce Operator**, **Admin Integration**.  
+`api_key` columns: `scopes` (jsonb), `expires_at`, `last_used_at`.
+
+| Method | Path | Required scope(s) |
+|--------|------|-------------------|
+| GET, POST | `/api/v1/employees` | read / write |
+| GET, PATCH, DELETE | `/api/v1/employees/[id]` | read / write |
+| POST | `/api/v1/employees/[id]/tasks` | `tasks:write` |
+| GET | `/api/v1/sessions` | `sessions:read` |
+| GET | `/api/v1/sessions/[id]` | `sessions:read` |
+| POST | `/api/v1/workforce/assign` | `tasks:write` |
+
+Responses include `requestId` (+ `X-Request-Id` header). Denied access → audit `api.access.denied`.
+
+**Testing:** [`docs/PUBLIC_API.md`](./PUBLIC_API.md) — `npm run public-api:probe` (creates keys + HTTP smoke test).
+
+### 4.2 Auth step-up (email OTP)
+
+After email/password login (and after TOTP if enabled), users verify a 6-digit email code before dashboard access.
+
+| Piece | Path |
+|-------|------|
+| Service | `src/features/auth/services/email-otp.ts` |
+| Page | `/login/verify-email-otp` |
+| Gate | `src/features/auth/services/require-email-otp-verified.ts` in `(dashboard)/layout.tsx` |
+
+Verify: `npm run email-otp:verify`
+
+### 4.3 Internal / session APIs
 
 | Method | Path | Auth | Purpose |
 |--------|------|------|---------|
@@ -262,7 +289,7 @@ Permissions: `src/features/workspace/` — `canViewEmployees`, `canOperateEmploy
 | `employee_work_event` | `entities/work-event/schema.ts` | Activity feed |
 | `agent_approval_request` | `entities/agent-approval/schema.ts` | Human-in-the-loop |
 | `employee_handoff` | `entities/employee-handoff/schema.ts` | Agent-to-agent handoff |
-| `api_key` | `entities/api-key/schema.ts` | Public API keys (`nx_` prefix) |
+| `api_key` | `entities/api-key/schema.ts` | Public API keys (`nx_live_` prefix, scopes jsonb) |
 | `organization` | `entities/organization/schema.ts` | billingPlan, dataRegion |
 | Better Auth | `features/auth/schema.ts` | session, account, 2FA |
 
@@ -344,6 +371,9 @@ Run with `npm run <script>` (most load `.env` via `--env-file`):
 | `knowledge:verify`, `knowledge-retrieval:verify` | RAG |
 | `runtime-engine:verify`, `orchestration:verify` | Brain + routing |
 | `analytics:verify` | Analytics queries |
+| **`public-api:verify`** | API key auth + scope middleware (DB) |
+| **`public-api:probe`** | Create probe keys + live HTTP smoke test |
+| **`api-scopes:verify`**, **`email-otp:verify`** | Scope bundles + email OTP logic |
 | `providers:status` | Provider deployment snapshot |
 
 Build gate: `npm run build`
@@ -398,7 +428,7 @@ From [`AGENTS.md`](../AGENTS.md):
 - [PLATFORM_SCOPE.md](./PLATFORM_SCOPE.md) — sprint status matrix
 - [DEPLOYMENT_RF.md](./DEPLOYMENT_RF.md) — Russia deployment
 - [AGENTS.md](../AGENTS.md) — always-on agent rules
-- OpenAPI live: `/api/docs`
+- [PUBLIC_API.md](./PUBLIC_API.md) — public API testing
 
 ---
 

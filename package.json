@@ -52,7 +52,8 @@
     "knowledge-retrieval:verify": "node --env-file=.env --import tsx src/features/knowledge-retrieval/verify-knowledge-retrieval.ts",
     "email-otp:verify": "node --import tsx src/features/auth/verify-email-otp.ts",
     "api-scopes:verify": "node --import tsx src/features/public-api/verify-api-scopes.ts",
-    "public-api:verify": "node --env-file=.env --import tsx src/features/public-api/verify-public-api.ts"
+    "public-api:verify": "node --env-file=.env --import tsx src/features/public-api/verify-public-api.ts",
+    "public-api:probe": "node --env-file=.env --import tsx src/features/public-api/probe-public-api-http.ts"
   },
   "dependencies": {
     "@anam-ai/js-sdk": "^4.15.0",

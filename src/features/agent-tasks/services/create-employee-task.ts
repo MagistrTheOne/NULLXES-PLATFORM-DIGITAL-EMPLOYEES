@@ -43,23 +43,28 @@ export async function enqueueEmployeeTask(input: {
     return;
   }
 
-  if (input.dueAt && input.dueAt.getTime() > Date.now()) {
+  try {
+    if (input.dueAt && input.dueAt.getTime() > Date.now()) {
+      await inngest.send({
+        name: "employee/followup.due",
+        data: {
+          taskId: input.taskId,
+          organizationId: input.organizationId,
+        },
+        ts: input.dueAt.getTime(),
+      });
+      return;
+    }
+
     await inngest.send({
-      name: "employee/followup.due",
+      name: "employee/task.received",
       data: {
         taskId: input.taskId,
         organizationId: input.organizationId,
       },
-      ts: input.dueAt.getTime(),
     });
-    return;
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error("Failed to enqueue employee task:", message);
   }
-
-  await inngest.send({
-    name: "employee/task.received",
-    data: {
-      taskId: input.taskId,
-      organizationId: input.organizationId,
-    },
-  });
 }
