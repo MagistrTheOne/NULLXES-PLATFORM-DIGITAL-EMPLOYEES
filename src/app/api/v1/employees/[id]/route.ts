@@ -3,8 +3,9 @@ import { deleteEmployee } from "@/features/employees/services/delete-employee";
 import { getEmployeeDetail } from "@/features/employees/services/get-employee-detail";
 import { updateEmployee } from "@/features/employees/services/update-employee";
 import { authenticateApiKeyRequest } from "@/features/public-api/middleware/authenticate-api-key";
-import { apiError, apiJson } from "@/features/public-api/lib/api-response";
+import { apiError, apiSuccess } from "@/features/public-api/lib/api-response";
 import { dispatchOrganizationWebhook } from "@/features/public-api/services/dispatch-outbound-webhook";
+import { recordAuditEvent } from "@/features/security/services/record-audit-event";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
@@ -12,7 +13,7 @@ export async function GET(
   request: Request,
   context: RouteContext,
 ): Promise<Response> {
-  const auth = await authenticateApiKeyRequest(request);
+  const auth = await authenticateApiKeyRequest(request, ["employees:read"]);
   if (auth instanceof Response) {
     return auth;
   }
@@ -21,11 +22,11 @@ export async function GET(
   const employee = await getEmployeeDetail(auth.organizationId, id);
 
   if (!employee) {
-    return apiError("Employee not found", 404);
+    return apiError("Employee not found", 404, { requestId: auth.requestId });
   }
 
-  return apiJson({
-    data: {
+  return apiSuccess(
+    {
       ...employee,
       createdAt: employee.createdAt.toISOString(),
       knowledge: employee.knowledge.map((item) => ({
@@ -37,14 +38,15 @@ export async function GET(
         createdAt: item.createdAt.toISOString(),
       })),
     },
-  });
+    { requestId: auth.requestId },
+  );
 }
 
 export async function PATCH(
   request: Request,
   context: RouteContext,
 ): Promise<Response> {
-  const auth = await authenticateApiKeyRequest(request);
+  const auth = await authenticateApiKeyRequest(request, ["employees:write"]);
   if (auth instanceof Response) {
     return auth;
   }
@@ -61,12 +63,12 @@ export async function PATCH(
   try {
     body = (await request.json()) as typeof body;
   } catch {
-    return apiError("Invalid JSON body", 400);
+    return apiError("Invalid JSON body", 400, { requestId: auth.requestId });
   }
 
   const existing = await getEmployeeDetail(auth.organizationId, id);
   if (!existing) {
-    return apiError("Employee not found", 404);
+    return apiError("Employee not found", 404, { requestId: auth.requestId });
   }
 
   const result = await updateEmployee({
@@ -84,17 +86,30 @@ export async function PATCH(
   });
 
   if (!result.ok) {
-    return apiError(result.message, 400);
+    return apiError(result.message, 400, { requestId: auth.requestId });
   }
 
-  return apiJson({ data: { id, updated: true } });
+  recordAuditEvent({
+    organizationId: auth.organizationId,
+    actorUserId: auth.actorUserId,
+    action: "settings.updated",
+    resourceType: "digital_employee",
+    resourceId: id,
+    metadata: {
+      source: "api",
+      requestId: auth.requestId,
+      keyId: auth.keyId,
+    },
+  });
+
+  return apiSuccess({ id, updated: true }, { requestId: auth.requestId });
 }
 
 export async function DELETE(
   request: Request,
   context: RouteContext,
 ): Promise<Response> {
-  const auth = await authenticateApiKeyRequest(request);
+  const auth = await authenticateApiKeyRequest(request, ["employees:write"]);
   if (auth instanceof Response) {
     return auth;
   }
@@ -103,8 +118,21 @@ export async function DELETE(
   const result = await deleteEmployee(auth.organizationId, id);
 
   if (!result.ok) {
-    return apiError(result.message, 404);
+    return apiError(result.message, 404, { requestId: auth.requestId });
   }
+
+  recordAuditEvent({
+    organizationId: auth.organizationId,
+    actorUserId: auth.actorUserId,
+    action: "employee.deleted",
+    resourceType: "digital_employee",
+    resourceId: id,
+    metadata: {
+      source: "api",
+      requestId: auth.requestId,
+      keyId: auth.keyId,
+    },
+  });
 
   void dispatchOrganizationWebhook({
     organizationId: auth.organizationId,
@@ -112,5 +140,5 @@ export async function DELETE(
     data: { employeeId: id, source: "api" },
   });
 
-  return apiJson({ data: { id, deleted: true } });
+  return apiSuccess({ id, deleted: true }, { requestId: auth.requestId });
 }

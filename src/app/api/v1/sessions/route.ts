@@ -1,9 +1,9 @@
 import { authenticateApiKeyRequest } from "@/features/public-api/middleware/authenticate-api-key";
-import { apiJson } from "@/features/public-api/lib/api-response";
+import { apiSuccess } from "@/features/public-api/lib/api-response";
 import { listOrganizationSessions } from "@/features/public-api/services/list-organization-sessions";
 
 export async function GET(request: Request): Promise<Response> {
-  const auth = await authenticateApiKeyRequest(request);
+  const auth = await authenticateApiKeyRequest(request, ["sessions:read"]);
   if (auth instanceof Response) {
     return auth;
   }
@@ -16,11 +16,12 @@ export async function GET(request: Request): Promise<Response> {
 
   const sessions = await listOrganizationSessions(auth.organizationId, limit);
 
-  return apiJson({
-    data: sessions.map((session) => ({
+  return apiSuccess(
+    sessions.map((session) => ({
       ...session,
       startedAt: session.startedAt.toISOString(),
       endedAt: session.endedAt?.toISOString() ?? null,
     })),
-  });
+    { requestId: auth.requestId },
+  );
 }

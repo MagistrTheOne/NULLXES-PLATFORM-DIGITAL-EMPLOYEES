@@ -1,13 +1,21 @@
+import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { organizationSettings } from "@/entities/organization-settings/schema";
 import { verifyApiKey } from "@/features/security/services/api-key";
+import { recordAuditEvent } from "@/features/security/services/record-audit-event";
 import { db } from "@/shared/db/client";
+import {
+  assertApiScopes,
+  type ApiScope,
+} from "../lib/api-scopes";
 import { apiError } from "../lib/api-response";
 
 export type ApiAuthContext = {
   organizationId: string;
   keyId: string;
   actorUserId: string;
+  scopes: ApiScope[];
+  requestId: string;
 };
 
 function parseAllowlist(value: string | null | undefined): string[] {
@@ -44,18 +52,65 @@ function isIpAllowed(clientIp: string | null, allowlist: string[]): boolean {
 
 export async function authenticateApiKeyRequest(
   request: Request,
+  requiredScopes: readonly ApiScope[] = [],
 ): Promise<ApiAuthContext | Response> {
+  const requestId = request.headers.get("x-request-id") ?? randomUUID();
+
   const authorization = request.headers.get("authorization");
 
   if (!authorization?.startsWith("Bearer ")) {
-    return apiError("Missing Bearer API key", 401);
+    return apiError("Missing Bearer API key", 401, { requestId });
   }
 
   const rawKey = authorization.slice("Bearer ".length).trim();
   const verified = await verifyApiKey(rawKey);
 
   if (!verified) {
-    return apiError("Invalid or revoked API key", 401);
+    return apiError("Invalid or revoked API key", 401, { requestId });
+  }
+
+  if (verified.expired) {
+    recordAuditEvent({
+      organizationId: verified.organizationId,
+      actorUserId: verified.createdByUserId,
+      action: "api.access.denied",
+      resourceType: "api_key",
+      resourceId: verified.keyId,
+      metadata: {
+        requestId,
+        reason: "expired",
+        path: new URL(request.url).pathname,
+      },
+      ipAddress: resolveClientIp(request),
+      userAgent: request.headers.get("user-agent"),
+    });
+    return apiError("API key expired", 401, { requestId });
+  }
+
+  if (
+    requiredScopes.length > 0 &&
+    !assertApiScopes(verified.scopes, requiredScopes)
+  ) {
+    recordAuditEvent({
+      organizationId: verified.organizationId,
+      actorUserId: verified.createdByUserId,
+      action: "api.access.denied",
+      resourceType: "api_key",
+      resourceId: verified.keyId,
+      metadata: {
+        requestId,
+        reason: "insufficient_scope",
+        requiredScopes,
+        grantedScopes: verified.scopes,
+        path: new URL(request.url).pathname,
+      },
+      ipAddress: resolveClientIp(request),
+      userAgent: request.headers.get("user-agent"),
+    });
+    return apiError("Insufficient API key scope", 403, {
+      requestId,
+      requiredScopes,
+    });
   }
 
   const [settings] = await db
@@ -68,12 +123,28 @@ export async function authenticateApiKeyRequest(
   const clientIp = resolveClientIp(request);
 
   if (!isIpAllowed(clientIp, allowlist)) {
-    return apiError("API access denied for this IP address", 403);
+    recordAuditEvent({
+      organizationId: verified.organizationId,
+      actorUserId: verified.createdByUserId,
+      action: "api.access.denied",
+      resourceType: "api_key",
+      resourceId: verified.keyId,
+      metadata: {
+        requestId,
+        reason: "ip_not_allowed",
+        path: new URL(request.url).pathname,
+      },
+      ipAddress: clientIp,
+      userAgent: request.headers.get("user-agent"),
+    });
+    return apiError("API access denied for this IP address", 403, { requestId });
   }
 
   return {
     organizationId: verified.organizationId,
     keyId: verified.keyId,
     actorUserId: verified.createdByUserId,
+    scopes: verified.scopes,
+    requestId,
   };
 }

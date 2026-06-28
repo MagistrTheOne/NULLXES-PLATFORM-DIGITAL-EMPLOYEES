@@ -9,6 +9,8 @@ export const auditActionEnum = pgEnum("audit_action", [
   "session.exported",
   "api_key.created",
   "api_key.revoked",
+  "api.access.denied",
+  "api.task.enqueued",
   "retention.purged",
   "data.exported",
   "member.invited",

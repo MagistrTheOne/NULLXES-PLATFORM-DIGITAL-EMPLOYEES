@@ -29,6 +29,8 @@ export async function getSecuritySnapshot(input: {
           id: apiKey.id,
           name: apiKey.name,
           keyPrefix: apiKey.keyPrefix,
+          scopes: apiKey.scopes,
+          expiresAt: apiKey.expiresAt,
           lastUsedAt: apiKey.lastUsedAt,
           createdAt: apiKey.createdAt,
         })
@@ -50,6 +52,9 @@ export async function getSecuritySnapshot(input: {
     outboundWebhookUrl: orgSettings.outboundWebhookUrl,
     outboundWebhookConfigured: Boolean(orgSettings.outboundWebhookUrl?.trim()),
     apiIpAllowlist: orgSettings.apiIpAllowlist,
-    apiKeys,
+    apiKeys: apiKeys.map((key) => ({
+      ...key,
+      scopes: key.scopes ?? [],
+    })),
   };
 }

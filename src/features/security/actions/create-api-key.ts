@@ -8,10 +8,12 @@ import {
   TwoFactorRequiredError,
 } from "../services/assert-two-factor-for-sensitive-action";
 import { recordAuditEvent } from "../services/record-audit-event";
+import type { ApiScopeBundleId } from "@/features/public-api/lib/api-scopes";
 import { createApiKey } from "../services/api-key";
 
 export async function createApiKeyAction(input: {
   name: string;
+  scopeBundle: ApiScopeBundleId;
 }): Promise<
   { ok: true; rawKey: string } | { ok: false; message: string }
 > {
@@ -39,6 +41,7 @@ export async function createApiKeyAction(input: {
     organizationId: workspace.organization.id,
     name: input.name,
     createdByUserId: session.user.id,
+    scopeBundle: input.scopeBundle,
   });
 
   if (!result.ok) {
@@ -52,7 +55,7 @@ export async function createApiKeyAction(input: {
     action: "api_key.created",
     resourceType: "api_key",
     resourceId: result.keyId,
-    metadata: { name: input.name.trim() },
+    metadata: { name: input.name.trim(), scopeBundle: input.scopeBundle },
   });
 
   revalidatePath("/settings");

@@ -769,6 +769,13 @@
       "createApiKey": "Создать API-ключ",
       "copyKeyNow": "Скопируйте ключ сейчас. Он больше не будет показан.",
       "passwordPrompt": "Подтвердите пароль для включения 2FA:",
+      "passwordPromptEnable": "Введите пароль аккаунта для настройки 2FA.",
+      "passwordPromptDisable": "Введите пароль аккаунта для отключения 2FA.",
+      "passwordLabel": "Пароль аккаунта",
+      "passwordRequired": "Требуется пароль.",
+      "continueEnable2fa": "Продолжить",
+      "confirmDisable2fa": "Отключить 2FA",
+      "cancel": "Отмена",
       "enable2faFailed": "Не удалось включить 2FA.",
       "totpSetup": "Отсканируйте TOTP URI в приложении-аутентификаторе.",
       "scanTotp": "Отсканируйте URI ниже, затем введите код подтверждения.",
@@ -799,7 +806,12 @@
       "saveAllowlist": "Сохранить белый список IP",
       "allowlistSaved": "Белый список IP сохранён.",
       "revokeKey": "Отозвать",
-      "keyRevoked": "API-ключ отозван."
+      "keyRevoked": "API-ключ отозван.",
+      "scopeBundle": "Набор прав",
+      "apiDocsTitle": "Удалённая интеграция",
+      "apiBaseUrl": "Базовый URL",
+      "apiAuthHeader": "Заголовок Authorization",
+      "apiDocsLink": "Спецификация OpenAPI"
     },
     "approvals": {
       "title": "Одобрения агентов",

@@ -15,8 +15,11 @@ import { Label } from "@/components/ui/label";
 import { authClient } from "../client";
 import { ensureWorkspace } from "../services/ensure-workspace";
 
+type VerifyMode = "totp" | "backup";
+
 export function Verify2faForm() {
   const router = useRouter();
+  const [mode, setMode] = useState<VerifyMode>("totp");
   const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -26,14 +29,25 @@ export function Verify2faForm() {
     setError(null);
     setIsSubmitting(true);
 
-    const result = await authClient.twoFactor.verifyTotp({
-      code: code.trim(),
-      trustDevice: true,
-    });
+    const trimmed = code.trim();
+    const result =
+      mode === "totp"
+        ? await authClient.twoFactor.verifyTotp({
+            code: trimmed,
+            trustDevice: true,
+          })
+        : await authClient.twoFactor.verifyBackupCode({
+            code: trimmed,
+            trustDevice: true,
+          });
 
     if (result.error) {
       setIsSubmitting(false);
-      setError(result.error.message ?? "Invalid verification code");
+      const fallbackMessage =
+        mode === "totp"
+          ? "Invalid authentication code. Check your authenticator app and try again."
+          : "Invalid backup code. Each backup code can only be used once.";
+      setError(result.error.message ?? fallbackMessage);
       return;
     }
 
@@ -53,7 +67,7 @@ export function Verify2faForm() {
     }
 
     setIsSubmitting(false);
-    router.push("/dashboard");
+    router.push("/login/verify-email-otp");
     router.refresh();
   }
 
@@ -64,20 +78,58 @@ export function Verify2faForm() {
           Two-factor verification
         </CardTitle>
         <CardDescription className="text-center text-white/60">
-          Enter the 6-digit code from your authenticator app.
+          {mode === "totp"
+            ? "Enter the 6-digit code from your authenticator app."
+            : "Enter one of your single-use backup codes."}
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant={mode === "totp" ? "default" : "outline"}
+              className={
+                mode === "totp"
+                  ? "flex-1 bg-white text-black hover:bg-white/90"
+                  : "flex-1 border-white/10 bg-transparent text-white hover:bg-white/5"
+              }
+              onClick={() => {
+                setMode("totp");
+                setCode("");
+                setError(null);
+              }}
+            >
+              Authenticator
+            </Button>
+            <Button
+              type="button"
+              variant={mode === "backup" ? "default" : "outline"}
+              className={
+                mode === "backup"
+                  ? "flex-1 bg-white text-black hover:bg-white/90"
+                  : "flex-1 border-white/10 bg-transparent text-white hover:bg-white/5"
+              }
+              onClick={() => {
+                setMode("backup");
+                setCode("");
+                setError(null);
+              }}
+            >
+              Backup code
+            </Button>
+          </div>
           <div className="flex flex-col gap-2">
-            <Label htmlFor="totp-code">Authentication code</Label>
+            <Label htmlFor="two-factor-code">
+              {mode === "totp" ? "Authentication code" : "Backup code"}
+            </Label>
             <Input
-              id="totp-code"
+              id="two-factor-code"
               type="text"
-              inputMode="numeric"
+              inputMode={mode === "totp" ? "numeric" : "text"}
               autoComplete="one-time-code"
               required
-              maxLength={8}
+              maxLength={mode === "totp" ? 8 : 32}
               value={code}
               onChange={(event) => setCode(event.target.value)}
               className="border-white/10 bg-black/40 text-white"
@@ -90,7 +142,10 @@ export function Verify2faForm() {
           ) : null}
           <Button
             type="submit"
-            disabled={isSubmitting || code.trim().length < 6}
+            disabled={
+              isSubmitting ||
+              (mode === "totp" ? code.trim().length < 6 : code.trim().length < 4)
+            }
             className="bg-white text-black hover:bg-white/90"
           >
             {isSubmitting ? "Verifying..." : "Verify"}

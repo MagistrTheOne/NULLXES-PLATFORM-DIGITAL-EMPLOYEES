@@ -4,11 +4,12 @@ import {
 } from "@/features/agent-tasks";
 import { resolveWorkforceAssignee } from "@/features/agent-router/services/resolve-workforce-assignee";
 import { authenticateApiKeyRequest } from "@/features/public-api/middleware/authenticate-api-key";
-import { apiError, apiJson } from "@/features/public-api/lib/api-response";
+import { apiError, apiSuccess } from "@/features/public-api/lib/api-response";
 import { recordWorkEvent } from "@/features/work-event";
+import { recordAuditEvent } from "@/features/security/services/record-audit-event";
 
 export async function POST(request: Request): Promise<Response> {
-  const auth = await authenticateApiKeyRequest(request);
+  const auth = await authenticateApiKeyRequest(request, ["tasks:write"]);
   if (auth instanceof Response) {
     return auth;
   }
@@ -24,13 +25,13 @@ export async function POST(request: Request): Promise<Response> {
   try {
     body = (await request.json()) as typeof body;
   } catch {
-    return apiError("Invalid JSON body", 400);
+    return apiError("Invalid JSON body", 400, { requestId: auth.requestId });
   }
 
   const message = body.message?.trim();
   const title = body.title?.trim() || "Workforce assignment";
   if (!message) {
-    return apiError("message is required", 400);
+    return apiError("message is required", 400, { requestId: auth.requestId });
   }
 
   const assignee = await resolveWorkforceAssignee({
@@ -40,12 +41,16 @@ export async function POST(request: Request): Promise<Response> {
   });
 
   if (!assignee) {
-    return apiError("No digital employees available for assignment", 404);
+    return apiError("No digital employees available for assignment", 404, {
+      requestId: auth.requestId,
+    });
   }
 
   const dueAt = body.dueAt ? new Date(body.dueAt) : undefined;
   if (dueAt && Number.isNaN(dueAt.getTime())) {
-    return apiError("dueAt must be a valid ISO date", 400);
+    return apiError("dueAt must be a valid ISO date", 400, {
+      requestId: auth.requestId,
+    });
   }
 
   const taskId = await createEmployeeTask({
@@ -78,8 +83,22 @@ export async function POST(request: Request): Promise<Response> {
     },
   });
 
-  return apiJson({
-    data: {
+  recordAuditEvent({
+    organizationId: auth.organizationId,
+    actorUserId: auth.actorUserId,
+    action: "api.task.enqueued",
+    resourceType: "employee_task",
+    resourceId: taskId,
+    metadata: {
+      employeeId: assignee.employeeId,
+      requestId: auth.requestId,
+      keyId: auth.keyId,
+      route: "workforce.assign",
+    },
+  });
+
+  return apiSuccess(
+    {
       taskId,
       employeeId: assignee.employeeId,
       employeeName: assignee.name,
@@ -87,5 +106,6 @@ export async function POST(request: Request): Promise<Response> {
       routeScore: assignee.score,
       status: dueAt && dueAt.getTime() > Date.now() ? "scheduled" : "queued",
     },
-  });
+    { requestId: auth.requestId },
+  );
 }

@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { jsonb, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { organization } from "@/entities/organization/schema";
 import { user } from "@/entities/user/schema";
 
@@ -10,6 +10,8 @@ export const apiKey = pgTable("api_key", {
   name: text("name").notNull(),
   keyPrefix: text("key_prefix").notNull(),
   keyHash: text("key_hash").notNull(),
+  scopes: jsonb("scopes").$type<string[]>().notNull().default([]),
+  expiresAt: timestamp("expires_at", { withTimezone: true }),
   createdByUserId: text("created_by_user_id")
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),

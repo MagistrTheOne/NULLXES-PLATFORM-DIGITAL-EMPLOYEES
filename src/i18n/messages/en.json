@@ -769,6 +769,13 @@
       "createApiKey": "Create API Key",
       "copyKeyNow": "Copy this key now. It will not be shown again.",
       "passwordPrompt": "Confirm your password to enable 2FA:",
+      "passwordPromptEnable": "Enter your account password to start 2FA setup.",
+      "passwordPromptDisable": "Enter your account password to disable 2FA.",
+      "passwordLabel": "Account password",
+      "passwordRequired": "Password is required.",
+      "continueEnable2fa": "Continue",
+      "confirmDisable2fa": "Disable 2FA",
+      "cancel": "Cancel",
       "enable2faFailed": "Failed to enable 2FA.",
       "totpSetup": "Scan the TOTP URI in your authenticator app to finish setup.",
       "scanTotp": "Scan the QR URI below, then enter a verification code.",
@@ -799,7 +806,12 @@
       "saveAllowlist": "Save IP allowlist",
       "allowlistSaved": "IP allowlist saved.",
       "revokeKey": "Revoke",
-      "keyRevoked": "API key revoked."
+      "keyRevoked": "API key revoked.",
+      "scopeBundle": "Scope bundle",
+      "apiDocsTitle": "Remote integration",
+      "apiBaseUrl": "Base URL",
+      "apiAuthHeader": "Authorization header",
+      "apiDocsLink": "OpenAPI specification"
     },
     "approvals": {
       "title": "Agent approvals",

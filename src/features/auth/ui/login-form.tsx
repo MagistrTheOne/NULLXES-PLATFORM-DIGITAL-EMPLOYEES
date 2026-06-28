@@ -66,7 +66,7 @@ export function LoginForm({
         }
       }
 
-      router.push("/dashboard");
+      router.push("/login/verify-email-otp");
       router.refresh();
     } catch (submitError: unknown) {
       const message =

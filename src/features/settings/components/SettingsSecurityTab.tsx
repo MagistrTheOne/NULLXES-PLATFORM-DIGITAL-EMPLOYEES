@@ -8,6 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { authClient } from "@/features/auth/client";
 import { createApiKeyAction } from "@/features/security/actions/create-api-key";
+import type { ApiScopeBundleId } from "@/features/public-api/lib/api-scopes";
+import { API_SCOPE_BUNDLES } from "@/features/public-api/lib/api-scopes";
 import { revokeApiKeyAction } from "@/features/security/actions/revoke-api-key";
 import { updateApiSecuritySettingsAction } from "@/features/security/actions/update-api-security-settings";
 import { updateOutboundWebhookSettingsAction } from "@/features/security/actions/update-outbound-webhook-settings";
@@ -42,6 +44,9 @@ export function SettingsSecurityTab({
 }) {
   const t = useTranslations("settings.security");
   const [keyName, setKeyName] = useState("Production API");
+  const [scopeBundle, setScopeBundle] = useState<ApiScopeBundleId>(
+    "workforceOperator",
+  );
   const [createdKey, setCreatedKey] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -49,6 +54,10 @@ export function SettingsSecurityTab({
     null,
   );
   const [verifyCode, setVerifyCode] = useState("");
+  const [passwordConfirm, setPasswordConfirm] = useState("");
+  const [showPasswordFor, setShowPasswordFor] = useState<"enable" | "disable" | null>(
+    null,
+  );
   const [requireTwoFactorForAdmins, setRequireTwoFactorForAdmins] = useState(
     security.requireTwoFactorForAdmins,
   );
@@ -60,7 +69,10 @@ export function SettingsSecurityTab({
 
   function handleCreateKey(): void {
     startTransition(async () => {
-      const result = await createApiKeyAction({ name: keyName });
+      const result = await createApiKeyAction({
+        name: keyName,
+        scopeBundle,
+      });
       if (!result.ok) {
         setMessage(result.message);
         return;
@@ -71,12 +83,21 @@ export function SettingsSecurityTab({
   }
 
   function handleEnable2fa(): void {
+    setShowPasswordFor("enable");
+    setPasswordConfirm("");
+    setMessage(null);
+  }
+
+  function handleConfirmEnable2fa(): void {
+    if (!passwordConfirm.trim()) {
+      setMessage(t("passwordRequired"));
+      return;
+    }
+
     startTransition(async () => {
-      const password = window.prompt(t("passwordPrompt"));
-      if (!password) {
-        return;
-      }
-      const result = await authClient.twoFactor.enable({ password });
+      const result = await authClient.twoFactor.enable({
+        password: passwordConfirm,
+      });
       if (result.error) {
         setMessage(result.error.message ?? t("enable2faFailed"));
         return;
@@ -86,8 +107,37 @@ export function SettingsSecurityTab({
           totpURI: result.data.totpURI,
           backupCodes: result.data.backupCodes ?? [],
         });
+        setShowPasswordFor(null);
+        setPasswordConfirm("");
         setMessage(t("scanTotp"));
       }
+    });
+  }
+
+  function handleDisable2fa(): void {
+    setShowPasswordFor("disable");
+    setPasswordConfirm("");
+    setMessage(null);
+  }
+
+  function handleConfirmDisable2fa(): void {
+    if (!passwordConfirm.trim()) {
+      setMessage(t("passwordRequired"));
+      return;
+    }
+
+    startTransition(async () => {
+      const result = await authClient.twoFactor.disable({
+        password: passwordConfirm,
+      });
+      if (result.error) {
+        setMessage(result.error.message ?? t("disable2faFailed"));
+        return;
+      }
+      setTwoFactorSetup(null);
+      setShowPasswordFor(null);
+      setPasswordConfirm("");
+      setMessage(t("twoFactorDisabled"));
     });
   }
 
@@ -106,20 +156,8 @@ export function SettingsSecurityTab({
     });
   }
 
-  function handleDisable2fa(): void {
-    startTransition(async () => {
-      const password = window.prompt(t("passwordPrompt"));
-      if (!password) {
-        return;
-      }
-      const result = await authClient.twoFactor.disable({ password });
-      if (result.error) {
-        setMessage(result.error.message ?? t("disable2faFailed"));
-        return;
-      }
-      setTwoFactorSetup(null);
-      setMessage(t("twoFactorDisabled"));
-    });
+  function handleDisable2faClick(): void {
+    handleDisable2fa();
   }
 
   function handleRequire2faToggle(checked: boolean): void {
@@ -186,6 +224,52 @@ export function SettingsSecurityTab({
             </Button>
           ) : null}
 
+          {showPasswordFor ? (
+            <div className="grid gap-3 rounded-xl border border-border bg-background/40 p-4">
+              <p className="text-xs text-muted-foreground">
+                {showPasswordFor === "enable"
+                  ? t("passwordPromptEnable")
+                  : t("passwordPromptDisable")}
+              </p>
+              <div className="grid gap-2">
+                <Label htmlFor="two-factor-password">{t("passwordLabel")}</Label>
+                <Input
+                  id="two-factor-password"
+                  type="password"
+                  autoComplete="current-password"
+                  value={passwordConfirm}
+                  onChange={(event) => setPasswordConfirm(event.target.value)}
+                />
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  type="button"
+                  disabled={isPending || !passwordConfirm.trim()}
+                  onClick={
+                    showPasswordFor === "enable"
+                      ? handleConfirmEnable2fa
+                      : handleConfirmDisable2fa
+                  }
+                >
+                  {showPasswordFor === "enable"
+                    ? t("continueEnable2fa")
+                    : t("confirmDisable2fa")}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={isPending}
+                  onClick={() => {
+                    setShowPasswordFor(null);
+                    setPasswordConfirm("");
+                  }}
+                >
+                  {t("cancel")}
+                </Button>
+              </div>
+            </div>
+          ) : null}
+
           {twoFactorSetup ? (
             <div className="grid gap-3 rounded-xl border border-border bg-background/40 p-4">
               <p className="text-xs text-muted-foreground">{t("totpUriLabel")}</p>
@@ -222,12 +306,12 @@ export function SettingsSecurityTab({
             </div>
           ) : null}
 
-          {security.twoFactorEnabled ? (
+          {security.twoFactorEnabled && !showPasswordFor ? (
             <Button
               type="button"
               variant="outline"
               disabled={isPending}
-              onClick={handleDisable2fa}
+              onClick={handleDisable2faClick}
             >
               {t("disable2fa")}
             </Button>
@@ -329,8 +413,8 @@ export function SettingsSecurityTab({
             </div>
           ) : null}
           {canManageOrganization ? (
-            <div className="flex flex-wrap items-end gap-3">
-              <div className="grid flex-1 gap-2">
+            <div className="grid gap-3 rounded-xl border border-border bg-background/40 p-4">
+              <div className="grid gap-2">
                 <label className="text-sm text-muted-foreground" htmlFor="api-key-name">
                   {t("keyName")}
                 </label>
@@ -339,6 +423,47 @@ export function SettingsSecurityTab({
                   value={keyName}
                   onChange={(event) => setKeyName(event.target.value)}
                 />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="api-scope-bundle">{t("scopeBundle")}</Label>
+                <select
+                  id="api-scope-bundle"
+                  value={scopeBundle}
+                  onChange={(event) =>
+                    setScopeBundle(event.target.value as ApiScopeBundleId)
+                  }
+                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                >
+                  {Object.entries(API_SCOPE_BUNDLES).map(([id, bundle]) => (
+                    <option key={id} value={id}>
+                      {bundle.label}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-muted-foreground">
+                  {API_SCOPE_BUNDLES[scopeBundle].description}
+                </p>
+                <p className="font-mono text-xs text-muted-foreground">
+                  {API_SCOPE_BUNDLES[scopeBundle].scopes.join(", ")}
+                </p>
+              </div>
+              <div className="rounded-lg border border-border bg-background/40 p-3 text-xs text-muted-foreground">
+                <p className="text-foreground">{t("apiDocsTitle")}</p>
+                <p className="mt-1">{t("apiBaseUrl")}</p>
+                <p className="font-mono text-foreground">/api/v1</p>
+                <p className="mt-2">{t("apiAuthHeader")}</p>
+                <p className="font-mono text-foreground">
+                  Authorization: Bearer nx_live_...
+                </p>
+                <p className="mt-2">{t("apiDocsLink")}</p>
+                <a
+                  href="/api/docs"
+                  className="font-mono text-foreground underline"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  /api/docs
+                </a>
               </div>
               <Button
                 type="button"
@@ -361,6 +486,9 @@ export function SettingsSecurityTab({
                     <p className="text-foreground">{key.name}</p>
                     <p className="font-mono text-xs text-muted-foreground">
                       {key.keyPrefix}…
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {(key.scopes ?? []).join(", ")}
                     </p>
                   </div>
                   {canManageOrganization ? (

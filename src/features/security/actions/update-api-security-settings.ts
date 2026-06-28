@@ -4,6 +4,10 @@ import { revalidatePath } from "next/cache";
 import { requireAuth } from "@/features/auth/services/require-auth";
 import { ensureWorkspace } from "@/features/auth/services/ensure-workspace";
 import { updateOrganizationSettings } from "@/features/settings/services/update-organization-settings";
+import {
+  assertTwoFactorForSensitiveAction,
+  TwoFactorRequiredError,
+} from "../services/assert-two-factor-for-sensitive-action";
 import { recordAuditEvent } from "../services/record-audit-event";
 
 export type UpdateApiSecuritySettingsInput = {
@@ -25,6 +29,19 @@ export async function updateApiSecuritySettingsAction(
       ok: false,
       message: "You do not have permission to update API security settings.",
     };
+  }
+
+  try {
+    await assertTwoFactorForSensitiveAction({
+      userId: session.user.id,
+      role: workspace.membership.role,
+      organizationId: workspace.organization.id,
+    });
+  } catch (error: unknown) {
+    if (error instanceof TwoFactorRequiredError) {
+      return { ok: false, message: error.message };
+    }
+    throw error;
   }
 
   const allowlist = input.apiIpAllowlist.trim();

@@ -2,7 +2,11 @@ openapi: 3.1.0
 info:
   title: NULLXES Digital Employees API
   version: 1.0.0
-  description: Public REST API for workforce automation. Authenticate with Bearer API keys (nx_...).
+  description: |
+    Public REST API for workforce automation.
+
+    Authenticate with a Bearer API key created in Settings → Security.
+    Keys use the `nx_live_...` prefix and are scoped to your organization.
 servers:
   - url: /api/v1
 security:
@@ -12,16 +16,59 @@ components:
     bearerAuth:
       type: http
       scheme: bearer
-      description: Organization API key created in Settings → Security
+      description: Organization API key (`nx_live_...`) with scoped permissions
+  schemas:
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+        requestId:
+          type: string
+        requiredScopes:
+          type: array
+          items:
+            type: string
+    ApiScope:
+      type: string
+      enum:
+        - employees:read
+        - employees:write
+        - sessions:read
+        - tasks:write
+    ScopeBundle:
+      type: string
+      enum:
+        - readOnly
+        - workforceOperator
+        - adminIntegration
 paths:
   /employees:
     get:
       summary: List digital employees
+      description: Requires `employees:read`.
       responses:
         "200":
           description: Employee list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                  requestId:
+                    type: string
+        "401":
+          description: Missing or invalid API key
+        "403":
+          description: Insufficient scope or IP not allowed
     post:
       summary: Create digital employee (draft)
+      description: Requires `employees:write`.
       requestBody:
         required: true
         content:
@@ -39,6 +86,7 @@ paths:
   /employees/{id}:
     get:
       summary: Get employee detail
+      description: Requires `employees:read`.
       parameters:
         - in: path
           name: id
@@ -49,6 +97,7 @@ paths:
           description: Employee detail
     patch:
       summary: Update employee
+      description: Requires `employees:write`.
       parameters:
         - in: path
           name: id
@@ -59,6 +108,7 @@ paths:
           description: Updated
     delete:
       summary: Delete employee
+      description: Requires `employees:write`.
       parameters:
         - in: path
           name: id
@@ -70,6 +120,7 @@ paths:
   /employees/{id}/tasks:
     post:
       summary: Queue async task for digital employee
+      description: Requires `tasks:write`.
       parameters:
         - in: path
           name: id
@@ -93,6 +144,7 @@ paths:
   /sessions:
     get:
       summary: List talk sessions
+      description: Requires `sessions:read`.
       parameters:
         - in: query
           name: limit
@@ -103,6 +155,7 @@ paths:
   /sessions/{id}:
     get:
       summary: Get session detail
+      description: Requires `sessions:read`.
       parameters:
         - in: path
           name: id
@@ -111,3 +164,23 @@ paths:
       responses:
         "200":
           description: Session detail
+  /workforce/assign:
+    post:
+      summary: Route a message to the best-fit digital employee
+      description: Requires `tasks:write`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [message]
+              properties:
+                message: { type: string }
+                title: { type: string }
+                employeeId: { type: string, format: uuid }
+                dueAt: { type: string, format: date-time }
+                callbackUrl: { type: string, format: uri }
+      responses:
+        "200":
+          description: Task routed and queued
