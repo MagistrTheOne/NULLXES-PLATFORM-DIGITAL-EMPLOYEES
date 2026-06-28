@@ -1,24 +1,23 @@
-import { sendNotificationEmail } from "@/shared/email/send-notification-email";
+import { isDevelopmentRuntime } from "@/shared/config/env";
+import { sendVerificationOtpEmail } from "@/shared/email/send-verification-otp-email";
 
 export async function sendEmailOtpMessage(input: {
   email: string;
   code: string;
 }): Promise<{ sent: boolean }> {
-  const result = await sendNotificationEmail({
-    to: [input.email],
-    subject: "Your NULLXES verification code",
-    html: `
-      <p>Your verification code is:</p>
-      <p style="font-size: 24px; font-weight: 600; letter-spacing: 0.2em;">${input.code}</p>
-      <p>This code expires in 10 minutes. If you did not request it, you can ignore this email.</p>
-    `.trim(),
+  sendVerificationOtpEmail({
+    email: input.email,
+    otp: input.code,
+    type: "email-verification",
   });
 
-  if (!result.sent && process.env.NODE_ENV === "development") {
+  const hasResend = Boolean(process.env.RESEND_API_KEY?.trim());
+
+  if (!hasResend && isDevelopmentRuntime()) {
     console.info(
       `[email-otp] Dev fallback — code for ${input.email}: ${input.code}`,
     );
   }
 
-  return { sent: result.sent };
+  return { sent: hasResend };
 }

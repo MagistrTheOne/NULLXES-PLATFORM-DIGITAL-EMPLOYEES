@@ -1,6 +1,8 @@
 import { Suspense } from "react";
 import { requireAuth } from "@/features/auth/services/require-auth";
-import { requireEmailOtpVerified } from "@/features/auth/services/require-email-otp-verified";
+// Post-login email OTP gate — disabled until Resend domain verified.
+// Enable: EMAIL_OTP_STEP_UP_ENABLED=true + uncomment below.
+// import { requireEmailOtpVerified } from "@/features/auth/services/require-email-otp-verified";
 import { DashboardLayoutSkeleton } from "@/features/dashboard/components/dashboard-layout-skeleton";
 import { DashboardShell } from "@/features/dashboard/components/dashboard-shell";
 
@@ -10,7 +12,7 @@ export default async function DashboardRouteLayout({
   children: React.ReactNode;
 }>) {
   const session = await requireAuth();
-  await requireEmailOtpVerified();
+  // await requireEmailOtpVerified();
 
   return (
     <Suspense fallback={<DashboardLayoutSkeleton />}>

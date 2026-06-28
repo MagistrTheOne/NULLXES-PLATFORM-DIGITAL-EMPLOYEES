@@ -110,17 +110,21 @@ Responses include `requestId` (+ `X-Request-Id` header). Denied access → audit
 
 **Testing:** [`docs/PUBLIC_API.md`](./PUBLIC_API.md) — `npm run public-api:probe` (creates keys + HTTP smoke test).
 
-### 4.2 Auth step-up (email OTP)
+### 4.2 Email OTP (Better Auth + Resend)
 
-After email/password login (and after TOTP if enabled), users verify a 6-digit email code before dashboard access.
+**Plugin:** [Better Auth emailOTP](https://better-auth.com/docs/plugins/email-otp)  
+**Sender:** [Resend](https://resend.com/docs/send-with-nextjs) — no server sends email without a provider; Better Auth only handles OTP logic, you wire `sendVerificationOTP` → Resend.
 
-| Piece | Path |
-|-------|------|
-| Service | `src/features/auth/services/email-otp.ts` |
-| Page | `/login/verify-email-otp` |
-| Gate | `src/features/auth/services/require-email-otp-verified.ts` in `(dashboard)/layout.tsx` |
+| Variable | Purpose |
+|----------|---------|
+| `RESEND_API_KEY` | Resend API key ([create](https://resend.com/docs/api-reference/api-keys/create-api-key)) |
+| `RESEND_FROM_EMAIL` | Verified sender, e.g. `NULLXES <yukinakora@nullxesdai.online>` |
+| `EMAIL_OTP_STEP_UP_ENABLED` | `true` only after domain DNS verified in Resend |
+| `NEXT_PUBLIC_EMAIL_OTP_STEP_UP_ENABLED` | Client plugin mirror (same value) |
 
-Verify: `npm run email-otp:verify`
+**Status (2026-06-28):** OTP step-up **disabled** while `nullxesdai.online` DNS (MX/SPF) is Pending in Resend. Invites and notifications still use Resend when `RESEND_API_KEY` is set.
+
+When enabled: uncomment `requireEmailOtpVerified()` in `(dashboard)/layout.tsx`.
 
 ### 4.3 Internal / session APIs
 
@@ -349,7 +353,10 @@ Local dev: `npm run inngest:dev` → `http://localhost:3000/api/inngest`
 |----------|---------|
 | `INNGEST_SIGNING_KEY`, `INNGEST_EVENT_KEY` | Inngest |
 | `DATA_ENCRYPTION_KEY` | Field encryption (required prod) |
-| `RESEND_API_KEY` | Email notifications |
+| `RESEND_API_KEY` | Transactional email (invites, OTP when enabled) |
+| `RESEND_FROM_EMAIL` | Sender address on verified domain |
+| `EMAIL_OTP_STEP_UP_ENABLED` | Post-login OTP gate (`false` until Resend domain verified) |
+| `NEXT_PUBLIC_EMAIL_OTP_STEP_UP_ENABLED` | Client emailOTP plugin flag |
 | `POLAR_ACCESS_TOKEN`, `POLAR_WEBHOOK_SECRET` | Billing |
 
 Config helpers: `src/shared/config/env.ts`, `src/shared/config/provider-env.ts`

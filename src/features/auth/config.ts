@@ -1,5 +1,6 @@
 import type { BetterAuthOptions } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { emailOTP } from "better-auth/plugins";
 import { twoFactor } from "better-auth/plugins/two-factor";
 import { user } from "@/entities/user/schema";
 import {
@@ -7,8 +8,10 @@ import {
   getBetterAuthUrl,
   getVercelDeploymentUrl,
 } from "@/shared/config/env";
+import { sendVerificationOtpEmail } from "@/shared/email/send-verification-otp-email";
 import { db } from "@/shared/db/client";
 import { account, session, twoFactor as twoFactorTable, verification } from "./schema";
+import { isEmailOtpStepUpEnabled } from "./lib/email-otp-feature";
 import { buildOAuthSocialProviders } from "./lib/oauth-providers";
 
 export function createAuthConfig(): BetterAuthOptions {
@@ -18,6 +21,7 @@ export function createAuthConfig(): BetterAuthOptions {
     new Set([baseURL, deploymentUrl].filter(Boolean) as string[]),
   );
   const socialProviders = buildOAuthSocialProviders();
+  const emailOtpEnabled = isEmailOtpStepUpEnabled();
 
   return {
     secret: getBetterAuthSecret(),
@@ -42,7 +46,22 @@ export function createAuthConfig(): BetterAuthOptions {
     emailAndPassword: {
       enabled: true,
     },
-    plugins: [twoFactor()],
+    plugins: [
+      twoFactor(),
+      // Better Auth emailOTP — https://better-auth.com/docs/plugins/email-otp
+      // Disabled until Resend domain verified: EMAIL_OTP_STEP_UP_ENABLED=true
+      ...(emailOtpEnabled
+        ? [
+            emailOTP({
+              expiresIn: 600,
+              storeOTP: "hashed",
+              async sendVerificationOTP({ email, otp, type }) {
+                sendVerificationOtpEmail({ email, otp, type });
+              },
+            }),
+          ]
+        : []),
+    ],
     user: {
       additionalFields: {
         status: {

@@ -1,7 +1,11 @@
 "use client";
 
 import { createAuthClient } from "better-auth/react";
+import { emailOTPClient } from "better-auth/client/plugins";
 import { twoFactorClient } from "better-auth/client/plugins";
+
+const emailOtpStepUpEnabled =
+  process.env.NEXT_PUBLIC_EMAIL_OTP_STEP_UP_ENABLED?.trim() === "true";
 
 function isLocalhostUrl(url: string): boolean {
   try {
@@ -37,5 +41,9 @@ function resolveAuthClientBaseUrl(): string {
 
 export const authClient = createAuthClient({
   baseURL: resolveAuthClientBaseUrl(),
-  plugins: [twoFactorClient({ twoFactorPage: "/login/verify-2fa" })],
+  plugins: [
+    twoFactorClient({ twoFactorPage: "/login/verify-2fa" }),
+    // emailOTPClient — enable with NEXT_PUBLIC_EMAIL_OTP_STEP_UP_ENABLED=true
+    ...(emailOtpStepUpEnabled ? [emailOTPClient()] : []),
+  ],
 });
