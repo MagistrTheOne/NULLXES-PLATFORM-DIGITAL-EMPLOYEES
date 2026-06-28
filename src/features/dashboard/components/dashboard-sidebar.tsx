@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import {
   BarChart3,
   Building2,
+  CreditCard,
   LayoutDashboard,
   MessageSquare,
   Settings,
@@ -44,6 +45,10 @@ function isNavItemActive(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
+function isBillingNavActive(pathname: string, tab: string | null): boolean {
+  return pathname === "/settings" && tab === "billing";
+}
+
 export function DashboardSidebar({
   user,
   workspace,
@@ -52,7 +57,9 @@ export function DashboardSidebar({
   workspace: DashboardShellWorkspace;
 }) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const t = useTranslations("common.nav");
+  const isBillingActive = isBillingNavActive(pathname, searchParams.get("tab"));
 
   return (
     <Sidebar
@@ -94,6 +101,26 @@ export function DashboardSidebar({
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter className="mt-auto border-t border-white/10 px-2 py-3">
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              asChild
+              isActive={isBillingActive}
+              tooltip={t("billing")}
+              className="text-white/80 transition-none hover:bg-white/5 hover:text-white data-active:bg-white/10 data-active:text-white"
+            >
+              <Link href="/settings?tab=billing">
+                <CreditCard />
+                <span className="flex min-w-0 flex-1 items-center justify-between gap-2 group-data-[collapsible=icon]:hidden">
+                  <span>{t("billing")}</span>
+                  <span className="truncate text-xs text-white/45">
+                    {workspace.billing.planName}
+                  </span>
+                </span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
         <SidebarUserSection user={user} workspace={workspace} />
       </SidebarFooter>
     </Sidebar>

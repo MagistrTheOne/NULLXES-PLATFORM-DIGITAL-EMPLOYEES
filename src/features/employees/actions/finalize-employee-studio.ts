@@ -1,6 +1,6 @@
 "use server";
 
-import { assertCanCreateCustomAvatar } from "@/features/billing/services/check-plan-limits";
+import { assertAvatarStudioSelection } from "@/features/billing/services/assert-avatar-studio-selection";
 import { resolveBillingPlanId } from "@/features/billing/lib/resolve-billing-plan";
 import { requireWorkspacePermissionOrThrowMessage } from "@/features/workspace";
 import { createAnamAvatarFromFile } from "@/features/employees/studio/anam-create-avatar-from-file";
@@ -130,23 +130,20 @@ export async function finalizeEmployeeStudio(
     };
   }
 
-  const usesCustomAvatar = !presetAvatarId;
+  const selectionCheck = assertAvatarStudioSelection(billingPlan, {
+    presetAvatarId,
+    hasPhotoFile: file instanceof File,
+  });
 
-  if (usesCustomAvatar) {
-    const customAvatarCheck = assertCanCreateCustomAvatar(billingPlan);
-    if (!customAvatarCheck.ok) {
-      return { status: "failed", message: customAvatarCheck.message };
-    }
-
-    if (!(file instanceof File)) {
-      return { status: "failed", message: "Photo file is required" };
-    }
+  if (!selectionCheck.ok) {
+    return { status: "failed", message: selectionCheck.message };
   }
 
   try {
-    const avatar = presetAvatarId
-      ? await resolveStudioAvatarPreset(presetAvatarId)
-      : await createAnamAvatarFromFile({ file: file as File, displayName: name });
+    const avatar =
+      selectionCheck.mode === "preset"
+        ? await resolveStudioAvatarPreset(presetAvatarId)
+        : await createAnamAvatarFromFile({ file: file as File, displayName: name });
 
     const { anamVoiceId, binding } = await resolveAnamPersonaVoiceId(selectedVoice);
     const persona = await createAnamPersona({

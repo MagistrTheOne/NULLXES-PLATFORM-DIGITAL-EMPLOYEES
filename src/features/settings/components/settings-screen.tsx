@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { SettingsPageData } from "../types";
@@ -28,8 +30,25 @@ const TAB_IDS = [
   "advanced",
 ] as const;
 
+type SettingsTabId = (typeof TAB_IDS)[number];
+
+function resolveSettingsTab(tab: string | null): SettingsTabId {
+  if (tab && TAB_IDS.includes(tab as SettingsTabId)) {
+    return tab as SettingsTabId;
+  }
+  return "general";
+}
+
 export function SettingsScreen({ data }: { data: SettingsPageData }) {
   const t = useTranslations("settings");
+  const searchParams = useSearchParams();
+  const [activeTab, setActiveTab] = useState<SettingsTabId>(() =>
+    resolveSettingsTab(searchParams.get("tab")),
+  );
+
+  useEffect(() => {
+    setActiveTab(resolveSettingsTab(searchParams.get("tab")));
+  }, [searchParams]);
 
   return (
     <div className="flex w-full flex-col gap-6">
@@ -44,7 +63,11 @@ export function SettingsScreen({ data }: { data: SettingsPageData }) {
 
       <div className="grid gap-6 xl:grid-cols-12">
         <div className="xl:col-span-8">
-          <Tabs defaultValue="general" className="gap-6">
+          <Tabs
+            value={activeTab}
+            onValueChange={(value) => setActiveTab(value as SettingsTabId)}
+            className="gap-6"
+          >
             <TabsList
               variant="line"
               className="h-auto w-full flex-wrap justify-start gap-1 border-b border-border bg-transparent p-0"

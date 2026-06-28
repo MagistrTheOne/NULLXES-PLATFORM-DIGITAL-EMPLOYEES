@@ -7,6 +7,7 @@
       "hq": "NULLXES HQ",
       "analytics": "Аналитика",
       "settings": "Настройки",
+      "billing": "Биллинг",
       "navigation": "Навигация"
     },
     "brand": {
@@ -29,9 +30,9 @@
       "plan": "Тариф",
       "settings": "Настройки",
       "analytics": "Аналитика",
+      "billing": "Биллинг",
       "upgrade": "Перейти на Super Pro",
       "manageSubscription": "Управление подпиской",
-      "billingSettings": "Настройки оплаты",
       "contactSales": "Enterprise и Government",
       "logout": "Выйти"
     },

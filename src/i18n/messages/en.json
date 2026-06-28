@@ -7,6 +7,7 @@
       "hq": "NULLXES HQ",
       "analytics": "Analytics",
       "settings": "Settings",
+      "billing": "Billing",
       "navigation": "Navigation"
     },
     "brand": {
@@ -29,9 +30,9 @@
       "plan": "Plan",
       "settings": "Settings",
       "analytics": "Analytics",
+      "billing": "Billing",
       "upgrade": "Upgrade to Super Pro",
       "manageSubscription": "Manage subscription",
-      "billingSettings": "Billing settings",
       "contactSales": "Enterprise & Government",
       "logout": "Logout"
     },

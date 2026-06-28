@@ -65,12 +65,10 @@ export function SidebarUserSection({
           {isExpanded ? (
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-medium text-white">
-                {workspace.organizationName}
+                {user.name}
               </p>
-              <p className="truncate text-xs text-white/60 capitalize">
-                {workspace.role}
-                <span className="text-white/30"> · </span>
-                {billing.planName}
+              <p className="truncate text-xs text-white/60">
+                {workspace.organizationName}
               </p>
             </div>
           ) : null}
@@ -83,27 +81,18 @@ export function SidebarUserSection({
         className="w-64 border-white/10 bg-[#111111] text-white"
       >
         <DropdownMenuLabel className="space-y-1 font-normal">
-          <p className="text-sm font-medium">{workspace.organizationName}</p>
-          <p className="text-xs text-white/60 capitalize">
-            {workspace.role}
-            <span className="text-white/30"> · </span>
-            {billing.planName}
-          </p>
-        </DropdownMenuLabel>
-        <DropdownMenuSeparator className="bg-white/10" />
-        <DropdownMenuLabel className="font-normal">
           <p className="text-sm font-medium">{user.name}</p>
           <p className="text-xs text-white/60">{user.email}</p>
         </DropdownMenuLabel>
         <DropdownMenuSeparator className="bg-white/10" />
         <DropdownMenuLabel className="font-normal">
-          <p className="text-xs text-white/50">{t("plan")}</p>
-          <p className="text-sm font-medium">
+          <p className="text-xs text-white/50">{workspace.organizationName}</p>
+          <p className="text-xs text-white/60 capitalize">
+            {workspace.role}
+            <span className="text-white/30"> · </span>
             {billing.planName}
-            <span className="font-normal text-white/50">
-              {" "}
-              · {billing.priceLabel}
-            </span>
+            <span className="text-white/30"> · </span>
+            {billing.priceLabel}
           </p>
         </DropdownMenuLabel>
         <DropdownMenuSeparator className="bg-white/10" />
@@ -131,7 +120,7 @@ export function SidebarUserSection({
         >
           <Link href="/settings?tab=billing">
             <CreditCard />
-            {t("billingSettings")}
+            {t("billing")}
           </Link>
         </DropdownMenuItem>
         {showUpgrade ? (
