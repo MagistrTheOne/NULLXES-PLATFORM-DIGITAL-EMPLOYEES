@@ -18,3 +18,8 @@ export function getResendClient(): Resend | null {
 export function getResendFromAddress(): string {
   return process.env.RESEND_FROM_EMAIL?.trim() ?? "NULLXES <onboarding@resend.dev>";
 }
+
+/** True when transactional email (Resend) is configured for this deployment. */
+export function isEmailDeliveryConfigured(): boolean {
+  return Boolean(process.env.RESEND_API_KEY?.trim());
+}

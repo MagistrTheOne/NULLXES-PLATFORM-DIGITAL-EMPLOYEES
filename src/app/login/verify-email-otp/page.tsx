@@ -1,6 +1,9 @@
 import { redirect } from "next/navigation";
 import { getCurrentSession } from "@/features/auth/services/get-current-session";
-import { hasVerifiedEmailOtp } from "@/features/auth/services/email-otp";
+import {
+  hasVerifiedEmailOtp,
+  isEmailOtpEnabled,
+} from "@/features/auth/services/email-otp";
 import { VerifyEmailOtpForm } from "@/features/auth/ui/verify-email-otp-form";
 
 export default async function VerifyEmailOtpPage() {
@@ -8,6 +11,10 @@ export default async function VerifyEmailOtpPage() {
 
   if (!session) {
     redirect("/login");
+  }
+
+  if (!isEmailOtpEnabled()) {
+    redirect("/dashboard");
   }
 
   const verified = await hasVerifiedEmailOtp(session.user.id);

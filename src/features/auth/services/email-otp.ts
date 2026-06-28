@@ -3,6 +3,7 @@ import { and, eq, gt, lt } from "drizzle-orm";
 import { verification } from "@/features/auth/schema";
 import { db } from "@/shared/db/client";
 import { isDevelopmentRuntime } from "@/shared/config/env";
+import { isEmailDeliveryConfigured } from "@/shared/email/resend-client";
 import { sendEmailOtpMessage } from "../lib/send-email-otp";
 
 const OTP_TTL_MS = 10 * 60 * 1000;
@@ -11,6 +12,16 @@ const RESEND_COOLDOWN_MS = 60 * 1000;
 
 export const EMAIL_OTP_PENDING_PREFIX = "email_otp:pending:";
 export const EMAIL_OTP_VERIFIED_PREFIX = "email_otp:verified:";
+
+/**
+ * Email OTP step-up is enforced only when delivery is configured (Resend) or
+ * in local development (where the code is surfaced via a dev fallback).
+ * In production without email delivery, the gate is disabled to avoid locking
+ * every user out of the dashboard.
+ */
+export function isEmailOtpEnabled(): boolean {
+  return isEmailDeliveryConfigured() || isDevelopmentRuntime();
+}
 
 function hashOtp(code: string): string {
   return createHash("sha256").update(code).digest("hex");

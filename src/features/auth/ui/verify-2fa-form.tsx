@@ -67,7 +67,7 @@ export function Verify2faForm() {
     }
 
     setIsSubmitting(false);
-    router.push("/login/verify-email-otp");
+    router.push("/dashboard");
     router.refresh();
   }
 

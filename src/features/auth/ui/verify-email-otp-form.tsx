@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -22,12 +22,17 @@ export function VerifyEmailOtpForm({ email }: { email: string }) {
   const [info, setInfo] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSending, setIsSending] = useState(false);
+  const hasAutoSent = useRef(false);
 
   useEffect(() => {
-    void sendCode();
+    if (hasAutoSent.current) {
+      return;
+    }
+    hasAutoSent.current = true;
+    void sendCode(false);
   }, []);
 
-  async function sendCode(): Promise<void> {
+  async function sendCode(isManual: boolean): Promise<void> {
     setIsSending(true);
     setError(null);
 
@@ -35,7 +40,13 @@ export function VerifyEmailOtpForm({ email }: { email: string }) {
     setIsSending(false);
 
     if (!result.ok) {
-      setError(result.message);
+      // On the initial auto-send a recent code may already be active; that
+      // cooldown is benign, so only surface it when the user clicks Resend.
+      if (isManual) {
+        setError(result.message);
+      } else if (!info) {
+        setInfo(`A code was already sent to ${email}. Check your inbox.`);
+      }
       return;
     }
 
@@ -115,7 +126,7 @@ export function VerifyEmailOtpForm({ email }: { email: string }) {
             type="button"
             variant="outline"
             disabled={isSending}
-            onClick={() => void sendCode()}
+            onClick={() => void sendCode(true)}
             className="border-white/10 bg-transparent text-white hover:bg-white/5"
           >
             {isSending ? "Sending..." : "Resend code"}

@@ -101,7 +101,7 @@ export function RegisterForm({
       return;
     }
 
-    router.push("/login/verify-email-otp");
+    router.push("/dashboard");
     router.refresh();
   }
 
