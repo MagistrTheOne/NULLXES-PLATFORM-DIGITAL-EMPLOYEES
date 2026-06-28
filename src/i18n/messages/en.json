@@ -280,9 +280,9 @@
       },
       "avatar": {
         "hint": "Portrait preview is generated here. Full deployment completes after you choose a voice.",
-        "presetHint": "Choose a curated avatar preset. Custom upload and generation unlock on paid plans.",
-        "presetOnlyTitle": "Curated avatar presets",
-        "presetOnlyDescription": "Free includes ready-made avatars from our catalog. Upgrade for custom upload and AI generation.",
+        "presetHint": "Choose one of four NULLXES digital employees. Custom avatars unlock on paid plans.",
+        "presetOnlyTitle": "NULLXES workforce presets",
+        "presetOnlyDescription": "Free includes Somnia, Kaira, Megan, and Lili — ready-made avatars from our catalog. Custom upload and AI generation require an upgrade.",
         "presetUpgrade": "Upgrade for custom avatars",
         "tabUpload": "Upload",
         "tabGenerate": "Generate",

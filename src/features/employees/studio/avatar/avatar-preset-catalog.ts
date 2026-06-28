@@ -1,55 +1,77 @@
-export type StudioAvatarPreset = {
-  id: string;
+export type WorkforceAvatarPresetId = "somnia" | "kaira" | "megan" | "lili";
+
+export type StudioAvatarPresetDefinition = {
+  id: WorkforceAvatarPresetId;
   name: string;
-  description: string;
-  imageUrl: string;
+  role: string;
+  anamAvatarIdEnv: string;
+  anamDisplayNameHint: string;
 };
 
-export const STUDIO_AVATAR_PRESET_CATALOG: StudioAvatarPreset[] = [
+export type StudioAvatarPreset = {
+  id: WorkforceAvatarPresetId;
+  name: string;
+  description: string;
+  imageUrl: string | null;
+};
+
+export const WORKFORCE_AVATAR_PRESETS: StudioAvatarPresetDefinition[] = [
   {
-    id: "preset-executive",
-    name: "Executive",
-    description: "Formal leadership presence for enterprise conversations.",
-    imageUrl: "",
+    id: "somnia",
+    name: "Somnia",
+    role: "Enterprise Sales Employee",
+    anamAvatarIdEnv: "ANAM_PRESET_SOMNIA_AVATAR_ID",
+    anamDisplayNameHint: "somnia",
   },
   {
-    id: "preset-sales",
-    name: "Sales",
-    description: "Confident and approachable for revenue-facing roles.",
-    imageUrl: "",
+    id: "kaira",
+    name: "Kaira",
+    role: "Customer Support Employee",
+    anamAvatarIdEnv: "ANAM_PRESET_KAIRA_AVATAR_ID",
+    anamDisplayNameHint: "kaira",
   },
   {
-    id: "preset-support",
-    name: "Support",
-    description: "Warm and attentive for customer-facing operations.",
-    imageUrl: "",
+    id: "megan",
+    name: "Megan",
+    role: "Legal Operations Employee",
+    anamAvatarIdEnv: "ANAM_PRESET_MEGAN_AVATAR_ID",
+    anamDisplayNameHint: "megan",
   },
   {
-    id: "preset-legal",
-    name: "Legal",
-    description: "Composed and precise for compliance workflows.",
-    imageUrl: "",
-  },
-  {
-    id: "preset-analyst",
-    name: "Analyst",
-    description: "Focused and neutral for data and research tasks.",
-    imageUrl: "",
-  },
-  {
-    id: "preset-engineer",
-    name: "Engineer",
-    description: "Technical and direct for automation and ops.",
-    imageUrl: "",
+    id: "lili",
+    name: "Lili",
+    role: "Data Analyst Employee",
+    anamAvatarIdEnv: "ANAM_PRESET_LILI_AVATAR_ID",
+    anamDisplayNameHint: "lili",
   },
 ];
 
-export function isStudioAvatarPresetId(id: string): boolean {
-  return STUDIO_AVATAR_PRESET_CATALOG.some((preset) => preset.id === id);
+export const FREE_TIER_PRESET_COUNT = WORKFORCE_AVATAR_PRESETS.length;
+
+export function isWorkforceAvatarPresetId(
+  id: string,
+): id is WorkforceAvatarPresetId {
+  return WORKFORCE_AVATAR_PRESETS.some((preset) => preset.id === id);
 }
 
-export function getStudioAvatarPresetById(
-  id: string,
-): StudioAvatarPreset | undefined {
-  return STUDIO_AVATAR_PRESET_CATALOG.find((preset) => preset.id === id);
+export function getWorkforceAvatarPresetDefinition(
+  id: WorkforceAvatarPresetId,
+): StudioAvatarPresetDefinition {
+  const preset = WORKFORCE_AVATAR_PRESETS.find((entry) => entry.id === id);
+  if (!preset) {
+    throw new Error(`Unknown workforce avatar preset: ${id}`);
+  }
+  return preset;
+}
+
+export function toStudioAvatarPreset(
+  definition: StudioAvatarPresetDefinition,
+  imageUrl: string | null,
+): StudioAvatarPreset {
+  return {
+    id: definition.id,
+    name: definition.name,
+    description: definition.role,
+    imageUrl,
+  };
 }

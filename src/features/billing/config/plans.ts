@@ -34,7 +34,7 @@ export const BILLING_PLANS: Record<BillingPlanId, BillingPlanDefinition> = {
       "1 digital employee",
       "1 organization",
       "2 minutes per Talk session",
-      "Curated avatar presets",
+      "Curated NULLXES employee presets (Somnia, Kaira, Megan, Lili)",
     ],
   },
   super_pro: {

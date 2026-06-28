@@ -104,7 +104,7 @@ export function CreateEmployeeDialog({
 
   useEffect(() => {
     return () => {
-      if (localUploadPreviewUrlRef.current) {
+      if (localUploadPreviewUrlRef.current?.startsWith("blob:")) {
         URL.revokeObjectURL(localUploadPreviewUrlRef.current);
       }
       if (voicePreviewObjectUrlRef.current) {
@@ -172,10 +172,13 @@ export function CreateEmployeeDialog({
   }
 
   function clearLocalUploadPreview(): void {
-    if (localUploadPreviewUrlRef.current) {
+    if (
+      localUploadPreviewUrlRef.current?.startsWith("blob:") &&
+      localUploadPreviewUrlRef.current
+    ) {
       URL.revokeObjectURL(localUploadPreviewUrlRef.current);
-      localUploadPreviewUrlRef.current = null;
     }
+    localUploadPreviewUrlRef.current = null;
     setLocalUploadPreviewUrl(null);
   }
 
@@ -238,7 +241,7 @@ export function CreateEmployeeDialog({
           setError(t("errors.photoRequired"));
           return false;
         }
-      } else if (!form.presetAvatarId || !localUploadPreviewUrl) {
+      } else if (!form.presetAvatarId) {
         setError(t("errors.presetRequired"));
         return false;
       }
@@ -381,11 +384,7 @@ export function CreateEmployeeDialog({
       updateForm({ avatarGenerationStatus: "generating", avatarGenerationError: null });
 
       if (onComplete) {
-        const portraitPreviewUrl = summaryPreviewUrl;
-        if (!portraitPreviewUrl) {
-          setError(t("errors.photoVoiceRequired"));
-          return;
-        }
+        const portraitPreviewUrl = summaryPreviewUrl ?? "";
 
         await onComplete({
           employeeId: created.employeeId,
@@ -418,8 +417,11 @@ export function CreateEmployeeDialog({
 
   function handlePresetSelected(preset: StudioAvatarPreset): void {
     clearLocalUploadPreview();
-    localUploadPreviewUrlRef.current = preset.imageUrl;
-    setLocalUploadPreviewUrl(preset.imageUrl);
+
+    if (preset.imageUrl) {
+      localUploadPreviewUrlRef.current = preset.imageUrl;
+      setLocalUploadPreviewUrl(preset.imageUrl);
+    }
 
     updateForm({
       photoFile: null,

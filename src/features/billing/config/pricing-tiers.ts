@@ -33,7 +33,7 @@ export const PRICING_TIERS: PricingTier[] = [
     flagship: false,
     features: [
       "1 digital employee",
-      "Curated avatar presets",
+      "4 NULLXES employee presets",
       "2-minute Talk sessions",
     ],
   },

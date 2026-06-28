@@ -7,6 +7,16 @@ import { cn } from "@/lib/utils";
 import { listStudioAvatarPresets } from "./list-studio-avatar-presets";
 import type { StudioAvatarPreset } from "./avatar-preset-catalog";
 
+function PresetInitials({ name }: { name: string }) {
+  return (
+    <div className="flex size-full items-center justify-center bg-white/4">
+      <span className="text-2xl font-medium tracking-tight text-white/35">
+        {name.slice(0, 2).toUpperCase()}
+      </span>
+    </div>
+  );
+}
+
 export function AvatarPresetPicker({
   selectedPresetId,
   disabled,
@@ -67,7 +77,7 @@ export function AvatarPresetPicker({
   }
 
   return (
-    <div className="grid gap-3 sm:grid-cols-2">
+    <div className="grid grid-cols-2 gap-3">
       {presets.map((preset) => {
         const isSelected = selectedPresetId === preset.id;
 
@@ -86,12 +96,16 @@ export function AvatarPresetPicker({
             )}
           >
             <div className="relative aspect-4/3 w-full overflow-hidden bg-black/40">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={preset.imageUrl}
-                alt={preset.name}
-                className="size-full object-cover"
-              />
+              {preset.imageUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={preset.imageUrl}
+                  alt={preset.name}
+                  className="size-full object-cover"
+                />
+              ) : (
+                <PresetInitials name={preset.name} />
+              )}
             </div>
             <div className="border-t border-white/10 px-4 py-3">
               <p className="text-sm font-medium text-white">{preset.name}</p>
