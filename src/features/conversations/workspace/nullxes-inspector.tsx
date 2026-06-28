@@ -1,11 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, MessageSquare, UserRound, Video } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { formatDurationSeconds } from "@/features/analytics/lib/format-duration";
 import type { TalkAgentDetails } from "@/features/runtime-session/components/talk-agent-details";
 import { cn } from "@/lib/utils";
@@ -14,12 +19,52 @@ import { ConversationAvatar } from "../components/conversation-avatar";
 function MetaRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-4 py-2 text-xs">
-      <span className="font-normal text-white/45">{label}</span>
+      <span className="font-normal tracking-[0.08em] text-white/40 uppercase">
+        {label}
+      </span>
       <span className="max-w-40 truncate text-right font-medium text-white/85">
         {value}
       </span>
     </div>
   );
+}
+
+function QuickAction({
+  icon,
+  label,
+  href,
+  active,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  href?: string;
+  active?: boolean;
+}) {
+  const className = cn(
+    "flex h-10 flex-1 items-center justify-center rounded-lg border transition-colors",
+    active
+      ? "border-white/20 bg-white/8 text-white"
+      : "border-white/8 bg-white/2 text-white/55 hover:bg-white/5 hover:text-white",
+  );
+
+  const content = (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        {href ? (
+          <Link href={href} aria-label={label} className={className}>
+            {icon}
+          </Link>
+        ) : (
+          <span aria-current="true" aria-label={label} className={className}>
+            {icon}
+          </span>
+        )}
+      </TooltipTrigger>
+      <TooltipContent>{label}</TooltipContent>
+    </Tooltip>
+  );
+
+  return content;
 }
 
 function formatActivityTime(value: Date): string {
@@ -41,6 +86,7 @@ export function NullxesInspector({
 }) {
   const tPanel = useTranslations("employees.talk.agentPanel");
   const t = useTranslations("conversations");
+  const tActions = useTranslations("conversations.actions");
 
   return (
     <aside
@@ -81,6 +127,24 @@ export function NullxesInspector({
                 {details.role}
               </p>
             </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <QuickAction
+              icon={<MessageSquare className="size-4 stroke-[1.5]" />}
+              label={tActions("chat")}
+              active
+            />
+            <QuickAction
+              icon={<Video className="size-4 stroke-[1.5]" />}
+              label={tActions("talk")}
+              href={`/dashboard/employees/${details.employeeId}/talk`}
+            />
+            <QuickAction
+              icon={<UserRound className="size-4 stroke-[1.5]" />}
+              label={tActions("profile")}
+              href={`/dashboard/employees/${details.employeeId}`}
+            />
           </div>
 
           <Separator className="bg-white/8" />

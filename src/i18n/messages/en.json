@@ -967,6 +967,11 @@
       "transcribeFailed": "Transcription failed"
     },
     "openProfile": "Open profile",
+    "actions": {
+      "chat": "Chat",
+      "talk": "Talk",
+      "profile": "Profile"
+    },
     "mainThread": "Main",
     "roster": "Workforce",
     "emptyRoster": "No talk-ready employees yet.",
