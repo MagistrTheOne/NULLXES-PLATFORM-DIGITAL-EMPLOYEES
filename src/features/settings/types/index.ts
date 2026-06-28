@@ -109,6 +109,11 @@ export type AuditEventListItem = {
   createdAt: Date;
 };
 
+export type BillingSnapshot = {
+  polarReady: boolean;
+  superProCheckoutUrl: string | null;
+};
+
 export type SettingsPageData = {
   canManageOrganization: boolean;
   canManageMembers: boolean;
@@ -120,6 +125,7 @@ export type SettingsPageData = {
   pendingInvites: TeamInviteRow[];
   integrations: SystemStatusItem[];
   security: SecuritySnapshot;
+  billing: BillingSnapshot;
   auditEvents: AuditEventListItem[];
   pendingApprovals: PendingApprovalRow[];
   brainProviderReadiness: BrainProviderReadinessMap;

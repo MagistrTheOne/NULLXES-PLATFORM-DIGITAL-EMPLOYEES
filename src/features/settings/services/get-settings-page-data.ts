@@ -15,6 +15,10 @@ import { getPendingInvites } from "@/features/team/queries/get-pending-invites";
 import { getTeamMembers } from "../queries/get-team-members";
 import { getBrainProviderReadinessMap } from "@/features/brain/lib/brain-provider-readiness";
 import type { BrainProviderReadinessMap } from "@/features/brain/lib/brain-provider-readiness";
+import { getPolarProductId } from "@/features/billing/config/plans";
+import { buildPolarCheckoutUrl } from "@/features/billing/lib/build-checkout-url";
+import { resolveBillingPlanId } from "@/features/billing/lib/resolve-billing-plan";
+import { isPolarConfigured } from "@/features/billing/services/polar-config";
 import type { OrganizationSettingsDto, SettingsPageData } from "../types";
 
 function toSettingsDto(
@@ -84,6 +88,23 @@ export async function getSettingsPageData(
 
     const memberCount = Number(memberCountRow[0]?.total ?? 0);
 
+    const polarReady = isPolarConfigured();
+    const superProProductId = getPolarProductId("super_pro");
+    const billingPlanId = resolveBillingPlanId(
+      workspace.organization.billingPlan,
+    );
+    const superProCheckoutUrl =
+      billingPlanId === "free" &&
+      workspace.permissions.canManageOrganization &&
+      polarReady &&
+      superProProductId
+        ? buildPolarCheckoutUrl({
+            productId: superProProductId,
+            organizationId,
+            customerEmail: workspace.user.email ?? undefined,
+          })
+        : null;
+
     return {
       canManageOrganization: workspace.permissions.canManageOrganization,
       canManageMembers: workspace.permissions.canManageMembers,
@@ -120,6 +141,10 @@ export async function getSettingsPageData(
       pendingInvites,
       integrations: await getWorkspaceIntegrations(organizationId),
       security,
+      billing: {
+        polarReady,
+        superProCheckoutUrl,
+      },
       auditEvents: auditEvents.map((event) => ({
         id: event.id,
         action: event.action,

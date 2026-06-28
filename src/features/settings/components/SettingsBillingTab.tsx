@@ -6,10 +6,7 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { formatDurationSeconds } from "@/features/analytics/lib/format-duration";
-import {
-  BILLING_PLANS,
-  getPolarProductId,
-} from "@/features/billing/config/plans";
+import { BILLING_PLANS } from "@/features/billing/config/plans";
 import {
   getFlagshipPricingTier,
   getGridPricingTiers,
@@ -17,9 +14,11 @@ import {
   type PricingTier,
 } from "@/features/billing/config/pricing-tiers";
 import { resolveBillingPlanId } from "@/features/billing/lib/resolve-billing-plan";
-import { buildPolarCheckoutUrl } from "@/features/billing/lib/build-checkout-url";
-import { isPolarConfigured } from "@/features/billing/services/polar-config";
-import type { OrganizationProfileDto, SettingsUsageSnapshot } from "../types";
+import type {
+  BillingSnapshot,
+  OrganizationProfileDto,
+  SettingsUsageSnapshot,
+} from "../types";
 import { SettingsCard } from "./settings-card";
 
 const SALES_CONTACT = "mailto:sales@nullxes.com";
@@ -29,25 +28,19 @@ export function SettingsBillingTab({
   organization,
   usage,
   canManageOrganization,
+  billing,
 }: {
   organization: OrganizationProfileDto;
   usage: SettingsUsageSnapshot;
   canManageOrganization: boolean;
+  billing: BillingSnapshot;
 }) {
   const t = useTranslations("settings.billing");
   const planId = resolveBillingPlanId(organization.billingPlan);
   const activePlan = BILLING_PLANS[planId];
   const currentTierId = resolvePricingTierIdForPlan(planId);
-  const polarReady = isPolarConfigured();
-  const superProProductId = getPolarProductId("super_pro");
-
-  const checkoutUrl =
-    superProProductId && polarReady
-      ? buildPolarCheckoutUrl({
-          productId: superProProductId,
-          organizationId: organization.id,
-        })
-      : null;
+  const polarReady = billing.polarReady;
+  const checkoutUrl = billing.superProCheckoutUrl;
 
   const gridTiers = getGridPricingTiers();
   const flagshipTier = getFlagshipPricingTier();

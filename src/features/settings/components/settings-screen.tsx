@@ -115,6 +115,7 @@ export function SettingsScreen({ data }: { data: SettingsPageData }) {
                 organization={data.organization}
                 usage={data.context.usage}
                 canManageOrganization={data.canManageOrganization}
+                billing={data.billing}
               />
             </TabsContent>
 
