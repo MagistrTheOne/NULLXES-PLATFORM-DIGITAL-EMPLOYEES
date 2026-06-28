@@ -1,7 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { CreditCard, LogOut, Sparkles } from "lucide-react";
+import {
+  BarChart3,
+  CreditCard,
+  LogOut,
+  Settings,
+  Sparkles,
+} from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -100,6 +106,34 @@ export function SidebarUserSection({
             </span>
           </p>
         </DropdownMenuLabel>
+        <DropdownMenuSeparator className="bg-white/10" />
+        <DropdownMenuItem
+          asChild
+          className="cursor-pointer text-white focus:bg-white/10 focus:text-white"
+        >
+          <Link href="/settings">
+            <Settings />
+            {t("settings")}
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          asChild
+          className="cursor-pointer text-white focus:bg-white/10 focus:text-white"
+        >
+          <Link href="/dashboard/analytics">
+            <BarChart3 />
+            {t("analytics")}
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          asChild
+          className="cursor-pointer text-white focus:bg-white/10 focus:text-white"
+        >
+          <Link href="/settings?tab=billing">
+            <CreditCard />
+            {t("billingSettings")}
+          </Link>
+        </DropdownMenuItem>
         {showUpgrade ? (
           <DropdownMenuItem
             asChild
@@ -122,15 +156,6 @@ export function SidebarUserSection({
             </Link>
           </DropdownMenuItem>
         ) : null}
-        <DropdownMenuItem
-          asChild
-          className="cursor-pointer text-white focus:bg-white/10 focus:text-white"
-        >
-          <Link href="/settings?tab=billing">
-            <CreditCard />
-            {t("billingSettings")}
-          </Link>
-        </DropdownMenuItem>
         {(billing.planId === "free" ||
           billing.planId === "enterprise" ||
           billing.planId === "government") &&

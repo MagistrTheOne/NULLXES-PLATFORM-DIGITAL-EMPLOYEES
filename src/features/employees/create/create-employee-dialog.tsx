@@ -24,6 +24,8 @@ import {
   AvatarStudioStep,
   VoiceStudioPicker,
 } from "@/features/employees/studio";
+import type { StudioAvatarPreset } from "@/features/employees/studio/avatar/avatar-preset-catalog";
+import { useWorkspaceBilling } from "@/features/workspace/components/workspace-billing-provider";
 import { CUSTOM_ELEVENLABS_STUDIO_VOICE_ID } from "@/features/employees/studio/voice/voice-catalog";
 import {
   assembleCreateEmployeeDraft,
@@ -78,8 +80,12 @@ export function CreateEmployeeDialog({
 }) {
   const t = useTranslations("employees.create");
   const tCommon = useTranslations("common.actions");
+  const { allowCustomAvatars, checkoutUrl } = useWorkspaceBilling();
   const [step, setStep] = useState<CreateEmployeeStep>("identity");
-  const [form, setForm] = useState<CreateEmployeeFormState>(createInitialFormState);
+  const [form, setForm] = useState<CreateEmployeeFormState>(() => ({
+    ...createInitialFormState(),
+    avatarSource: allowCustomAvatars ? "upload" : "preset",
+  }));
   const [error, setError] = useState<string | null>(null);
   const [voicePreviewError, setVoicePreviewError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -175,7 +181,10 @@ export function CreateEmployeeDialog({
 
   function resetFlow(): void {
     setStep("identity");
-    setForm(createInitialFormState());
+    setForm({
+      ...createInitialFormState(),
+      avatarSource: allowCustomAvatars ? "upload" : "preset",
+    });
     setError(null);
     setPreviewingVoiceId(null);
     setVoicePreviewError(null);
@@ -224,8 +233,13 @@ export function CreateEmployeeDialog({
         setError(t("errors.avatarGenerating"));
         return false;
       }
-      if (!form.photoFile) {
-        setError(t("errors.photoRequired"));
+      if (allowCustomAvatars) {
+        if (!form.photoFile) {
+          setError(t("errors.photoRequired"));
+          return false;
+        }
+      } else if (!form.presetAvatarId || !localUploadPreviewUrl) {
+        setError(t("errors.presetRequired"));
         return false;
       }
     }
@@ -293,7 +307,11 @@ export function CreateEmployeeDialog({
   }
 
   async function handleCreate(): Promise<void> {
-    if (!form.photoFile || !form.studioVoiceId) {
+    const hasAvatarSelection = allowCustomAvatars
+      ? Boolean(form.photoFile)
+      : Boolean(form.presetAvatarId);
+
+    if (!hasAvatarSelection || !form.studioVoiceId) {
       setError(t("errors.photoVoiceRequired"));
       return;
     }
@@ -341,7 +359,12 @@ export function CreateEmployeeDialog({
       }
 
       const avatarPayload = new FormData();
-      avatarPayload.append("file", form.photoFile);
+      if (form.photoFile) {
+        avatarPayload.append("file", form.photoFile);
+      }
+      if (form.presetAvatarId) {
+        avatarPayload.append("presetAvatarId", form.presetAvatarId);
+      }
       avatarPayload.append("name", wizardInput.name);
       avatarPayload.append("role", wizardInput.role);
       avatarPayload.append("studioVoiceId", form.studioVoiceId);
@@ -393,6 +416,25 @@ export function CreateEmployeeDialog({
     }
   }
 
+  function handlePresetSelected(preset: StudioAvatarPreset): void {
+    clearLocalUploadPreview();
+    localUploadPreviewUrlRef.current = preset.imageUrl;
+    setLocalUploadPreviewUrl(preset.imageUrl);
+
+    updateForm({
+      photoFile: null,
+      photoFileName: preset.name,
+      photoFileSize: null,
+      avatarSource: "preset",
+      presetAvatarId: preset.id,
+      avatarId: null,
+      avatarPreviewUrl: null,
+      personaId: null,
+      avatarGenerationStatus: "ready",
+      avatarGenerationError: null,
+    });
+  }
+
   function handlePhotoSelected(file: File): void {
     if (!file.type.startsWith("image/")) {
       setError(t("errors.invalidImage"));
@@ -414,6 +456,7 @@ export function CreateEmployeeDialog({
       photoFileName: file.name,
       photoFileSize: file.size,
       avatarSource: "upload",
+      presetAvatarId: null,
       avatarId: null,
       avatarPreviewUrl: null,
       personaId: null,
@@ -437,6 +480,7 @@ export function CreateEmployeeDialog({
       photoFileName: file.name,
       photoFileSize: file.size,
       avatarSource: "generate",
+      presetAvatarId: null,
       avatarId: null,
       avatarPreviewUrl: null,
       personaId: null,
@@ -589,10 +633,14 @@ export function CreateEmployeeDialog({
                 localPreviewUrl={localUploadPreviewUrl}
                 avatarPrompt={form.avatarPrompt}
                 avatarSource={form.avatarSource}
+                presetAvatarId={form.presetAvatarId}
+                allowCustomAvatars={allowCustomAvatars}
+                checkoutUrl={checkoutUrl}
                 isGenerating={isGeneratingAvatar}
                 generationError={form.avatarGenerationError}
                 onPhotoSelected={handlePhotoSelected}
                 onGeneratedPhoto={handleGeneratedPhoto}
+                onPresetSelected={handlePresetSelected}
                 onPromptChange={(prompt) => updateForm({ avatarPrompt: prompt })}
                 onSourceChange={(avatarSource) => updateForm({ avatarSource })}
                 onGeneratingChange={setIsGeneratingAvatar}
@@ -600,7 +648,9 @@ export function CreateEmployeeDialog({
                   updateForm({ avatarGenerationError: message })
                 }
               />
-              <p className="text-xs text-white/50">{t("avatar.hint")}</p>
+              <p className="text-xs text-white/50">
+                {allowCustomAvatars ? t("avatar.hint") : t("avatar.presetHint")}
+              </p>
             </div>
           ) : null}
 

@@ -1,6 +1,8 @@
 "use server";
 
 import { requireWorkspacePermissionOrThrowMessage } from "@/features/workspace";
+import { assertCanCreateCustomAvatar } from "@/features/billing/services/check-plan-limits";
+import { resolveBillingPlanId } from "@/features/billing/lib/resolve-billing-plan";
 import { generatePortraitImageFromPrompt } from "../services/generate-portrait-image-from-prompt";
 
 export type GenerateEmployeeAvatarFromPromptSuccess = {
@@ -25,7 +27,14 @@ export async function generateEmployeeAvatarFromPrompt(input: {
   role?: string;
 }): Promise<GenerateEmployeeAvatarFromPromptResult> {
   try {
-    await requireWorkspacePermissionOrThrowMessage("canManageEmployees");
+    const workspace = await requireWorkspacePermissionOrThrowMessage(
+      "canManageEmployees",
+    );
+    const billingPlan = resolveBillingPlanId(workspace.organization.billingPlan);
+    const customAvatarCheck = assertCanCreateCustomAvatar(billingPlan);
+    if (!customAvatarCheck.ok) {
+      return { status: "failed", message: customAvatarCheck.message };
+    }
   } catch (error: unknown) {
     return {
       status: "failed",

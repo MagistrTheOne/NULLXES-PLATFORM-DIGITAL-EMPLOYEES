@@ -11,6 +11,7 @@ export type BillingPlanDefinition = {
     maxEmployees: number | null;
     maxOrganizations: number | null;
     maxSessionSeconds: number | null;
+    allowCustomAvatars: boolean;
   };
   features: string[];
 };
@@ -27,11 +28,13 @@ export const BILLING_PLANS: Record<BillingPlanId, BillingPlanDefinition> = {
       maxEmployees: 1,
       maxOrganizations: 1,
       maxSessionSeconds: 120,
+      allowCustomAvatars: false,
     },
     features: [
       "1 digital employee",
       "1 organization",
       "2 minutes per Talk session",
+      "Curated avatar presets",
     ],
   },
   super_pro: {
@@ -45,9 +48,11 @@ export const BILLING_PLANS: Record<BillingPlanId, BillingPlanDefinition> = {
       maxEmployees: null,
       maxOrganizations: 1,
       maxSessionSeconds: null,
+      allowCustomAvatars: true,
     },
     features: [
       "Unlimited digital employees",
+      "Custom avatar upload and generation",
       "Full analytics and audit trail",
       "Priority knowledge indexing",
       "Team invites and API access",
@@ -64,8 +69,10 @@ export const BILLING_PLANS: Record<BillingPlanId, BillingPlanDefinition> = {
       maxEmployees: null,
       maxOrganizations: null,
       maxSessionSeconds: null,
+      allowCustomAvatars: true,
     },
     features: [
+      "Unlimited custom avatars",
       "Dedicated support",
       "Custom retention and compliance",
       "SSO and advanced security",
@@ -82,8 +89,10 @@ export const BILLING_PLANS: Record<BillingPlanId, BillingPlanDefinition> = {
       maxEmployees: null,
       maxOrganizations: null,
       maxSessionSeconds: null,
+      allowCustomAvatars: true,
     },
     features: [
+      "Unlimited custom avatars",
       "Air-gapped options",
       "FedRAMP-aligned controls",
       "Dedicated account team",

@@ -1,7 +1,10 @@
 "use server";
 
+import { assertCanCreateCustomAvatar } from "@/features/billing/services/check-plan-limits";
+import { resolveBillingPlanId } from "@/features/billing/lib/resolve-billing-plan";
 import { requireWorkspacePermissionOrThrowMessage } from "@/features/workspace";
 import { createAnamAvatarFromFile } from "@/features/employees/studio/anam-create-avatar-from-file";
+import { resolveStudioAvatarPreset } from "@/features/employees/studio/avatar/list-studio-avatar-presets";
 import { resolveAnamPersonaVoiceId } from "@/features/employees/studio/resolve-anam-persona-voice";
 import {
   resolveStudioVoiceSelection,
@@ -85,8 +88,9 @@ async function createAnamPersona(input: {
 export async function finalizeEmployeeStudio(
   formData: FormData,
 ): Promise<FinalizeEmployeeStudioResult> {
+  let workspace;
   try {
-    await requireWorkspacePermissionOrThrowMessage("canManageEmployees");
+    workspace = await requireWorkspacePermissionOrThrowMessage("canManageEmployees");
   } catch (error: unknown) {
     return {
       status: "failed",
@@ -98,17 +102,15 @@ export async function finalizeEmployeeStudio(
     return { status: "failed", message: "ANAM_API_KEY is not configured" };
   }
 
+  const billingPlan = resolveBillingPlanId(workspace.organization.billingPlan);
   const file = formData.get("file");
+  const presetAvatarId = String(formData.get("presetAvatarId") ?? "").trim();
   const name = String(formData.get("name") ?? "").trim();
   const role = String(formData.get("role") ?? "").trim();
   const studioVoiceId = String(formData.get("studioVoiceId") ?? "").trim();
   const customElevenLabsVoiceId = String(
     formData.get("customElevenLabsVoiceId") ?? "",
   ).trim();
-
-  if (!(file instanceof File)) {
-    return { status: "failed", message: "Photo file is required" };
-  }
 
   if (!name || !role) {
     return { status: "failed", message: "Employee name and role are required" };
@@ -128,8 +130,24 @@ export async function finalizeEmployeeStudio(
     };
   }
 
+  const usesCustomAvatar = !presetAvatarId;
+
+  if (usesCustomAvatar) {
+    const customAvatarCheck = assertCanCreateCustomAvatar(billingPlan);
+    if (!customAvatarCheck.ok) {
+      return { status: "failed", message: customAvatarCheck.message };
+    }
+
+    if (!(file instanceof File)) {
+      return { status: "failed", message: "Photo file is required" };
+    }
+  }
+
   try {
-    const avatar = await createAnamAvatarFromFile({ file, displayName: name });
+    const avatar = presetAvatarId
+      ? await resolveStudioAvatarPreset(presetAvatarId)
+      : await createAnamAvatarFromFile({ file: file as File, displayName: name });
+
     const { anamVoiceId, binding } = await resolveAnamPersonaVoiceId(selectedVoice);
     const persona = await createAnamPersona({
       name,

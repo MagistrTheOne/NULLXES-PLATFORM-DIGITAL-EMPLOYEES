@@ -35,8 +35,9 @@ export type CreateEmployeeFormState = {
   avatarProvider: "anam";
   avatarGenerationStatus: AvatarGenerationStatus;
   avatarGenerationError: string | null;
-  avatarSource: "upload" | "generate";
+  avatarSource: "upload" | "generate" | "preset";
   avatarPrompt: string;
+  presetAvatarId: string | null;
   studioVoiceId: string | null;
   voiceId: string | null;
   voiceName: string | null;

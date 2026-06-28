@@ -27,6 +27,8 @@
     },
     "userMenu": {
       "plan": "Plan",
+      "settings": "Settings",
+      "analytics": "Analytics",
       "upgrade": "Upgrade to Super Pro",
       "manageSubscription": "Manage subscription",
       "billingSettings": "Billing settings",
@@ -278,6 +280,10 @@
       },
       "avatar": {
         "hint": "Portrait preview is generated here. Full deployment completes after you choose a voice.",
+        "presetHint": "Choose a curated avatar preset. Custom upload and generation unlock on paid plans.",
+        "presetOnlyTitle": "Curated avatar presets",
+        "presetOnlyDescription": "Free includes ready-made avatars from our catalog. Upgrade for custom upload and AI generation.",
+        "presetUpgrade": "Upgrade for custom avatars",
         "tabUpload": "Upload",
         "tabGenerate": "Generate",
         "promptLabel": "Describe the avatar",
@@ -322,6 +328,7 @@
         "nameRequired": "Employee name is required.",
         "roleRequired": "Role is required.",
         "photoRequired": "Upload a photo or generate one from a prompt before continuing.",
+        "presetRequired": "Select an avatar preset before continuing.",
         "avatarGenerating": "Wait for avatar generation to finish.",
         "voiceRequired": "Select a voice before continuing.",
         "customVoiceRequired": "Enter a custom ElevenLabs voice ID or pick a catalog voice.",
@@ -564,7 +571,8 @@
         "change": "Change photo",
         "generating": "Generating…",
         "regenerate": "Regenerate",
-        "generate": "Generate"
+        "generate": "Generate",
+        "presetsLoading": "Loading avatar presets…"
       },
       "voice": {
         "allProviders": "All providers",

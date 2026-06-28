@@ -36,3 +36,17 @@ export async function assertCanCreateEmployee(
 export function getSessionLimitSecondsForPlan(billingPlan: BillingPlanId): number {
   return BILLING_PLANS[billingPlan].limits.maxSessionSeconds ?? 3600;
 }
+
+export function assertCanCreateCustomAvatar(
+  billingPlan: BillingPlanId,
+): { ok: true } | { ok: false; message: string } {
+  if (BILLING_PLANS[billingPlan].limits.allowCustomAvatars) {
+    return { ok: true };
+  }
+
+  return {
+    ok: false,
+    message:
+      "Custom avatars are available on Super Pro and Enterprise. Choose a preset avatar or upgrade your plan.",
+  };
+}

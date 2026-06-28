@@ -4,6 +4,7 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { WorkspaceDisplayPreferencesProvider } from "@/features/workspace/components/workspace-display-preferences-provider";
 import { WorkspacePermissionsProvider } from "@/features/workspace/components/workspace-permissions-provider";
+import { WorkspaceBillingProvider } from "@/features/workspace/components/workspace-billing-provider";
 import { dashboardSidebarCssVars } from "../constants";
 import type { DashboardLayoutProps } from "../types";
 import { DashboardSidebar } from "./dashboard-sidebar";
@@ -18,6 +19,7 @@ export function DashboardLayout({
 }: DashboardLayoutProps) {
   return (
     <WorkspacePermissionsProvider permissions={permissions}>
+      <WorkspaceBillingProvider billing={workspace.billing}>
       <WorkspaceDisplayPreferencesProvider preferences={displayPreferences}>
       <TooltipProvider delayDuration={0}>
       <SidebarProvider
@@ -35,6 +37,7 @@ export function DashboardLayout({
       </SidebarProvider>
     </TooltipProvider>
     </WorkspaceDisplayPreferencesProvider>
+      </WorkspaceBillingProvider>
     </WorkspacePermissionsProvider>
   );
 }

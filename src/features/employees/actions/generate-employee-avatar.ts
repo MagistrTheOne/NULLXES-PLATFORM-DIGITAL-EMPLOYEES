@@ -1,6 +1,8 @@
 "use server";
 
 import { requireWorkspacePermissionOrThrowMessage } from "@/features/workspace";
+import { assertCanCreateCustomAvatar } from "@/features/billing/services/check-plan-limits";
+import { resolveBillingPlanId } from "@/features/billing/lib/resolve-billing-plan";
 import { createAnamAvatarFromFile } from "@/features/employees/studio/anam-create-avatar-from-file";
 
 export type GenerateEmployeeAvatarSuccess = {
@@ -22,13 +24,20 @@ export type GenerateEmployeeAvatarResult =
 export async function generateEmployeeAvatar(
   formData: FormData,
 ): Promise<GenerateEmployeeAvatarResult> {
+  let workspace;
   try {
-    await requireWorkspacePermissionOrThrowMessage("canManageEmployees");
+    workspace = await requireWorkspacePermissionOrThrowMessage("canManageEmployees");
   } catch (error: unknown) {
     return {
       status: "failed",
       message: error instanceof Error ? error.message : "Access denied",
     };
+  }
+
+  const billingPlan = resolveBillingPlanId(workspace.organization.billingPlan);
+  const customAvatarCheck = assertCanCreateCustomAvatar(billingPlan);
+  if (!customAvatarCheck.ok) {
+    return { status: "failed", message: customAvatarCheck.message };
   }
 
   const file = formData.get("file");

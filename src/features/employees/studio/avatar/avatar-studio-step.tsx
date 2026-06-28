@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Loader2, Sparkles } from "lucide-react";
@@ -8,8 +9,10 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { generateEmployeeAvatarFromPrompt } from "@/features/employees/actions/generate-employee-avatar-from-prompt";
+import { AvatarPresetPicker } from "./avatar-preset-picker";
 import { AvatarPreviewCard } from "./avatar-preview-card";
 import { AvatarUpload } from "./avatar-upload";
+import type { StudioAvatarPreset } from "./avatar-preset-catalog";
 import {
   base64ToImageFile,
   buildDefaultAvatarPrompt,
@@ -28,10 +31,14 @@ export function AvatarStudioStep({
   localPreviewUrl,
   avatarPrompt,
   avatarSource,
+  presetAvatarId,
+  allowCustomAvatars,
+  checkoutUrl,
   isGenerating,
   generationError,
   onPhotoSelected,
   onGeneratedPhoto,
+  onPresetSelected,
   onPromptChange,
   onSourceChange,
   onGeneratingChange,
@@ -42,13 +49,17 @@ export function AvatarStudioStep({
   photoFileName: string | null;
   localPreviewUrl: string | null;
   avatarPrompt: string;
-  avatarSource: "upload" | "generate";
+  avatarSource: "upload" | "generate" | "preset";
+  presetAvatarId: string | null;
+  allowCustomAvatars: boolean;
+  checkoutUrl: string | null;
   isGenerating: boolean;
   generationError: string | null;
   onPhotoSelected: (file: File) => void;
   onGeneratedPhoto: (file: File, previewUrl: string) => void;
+  onPresetSelected: (preset: StudioAvatarPreset) => void;
   onPromptChange: (prompt: string) => void;
-  onSourceChange: (source: "upload" | "generate") => void;
+  onSourceChange: (source: "upload" | "generate" | "preset") => void;
   onGeneratingChange: (generating: boolean) => void;
   onGenerationError: (message: string | null) => void;
 }) {
@@ -118,10 +129,40 @@ export function AvatarStudioStep({
     setPromptTouched(true);
   }
 
+  if (!allowCustomAvatars) {
+    return (
+      <div className="flex flex-col gap-4">
+        <div className="rounded-xl border border-white/10 bg-white/2 px-4 py-3">
+          <p className="text-sm text-white/80">{t("presetOnlyTitle")}</p>
+          <p className="mt-1 text-xs text-white/50">{t("presetOnlyDescription")}</p>
+          {checkoutUrl ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="mt-3 border-white/10 bg-transparent text-white hover:bg-white/5"
+              asChild
+            >
+              <Link href={checkoutUrl}>{t("presetUpgrade")}</Link>
+            </Button>
+          ) : null}
+        </div>
+
+        <AvatarPresetPicker
+          selectedPresetId={presetAvatarId}
+          disabled={isGenerating}
+          onSelectPreset={onPresetSelected}
+        />
+      </div>
+    );
+  }
+
   return (
     <Tabs
-      value={avatarSource}
-      onValueChange={(value) => onSourceChange(value as "upload" | "generate")}
+      value={avatarSource === "preset" ? "upload" : avatarSource}
+      onValueChange={(value) =>
+        onSourceChange(value as "upload" | "generate")
+      }
       className="flex flex-col gap-4"
     >
       <TabsList className="grid h-10 w-full grid-cols-2 rounded-lg border border-white/10 bg-white/4 p-1">

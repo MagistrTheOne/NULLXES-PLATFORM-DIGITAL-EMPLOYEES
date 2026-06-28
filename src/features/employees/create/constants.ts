@@ -43,6 +43,7 @@ export function createInitialFormState(): CreateEmployeeFormState {
     avatarGenerationError: null,
     avatarSource: "upload",
     avatarPrompt: "",
+    presetAvatarId: null,
     studioVoiceId: null,
     voiceId: null,
     voiceName: null,
