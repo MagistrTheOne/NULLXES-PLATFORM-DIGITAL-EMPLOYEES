@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
+import { closeOpenSessionsAction } from "../actions/close-open-sessions";
 import { exportWorkspaceDataAction } from "../actions/export-workspace-data";
 import { requestExportJobAction } from "../actions/request-export-job";
 import type { OrganizationSettingsDto } from "../types";
@@ -11,11 +13,16 @@ import { SettingsCard } from "./settings-card";
 export function SettingsAdvancedTab({
   settings,
   canManageOrganization,
+  isPlatformAdmin,
+  openSessionCount,
 }: {
   settings: OrganizationSettingsDto;
   canManageOrganization: boolean;
+  isPlatformAdmin: boolean;
+  openSessionCount: number;
 }) {
   const t = useTranslations("settings.advanced");
+  const router = useRouter();
   const [message, setMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -50,6 +57,20 @@ export function SettingsAdvancedTab({
     });
   }
 
+  function handleStopSessions(): void {
+    startTransition(async () => {
+      const result = await closeOpenSessionsAction();
+      setMessage(
+        result.ok
+          ? t("sessionsStopped", { count: result.closedCount })
+          : result.message,
+      );
+      if (result.ok) {
+        router.refresh();
+      }
+    });
+  }
+
   return (
     <div className="grid gap-6">
       <SettingsCard title={t("title")} description={t("description")}>
@@ -73,7 +94,29 @@ export function SettingsAdvancedTab({
         </div>
         {message ? <p className="mt-3 text-sm text-muted-foreground">{message}</p> : null}
       </SettingsCard>
-      <SettingsCard title={t("title")}>
+
+      {isPlatformAdmin ? (
+        <SettingsCard
+          title={t("sessionsTitle")}
+          description={t("sessionsDescription")}
+        >
+          <p className="text-sm text-muted-foreground">
+            {t("openSessions", { count: openSessionCount })}
+          </p>
+          <div className="mt-4 flex flex-wrap gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              disabled={isPending || openSessionCount === 0}
+              onClick={handleStopSessions}
+            >
+              {t("stopSessions")}
+            </Button>
+          </div>
+        </SettingsCard>
+      ) : null}
+
+      <SettingsCard title={t("retentionTitle")}>
         <div className="space-y-2 text-sm text-muted-foreground">
           <p>
             {settings.sessionRetentionDays} / {settings.retentionPolicyDays}

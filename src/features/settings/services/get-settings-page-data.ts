@@ -13,7 +13,9 @@ import { db } from "@/shared/db/client";
 import { withDatabaseRetry } from "@/shared/db/with-database-retry";
 import { getPendingInvites } from "@/features/team/queries/get-pending-invites";
 import { getTeamMembers } from "../queries/get-team-members";
+import { isPlatformAdminEmail } from "@/features/admin/lib/is-platform-admin";
 import { getBrainProviderReadinessMap } from "@/features/brain/lib/brain-provider-readiness";
+import { countOpenEmployeeSessions } from "@/features/runtime-session/services/close-open-employee-sessions";
 import type { BrainProviderReadinessMap } from "@/features/brain/lib/brain-provider-readiness";
 import { getPolarProductId } from "@/features/billing/config/plans";
 import { buildPolarCheckoutUrl } from "@/features/billing/lib/build-checkout-url";
@@ -87,6 +89,10 @@ export async function getSettingsPageData(
     ]);
 
     const memberCount = Number(memberCountRow[0]?.total ?? 0);
+    const isPlatformAdmin = isPlatformAdminEmail(workspace.user.email);
+    const openSessionCount = isPlatformAdmin
+      ? await countOpenEmployeeSessions()
+      : 0;
 
     const polarReady = isPolarConfigured();
     const superProProductId = getPolarProductId("super_pro");
@@ -107,6 +113,8 @@ export async function getSettingsPageData(
 
     return {
       canManageOrganization: workspace.permissions.canManageOrganization,
+      isPlatformAdmin,
+      openSessionCount,
       canManageMembers: workspace.permissions.canManageMembers,
       currentUserId: workspace.user.id,
       actorRole: workspace.membership.role,

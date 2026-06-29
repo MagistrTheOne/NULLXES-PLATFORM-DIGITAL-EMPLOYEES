@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Loader2, Pencil, Trash2 } from "lucide-react";
-import type { EmployeeStatus } from "@/entities/digital-employee";
+import type { BrainProvider, EmployeeStatus } from "@/entities/digital-employee";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -34,15 +34,24 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  BrainModelSelect,
+  BrainProviderCards,
+} from "@/features/brain";
+import type { BrainProviderReadinessMap } from "@/features/brain/lib/brain-provider-readiness";
+import { getDefaultBrainModelForProvider } from "@/features/settings/lib/brain-model-defaults";
 import { useWorkspacePermissions } from "@/features/workspace/components/workspace-permissions-provider";
 import { deleteEmployeeAction } from "../actions/delete-employee";
 import { updateEmployeeAction } from "../actions/update-employee";
+import { getInitialBrainModelForEdit } from "../services/update-employee";
 import type { EmployeeDetailShell } from "../types";
 
 export function EmployeeDetailActions({
   employee,
+  brainProviderReadiness,
 }: {
   employee: EmployeeDetailShell;
+  brainProviderReadiness: BrainProviderReadinessMap;
 }) {
   const router = useRouter();
   const t = useTranslations("employees.detail.actions");
@@ -67,6 +76,12 @@ export function EmployeeDetailActions({
   const [description, setDescription] = useState(employee.description ?? "");
   const [status, setStatus] = useState<EmployeeStatus>(employee.status);
   const [systemPrompt, setSystemPrompt] = useState(employee.systemPrompt);
+  const [brainProvider, setBrainProvider] = useState<BrainProvider>(
+    employee.brainProvider,
+  );
+  const [brainModel, setBrainModel] = useState(() =>
+    getInitialBrainModelForEdit(employee.brainProvider, employee.brainModel),
+  );
 
   function resetForm(): void {
     setName(employee.name);
@@ -74,6 +89,10 @@ export function EmployeeDetailActions({
     setDescription(employee.description ?? "");
     setStatus(employee.status);
     setSystemPrompt(employee.systemPrompt);
+    setBrainProvider(employee.brainProvider);
+    setBrainModel(
+      getInitialBrainModelForEdit(employee.brainProvider, employee.brainModel),
+    );
     setErrorMessage(null);
   }
 
@@ -94,6 +113,8 @@ export function EmployeeDetailActions({
         description,
         status,
         systemPrompt,
+        brainProvider,
+        brainModel,
       });
 
       if (!result.ok) {
@@ -155,7 +176,7 @@ export function EmployeeDetailActions({
       <Sheet open={editOpen} onOpenChange={handleEditOpenChange}>
         <SheetContent
           side="right"
-          className="w-full border-white/10 bg-[#0a0a0a] text-white sm:max-w-md"
+          className="w-full overflow-y-auto border-white/10 bg-[#0a0a0a] text-white sm:max-w-lg"
         >
           <SheetHeader>
             <SheetTitle>{t("editTitle")}</SheetTitle>
@@ -220,6 +241,30 @@ export function EmployeeDetailActions({
                 rows={6}
                 className="border-white/12 bg-[#111111] text-white"
               />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-white/80">{t("brainProvider")}</Label>
+              <BrainProviderCards
+                variant="settings"
+                selectedProvider={brainProvider}
+                providerReadiness={brainProviderReadiness}
+                disabled={isPending}
+                onProviderChange={(provider) => {
+                  setBrainProvider(provider);
+                  setBrainModel(getDefaultBrainModelForProvider(provider));
+                }}
+              />
+            </div>
+            <div className="space-y-2">
+              <BrainModelSelect
+                variant="settings"
+                provider={brainProvider}
+                value={brainModel}
+                disabled={isPending}
+                label={t("brainModel")}
+                onValueChange={setBrainModel}
+              />
+              <p className="text-xs text-white/45">{t("reprovisionHint")}</p>
             </div>
             {errorMessage ? (
               <p className="text-sm text-white/65" role="alert">

@@ -4,6 +4,7 @@ import { ArrowLeft, Loader2, UserRound } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { getBrainProviderReadinessMap } from "@/features/brain/lib/brain-provider-readiness";
 import type { OrganizationDisplayPreferences } from "@/features/workspace/types/display-preferences";
 import {
   formatOrganizationDate,
@@ -65,6 +66,7 @@ export async function EmployeeDetailScreen({
   const tCommon = await getTranslations("common.actions");
   const tStatus = await getTranslations("employees.status");
   const empty = "—";
+  const brainProviderReadiness = getBrainProviderReadinessMap();
 
   const isProvisioning =
     employee.avatarProvisioningStatus === "pending" ||
@@ -108,7 +110,10 @@ export async function EmployeeDetailScreen({
             <p className="mt-1 text-sm text-white/60">{employee.role}</p>
           </div>
         </div>
-        <EmployeeDetailActions employee={employee} />
+        <EmployeeDetailActions
+          employee={employee}
+          brainProviderReadiness={brainProviderReadiness}
+        />
       </div>
 
       {provisioningFailed ? (

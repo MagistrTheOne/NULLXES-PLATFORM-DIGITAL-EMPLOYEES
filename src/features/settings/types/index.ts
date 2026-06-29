@@ -116,6 +116,8 @@ export type BillingSnapshot = {
 
 export type SettingsPageData = {
   canManageOrganization: boolean;
+  isPlatformAdmin: boolean;
+  openSessionCount: number;
   canManageMembers: boolean;
   currentUserId: string;
   actorRole: MembershipRole;

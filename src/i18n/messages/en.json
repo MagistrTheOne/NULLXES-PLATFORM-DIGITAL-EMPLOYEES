@@ -256,6 +256,9 @@
         "description": "Description",
         "status": "Status",
         "systemPrompt": "System prompt",
+        "brainProvider": "Brain provider",
+        "brainModel": "Brain model",
+        "reprovisionHint": "Changing the brain model re-runs provider provisioning.",
         "saving": "Saving…",
         "deleteTitle": "Delete {name}?",
         "deleteDescription": "This permanently removes the employee, runtime config, knowledge sources, and lifecycle history from your workspace. This cannot be undone.",
@@ -724,7 +727,13 @@
       "exportNow": "Export now",
       "queueExport": "Queue export job",
       "downloaded": "Workspace export downloaded.",
-      "queued": "Export job queued ({jobId}…). Download link when ready."
+      "queued": "Export job queued ({jobId}…). Download link when ready.",
+      "retentionTitle": "Retention",
+      "sessionsTitle": "Avatar sessions",
+      "sessionsDescription": "Close stuck server-side talk sessions across the platform. Live browser streams must still be ended by the user.",
+      "openSessions": "{count, plural, =0 {No open sessions} one {# open session} other {# open sessions}}",
+      "stopSessions": "Stop all sessions",
+      "sessionsStopped": "Closed {count} session(s)."
     },
     "billing": {
       "currentPlan": "Current Plan",

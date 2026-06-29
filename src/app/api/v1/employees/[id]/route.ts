@@ -1,4 +1,4 @@
-import type { EmployeeStatus } from "@/entities/digital-employee";
+import type { BrainProvider, EmployeeStatus } from "@/entities/digital-employee";
 import { deleteEmployee } from "@/features/employees/services/delete-employee";
 import { getEmployeeDetail } from "@/features/employees/services/get-employee-detail";
 import { updateEmployee } from "@/features/employees/services/update-employee";
@@ -58,6 +58,8 @@ export async function PATCH(
     description?: string | null;
     status?: EmployeeStatus;
     systemPrompt?: string;
+    brainProvider?: BrainProvider;
+    brainModel?: string;
   };
 
   try {
@@ -83,6 +85,8 @@ export async function PATCH(
         : body.description,
     status: body.status ?? existing.status,
     systemPrompt: body.systemPrompt ?? existing.systemPrompt,
+    brainProvider: body.brainProvider ?? existing.brainProvider,
+    brainModel: body.brainModel ?? existing.brainModel ?? "gpt-4.1-mini",
   });
 
   if (!result.ok) {

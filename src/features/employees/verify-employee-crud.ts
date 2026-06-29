@@ -63,6 +63,8 @@ async function verifyEmployeeCrud(): Promise<void> {
     description: "Updated description",
     status: "active",
     systemPrompt: "You are Kaira, a senior support employee.",
+    brainProvider: "openai",
+    brainModel: "gpt-4.1-mini",
   });
 
   if (!updateResult.ok) {

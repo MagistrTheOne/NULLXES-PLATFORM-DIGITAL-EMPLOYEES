@@ -8,6 +8,10 @@ import {
   hasOpenAiCredentials,
 } from "@/shared/config/provider-env";
 import { db } from "@/shared/db/client";
+import {
+  buildDirectOpenAiBrainResourceId,
+  isOpenAiAssistantsCompatibleModel,
+} from "../lib/openai-assistants-compatible";
 import type {
   ProvisionBrainProviderInput,
   ProvisionProviderResult,
@@ -86,6 +90,31 @@ export async function provisionBrainProvider(
   }
 
   try {
+    const useAssistantsApi = isOpenAiAssistantsCompatibleModel(config.model);
+
+    if (!useAssistantsApi) {
+      const providerResourceId = buildDirectOpenAiBrainResourceId(config.model);
+      const providerMetadata = {
+        provisionedAt: new Date().toISOString(),
+        resourceType: "openai_chat_model",
+        model: config.model,
+        assistantsApiSkipped: true,
+      };
+
+      await mergeProviderConfig(input.employeeId, "brain", {
+        provisioningStatus: "ready",
+        providerResourceId,
+        providerMetadata,
+        failureReason: undefined,
+      });
+
+      return {
+        status: "ready",
+        providerResourceId,
+        providerMetadata,
+      };
+    }
+
     const client = new OpenAI({ apiKey: getOpenAiApiKey() });
     const assistant = await client.beta.assistants.create({
       name: `${input.employeeName} Brain`,

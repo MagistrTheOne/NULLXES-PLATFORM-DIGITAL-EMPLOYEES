@@ -154,6 +154,8 @@ export function SettingsScreen({ data }: { data: SettingsPageData }) {
               <SettingsAdvancedTab
                 settings={data.settings}
                 canManageOrganization={data.canManageOrganization}
+                isPlatformAdmin={data.isPlatformAdmin}
+                openSessionCount={data.openSessionCount}
               />
             </TabsContent>
           </Tabs>

@@ -1,11 +1,23 @@
-import { eq } from "drizzle-orm";
-import type { EmployeeStatus } from "@/entities/digital-employee";
+import { and, eq } from "drizzle-orm";
+import type {
+  BrainProvider,
+  EmployeeStatus,
+} from "@/entities/digital-employee";
 import { digitalEmployee } from "@/entities/digital-employee/schema";
+import type { BrainProviderConfigPayload } from "@/entities/provider-config";
+import { employeeProviderConfig } from "@/entities/provider-config/schema";
 import type { EmployeeLifecycleEventType } from "@/entities/employee-lifecycle";
 import { employeeRuntime } from "@/entities/runtime/schema";
 import { recordLifecycleEvent } from "@/features/employee/services/record-lifecycle-event";
+import {
+  getDefaultBrainModelForProvider,
+  resolveBrainModelForProvider,
+} from "@/features/settings/lib/brain-model-defaults";
+import { isBrainProviderSelectable } from "@/features/brain/lib/brain-provider-readiness";
+import { getBrainProviderReadinessMap } from "@/features/brain/lib/brain-provider-readiness";
 import { dbWithTransactions } from "@/shared/db/pool-client";
 import { getEmployeeForOrganization } from "./get-employee-for-organization";
+import { getProviderConfigRow } from "@/features/provider-provisioning/services/update-provider-config";
 
 export type UpdateEmployeeInput = {
   organizationId: string;
@@ -16,7 +28,13 @@ export type UpdateEmployeeInput = {
   description: string | null;
   status: EmployeeStatus;
   systemPrompt: string;
+  brainProvider: BrainProvider;
+  brainModel: string;
 };
+
+export type UpdateEmployeeResult =
+  | { ok: true; reprovisionProviders: boolean }
+  | { ok: false; message: string };
 
 function lifecycleEventForStatusChange(
   previousStatus: EmployeeStatus,
@@ -43,10 +61,14 @@ function lifecycleEventForStatusChange(
 
 export async function updateEmployee(
   input: UpdateEmployeeInput,
-): Promise<{ ok: true } | { ok: false; message: string }> {
+): Promise<UpdateEmployeeResult> {
   const name = input.name.trim();
   const role = input.role.trim();
   const systemPrompt = input.systemPrompt.trim();
+  const brainModel = resolveBrainModelForProvider(
+    input.brainProvider,
+    input.brainModel,
+  );
 
   if (!name || !role) {
     return { ok: false, message: "Name and role are required" };
@@ -54,6 +76,18 @@ export async function updateEmployee(
 
   if (!systemPrompt) {
     return { ok: false, message: "System prompt is required" };
+  }
+
+  if (!brainModel.trim()) {
+    return { ok: false, message: "Brain model is required" };
+  }
+
+  const readiness = getBrainProviderReadinessMap()[input.brainProvider];
+  if (!isBrainProviderSelectable(input.brainProvider, readiness)) {
+    return {
+      ok: false,
+      message: "Selected brain provider is not configured for this workspace.",
+    };
   }
 
   const existing = await getEmployeeForOrganization(
@@ -64,6 +98,14 @@ export async function updateEmployee(
   if (!existing) {
     return { ok: false, message: "Employee not found" };
   }
+
+  const brainRow = await getProviderConfigRow(input.employeeId, "brain");
+  const currentBrainConfig = (brainRow?.config ??
+    {}) as BrainProviderConfigPayload;
+  const currentBrainModel = currentBrainConfig.model ?? "";
+  const brainChanged =
+    existing.brainProvider !== input.brainProvider ||
+    currentBrainModel !== brainModel;
 
   try {
     await dbWithTransactions.transaction(async (tx) => {
@@ -80,14 +122,42 @@ export async function updateEmployee(
           role,
           description: input.description,
           status: input.status,
+          brainProvider: input.brainProvider,
         })
         .where(eq(digitalEmployee.id, input.employeeId));
 
       if (runtime) {
         await tx
           .update(employeeRuntime)
-          .set({ systemPrompt })
+          .set({
+            systemPrompt,
+            brainProvider: input.brainProvider,
+          })
           .where(eq(employeeRuntime.employeeId, input.employeeId));
+      }
+
+      if (brainRow && brainChanged) {
+        const nextBrainConfig: Record<string, unknown> = {
+          ...currentBrainConfig,
+          model: brainModel,
+          provisioningStatus: "pending",
+          failureReason: undefined,
+        };
+
+        delete nextBrainConfig.providerResourceId;
+
+        await tx
+          .update(employeeProviderConfig)
+          .set({
+            providerId: input.brainProvider,
+            config: nextBrainConfig,
+          })
+          .where(
+            and(
+              eq(employeeProviderConfig.employeeId, input.employeeId),
+              eq(employeeProviderConfig.providerType, "brain"),
+            ),
+          );
       }
 
       const statusEvent = lifecycleEventForStatusChange(
@@ -99,7 +169,8 @@ export async function updateEmployee(
         existing.name !== name ||
         existing.role !== role ||
         (existing.description ?? "") !== (input.description ?? "") ||
-        (runtime?.systemPrompt ?? "") !== systemPrompt;
+        (runtime?.systemPrompt ?? "") !== systemPrompt ||
+        brainChanged;
 
       if (statusEvent) {
         await recordLifecycleEvent(tx, {
@@ -117,15 +188,32 @@ export async function updateEmployee(
           employeeId: input.employeeId,
           actorUserId: input.actorUserId,
           eventType: "runtime_updated",
-          reason: "Employee profile updated",
+          reason: brainChanged
+            ? "Employee profile and brain model updated"
+            : "Employee profile updated",
+          metadata: brainChanged
+            ? {
+                brainProvider: input.brainProvider,
+                brainModel,
+              }
+            : undefined,
         });
       }
     });
 
-    return { ok: true };
+    return { ok: true, reprovisionProviders: brainChanged };
   } catch (error: unknown) {
     const message =
       error instanceof Error ? error.message : "Failed to update employee";
     return { ok: false, message };
   }
+}
+
+export function getInitialBrainModelForEdit(
+  provider: BrainProvider,
+  configuredModel: string | null,
+): string {
+  return configuredModel?.trim()
+    ? resolveBrainModelForProvider(provider, configuredModel)
+    : getDefaultBrainModelForProvider(provider);
 }

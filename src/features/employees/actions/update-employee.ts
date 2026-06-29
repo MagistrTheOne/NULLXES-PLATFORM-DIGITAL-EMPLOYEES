@@ -1,7 +1,9 @@
 "use server";
 
+import type { BrainProvider } from "@/entities/digital-employee";
 import { requireWorkspacePermissionOrThrowMessage } from "@/features/workspace";
 import type { EmployeeStatus } from "@/entities/digital-employee";
+import { enqueueEmployeeProvisioning } from "@/features/provider-provisioning/orchestrator/enqueue-employee-provisioning";
 import { updateEmployee } from "../services/update-employee";
 import { revalidateEmployeePaths } from "./revalidate-employee-paths";
 
@@ -12,6 +14,8 @@ export type UpdateEmployeeActionInput = {
   description: string;
   status: EmployeeStatus;
   systemPrompt: string;
+  brainProvider: BrainProvider;
+  brainModel: string;
 };
 
 export type UpdateEmployeeActionResult =
@@ -35,13 +39,19 @@ export async function updateEmployeeAction(
       description: input.description.trim() || null,
       status: input.status,
       systemPrompt: input.systemPrompt,
+      brainProvider: input.brainProvider,
+      brainModel: input.brainModel,
     });
 
     if (result.ok) {
+      if (result.reprovisionProviders) {
+        enqueueEmployeeProvisioning(input.employeeId);
+      }
+
       await revalidateEmployeePaths(input.employeeId);
     }
 
-    return result;
+    return result.ok ? { ok: true } : result;
   } catch (error: unknown) {
     return {
       ok: false,
