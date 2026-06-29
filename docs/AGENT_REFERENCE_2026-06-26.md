@@ -118,13 +118,13 @@ Responses include `requestId` (+ `X-Request-Id` header). Denied access → audit
 | Variable | Purpose |
 |----------|---------|
 | `RESEND_API_KEY` | Resend API key ([create](https://resend.com/docs/api-reference/api-keys/create-api-key)) |
-| `RESEND_FROM_EMAIL` | Verified sender, e.g. `NULLXES <yukinakora@nullxesdai.online>` |
+| `RESEND_FROM_EMAIL` | Verified sender, e.g. `NULLXES <noreply@www.nullxesdai.online>` |
 | `EMAIL_OTP_STEP_UP_ENABLED` | `true` only after domain DNS verified in Resend |
 | `NEXT_PUBLIC_EMAIL_OTP_STEP_UP_ENABLED` | Client plugin mirror (same value) |
 
-**Status (2026-06-28):** OTP step-up **disabled** while `nullxesdai.online` DNS (MX/SPF) is Pending in Resend. Invites and notifications still use Resend when `RESEND_API_KEY` is set.
+**Status (2026-06-30):** `www.nullxesdai.online` is verified in Resend. OTP step-up can be enabled with `EMAIL_OTP_STEP_UP_ENABLED=true` and `NEXT_PUBLIC_EMAIL_OTP_STEP_UP_ENABLED=true`.
 
-When enabled: uncomment `requireEmailOtpVerified()` in `(dashboard)/layout.tsx`.
+The dashboard layout calls `requireEmailOtpVerified()`; the gate is controlled by environment flags.
 
 ### 4.3 Internal / session APIs
 

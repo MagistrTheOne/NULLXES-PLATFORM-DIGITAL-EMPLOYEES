@@ -35,8 +35,11 @@ This document outlines deployment considerations for Russia (RU) data residency 
 | Database | Neon PostgreSQL in RF-approved region |
 | `DATA_ENCRYPTION_KEY` | Required in production |
 | `BETTER_AUTH_SECRET` | Strong random secret |
-| `BETTER_AUTH_URL` | Production origin, e.g. `https://nullxes-digital-employees.vercel.app` (or omit — Vercel URL is auto-detected) |
+| `BETTER_AUTH_URL` | Production origin: `https://www.nullxesdai.online` |
 | `NEXT_PUBLIC_BETTER_AUTH_URL` | Same as `BETTER_AUTH_URL` in production |
+| `RESEND_FROM_EMAIL` | Verified sender on Resend domain, e.g. `NULLXES <noreply@www.nullxesdai.online>` |
+| `EMAIL_OTP_STEP_UP_ENABLED` | `true` only in environments where Resend delivery is configured |
+| `NEXT_PUBLIC_EMAIL_OTP_STEP_UP_ENABLED` | Same value as `EMAIL_OTP_STEP_UP_ENABLED` |
 | Inngest | `INNGEST_EVENT_KEY` + `INNGEST_SIGNING_KEY`; register app URL `https://<domain>/api/inngest` in Inngest Cloud |
 | Public trust page | `/trust` — no authentication required |
 

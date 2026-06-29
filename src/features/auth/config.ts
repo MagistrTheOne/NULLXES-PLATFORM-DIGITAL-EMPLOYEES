@@ -49,7 +49,7 @@ export function createAuthConfig(): BetterAuthOptions {
     plugins: [
       twoFactor(),
       // Better Auth emailOTP — https://better-auth.com/docs/plugins/email-otp
-      // Disabled until Resend domain verified: EMAIL_OTP_STEP_UP_ENABLED=true
+      // Environment-gated by EMAIL_OTP_STEP_UP_ENABLED.
       ...(emailOtpEnabled
         ? [
             emailOTP({

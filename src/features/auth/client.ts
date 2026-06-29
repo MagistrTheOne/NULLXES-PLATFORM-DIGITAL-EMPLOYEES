@@ -7,30 +7,17 @@ import { twoFactorClient } from "better-auth/client/plugins";
 const emailOtpStepUpEnabled =
   process.env.NEXT_PUBLIC_EMAIL_OTP_STEP_UP_ENABLED?.trim() === "true";
 
-function isLocalhostUrl(url: string): boolean {
-  try {
-    const { hostname } = new URL(url);
-    return hostname === "localhost" || hostname === "127.0.0.1";
-  } catch {
-    return false;
-  }
-}
-
 function resolveAuthClientBaseUrl(): string {
+  // In the browser, always talk to auth on the SAME origin the app was loaded
+  // from. This prevents cross-origin/CORS failures when the deployment serves a
+  // custom domain (e.g. https://www.nullxesdai.online) but the build baked a
+  // different NEXT_PUBLIC_BETTER_AUTH_URL (e.g. an *.vercel.app URL). Cookies and
+  // CSRF/origin checks line up because requests stay first-party.
   if (typeof window !== "undefined") {
-    const pageOrigin = window.location.origin;
-    const configured = process.env.NEXT_PUBLIC_BETTER_AUTH_URL?.trim();
-
-    if (configured) {
-      const normalized = configured.replace(/\/$/, "");
-      if (!isLocalhostUrl(normalized) || isLocalhostUrl(pageOrigin)) {
-        return normalized;
-      }
-    }
-
-    return pageOrigin;
+    return window.location.origin;
   }
 
+  // Server-side (SSR) has no page origin: fall back to the configured URL.
   const configured = process.env.NEXT_PUBLIC_BETTER_AUTH_URL?.trim();
   if (configured) {
     return configured.replace(/\/$/, "");

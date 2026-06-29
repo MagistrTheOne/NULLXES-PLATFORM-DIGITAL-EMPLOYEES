@@ -18,7 +18,7 @@ export function getResendClient(): Resend | null {
 export function getResendFromAddress(): string {
   return (
     process.env.RESEND_FROM_EMAIL?.trim() ??
-    "NULLXES <yukinakora@nullxesdai.online>"
+    "NULLXES <noreply@www.nullxesdai.online>"
   );
 }
 

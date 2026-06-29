@@ -15,7 +15,7 @@ export const EMAIL_OTP_VERIFIED_PREFIX = "email_otp:verified:";
 
 /**
  * Post-login OTP gate — only when explicitly enabled AND Resend is configured.
- * Set EMAIL_OTP_STEP_UP_ENABLED=true after nullxesdai.online is verified in Resend.
+ * Set EMAIL_OTP_STEP_UP_ENABLED=true when Resend is configured for this env.
  */
 export function isEmailOtpEnabled(): boolean {
   return isEmailOtpStepUpEnabled() && isEmailDeliveryConfigured();
