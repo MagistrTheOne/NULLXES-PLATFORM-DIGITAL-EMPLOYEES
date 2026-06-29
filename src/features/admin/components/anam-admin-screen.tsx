@@ -1,0 +1,161 @@
+import Link from "next/link";
+import type { AnamPoolStatus } from "../services/get-anam-pool-status";
+
+function MetricCell({ label, value }: { label: string; value: string | number }) {
+  return (
+    <div className="flex min-w-0 flex-col gap-1 rounded-xl border border-white/10 bg-[#111111] px-4 py-3">
+      <span className="text-xs text-white/50">{label}</span>
+      <span className="text-2xl font-medium tabular-nums text-white">{value}</span>
+    </div>
+  );
+}
+
+function EmployeeRow({
+  employee,
+  showSlot = false,
+}: {
+  employee: AnamPoolStatus["failedEmployees"][number];
+  showSlot?: boolean;
+}) {
+  return (
+    <div className="rounded-lg border border-white/8 bg-white/[0.02] px-3 py-2.5">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <Link
+          href={`/dashboard/employees/${employee.id}`}
+          className="text-sm font-medium text-white hover:text-white/80"
+        >
+          {employee.name}
+        </Link>
+        <div className="flex flex-wrap gap-2 text-xs text-white/45">
+          <span>{employee.status}</span>
+          <span>·</span>
+          <span>{employee.provisioningStatus}</span>
+          {showSlot ? (
+            <>
+              <span>·</span>
+              <span>{employee.slot}</span>
+            </>
+          ) : null}
+        </div>
+      </div>
+      {employee.failureReason ? (
+        <p className="mt-1.5 text-xs leading-relaxed text-white/55">
+          {employee.failureReason}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+export function AnamAdminScreen({ status }: { status: AnamPoolStatus }) {
+  const atCapacityCount = status.slots.filter(
+    (slot) => slot.configured && slot.atCapacity,
+  ).length;
+
+  return (
+    <div className="flex flex-col gap-6">
+      <div>
+        <h1 className="text-2xl font-medium tracking-tight text-white">
+          Anam Key Pool
+        </h1>
+        <p className="mt-2 text-sm text-white/60">
+          Runtime view of configured Anam API keys and persona usage across the
+          platform.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-6">
+        <MetricCell
+          label="Configured keys"
+          value={`${status.configuredSlotCount} / ${status.totalSlots}`}
+        />
+        <MetricCell label="Anam employees" value={status.totalEmployees} />
+        <MetricCell
+          label="Max personas / key"
+          value={status.maxPersonasPerKey}
+        />
+        <MetricCell label="Slots at capacity" value={atCapacityCount} />
+      </div>
+
+      <div className="grid gap-4 xl:grid-cols-2">
+        {status.slots.map((slot) => (
+          <div
+            key={slot.slot}
+            className="rounded-2xl border border-white/10 bg-[#111111] p-4"
+          >
+            <div className="flex flex-wrap items-start justify-between gap-2">
+              <div>
+                <p className="text-sm font-medium text-white">{slot.label}</p>
+                <p className="mt-0.5 font-mono text-xs text-white/45">
+                  {slot.slot}
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2 text-xs">
+                <span
+                  className={
+                    slot.configured
+                      ? "rounded-full border border-white/15 px-2 py-0.5 text-white/70"
+                      : "rounded-full border border-white/10 px-2 py-0.5 text-white/35"
+                  }
+                >
+                  {slot.configured ? "configured" : "missing on server"}
+                </span>
+                {slot.atCapacity ? (
+                  <span className="rounded-full border border-white/20 px-2 py-0.5 text-white/80">
+                    at capacity
+                  </span>
+                ) : null}
+              </div>
+            </div>
+
+            <p className="mt-3 text-sm text-white/55">
+              {slot.personaCount} persona
+              {slot.personaCount === 1 ? "" : "s"} · limit{" "}
+              {status.maxPersonasPerKey}
+            </p>
+
+            {slot.employees.length > 0 ? (
+              <div className="mt-3 flex flex-col gap-2">
+                {slot.employees.map((employee) => (
+                  <EmployeeRow key={employee.id} employee={employee} />
+                ))}
+              </div>
+            ) : (
+              <p className="mt-3 text-xs text-white/35">No employees on this key.</p>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {status.failedEmployees.length > 0 ? (
+        <section className="flex flex-col gap-3">
+          <h2 className="text-sm font-medium text-white">
+            Failed provisioning ({status.failedEmployees.length})
+          </h2>
+          <div className="flex flex-col gap-2">
+            {status.failedEmployees.map((employee) => (
+              <EmployeeRow key={employee.id} employee={employee} showSlot />
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      {status.unassignedEmployees.length > 0 ? (
+        <section className="flex flex-col gap-3">
+          <h2 className="text-sm font-medium text-white">
+            Personas without pinned slot ({status.unassignedEmployees.length})
+          </h2>
+          <p className="text-xs text-white/45">
+            These employees have a persona but no stored anamApiKeySlot — they
+            default to the first configured key at runtime.
+          </p>
+          <div className="flex flex-col gap-2">
+            {status.unassignedEmployees.map((employee) => (
+              <EmployeeRow key={employee.id} employee={employee} showSlot />
+            ))}
+          </div>
+        </section>
+      ) : null}
+    </div>
+  );
+}

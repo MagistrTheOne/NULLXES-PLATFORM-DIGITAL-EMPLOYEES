@@ -1,4 +1,5 @@
 import { ensureWorkspace } from "@/features/auth/services/ensure-workspace";
+import { isPlatformAdminEmail } from "@/features/admin";
 import { getUserBillingSnapshot } from "@/features/billing/services/get-user-billing-snapshot";
 import { DashboardLayout } from "@/features/dashboard";
 import type {
@@ -54,6 +55,7 @@ export async function DashboardShell({
       workspace={workspaceShell}
       permissions={workspace.permissions}
       displayPreferences={displayPreferences}
+      isPlatformAdmin={isPlatformAdminEmail(session.user.email)}
     >
       {children}
     </DashboardLayout>

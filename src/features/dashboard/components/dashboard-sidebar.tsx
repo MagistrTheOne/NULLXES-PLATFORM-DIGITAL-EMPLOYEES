@@ -7,6 +7,7 @@ import {
   BarChart3,
   Building2,
   CreditCard,
+  KeyRound,
   LayoutDashboard,
   MessageSquare,
   Settings,
@@ -52,9 +53,11 @@ function isBillingNavActive(pathname: string, tab: string | null): boolean {
 export function DashboardSidebar({
   user,
   workspace,
+  isPlatformAdmin,
 }: {
   user: DashboardShellUser;
   workspace: DashboardShellWorkspace;
+  isPlatformAdmin: boolean;
 }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -96,6 +99,24 @@ export function DashboardSidebar({
                   </SidebarMenuItem>
                 );
               })}
+              {isPlatformAdmin ? (
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={isNavItemActive(
+                      pathname,
+                      "/dashboard/admin/anam",
+                    )}
+                    tooltip={t("anamAdmin")}
+                    className="text-white/80 transition-none hover:bg-white/5 hover:text-white data-active:bg-white/10 data-active:text-white"
+                  >
+                    <Link href="/dashboard/admin/anam">
+                      <KeyRound />
+                      <span>{t("anamAdmin")}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ) : null}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

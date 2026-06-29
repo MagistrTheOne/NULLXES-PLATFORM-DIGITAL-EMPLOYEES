@@ -15,6 +15,7 @@ export function DashboardLayout({
   workspace,
   permissions,
   displayPreferences,
+  isPlatformAdmin,
   children,
 }: DashboardLayoutProps) {
   return (
@@ -27,7 +28,11 @@ export function DashboardLayout({
         style={dashboardSidebarCssVars}
         className="min-h-svh bg-black text-white"
       >
-        <DashboardSidebar user={user} workspace={workspace} />
+        <DashboardSidebar
+          user={user}
+          workspace={workspace}
+          isPlatformAdmin={isPlatformAdmin}
+        />
         <SidebarInset className="flex min-h-svh min-w-0 flex-1 flex-col bg-black">
           <DashboardTopbar />
           <div className="mx-auto flex w-full max-w-[1760px] min-w-0 flex-1 flex-col gap-6 p-4 md:p-6 2xl:px-8">

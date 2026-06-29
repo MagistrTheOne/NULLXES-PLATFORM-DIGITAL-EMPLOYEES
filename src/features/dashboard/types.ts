@@ -23,5 +23,6 @@ export type DashboardLayoutProps = {
   workspace: DashboardShellWorkspace;
   permissions: WorkspacePermissions;
   displayPreferences: OrganizationDisplayPreferences;
+  isPlatformAdmin: boolean;
   children: ReactNode;
 };
