@@ -53,6 +53,7 @@ async function resolveAvatarId(
   employeeId: string,
   employeeName: string,
   config: AvatarProviderConfigPayload,
+  preferredSlot?: string | null,
 ): Promise<string> {
   if (config.avatarId && !config.imageUrl) {
     return config.avatarId;
@@ -67,8 +68,12 @@ async function resolveAvatarId(
     return created.avatarId;
   }
 
+  // Catalog lookup MUST use the same key/account that will create the persona,
+  // otherwise the persona references an avatar from a different Anam account.
   const avatars = await fetchAnamJson<AnamListResponse<{ id: string }>>(
     "/avatars?perPage=1",
+    undefined,
+    preferredSlot,
   );
   const stockAvatarId = avatars.data?.[0]?.id;
   if (!stockAvatarId) {
@@ -78,13 +83,18 @@ async function resolveAvatarId(
   return stockAvatarId;
 }
 
-async function resolveAnamVoiceId(preferredVoiceId?: string): Promise<string> {
+async function resolveAnamVoiceId(
+  preferredVoiceId?: string,
+  preferredSlot?: string | null,
+): Promise<string> {
   if (preferredVoiceId) {
     return preferredVoiceId;
   }
 
   const voices = await fetchAnamJson<AnamListResponse<{ id: string }>>(
     "/voices?perPage=1",
+    undefined,
+    preferredSlot,
   );
   const voiceId = voices.data?.[0]?.id;
   if (!voiceId) {
@@ -169,13 +179,19 @@ export async function provisionAvatarProvider(
   try {
     const avatarId = studioAvatarReady
       ? config.avatarId!
-      : await resolveAvatarId(input.employeeId, input.employeeName, config);
+      : await resolveAvatarId(
+          input.employeeId,
+          input.employeeName,
+          config,
+          anamApiKeySlot,
+        );
     const voiceId = metadataAnamVoiceId
       ? metadataAnamVoiceId
       : await resolveAnamVoiceId(
           config.providerMetadata?.voiceBinding === "anam"
             ? input.voiceId
             : undefined,
+          anamApiKeySlot,
         );
 
     let persona: AnamPersonaResponse;
@@ -242,7 +258,11 @@ export async function provisionAvatarProvider(
     await mergeProviderConfig(input.employeeId, "avatar", {
       provisioningStatus: "failed",
       failureReason: failure.failureReason,
-      providerMetadata: failure.providerMetadata,
+      providerMetadata: {
+        ...(config.providerMetadata ?? {}),
+        ...failure.providerMetadata,
+        ...(anamApiKeySlot ? { anamApiKeySlot } : {}),
+      },
     });
     return failure;
   }
