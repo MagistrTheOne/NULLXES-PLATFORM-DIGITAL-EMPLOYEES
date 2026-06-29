@@ -6,6 +6,7 @@ import {
 import { resolveAvatarProvider } from "@/shared/providers";
 import { buildAnamPersonaCreatePayload } from "@/features/runtime-session/lib/build-anam-talk-persona-config";
 import { syncAnamPersonaExternalBrain } from "./sync-anam-persona-external-brain";
+import { resolveAnamPersonaSlot } from "./resolve-anam-persona-slot";
 import type {
   ProvisionAvatarProviderInput,
   ProvisionProviderResult,
@@ -171,10 +172,16 @@ export async function provisionAvatarProvider(
       ? config.providerMetadata.anamPersonaVoiceId
       : undefined;
 
-  const anamApiKeySlot =
+  const studioAnamApiKeySlot =
     typeof config.providerMetadata?.anamApiKeySlot === "string"
       ? config.providerMetadata.anamApiKeySlot
       : null;
+
+  // No studio-pinned key → pick a key that isn't already at its persona cap so
+  // we distribute personas across the pool instead of overloading one account.
+  const anamApiKeySlot =
+    studioAnamApiKeySlot ??
+    (await resolveAnamPersonaSlot({ excludeEmployeeId: input.employeeId }));
 
   try {
     const avatarId = studioAvatarReady
