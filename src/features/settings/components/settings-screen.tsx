@@ -61,8 +61,8 @@ export function SettingsScreen({ data }: { data: SettingsPageData }) {
         </div>
       </header>
 
-      <div className="grid gap-6 xl:grid-cols-12">
-        <div className="xl:col-span-8">
+      <div className="grid gap-6 lg:grid-cols-1 xl:grid-cols-12">
+        <div className="min-w-0 xl:col-span-8">
           <Tabs
             value={activeTab}
             onValueChange={(value) => setActiveTab(value as SettingsTabId)}
@@ -70,7 +70,7 @@ export function SettingsScreen({ data }: { data: SettingsPageData }) {
           >
             <TabsList
               variant="line"
-              className="h-auto w-full flex-wrap justify-start gap-1 border-b border-border bg-transparent p-0"
+              className="h-auto w-full flex-nowrap justify-start gap-1 overflow-x-auto border-b border-border bg-transparent p-0 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             >
               {TAB_IDS.map((tabId) => (
                 <TabsTrigger

@@ -89,8 +89,8 @@ export async function EmployeeDetailScreen({
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
+        <div className="flex min-w-0 items-start gap-3 sm:items-center sm:gap-4">
           <Button
             variant="ghost"
             className="text-white/60 hover:bg-white/5 hover:text-white"
@@ -141,8 +141,8 @@ export async function EmployeeDetailScreen({
         </div>
       ) : null}
 
-      <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
-        <Card className="overflow-hidden border-white/10 bg-[#111111] py-0 text-white">
+      <div className="grid gap-6 lg:grid-cols-[minmax(260px,320px)_1fr] xl:items-start">
+        <Card className="overflow-hidden border-white/10 bg-[#111111] py-0 text-white xl:sticky xl:top-6">
           <div className="relative aspect-4/3 bg-white/3">
             {showPreview ? (
               <AvatarIdlePreview

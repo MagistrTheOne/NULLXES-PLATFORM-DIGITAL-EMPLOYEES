@@ -1,14 +1,9 @@
 import Link from "next/link";
 import type { AnamPoolStatus } from "../services/get-anam-pool-status";
-
-function MetricCell({ label, value }: { label: string; value: string | number }) {
-  return (
-    <div className="flex min-w-0 flex-col gap-1 rounded-xl border border-white/10 bg-[#111111] px-4 py-3">
-      <span className="text-xs text-white/50">{label}</span>
-      <span className="text-2xl font-medium tabular-nums text-white">{value}</span>
-    </div>
-  );
-}
+import {
+  PlatformMetricCell,
+  PlatformMetricGrid,
+} from "@/components/layout/platform-metric-grid";
 
 function EmployeeRow({
   employee,
@@ -33,13 +28,15 @@ function EmployeeRow({
           {showSlot ? (
             <>
               <span>·</span>
-              <span>{employee.slot}</span>
+              <span className="max-w-[140px] truncate sm:max-w-none">
+                {employee.slot}
+              </span>
             </>
           ) : null}
         </div>
       </div>
       {employee.failureReason ? (
-        <p className="mt-1.5 text-xs leading-relaxed text-white/55">
+        <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-white/55 sm:line-clamp-none">
           {employee.failureReason}
         </p>
       ) : null}
@@ -53,9 +50,9 @@ export function AnamAdminScreen({ status }: { status: AnamPoolStatus }) {
   ).length;
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-5 sm:gap-6">
       <div>
-        <h1 className="text-2xl font-medium tracking-tight text-white">
+        <h1 className="text-xl font-medium tracking-tight text-white sm:text-2xl">
           Anam Key Pool
         </h1>
         <p className="mt-2 text-sm text-white/60">
@@ -64,29 +61,29 @@ export function AnamAdminScreen({ status }: { status: AnamPoolStatus }) {
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-6">
-        <MetricCell
+      <PlatformMetricGrid>
+        <PlatformMetricCell
           label="Configured keys"
           value={`${status.configuredSlotCount} / ${status.totalSlots}`}
         />
-        <MetricCell label="Anam employees" value={status.totalEmployees} />
-        <MetricCell
+        <PlatformMetricCell label="Anam employees" value={status.totalEmployees} />
+        <PlatformMetricCell
           label="Max personas / key"
           value={status.maxPersonasPerKey}
         />
-        <MetricCell label="Slots at capacity" value={atCapacityCount} />
-      </div>
+        <PlatformMetricCell label="Slots at capacity" value={atCapacityCount} />
+      </PlatformMetricGrid>
 
-      <div className="grid gap-4 xl:grid-cols-2">
+      <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-2 min-[1800px]:grid-cols-3">
         {status.slots.map((slot) => (
           <div
             key={slot.slot}
-            className="rounded-2xl border border-white/10 bg-[#111111] p-4"
+            className="rounded-2xl border border-white/10 bg-[#111111] p-3 sm:p-4"
           >
             <div className="flex flex-wrap items-start justify-between gap-2">
-              <div>
+              <div className="min-w-0">
                 <p className="text-sm font-medium text-white">{slot.label}</p>
-                <p className="mt-0.5 font-mono text-xs text-white/45">
+                <p className="mt-0.5 truncate font-mono text-xs text-white/45">
                   {slot.slot}
                 </p>
               </div>
@@ -115,7 +112,7 @@ export function AnamAdminScreen({ status }: { status: AnamPoolStatus }) {
             </p>
 
             {slot.employees.length > 0 ? (
-              <div className="mt-3 flex flex-col gap-2">
+              <div className="mt-3 flex max-h-48 flex-col gap-2 overflow-y-auto sm:max-h-none">
                 {slot.employees.map((employee) => (
                   <EmployeeRow key={employee.id} employee={employee} />
                 ))}

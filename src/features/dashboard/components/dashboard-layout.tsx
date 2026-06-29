@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { WorkspaceDisplayPreferencesProvider } from "@/features/workspace/components/workspace-display-preferences-provider";
 import { WorkspacePermissionsProvider } from "@/features/workspace/components/workspace-permissions-provider";
 import { WorkspaceBillingProvider } from "@/features/workspace/components/workspace-billing-provider";
+import { platformPageShellClass } from "@/shared/layout/platform-layout";
 import { dashboardSidebarCssVars } from "../constants";
 import type { DashboardLayoutProps } from "../types";
 import { DashboardSidebar } from "./dashboard-sidebar";
@@ -35,7 +36,7 @@ export function DashboardLayout({
         />
         <SidebarInset className="flex min-h-svh min-w-0 flex-1 flex-col bg-black">
           <DashboardTopbar />
-          <div className="mx-auto flex w-full max-w-[1760px] min-w-0 flex-1 flex-col gap-6 p-4 md:p-6 2xl:px-8">
+          <div className={platformPageShellClass({ width: "wide" })}>
             {children}
           </div>
         </SidebarInset>

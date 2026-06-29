@@ -155,7 +155,7 @@ function TalkStageControls({
       ) : null}
 
       {/* Floating call controls — video-call style, centered over the stage (concept match) */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-16 z-30 flex justify-center lg:bottom-14">
+      <div className="pointer-events-none absolute inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-30 flex justify-center sm:bottom-16 lg:bottom-14">
         <div className="pointer-events-auto flex items-center gap-2 rounded-2xl border border-white/12 bg-black/70 px-2 py-1.5 backdrop-blur-md">
           {!activeSession ? (
             <Button
@@ -328,6 +328,7 @@ export function EmployeeTalkRoom({
   const threads = useTalkThreads(employeeId);
   const [cameraEnabled, setCameraEnabled] = useState(false);
   const [showChat, setShowChat] = useState(false);
+  const [showInspector, setShowInspector] = useState(false);
   const [focusMode, setFocusMode] = useState(false);
   const t = useTranslations("employees.talk");
 
@@ -356,7 +357,7 @@ export function EmployeeTalkRoom({
   }, [activeSession, employeeId]);
 
   return (
-    <div className="talk-workspace-shell employee-talk-workspace employee-talk-shell mx-auto flex flex-1 w-full flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#0a0a0a] min-h-[min(78dvh,820px)]">
+    <div className="talk-workspace-shell employee-talk-workspace employee-talk-shell mx-auto flex w-full flex-1 flex-col overflow-hidden rounded-none border-0 bg-[#0a0a0a] min-h-[min(100dvh-7rem,820px)] sm:min-h-[min(88dvh,820px)] sm:rounded-2xl sm:border sm:border-white/10 lg:min-h-[min(78dvh,860px)] min-[1800px]:min-h-[min(82dvh,920px)]">
       <TalkWorkspaceHeader
         employeeName={employeeName}
         sessionLimitSeconds={sessionLimitSeconds}
@@ -365,6 +366,7 @@ export function EmployeeTalkRoom({
           void onLeaveSession();
         }}
         onLimitReached={onSessionLimitReached}
+        onOpenDetails={() => setShowInspector(true)}
       />
 
       {/* Video-call centric layout inspired by the concept:
@@ -416,13 +418,13 @@ export function EmployeeTalkRoom({
             ) : null}
           </div>
 
-          <div className="talk-workforce-panel shrink-0 border-t border-white/8 bg-[#0a0a0a] p-3">
+          <div className="talk-workforce-panel hidden shrink-0 border-t border-white/8 bg-[#0a0a0a] p-3 md:block">
             <TalkWorkforceStrip snapshot={workforceSnapshot} />
           </div>
         </div>
 
         {!focusMode ? (
-          <div className="hidden w-[340px] min-w-0 shrink-0 overflow-hidden border-l border-white/8 md:flex">
+          <div className="hidden w-[300px] min-w-0 shrink-0 overflow-hidden border-l border-white/8 lg:flex xl:w-[340px]">
             <TalkInspectorPanel
               details={agentDetails}
               departmentLabel={departmentLabel}
@@ -437,21 +439,8 @@ export function EmployeeTalkRoom({
         ) : null}
       </div>
 
-      {!focusMode ? (
-        <div className="max-h-[min(42dvh,360px)] min-h-0 border-t border-white/8 md:hidden">
-          <TalkInspectorPanel
-            details={agentDetails}
-            departmentLabel={departmentLabel}
-            onEndSession={() => {
-              void onLeaveSession();
-            }}
-            onFocusMode={() => setFocusMode(true)}
-            focusMode={focusMode}
-            sessionBusy={sessionBusy}
-          />
-        </div>
-      ) : (
-        <div className="flex justify-center border-t border-white/8 px-4 py-2 md:hidden">
+      {focusMode ? (
+        <div className="flex justify-center border-t border-white/8 px-4 py-2 lg:hidden">
           <Button
             type="button"
             variant="ghost"
@@ -462,7 +451,35 @@ export function EmployeeTalkRoom({
             {t("sessionControls.exitFocus")}
           </Button>
         </div>
-      )}
+      ) : null}
+
+      <Sheet open={showInspector} onOpenChange={setShowInspector}>
+        <SheetContent
+          side="right"
+          className="w-full border-white/8 bg-[#0a0a0a] p-0 sm:max-w-[400px] lg:hidden"
+        >
+          <SheetHeader className="border-b border-white/8 px-4 py-3">
+            <SheetTitle className="text-sm font-medium">
+              {t("mobileTabDetails")}
+            </SheetTitle>
+          </SheetHeader>
+          <div className="h-[calc(100%-3.25rem)] min-h-0 overflow-y-auto">
+            <TalkInspectorPanel
+              details={agentDetails}
+              departmentLabel={departmentLabel}
+              onEndSession={() => {
+                void onLeaveSession();
+              }}
+              onFocusMode={() => {
+                setShowInspector(false);
+                setFocusMode(true);
+              }}
+              focusMode={focusMode}
+              sessionBusy={sessionBusy}
+            />
+          </div>
+        </SheetContent>
+      </Sheet>
 
       {/* On-demand chat / transcript sheet — opened from the floating control bar.
           This lets the main view stay true to the video-call concept while keeping full chat functionality. */}

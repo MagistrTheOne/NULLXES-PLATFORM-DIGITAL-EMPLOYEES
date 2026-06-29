@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Activity, ArrowLeft, ShieldCheck } from "lucide-react";
+import { Activity, ArrowLeft, Info, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useTalkAnam } from "../context/talk-anam-context";
@@ -24,12 +24,14 @@ export function TalkWorkspaceHeader({
   sessionBusy,
   onEndSession,
   onLimitReached,
+  onOpenDetails,
 }: {
   employeeName: string;
   sessionLimitSeconds: number;
   sessionBusy: boolean;
   onEndSession: () => void;
   onLimitReached?: () => void;
+  onOpenDetails?: () => void;
 }) {
   const t = useTranslations("employees.talk");
   const tCommon = useTranslations("common.actions");
@@ -106,6 +108,19 @@ export function TalkWorkspaceHeader({
           >
             {t("endSession")}
           </Button>
+          {onOpenDetails ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={sessionBusy}
+              onClick={onOpenDetails}
+              className="h-8 border-white/15 bg-transparent px-3 text-[11px] text-white/75 hover:bg-white/10 lg:hidden"
+            >
+              <Info className="size-3.5" />
+              {t("mobileTabDetails")}
+            </Button>
+          ) : null}
         </div>
       </div>
 

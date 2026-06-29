@@ -87,7 +87,7 @@ export function EmployeeCard({ employee }: { employee: EmployeeListItem }) {
           </div>
         )}
       </div>
-      <CardContent className="flex flex-1 flex-col gap-4 px-5 py-5">
+      <CardContent className="flex flex-1 flex-col gap-3 px-4 py-4 sm:gap-4 sm:px-5 sm:py-5">
         <div className="flex flex-col gap-2">
           <div className="min-w-0">
             <Link
@@ -101,13 +101,21 @@ export function EmployeeCard({ employee }: { employee: EmployeeListItem }) {
           <EmployeeStatusBadge status={employee.status} />
           {employee.avatarProvisioningStatus === "failed" &&
           employee.avatarProvisioningFailureReason ? (
-            <p className="text-xs text-white/50" role="alert">
+            <p
+              className="line-clamp-2 text-xs leading-relaxed text-white/50"
+              role="alert"
+              title={employee.avatarProvisioningFailureReason}
+            >
               {employee.avatarProvisioningFailureReason}
             </p>
           ) : null}
           {employee.sessionProvisioningStatus === "failed" &&
           employee.sessionProvisioningFailureReason ? (
-            <p className="text-xs text-white/50" role="alert">
+            <p
+              className="line-clamp-2 text-xs leading-relaxed text-white/50"
+              role="alert"
+              title={employee.sessionProvisioningFailureReason}
+            >
               {employee.sessionProvisioningFailureReason}
             </p>
           ) : null}
