@@ -50,23 +50,36 @@ async function fetchAnamJson<T>(
   return (await response.json()) as T;
 }
 
+type ResolvedAvatar = {
+  avatarId: string;
+  /** Slot the avatar lives on — the persona MUST be created on the same key. */
+  slot: string | null;
+};
+
 async function resolveAvatarId(
   employeeId: string,
   employeeName: string,
   config: AvatarProviderConfigPayload,
   preferredSlot?: string | null,
-): Promise<string> {
+): Promise<ResolvedAvatar> {
   if (config.avatarId && !config.imageUrl) {
-    return config.avatarId;
+    return { avatarId: config.avatarId, slot: preferredSlot ?? null };
   }
 
   if (config.imageUrl) {
+    // One-shot avatars count against a per-account quota, so create them on the
+    // resolved slot. The pool rotates on quota errors and reports the slot it
+    // landed on, which the persona then reuses to stay on the same account.
     const adapter = resolveAvatarProvider("anam");
     const created = await adapter.createAvatar({
       employeeId,
       name: employeeName,
+      preferredSlot,
     });
-    return created.avatarId;
+    return {
+      avatarId: created.avatarId,
+      slot: created.apiKeySlot ?? preferredSlot ?? null,
+    };
   }
 
   // Catalog lookup MUST use the same key/account that will create the persona,
@@ -81,7 +94,7 @@ async function resolveAvatarId(
     throw new Error("Anam avatar catalog returned no avatars");
   }
 
-  return stockAvatarId;
+  return { avatarId: stockAvatarId, slot: preferredSlot ?? null };
 }
 
 async function resolveAnamVoiceId(
@@ -184,25 +197,29 @@ export async function provisionAvatarProvider(
     (await resolveAnamPersonaSlot({ excludeEmployeeId: input.employeeId }));
 
   try {
-    const avatarId = studioAvatarReady
-      ? config.avatarId!
+    const avatarResolution: ResolvedAvatar = studioAvatarReady
+      ? { avatarId: config.avatarId!, slot: anamApiKeySlot }
       : await resolveAvatarId(
           input.employeeId,
           input.employeeName,
           config,
           anamApiKeySlot,
         );
+    const avatarId = avatarResolution.avatarId;
+    // Pin the persona to whichever account the avatar ended up on.
+    const personaSlot = avatarResolution.slot ?? anamApiKeySlot;
+
     const voiceId = metadataAnamVoiceId
       ? metadataAnamVoiceId
       : await resolveAnamVoiceId(
           config.providerMetadata?.voiceBinding === "anam"
             ? input.voiceId
             : undefined,
-          anamApiKeySlot,
+          personaSlot,
         );
 
     let persona: AnamPersonaResponse;
-    let usedApiKeySlot = anamApiKeySlot;
+    let usedApiKeySlot = personaSlot;
 
     const personaPayload = buildAnamPersonaCreatePayload({
       name: input.employeeName,
@@ -219,7 +236,7 @@ export async function provisionAvatarProvider(
         },
         body: JSON.stringify(personaPayload),
       },
-      anamApiKeySlot,
+      personaSlot,
     );
 
     persona = (await personaResponse.json()) as AnamPersonaResponse;

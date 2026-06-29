@@ -38,16 +38,20 @@ export function createAnamAvatarAdapter(
         throw new Error("Anam avatar creation requires imageUrl in provider config");
       }
 
-      const { response } = await anamFetchWithKeyPool("/avatars", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const { response, slot } = await anamFetchWithKeyPool(
+        "/avatars",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            displayName: config.displayName ?? input.name,
+            imageUrl,
+          }),
         },
-        body: JSON.stringify({
-          displayName: config.displayName ?? input.name,
-          imageUrl,
-        }),
-      });
+        input.preferredSlot,
+      );
 
       if (!response.ok) {
         throw new Error(
@@ -63,6 +67,7 @@ export function createAnamAvatarAdapter(
       return {
         avatarId: payload.id,
         providerId: ANAM_AVATAR_PROVIDER_ID,
+        apiKeySlot: slot,
       };
     },
 

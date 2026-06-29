@@ -9,11 +9,15 @@ export type AvatarProviderMetadata = {
 export type CreateAvatarInput = {
   employeeId: string;
   name: string;
+  /** Anam API key slot to create the avatar on (falls back to pool rotation). */
+  preferredSlot?: string | null;
 };
 
 export type CreateAvatarResult = {
   avatarId: string;
   providerId: AvatarProviderId;
+  /** Anam API key slot the avatar was actually created on. */
+  apiKeySlot?: string | null;
 };
 
 export type UpdateAvatarInput = {
