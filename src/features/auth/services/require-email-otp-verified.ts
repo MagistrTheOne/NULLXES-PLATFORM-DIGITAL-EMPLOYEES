@@ -1,7 +1,10 @@
 import { cache } from "react";
 import { redirect } from "next/navigation";
 import { getCurrentSession } from "./get-current-session";
-import { hasVerifiedEmailOtp, isEmailOtpEnabled } from "./email-otp";
+import {
+  hasVerifiedEmailOtp,
+  isEmailOtpRequiredForUser,
+} from "./email-otp";
 
 async function loadEmailOtpGate() {
   const session = await getCurrentSession();
@@ -9,7 +12,7 @@ async function loadEmailOtpGate() {
     redirect("/login");
   }
 
-  if (!isEmailOtpEnabled()) {
+  if (!isEmailOtpRequiredForUser(session.user.email)) {
     return session;
   }
 

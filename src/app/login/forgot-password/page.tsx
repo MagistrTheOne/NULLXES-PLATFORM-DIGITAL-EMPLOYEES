@@ -1,24 +1,11 @@
 import { redirect } from "next/navigation";
 import { getCurrentSession } from "@/features/auth/services/get-current-session";
-import {
-  hasVerifiedEmailOtp,
-  isEmailOtpRequiredForUser,
-} from "@/features/auth/services/email-otp";
-import { VerifyEmailOtpForm } from "@/features/auth/ui/verify-email-otp-form";
+import { ForgotPasswordForm } from "@/features/auth/ui/forgot-password-form";
 
-export default async function VerifyEmailOtpPage() {
+export default async function ForgotPasswordPage() {
   const session = await getCurrentSession();
 
-  if (!session) {
-    redirect("/login");
-  }
-
-  if (!isEmailOtpRequiredForUser(session.user.email)) {
-    redirect("/dashboard");
-  }
-
-  const verified = await hasVerifiedEmailOtp(session.user.id);
-  if (verified) {
+  if (session) {
     redirect("/dashboard");
   }
 
@@ -28,7 +15,7 @@ export default async function VerifyEmailOtpPage() {
         <p className="mb-8 text-center text-xs tracking-[0.3em] text-white/50 uppercase">
           NULLXES Digital Employees
         </p>
-        <VerifyEmailOtpForm email={session.user.email} />
+        <ForgotPasswordForm />
       </div>
     </main>
   );

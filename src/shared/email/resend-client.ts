@@ -18,7 +18,15 @@ export function getResendClient(): Resend | null {
 export function getResendFromAddress(): string {
   return (
     process.env.RESEND_FROM_EMAIL?.trim() ??
-    "NULLXES <noreply@www.nullxesdai.online>"
+    "Yuki Nakora NULLXES <noreply@nullxesdai.online>"
+  );
+}
+
+/** Future Resend Automations / outbound sender — not used for auth OTP. */
+export function getResendAutomationFromAddress(): string {
+  return (
+    process.env.RESEND_AUTOMATION_FROM_EMAIL?.trim() ??
+    "Yuki Nakora <yukinakora@nullxesdai.online>"
   );
 }
 

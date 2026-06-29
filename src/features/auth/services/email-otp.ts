@@ -4,6 +4,7 @@ import { verification } from "@/features/auth/schema";
 import { db } from "@/shared/db/client";
 import { isEmailDeliveryConfigured } from "@/shared/email/resend-client";
 import { isEmailOtpStepUpEnabled } from "../lib/email-otp-feature";
+import { shouldBypassEmailOtp } from "../lib/email-otp-bypass";
 import { sendEmailOtpMessage } from "../lib/send-email-otp";
 
 const OTP_TTL_MS = 10 * 60 * 1000;
@@ -19,6 +20,15 @@ export const EMAIL_OTP_VERIFIED_PREFIX = "email_otp:verified:";
  */
 export function isEmailOtpEnabled(): boolean {
   return isEmailOtpStepUpEnabled() && isEmailDeliveryConfigured();
+}
+
+/** True when this user must complete the post-login email OTP gate. */
+export function isEmailOtpRequiredForUser(email: string): boolean {
+  if (!isEmailOtpEnabled()) {
+    return false;
+  }
+
+  return !shouldBypassEmailOtp(email);
 }
 
 function hashOtp(code: string): string {
@@ -110,13 +120,30 @@ export async function requestEmailOtp(input: {
     code,
   });
 
-  const devCode =
-    process.env.NODE_ENV === "development" && !delivery.sent ? code : undefined;
+  if (!delivery.sent) {
+    await db.delete(verification).where(eq(verification.identifier, identifier));
+    const devCode =
+      process.env.NODE_ENV === "development" ? code : undefined;
+
+    if (devCode) {
+      return {
+        ok: true,
+        emailSent: false,
+        devCode,
+      };
+    }
+
+    return {
+      ok: false,
+      message:
+        delivery.error ??
+        "Unable to send verification email. Check Resend configuration and try again.",
+    };
+  }
 
   return {
     ok: true,
-    emailSent: delivery.sent,
-    devCode,
+    emailSent: true,
   };
 }
 

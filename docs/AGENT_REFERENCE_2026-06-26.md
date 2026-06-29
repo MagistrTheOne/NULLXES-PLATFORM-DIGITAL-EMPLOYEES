@@ -118,13 +118,16 @@ Responses include `requestId` (+ `X-Request-Id` header). Denied access → audit
 | Variable | Purpose |
 |----------|---------|
 | `RESEND_API_KEY` | Resend API key ([create](https://resend.com/docs/api-reference/api-keys/create-api-key)) |
-| `RESEND_FROM_EMAIL` | Verified sender, e.g. `NULLXES <noreply@www.nullxesdai.online>` |
+| `RESEND_FROM_EMAIL` | Transactional auth sender, e.g. `Yuki Nakora NULLXES <noreply@nullxesdai.online>` |
+| `RESEND_AUTOMATION_FROM_EMAIL` | Future Yuki outbound/automation sender, e.g. `Yuki Nakora <yukinakora@nullxesdai.online>` (not OTP) |
 | `EMAIL_OTP_STEP_UP_ENABLED` | `true` only after domain DNS verified in Resend |
 | `NEXT_PUBLIC_EMAIL_OTP_STEP_UP_ENABLED` | Client plugin mirror (same value) |
 
-**Status (2026-06-30):** `www.nullxesdai.online` is verified in Resend. OTP step-up can be enabled with `EMAIL_OTP_STEP_UP_ENABLED=true` and `NEXT_PUBLIC_EMAIL_OTP_STEP_UP_ENABLED=true`.
+**Status (2026-06-30):** `nullxesdai.online` is verified in Resend. OTP step-up can be enabled with `EMAIL_OTP_STEP_UP_ENABLED=true` and `NEXT_PUBLIC_EMAIL_OTP_STEP_UP_ENABLED=true`.
 
-The dashboard layout calls `requireEmailOtpVerified()`; the gate is controlled by environment flags.
+The dashboard layout calls `requireEmailOtpVerified()`; the gate is controlled by environment flags. `ceo@nullxes.com` bypasses the post-login OTP gate.
+
+Password recovery: `/login/forgot-password` → Better Auth `sendResetPassword` via Resend.
 
 ### 4.3 Internal / session APIs
 

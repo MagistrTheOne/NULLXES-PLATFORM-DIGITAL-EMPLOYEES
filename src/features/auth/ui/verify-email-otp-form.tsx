@@ -40,12 +40,15 @@ export function VerifyEmailOtpForm({ email }: { email: string }) {
     setIsSending(false);
 
     if (!result.ok) {
-      // On the initial auto-send a recent code may already be active; that
-      // cooldown is benign, so only surface it when the user clicks Resend.
-      if (isManual) {
+      if (result.retryAfterSeconds !== undefined) {
+        // Cooldown: benign on initial auto-send, show when user clicks Resend.
+        if (isManual) {
+          setError(result.message);
+        } else if (!info) {
+          setInfo(`A code was already sent to ${email}. Check your inbox.`);
+        }
+      } else {
         setError(result.message);
-      } else if (!info) {
-        setInfo(`A code was already sent to ${email}. Check your inbox.`);
       }
       return;
     }
@@ -55,11 +58,12 @@ export function VerifyEmailOtpForm({ email }: { email: string }) {
       return;
     }
 
-    setInfo(
-      result.emailSent
-        ? `We sent a code to ${email}.`
-        : "Email delivery is not configured. Contact your administrator.",
-    );
+    if (!result.emailSent) {
+      setError("Email delivery is not configured. Contact your administrator.");
+      return;
+    }
+
+    setInfo(`We sent a code to ${email}.`);
   }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {

@@ -37,7 +37,8 @@ This document outlines deployment considerations for Russia (RU) data residency 
 | `BETTER_AUTH_SECRET` | Strong random secret |
 | `BETTER_AUTH_URL` | Production origin: `https://www.nullxesdai.online` |
 | `NEXT_PUBLIC_BETTER_AUTH_URL` | Same as `BETTER_AUTH_URL` in production |
-| `RESEND_FROM_EMAIL` | Verified sender on Resend domain, e.g. `NULLXES <noreply@www.nullxesdai.online>` |
+| `RESEND_FROM_EMAIL` | Transactional auth sender, e.g. `Yuki Nakora NULLXES <noreply@nullxesdai.online>` |
+| `RESEND_AUTOMATION_FROM_EMAIL` | Future outbound/automation sender, e.g. `Yuki Nakora <yukinakora@nullxesdai.online>` |
 | `EMAIL_OTP_STEP_UP_ENABLED` | `true` only in environments where Resend delivery is configured |
 | `NEXT_PUBLIC_EMAIL_OTP_STEP_UP_ENABLED` | Same value as `EMAIL_OTP_STEP_UP_ENABLED` |
 | Inngest | `INNGEST_EVENT_KEY` + `INNGEST_SIGNING_KEY`; register app URL `https://<domain>/api/inngest` in Inngest Cloud |

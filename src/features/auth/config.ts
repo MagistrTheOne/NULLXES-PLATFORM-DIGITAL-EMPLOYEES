@@ -9,6 +9,7 @@ import {
   getVercelDeploymentUrl,
 } from "@/shared/config/env";
 import { sendVerificationOtpEmail } from "@/shared/email/send-verification-otp-email";
+import { sendPasswordResetEmail } from "@/shared/email/send-password-reset-email";
 import { db } from "@/shared/db/client";
 import { account, session, twoFactor as twoFactorTable, verification } from "./schema";
 import { isEmailOtpStepUpEnabled } from "./lib/email-otp-feature";
@@ -45,6 +46,9 @@ export function createAuthConfig(): BetterAuthOptions {
     }),
     emailAndPassword: {
       enabled: true,
+      async sendResetPassword({ user, url }) {
+        void sendPasswordResetEmail({ email: user.email, url });
+      },
     },
     plugins: [
       twoFactor(),
