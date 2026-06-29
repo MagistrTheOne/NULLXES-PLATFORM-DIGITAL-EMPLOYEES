@@ -66,37 +66,55 @@ export async function startEmployeeSession(input: {
     throw new Error("Employee not found");
   }
 
-  const [existingOpen] = await db
-    .select({ id: employeeSession.id })
-    .from(employeeSession)
-    .where(
-      and(
-        eq(employeeSession.employeeId, input.employeeId),
-        eq(employeeSession.userId, input.userId),
-        inArray(employeeSession.status, ["created", "active"]),
-      ),
-    )
-    .orderBy(desc(employeeSession.createdAt))
-    .limit(1);
+  const findOpenSession = async (): Promise<string | null> => {
+    const [open] = await db
+      .select({ id: employeeSession.id })
+      .from(employeeSession)
+      .where(
+        and(
+          eq(employeeSession.employeeId, input.employeeId),
+          eq(employeeSession.userId, input.userId),
+          inArray(employeeSession.status, ["created", "active"]),
+        ),
+      )
+      .orderBy(desc(employeeSession.createdAt))
+      .limit(1);
+    return open?.id ?? null;
+  };
 
-  if (existingOpen) {
-    return existingOpen.id;
+  // Fast path: reuse an already-open session.
+  const existingOpenId = await findOpenSession();
+  if (existingOpenId) {
+    return existingOpenId;
   }
 
-  const [session] = await db
+  // Atomic create. The neon-http driver has no interactive transactions, so the
+  // reuse check above is a check-then-act race: two concurrent starts can both
+  // see no open session. The partial unique index
+  // (employee_session_open_unique on employee_id+user_id where status in
+  // created/active) makes only one INSERT win; the loser gets no row back and
+  // reuses the winner's session below.
+  const [created] = await db
     .insert(employeeSession)
     .values({
       employeeId: input.employeeId,
       userId: input.userId,
       status: "created",
     })
+    .onConflictDoNothing()
     .returning({ id: employeeSession.id });
 
-  if (!session) {
-    throw new Error("Failed to create employee session");
+  if (created) {
+    return created.id;
   }
 
-  return session.id;
+  // Lost the race: a concurrent request created the open session first.
+  const raceWinnerId = await findOpenSession();
+  if (raceWinnerId) {
+    return raceWinnerId;
+  }
+
+  throw new Error("Failed to create employee session");
 }
 
 export async function activateEmployeeSession(input: {
