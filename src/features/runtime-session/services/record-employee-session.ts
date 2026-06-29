@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, desc, eq, inArray } from "drizzle-orm";
 import { digitalEmployee } from "@/entities/digital-employee/schema";
 import { employeeSession } from "@/entities/session/schema";
 import { db } from "@/shared/db/client";
@@ -64,6 +64,23 @@ export async function startEmployeeSession(input: {
 
   if (!employee) {
     throw new Error("Employee not found");
+  }
+
+  const [existingOpen] = await db
+    .select({ id: employeeSession.id })
+    .from(employeeSession)
+    .where(
+      and(
+        eq(employeeSession.employeeId, input.employeeId),
+        eq(employeeSession.userId, input.userId),
+        inArray(employeeSession.status, ["created", "active"]),
+      ),
+    )
+    .orderBy(desc(employeeSession.createdAt))
+    .limit(1);
+
+  if (existingOpen) {
+    return existingOpen.id;
   }
 
   const [session] = await db

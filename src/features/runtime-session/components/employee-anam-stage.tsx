@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { AnamEvent, ConnectionClosedCode } from "@anam-ai/js-sdk";
 import { Loader2 } from "lucide-react";
@@ -34,6 +34,16 @@ export function EmployeeAnamStage({
   voiceMode: TalkVoiceMode;
 }) {
   const t = useTranslations("employees.talk");
+  const translationsRef = useRef({
+    micPermissionDenied: t("stage.micPermissionDenied"),
+    anamClosed: t("stage.anamClosed"),
+    anamStreamFailed: t("stage.anamStreamFailed"),
+  });
+  translationsRef.current = {
+    micPermissionDenied: t("stage.micPermissionDenied"),
+    anamClosed: t("stage.anamClosed"),
+    anamStreamFailed: t("stage.anamStreamFailed"),
+  };
   const {
     registerClient,
     setIsLive,
@@ -111,10 +121,12 @@ export function EmployeeAnamStage({
           }
 
           if (reason === ConnectionClosedCode.MICROPHONE_PERMISSION_DENIED) {
-            setErrorMessage(t("stage.micPermissionDenied"));
+            setErrorMessage(translationsRef.current.micPermissionDenied);
           } else {
             setErrorMessage(
-              details?.trim() ? details : t("stage.anamClosed"),
+              details?.trim()
+                ? details
+                : translationsRef.current.anamClosed,
             );
           }
 
@@ -147,7 +159,9 @@ export function EmployeeAnamStage({
           setStatus("error");
           setIsLive(false);
           setErrorMessage(
-            error instanceof Error ? error.message : t("stage.anamStreamFailed"),
+            error instanceof Error
+              ? error.message
+              : translationsRef.current.anamStreamFailed,
           );
           void failTalkSessionAction(employeeSessionId);
         }
@@ -176,7 +190,6 @@ export function EmployeeAnamStage({
     sessionToken,
     setIsLive,
     setPipelineState,
-    t,
     voiceMode,
   ]);
 

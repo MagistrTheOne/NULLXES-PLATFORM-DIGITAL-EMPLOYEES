@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import {
   Loader2,
@@ -31,7 +31,6 @@ import type { TalkChatCredentials } from "../services/create-talk-chat-session";
 import { useTalkAnam } from "../context/talk-anam-context";
 import { useTalkThreads } from "../lib/use-talk-threads";
 import { startTalkSessionAction } from "../actions/employee-session";
-import { prefetchAnamTalkSessionAction } from "../actions/prefetch-anam-talk-session";
 import type { TalkVoiceMode } from "../services/resolve-talk-voice-mode";
 import { cn } from "@/lib/utils";
 import { TalkLocalCameraPip } from "./talk-local-camera-pip";
@@ -76,7 +75,6 @@ function TalkStageControls({
   onSessionStarted,
   onStopSession,
   sessionBusy,
-  prefetchedTokenRef,
   cameraEnabled,
   onCameraToggle,
   onToggleChat,
@@ -87,7 +85,6 @@ function TalkStageControls({
   onSessionStarted: (session: ActiveTalkSession) => void;
   onStopSession: () => Promise<void>;
   sessionBusy: boolean;
-  prefetchedTokenRef: React.MutableRefObject<string | null>;
   cameraEnabled: boolean;
   onCameraToggle: () => void;
   onToggleChat?: () => void;
@@ -98,6 +95,7 @@ function TalkStageControls({
     useTalkAnam();
   const [isStarting, setIsStarting] = useState(false);
   const [startError, setStartError] = useState<string | null>(null);
+  const startingRef = useRef(false);
 
   // Green only when the persona can actually hear: live, permission granted,
   // and not muted. Red whenever input is blocked/muted/not yet granted.
@@ -105,14 +103,15 @@ function TalkStageControls({
   const micListening = pipelineState === "listening";
 
   const handleStart = async () => {
+    if (startingRef.current || activeSession) {
+      return;
+    }
+
+    startingRef.current = true;
     setIsStarting(true);
     setStartError(null);
     try {
-      const prefetchedSessionToken = prefetchedTokenRef.current ?? undefined;
-      prefetchedTokenRef.current = null;
-      const result = await startTalkSessionAction(employeeId, {
-        prefetchedSessionToken,
-      });
+      const result = await startTalkSessionAction(employeeId);
       if (!result.ok) {
         setStartError(result.message);
         return;
@@ -123,19 +122,9 @@ function TalkStageControls({
         voiceMode: result.voiceMode,
       });
     } finally {
+      startingRef.current = false;
       setIsStarting(false);
     }
-  };
-
-  const warmPrefetch = () => {
-    if (prefetchedTokenRef.current || activeSession) {
-      return;
-    }
-    void prefetchAnamTalkSessionAction(employeeId).then((result) => {
-      if (result.ok) {
-        prefetchedTokenRef.current = result.sessionToken;
-      }
-    });
   };
 
   const disabled = sessionBusy || isStarting;
@@ -161,8 +150,6 @@ function TalkStageControls({
             <Button
               type="button"
               disabled={disabled}
-              onMouseEnter={warmPrefetch}
-              onFocus={warmPrefetch}
               onClick={() => {
                 void handleStart();
               }}
@@ -324,7 +311,6 @@ export function EmployeeTalkRoom({
   onSessionLimitReached,
   sessionBusy,
 }: EmployeeTalkRoomProps) {
-  const prefetchedTokenRef = useRef<string | null>(null);
   const threads = useTalkThreads(employeeId);
   const [cameraEnabled, setCameraEnabled] = useState(false);
   const [showChat, setShowChat] = useState(false);
@@ -344,17 +330,6 @@ export function EmployeeTalkRoom({
     }
     await navigator.clipboard.writeText(url);
   };
-
-  useEffect(() => {
-    if (activeSession) {
-      return;
-    }
-    void prefetchAnamTalkSessionAction(employeeId).then((result) => {
-      if (result.ok) {
-        prefetchedTokenRef.current = result.sessionToken;
-      }
-    });
-  }, [activeSession, employeeId]);
 
   return (
     <div className="talk-workspace-shell employee-talk-workspace employee-talk-shell mx-auto flex w-full flex-1 flex-col overflow-hidden rounded-none border-0 bg-[#0a0a0a] min-h-[min(100dvh-7rem,820px)] sm:min-h-[min(88dvh,820px)] sm:rounded-2xl sm:border sm:border-white/10 lg:min-h-[min(78dvh,860px)] min-[1800px]:min-h-[min(82dvh,920px)]">
@@ -395,7 +370,6 @@ export function EmployeeTalkRoom({
               onSessionStarted={onActiveSessionChange}
               onStopSession={onStopSession}
               sessionBusy={sessionBusy}
-              prefetchedTokenRef={prefetchedTokenRef}
               cameraEnabled={cameraEnabled}
               onCameraToggle={() => setCameraEnabled((value) => !value)}
               onToggleChat={() => setShowChat(true)}

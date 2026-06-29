@@ -108,7 +108,6 @@ export type StartTalkSessionResult =
 
 export async function startTalkSessionAction(
   employeeId: string,
-  options?: { prefetchedSessionToken?: string },
 ): Promise<StartTalkSessionResult> {
   try {
     const { organizationId, userId } = await resolveWorkspaceContext();
@@ -118,39 +117,29 @@ export async function startTalkSessionAction(
       return { ok: false, message: "Employee not found" };
     }
 
-    const prefetchedSessionToken = options?.prefetchedSessionToken?.trim();
-
     return measureTalkPerf(
       "talk.session.start",
       async () => {
-        const sessionIdPromise = startEmployeeSession({
+        const sessionId = await startEmployeeSession({
           organizationId,
           employeeId,
           userId,
         });
 
-        let sessionToken = prefetchedSessionToken ?? "";
+        const anamToken = await createAnamTalkSessionTokenForEmployee(
+          organizationId,
+          employeeId,
+          employee,
+        );
 
-        if (!sessionToken) {
-          const anamToken = await createAnamTalkSessionTokenForEmployee(
-            organizationId,
-            employeeId,
-            employee,
-          );
-
-          if (!anamToken.ok) {
-            return { ok: false, message: anamToken.message };
-          }
-
-          sessionToken = anamToken.sessionToken;
+        if (!anamToken.ok) {
+          return { ok: false, message: anamToken.message };
         }
-
-        const sessionId = await sessionIdPromise;
 
         return {
           ok: true,
           sessionId,
-          sessionToken,
+          sessionToken: anamToken.sessionToken,
           voiceMode: resolveTalkVoiceMode(employee),
         };
       },
