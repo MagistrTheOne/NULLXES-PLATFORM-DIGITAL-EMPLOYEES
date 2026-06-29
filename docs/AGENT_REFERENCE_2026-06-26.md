@@ -344,7 +344,7 @@ Local dev: `npm run inngest:dev` → `http://localhost:3000/api/inngest`
 
 | Variable | Purpose |
 |----------|---------|
-| `ANAM_API_KEY` (+ `_2`…`_5` pool) | Anam avatars |
+| `ANAM_API_KEY` (+ `_2`…`_10` pool) | Anam avatars |
 | `ELEVENLABS_API_KEY` | Voice synthesis |
 
 **Production ops:**
