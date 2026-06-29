@@ -4,7 +4,6 @@ import { useTranslations } from "next-intl";
 import { useMemo, useRef, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import type { EmployeeStatus } from "@/entities/digital-employee";
-import { Button } from "@/components/ui/button";
 import { useWorkspacePermissions } from "@/features/workspace/components/workspace-permissions-provider";
 import { revalidateEmployeePaths } from "@/features/employees/actions/revalidate-employee-paths";
 import { loadMoreEmployeesAction } from "@/features/employees/actions/load-more-employees";
@@ -13,6 +12,7 @@ import type { EmployeeListItem } from "../types";
 import { EmployeeEmptyState } from "./employee-empty-state";
 import { EmployeeGrid } from "./employee-grid";
 import { EmployeeMetrics } from "./employee-metrics";
+import { EmployeePagination } from "./employee-pagination";
 import { EmployeeToolbar } from "./employee-toolbar";
 import {
   EmployeeMaterializationOverlay,
@@ -41,6 +41,8 @@ function matchesSearch(employee: EmployeeListItem, query: string): boolean {
   );
 }
 
+const PAGE_SIZE = 8;
+
 export function EmployeesScreen({
   employees,
   nextCursor,
@@ -58,6 +60,7 @@ export function EmployeesScreen({
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [loadedEmployees, setLoadedEmployees] = useState(employees);
   const [loadedNextCursor, setLoadedNextCursor] = useState(nextCursor ?? null);
+  const [page, setPage] = useState(1);
   const [materialization, setMaterialization] =
     useState<EmployeeMaterializationTarget | null>(null);
   const materializationPreviewRef = useRef<string | null>(null);
@@ -84,6 +87,46 @@ export function EmployeesScreen({
   }, [loadedEmployees, searchQuery, statusFilter]);
 
   const hasEmployees = loadedEmployees.length > 0;
+
+  useEffect(() => {
+    setPage(1);
+  }, [searchQuery, statusFilter]);
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredEmployees.length / PAGE_SIZE),
+  );
+  const currentPage = Math.min(page, totalPages);
+  const pageEmployees = filteredEmployees.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE,
+  );
+
+  function loadMoreFromServer(): void {
+    if (!loadedNextCursor || isLoadingMore) {
+      return;
+    }
+    setIsLoadingMore(true);
+    void loadMoreEmployeesAction(loadedNextCursor)
+      .then((result) => {
+        if ("items" in result) {
+          setLoadedEmployees((current) => [...current, ...result.items]);
+          setLoadedNextCursor(result.nextCursor);
+        }
+      })
+      .finally(() => {
+        setIsLoadingMore(false);
+      });
+  }
+
+  function handlePageChange(nextPage: number): void {
+    setPage(nextPage);
+    // Prefetch the next server batch when the user nears the end of loaded data.
+    const remainingPages = totalPages - nextPage;
+    if (remainingPages <= 1 && loadedNextCursor && !searchQuery && statusFilter === "all") {
+      loadMoreFromServer();
+    }
+  }
 
   async function handleCreateComplete({
     employeeId,
@@ -158,35 +201,13 @@ export function EmployeesScreen({
             />
             {filteredEmployees.length > 0 ? (
               <>
-                <EmployeeGrid employees={filteredEmployees} />
-                {loadedNextCursor && !searchQuery && statusFilter === "all" ? (
-                  <div className="flex justify-center pt-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="border-white/10 bg-transparent text-white hover:bg-white/5"
-                      disabled={isLoadingMore}
-                      onClick={() => {
-                        setIsLoadingMore(true);
-                        void loadMoreEmployeesAction(loadedNextCursor)
-                          .then((result) => {
-                            if ("items" in result) {
-                              setLoadedEmployees((current) => [
-                                ...current,
-                                ...result.items,
-                              ]);
-                              setLoadedNextCursor(result.nextCursor);
-                            }
-                          })
-                          .finally(() => {
-                            setIsLoadingMore(false);
-                          });
-                      }}
-                    >
-                      {isLoadingMore ? t("loadingMore") : t("loadMore")}
-                    </Button>
-                  </div>
-                ) : null}
+                <EmployeeGrid employees={pageEmployees} />
+                <EmployeePagination
+                  page={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={handlePageChange}
+                  isLoading={isLoadingMore}
+                />
               </>
             ) : (
               <p className="py-8 text-center text-sm text-white/50">
