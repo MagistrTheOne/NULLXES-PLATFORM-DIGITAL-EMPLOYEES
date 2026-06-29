@@ -70,7 +70,7 @@ export function SettingsScreen({ data }: { data: SettingsPageData }) {
           >
             <TabsList
               variant="line"
-              className="h-auto w-full flex-nowrap justify-start gap-1 overflow-x-auto border-b border-border bg-transparent p-0 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              className="h-auto w-full flex-nowrap justify-start gap-1 overflow-x-auto border-b border-border bg-transparent p-0 [-ms-overflow-style:none] scrollbar-none [&::-webkit-scrollbar]:hidden"
             >
               {TAB_IDS.map((tabId) => (
                 <TabsTrigger

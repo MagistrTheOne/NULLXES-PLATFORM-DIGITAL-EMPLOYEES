@@ -13,5 +13,7 @@ export type CreateEmployeeWizardInput = {
   voiceProvider: StudioVoiceProviderType;
   photoFileName: string | null;
   photoFileSize: number | null;
+  presetAvatarId?: string | null;
+  hasPhotoFile?: boolean;
   knowledge: KnowledgeDraftItem[];
 };

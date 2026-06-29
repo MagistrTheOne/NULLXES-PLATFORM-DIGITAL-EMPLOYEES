@@ -8,6 +8,8 @@ import { useWorkspacePermissions } from "@/features/workspace/components/workspa
 import { revalidateEmployeePaths } from "@/features/employees/actions/revalidate-employee-paths";
 import { loadMoreEmployeesAction } from "@/features/employees/actions/load-more-employees";
 import { CreateEmployeeDialog } from "@/features/employees/create";
+import { EmployeeCreateUpgradeDialog } from "./employee-create-upgrade-dialog";
+import { useEmployeeCreateEligibility } from "../lib/use-employee-create-eligibility";
 import type { EmployeeListItem } from "../types";
 import { EmployeeEmptyState } from "./employee-empty-state";
 import { EmployeeGrid } from "./employee-grid";
@@ -57,9 +59,13 @@ export function EmployeesScreen({
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | EmployeeStatus>("all");
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [upgradeDialogOpen, setUpgradeDialogOpen] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [loadedEmployees, setLoadedEmployees] = useState(employees);
   const [loadedNextCursor, setLoadedNextCursor] = useState(nextCursor ?? null);
+  const { isAtEmployeeLimit } = useEmployeeCreateEligibility(
+    loadedEmployees.length,
+  );
   const [page, setPage] = useState(1);
   const [materialization, setMaterialization] =
     useState<EmployeeMaterializationTarget | null>(null);
@@ -167,6 +173,15 @@ export function EmployeesScreen({
     }
   }
 
+  function handleCreateClick(): void {
+    if (isAtEmployeeLimit) {
+      setUpgradeDialogOpen(true);
+      return;
+    }
+
+    setCreateDialogOpen(true);
+  }
+
   function dismissMaterialization(): void {
     if (materializationPreviewRef.current?.startsWith("blob:")) {
       URL.revokeObjectURL(materializationPreviewRef.current);
@@ -196,7 +211,7 @@ export function EmployeesScreen({
               statusFilter={statusFilter}
               onSearchQueryChange={setSearchQuery}
               onStatusFilterChange={setStatusFilter}
-              onCreateClick={() => setCreateDialogOpen(true)}
+              onCreateClick={handleCreateClick}
               canCreate={permissions.canManageEmployees}
             />
             {filteredEmployees.length > 0 ? (
@@ -217,7 +232,7 @@ export function EmployeesScreen({
           </>
         ) : (
           <EmployeeEmptyState
-            onCreateClick={() => setCreateDialogOpen(true)}
+            onCreateClick={handleCreateClick}
             canCreate={permissions.canManageEmployees}
           />
         )}
@@ -227,6 +242,12 @@ export function EmployeesScreen({
         open={createDialogOpen}
         onOpenChange={setCreateDialogOpen}
         onComplete={handleCreateComplete}
+      />
+
+      <EmployeeCreateUpgradeDialog
+        open={upgradeDialogOpen}
+        onOpenChange={setUpgradeDialogOpen}
+        reason="employee_limit"
       />
 
       {materialization ? (

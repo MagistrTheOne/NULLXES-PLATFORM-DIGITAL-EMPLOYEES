@@ -4,6 +4,8 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { CreateEmployeeDialog } from "@/features/employees/create";
+import { EmployeeCreateUpgradeDialog } from "@/features/employees/components/employee-create-upgrade-dialog";
+import { useEmployeeCreateEligibility } from "@/features/employees/lib/use-employee-create-eligibility";
 import { revalidateEmployeePaths } from "@/features/employees/actions/revalidate-employee-paths";
 import type { DashboardOverview } from "../types";
 import { OverviewEmployeeCarousel } from "./OverviewEmployeeCarousel";
@@ -16,7 +18,20 @@ export function OverviewScreen({ data }: { data: DashboardOverview }) {
   const t = useTranslations("dashboard");
   const tCommon = useTranslations("common");
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [upgradeDialogOpen, setUpgradeDialogOpen] = useState(false);
+  const { isAtEmployeeLimit } = useEmployeeCreateEligibility(
+    data.employees.length,
+  );
   const { metrics } = data;
+
+  function handleCreateClick(): void {
+    if (isAtEmployeeLimit) {
+      setUpgradeDialogOpen(true);
+      return;
+    }
+
+    setCreateDialogOpen(true);
+  }
 
   async function handleCreateComplete({
     employeeId,
@@ -48,13 +63,13 @@ export function OverviewScreen({ data }: { data: DashboardOverview }) {
           </div>
           <OverviewHeader
             range={data.range}
-            onCreateClick={() => setCreateDialogOpen(true)}
+            onCreateClick={handleCreateClick}
           />
         </header>
 
         <OverviewEmployeeCarousel
           employees={data.employees}
-          onCreateClick={() => setCreateDialogOpen(true)}
+          onCreateClick={handleCreateClick}
         />
 
         <OverviewMetricsStrip metrics={metrics} />
@@ -70,6 +85,12 @@ export function OverviewScreen({ data }: { data: DashboardOverview }) {
         open={createDialogOpen}
         onOpenChange={setCreateDialogOpen}
         onComplete={handleCreateComplete}
+      />
+
+      <EmployeeCreateUpgradeDialog
+        open={upgradeDialogOpen}
+        onOpenChange={setUpgradeDialogOpen}
+        reason="employee_limit"
       />
     </>
   );

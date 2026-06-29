@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "node ./node_modules/drizzle-kit/bin.cjs migrate && next build",
     "start": "next start",
     "lint": "eslint",
     "db:generate": "node --env-file=.env ./node_modules/drizzle-kit/bin.cjs generate",
@@ -49,6 +49,7 @@
     "secrets:migrate": "node --env-file=.env --import tsx scripts/migrate-encrypt-secrets.ts",
     "knowledge:backfill-embeddings": "node --env-file=.env --import tsx scripts/backfill-knowledge-embeddings.ts",
     "anam:backfill-external-brain": "node --env-file=.env --import tsx scripts/backfill-anam-external-brain.ts",
+    "free-tier:reconcile": "node --env-file=.env --import tsx scripts/reconcile-free-tier-employees.ts",
     "knowledge-retrieval:verify": "node --env-file=.env --import tsx src/features/knowledge-retrieval/verify-knowledge-retrieval.ts",
     "email-otp:verify": "node --import tsx src/features/auth/verify-email-otp.ts",
     "api-scopes:verify": "node --import tsx src/features/public-api/verify-api-scopes.ts",

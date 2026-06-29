@@ -327,7 +327,18 @@
         "back": "Back",
         "continue": "Continue",
         "create": "Create Employee",
-        "creating": "Saving employee…"
+        "creating": "Saving employee…",
+        "discardDraft": "Start over"
+      },
+      "draftRestored": "Your in-progress draft was restored. Re-upload a photo if you were using a custom avatar.",
+      "upgradeGate": {
+        "limitTitle": "Upgrade to add more employees",
+        "limitDescription": "Free includes one digital employee. Upgrade to Super Pro for an unlimited workforce and custom avatars.",
+        "avatarTitle": "Custom avatars require Super Pro",
+        "avatarDescription": "Choose a NULLXES preset on Free, or upgrade for custom photo upload and generation.",
+        "cancel": "Not now",
+        "upgrade": "Upgrade to Super Pro",
+        "billing": "View billing"
       },
       "errors": {
         "nameRequired": "Employee name is required.",

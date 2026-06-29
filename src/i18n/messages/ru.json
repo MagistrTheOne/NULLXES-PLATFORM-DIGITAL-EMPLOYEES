@@ -327,7 +327,18 @@
         "back": "Назад",
         "continue": "Далее",
         "create": "Создать сотрудника",
-        "creating": "Сохранение…"
+        "creating": "Сохранение…",
+        "discardDraft": "Сначала"
+      },
+      "draftRestored": "Черновик восстановлен. Если использовали своё фото — загрузите его снова.",
+      "upgradeGate": {
+        "limitTitle": "Нужен апгрейд для новых сотрудников",
+        "limitDescription": "На Free доступен один цифровой сотрудник. Super Pro — без лимита и с кастомными аватарами.",
+        "avatarTitle": "Кастомные аватары — на Super Pro",
+        "avatarDescription": "На Free выберите пресет NULLXES или перейдите на Super Pro для загрузки фото.",
+        "cancel": "Не сейчас",
+        "upgrade": "Перейти на Super Pro",
+        "billing": "Тарифы"
       },
       "errors": {
         "nameRequired": "Укажите имя сотрудника.",

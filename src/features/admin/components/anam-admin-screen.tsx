@@ -13,7 +13,7 @@ function EmployeeRow({
   showSlot?: boolean;
 }) {
   return (
-    <div className="rounded-lg border border-white/8 bg-white/[0.02] px-3 py-2.5">
+    <div className="rounded-lg border border-white/8 bg-white/2 px-3 py-2.5">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <Link
           href={`/dashboard/employees/${employee.id}`}

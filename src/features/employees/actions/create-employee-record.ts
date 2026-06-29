@@ -9,6 +9,7 @@ import {
   assertCanCreateEmployee,
   getSessionLimitSecondsForPlan,
 } from "@/features/billing/services/check-plan-limits";
+import { assertAvatarStudioSelection } from "@/features/billing/services/assert-avatar-studio-selection";
 import type { BillingPlanId } from "@/features/billing/config/plans";
 import { requireWorkspacePermissionOrThrowMessage } from "@/features/workspace";
 import { buildEmployeeSystemPrompt } from "@/features/employees/lib/build-system-prompt";
@@ -50,6 +51,15 @@ export async function createEmployeeRecord(
 
     if (!employeeLimit.ok) {
       return { ok: false, message: employeeLimit.message };
+    }
+
+    const avatarSelection = assertAvatarStudioSelection(billingPlan, {
+      presetAvatarId: input.presetAvatarId ?? "",
+      hasPhotoFile: input.hasPhotoFile ?? false,
+    });
+
+    if (!avatarSelection.ok) {
+      return { ok: false, message: avatarSelection.message };
     }
 
     const sessionLimitSeconds = getSessionLimitSecondsForPlan(billingPlan);

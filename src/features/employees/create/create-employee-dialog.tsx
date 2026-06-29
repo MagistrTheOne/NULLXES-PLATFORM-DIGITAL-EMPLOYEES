@@ -38,6 +38,14 @@ import {
   MAX_AVATAR_UPLOAD_BYTES,
   createInitialFormState,
 } from "./constants";
+import {
+  clearCreateEmployeeWizardDraft,
+  createInitialFormForPlan,
+  hasMeaningfulWizardDraft,
+  mergePersistedFormState,
+  readCreateEmployeeWizardDraft,
+  writeCreateEmployeeWizardDraft,
+} from "./wizard-persistence";
 import { isBrainProviderSelectable } from "@/features/brain";
 import {
   getBrainWorkspaceConfigAction,
@@ -82,10 +90,10 @@ export function CreateEmployeeDialog({
   const tCommon = useTranslations("common.actions");
   const { allowCustomAvatars, checkoutUrl } = useWorkspaceBilling();
   const [step, setStep] = useState<CreateEmployeeStep>("identity");
-  const [form, setForm] = useState<CreateEmployeeFormState>(() => ({
-    ...createInitialFormState(),
-    avatarSource: allowCustomAvatars ? "upload" : "preset",
-  }));
+  const [form, setForm] = useState<CreateEmployeeFormState>(() =>
+    createInitialFormForPlan(allowCustomAvatars),
+  );
+  const [hasRestoredDraft, setHasRestoredDraft] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [voicePreviewError, setVoicePreviewError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -122,6 +130,33 @@ export function CreateEmployeeDialog({
       return;
     }
 
+    const draft = readCreateEmployeeWizardDraft();
+    if (!hasMeaningfulWizardDraft(draft) || !draft) {
+      return;
+    }
+
+    const restored = mergePersistedFormState(
+      draft,
+      createInitialFormForPlan(allowCustomAvatars),
+    );
+    setStep(restored.step);
+    setForm(restored.form);
+    setHasRestoredDraft(true);
+  }, [open, allowCustomAvatars]);
+
+  useEffect(() => {
+    if (!open || isSubmitting) {
+      return;
+    }
+
+    writeCreateEmployeeWizardDraft({ step, form });
+  }, [open, step, form, isSubmitting]);
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
     let cancelled = false;
 
     async function loadBrainConfig() {
@@ -136,8 +171,14 @@ export function CreateEmployeeDialog({
         ...current,
         orgDefaultBrainProvider: result.config.defaultBrainProvider,
         orgDefaultBrainModel: result.config.defaultBrainModel,
-        brainProvider: result.config.defaultBrainProvider,
-        brainModel: result.config.defaultBrainModel,
+        brainProvider:
+          current.brainMode === "custom"
+            ? current.brainProvider
+            : result.config.defaultBrainProvider,
+        brainModel:
+          current.brainMode === "custom"
+            ? current.brainModel
+            : result.config.defaultBrainModel,
       }));
     }
 
@@ -184,16 +225,19 @@ export function CreateEmployeeDialog({
 
   function resetFlow(): void {
     setStep("identity");
-    setForm({
-      ...createInitialFormState(),
-      avatarSource: allowCustomAvatars ? "upload" : "preset",
-    });
+    setForm(createInitialFormForPlan(allowCustomAvatars));
     setError(null);
     setPreviewingVoiceId(null);
     setVoicePreviewError(null);
     setIsGeneratingAvatar(false);
     setBrainWorkspaceConfig(null);
+    setHasRestoredDraft(false);
     clearLocalUploadPreview();
+    clearCreateEmployeeWizardDraft();
+  }
+
+  function discardDraft(): void {
+    resetFlow();
   }
 
   function stopVoicePreview(): void {
@@ -213,10 +257,11 @@ export function CreateEmployeeDialog({
   }
 
   function handleOpenChange(nextOpen: boolean): void {
-    onOpenChange(nextOpen);
-    if (!nextOpen) {
-      resetFlow();
+    if (!nextOpen && isSubmitting) {
+      return;
     }
+
+    onOpenChange(nextOpen);
   }
 
   function validateCurrentStep(): boolean {
@@ -347,6 +392,8 @@ export function CreateEmployeeDialog({
         voiceProvider: form.voiceProvider,
         photoFileName: form.photoFileName,
         photoFileSize: form.photoFileSize,
+        presetAvatarId: form.presetAvatarId,
+        hasPhotoFile: Boolean(form.photoFile),
         knowledge: buildKnowledgeItemsFromForm(form),
       };
 
@@ -396,6 +443,7 @@ export function CreateEmployeeDialog({
       }
 
       handleOpenChange(false);
+      resetFlow();
 
       void provisionEmployeeAvatarStudio(created.employeeId, avatarPayload).catch(
         () => undefined,
@@ -570,16 +618,35 @@ export function CreateEmployeeDialog({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="flex max-h-[90vh] max-w-2xl flex-col gap-0 overflow-hidden border-white/10 bg-[#111111] p-0 text-white">
         <DialogHeader className="border-b border-white/10 px-6 py-5">
-          <DialogTitle className="text-lg font-medium text-white">
-            {t("title")}
-          </DialogTitle>
-          <DialogDescription className="text-white/60">
-            {t("stepProgress", {
-              current: currentStepIndex + 1,
-              total: CREATE_EMPLOYEE_STEPS.length,
-              step: t(`steps.${step}`),
-            })}
-          </DialogDescription>
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <DialogTitle className="text-lg font-medium text-white">
+                {t("title")}
+              </DialogTitle>
+              <DialogDescription className="text-white/60">
+                {t("stepProgress", {
+                  current: currentStepIndex + 1,
+                  total: CREATE_EMPLOYEE_STEPS.length,
+                  step: t(`steps.${step}`),
+                })}
+              </DialogDescription>
+            </div>
+            {hasRestoredDraft || hasMeaningfulWizardDraft(readCreateEmployeeWizardDraft()) ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="shrink-0 border-white/12 text-white/70"
+                disabled={isSubmitting}
+                onClick={discardDraft}
+              >
+                {t("actions.discardDraft")}
+              </Button>
+            ) : null}
+          </div>
+          {hasRestoredDraft ? (
+            <p className="mt-2 text-xs text-white/45">{t("draftRestored")}</p>
+          ) : null}
           <div className="mt-4 flex flex-wrap gap-2">
             {CREATE_EMPLOYEE_STEPS.map((item, index) => (
               <span
