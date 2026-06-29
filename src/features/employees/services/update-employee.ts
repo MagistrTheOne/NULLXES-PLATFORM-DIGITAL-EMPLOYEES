@@ -10,7 +10,6 @@ import type { EmployeeLifecycleEventType } from "@/entities/employee-lifecycle";
 import { employeeRuntime } from "@/entities/runtime/schema";
 import { recordLifecycleEvent } from "@/features/employee/services/record-lifecycle-event";
 import {
-  getDefaultBrainModelForProvider,
   resolveBrainModelForProvider,
 } from "@/features/settings/lib/brain-model-defaults";
 import { isBrainProviderSelectable } from "@/features/brain/lib/brain-provider-readiness";
@@ -207,13 +206,4 @@ export async function updateEmployee(
       error instanceof Error ? error.message : "Failed to update employee";
     return { ok: false, message };
   }
-}
-
-export function getInitialBrainModelForEdit(
-  provider: BrainProvider,
-  configuredModel: string | null,
-): string {
-  return configuredModel?.trim()
-    ? resolveBrainModelForProvider(provider, configuredModel)
-    : getDefaultBrainModelForProvider(provider);
 }

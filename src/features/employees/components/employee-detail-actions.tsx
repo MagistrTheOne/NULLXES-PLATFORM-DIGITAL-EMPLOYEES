@@ -43,7 +43,7 @@ import { getDefaultBrainModelForProvider } from "@/features/settings/lib/brain-m
 import { useWorkspacePermissions } from "@/features/workspace/components/workspace-permissions-provider";
 import { deleteEmployeeAction } from "../actions/delete-employee";
 import { updateEmployeeAction } from "../actions/update-employee";
-import { getInitialBrainModelForEdit } from "../services/update-employee";
+import { getInitialBrainModelForEdit } from "../lib/get-initial-brain-model-for-edit";
 import type { EmployeeDetailShell } from "../types";
 
 export function EmployeeDetailActions({
