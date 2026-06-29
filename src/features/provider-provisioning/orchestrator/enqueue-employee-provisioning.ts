@@ -1,4 +1,5 @@
 import { provisionEmployeeProviders } from "../services/provision-employee-providers";
+import { activateEmployeeAfterProvisioning } from "@/features/employee/services/activate-employee-after-provisioning";
 import { logServerEvent } from "@/shared/lib/server-log";
 
 /**
@@ -9,7 +10,9 @@ import { logServerEvent } from "@/shared/lib/server-log";
  */
 export function enqueueEmployeeProvisioning(employeeId: string): void {
   void provisionEmployeeProviders({ employeeId })
-    .then((result) => {
+    .then(async (result) => {
+      await activateEmployeeAfterProvisioning(employeeId, result);
+
       if (
         result.avatar.status === "failed" ||
         result.brain.status === "failed" ||

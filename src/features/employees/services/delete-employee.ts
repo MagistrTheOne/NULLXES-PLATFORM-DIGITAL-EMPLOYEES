@@ -1,5 +1,6 @@
 import { eq } from "drizzle-orm";
 import { digitalEmployee } from "@/entities/digital-employee/schema";
+import { deleteAnamEmployeeResources } from "@/features/provider-provisioning/services/delete-anam-employee-resources";
 import { db } from "@/shared/db/client";
 import { getEmployeeForOrganization } from "./get-employee-for-organization";
 
@@ -12,6 +13,11 @@ export async function deleteEmployee(
   if (!existing) {
     return { ok: false, message: "Employee not found" };
   }
+
+  await deleteAnamEmployeeResources({
+    employeeId,
+    avatarProvider: existing.avatarProvider,
+  });
 
   try {
     await db
