@@ -5,13 +5,23 @@
 .conversations-workspace {
   position: relative;
   min-height: min(72dvh, 760px);
+  /* "Expensive" near-black surface with an almost invisible top glow so the
+     workspace reads as depth, not a flat black box. */
+  background:
+    radial-gradient(
+      120% 80% at 50% -10%,
+      rgba(255, 255, 255, 0.03),
+      transparent 60%
+    ),
+    #090909;
 }
 
+/* The chat lives directly on the workspace surface — no inner container box. */
 .nullxes-conversation-layout.str-chat,
 .nullxes-conversation-layout .str-chat {
   height: 100%;
   min-height: 0;
-  background: #000;
+  background: transparent;
   display: flex;
   flex-direction: column;
 }
@@ -19,21 +29,21 @@
 .nullxes-conversation-layout .str-chat__message-list,
 .nullxes-conversation-layout .str-chat__main-panel,
 .nullxes-conversation-layout .str-chat__main-panel-inner {
-  background: #000;
+  background: transparent;
   min-height: 0;
 }
 
-/* Make the message grid ("сетка") a distinct, stable surface */
+/* No distinct grey surface — messages float on the workspace background. */
 .nullxes-conversation-layout .str-chat__message-list {
-  background: #0a0a0a;
+  background: transparent;
   flex: 1 1 0;
 }
 
-/* Consistent readable message grid column */
+/* Centered, readable message column (ChatGPT-like). */
 .nullxes-conversation-layout .str-chat__message-list .str-chat__ul {
-  max-width: 680px;
+  max-width: 720px;
   margin-inline: auto;
-  padding-inline: 12px;
+  padding-inline: 16px;
 }
 
 /* Strong scroller + no layout shift when composer or list changes */
@@ -46,10 +56,43 @@
   min-height: 0;
 }
 
+/* Composer floats at the bottom: no heavy divider, just a faint hairline. */
 .nullxes-conversation-layout .str-chat__message-input {
   flex-shrink: 0;
-  background: #000;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background: transparent;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Live presence dot — soft breathing glow in the brand accent. */
+.nullxes-presence-dot {
+  position: relative;
+}
+
+.nullxes-presence-dot::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  box-shadow: 0 0 0 0 var(--nullxes-accent);
+  animation: nullxes-presence-pulse 2.4s ease-out infinite;
+}
+
+@keyframes nullxes-presence-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(245, 197, 66, 0.45);
+  }
+  70% {
+    box-shadow: 0 0 0 5px rgba(245, 197, 66, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(245, 197, 66, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nullxes-presence-dot::after {
+    animation: none;
+  }
 }
 
 @media (min-width: 1280px) {

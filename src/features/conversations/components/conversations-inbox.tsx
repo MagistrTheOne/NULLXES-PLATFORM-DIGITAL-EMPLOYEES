@@ -9,10 +9,16 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
 import { cn } from "@/lib/utils";
 import { listTalkThreadsAction } from "@/features/runtime-session/actions/list-talk-threads";
 import type { TalkThreadItem } from "@/features/runtime-session/components/talk-sessions-sidebar";
 import { ConversationAvatar } from "./conversation-avatar";
+import { EmployeePresenceBadge } from "./employee-presence";
 import type { ConversationEmployee } from "./conversations-screen";
 
 type InboxTab = "all" | "unread" | "mentions";
@@ -70,6 +76,7 @@ function ConversationListItem({
   preview,
   meta,
   time,
+  hoverCard,
 }: {
   active: boolean;
   onClick: () => void;
@@ -78,17 +85,18 @@ function ConversationListItem({
   preview?: string;
   meta?: string;
   time?: string;
+  hoverCard?: ReactNode;
 }) {
-  return (
+  const button = (
     <button
       type="button"
       onClick={onClick}
       data-active={active}
       className={cn(
-        "flex w-full items-start gap-3.5 rounded-xl py-3 px-3 text-left transition-all",
-        "bg-white/1.5 hover:bg-white/4",
+        "relative flex w-full items-start gap-3.5 rounded-xl py-3 pl-4 pr-3 text-left transition-all",
+        "hover:bg-white/4",
         active
-          ? "bg-white/8 shadow-sm ring-1 ring-inset ring-white/10"
+          ? "bg-white/4 before:absolute before:left-0 before:top-1/2 before:h-6 before:w-[2px] before:-translate-y-1/2 before:rounded-full before:bg-brand"
           : "",
       )}
     >
@@ -116,6 +124,23 @@ function ConversationListItem({
         ) : null}
       </span>
     </button>
+  );
+
+  if (!hoverCard) {
+    return button;
+  }
+
+  return (
+    <HoverCard openDelay={350} closeDelay={120}>
+      <HoverCardTrigger asChild>{button}</HoverCardTrigger>
+      <HoverCardContent
+        side="right"
+        align="start"
+        className="w-64 border-white/8 bg-[#111111]"
+      >
+        {hoverCard}
+      </HoverCardContent>
+    </HoverCard>
   );
 }
 
@@ -179,7 +204,7 @@ export function ConversationsInbox({
   return (
     <aside
       className={cn(
-        "flex h-full min-h-0 flex-col border-r border-white/8 bg-[#0a0a0a]",
+        "flex h-full min-h-0 flex-col border-r border-white/6 bg-transparent",
         className,
       )}
     >
@@ -231,6 +256,38 @@ export function ConversationsInbox({
                 name={employee.name}
                 meta={employee.role}
                 preview={isSelected ? t("previewMain") : undefined}
+                hoverCard={
+                  <div className="flex flex-col gap-3">
+                    <div className="flex items-center gap-3">
+                      <ConversationAvatar
+                        name={employee.name}
+                        previewUrl={employee.avatarPreviewUrl}
+                        ready={employee.avatarProvisioningStatus === "ready"}
+                        online
+                        size="lg"
+                      />
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium text-white">
+                          {employee.name}
+                        </p>
+                        <p className="truncate text-xs text-white/45">
+                          {employee.role}
+                        </p>
+                      </div>
+                    </div>
+                    <EmployeePresenceBadge
+                      employeeId={employee.id}
+                      online
+                      className="text-xs text-white/55"
+                      labelClassName="text-white/70"
+                    />
+                    {employee.department ? (
+                      <p className="text-[11px] uppercase tracking-widest text-white/30">
+                        {employee.department}
+                      </p>
+                    ) : null}
+                  </div>
+                }
               />
             );
           })}

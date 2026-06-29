@@ -35,7 +35,12 @@ export function createNullxesStreamOverrides(config: NullxesStreamWorkspaceConfi
   );
 
   const EmptyStateIndicator = () => (
-    <NullxesEmptyState message={config.emptyMessage} />
+    <NullxesEmptyState
+      message={config.emptyMessage}
+      agentName={config.agentDisplayName}
+      agentRole={config.agentRole}
+      showSuggestions={config.surface === "conversations"}
+    />
   );
 
   return {
@@ -67,6 +72,7 @@ export function NullxesStreamWorkspace({
     () => createNullxesStreamOverrides(config),
     [
       config.agentDisplayName,
+      config.agentRole,
       config.composerPlaceholder,
       config.emptyMessage,
       config.surface,

@@ -134,7 +134,7 @@ export function ConversationsScreen({
           />
         </div>
 
-        <div className="conversations-workspace grid min-h-0 flex-1 overflow-hidden border border-white/8 bg-[#0a0a0a] lg:grid-cols-[300px_minmax(0,1fr)] xl:grid-cols-[300px_minmax(0,1fr)_340px] h-full">
+        <div className="conversations-workspace grid min-h-0 flex-1 overflow-hidden rounded-2xl lg:grid-cols-[300px_minmax(0,1fr)] xl:grid-cols-[300px_minmax(0,1fr)_340px] h-full">
           <ConversationsInbox
             className="hidden lg:flex"
             employees={filteredForList}
@@ -171,7 +171,7 @@ export function ConversationsScreen({
           </div>
 
           {selected && resolvedDetails ? (
-            <div className="hidden min-h-0 border-l border-white/8 xl:flex">
+            <div className="hidden min-h-0 border-l border-white/6 xl:flex">
               <ConversationsInspector
                 className="w-[340px]"
                 details={resolvedDetails}

@@ -15,6 +15,10 @@ import { formatDurationSeconds } from "@/features/analytics/lib/format-duration"
 import type { TalkAgentDetails } from "@/features/runtime-session/components/talk-agent-details";
 import { cn } from "@/lib/utils";
 import { ConversationAvatar } from "../components/conversation-avatar";
+import {
+  EmployeePresenceActivity,
+  EmployeePresenceBadge,
+} from "../components/employee-presence";
 
 function MetaRow({ label, value }: { label: string; value: string }) {
   return (
@@ -91,7 +95,7 @@ export function NullxesInspector({
   return (
     <aside
       className={cn(
-        "flex h-full min-h-0 flex-col bg-black",
+        "flex h-full min-h-0 flex-col bg-transparent",
         className,
       )}
     >
@@ -109,15 +113,16 @@ export function NullxesInspector({
               <p className="truncate text-sm font-medium text-white">
                 {details.name}
               </p>
-              <p className="flex items-center gap-2 text-xs font-normal text-white/45">
-                <span
-                  className={cn(
-                    "size-1.5 rounded-full",
-                    details.online ? "bg-white/70" : "bg-white/30",
-                  )}
-                />
-                {details.online ? tPanel("online") : tPanel("offline")}
-              </p>
+              <EmployeePresenceBadge
+                employeeId={details.employeeId}
+                online={details.online}
+                className="text-xs font-normal text-white/45"
+                labelClassName="text-white/55"
+              />
+              <EmployeePresenceActivity
+                employeeId={details.employeeId}
+                online={details.online}
+              />
               {departmentLabel ? (
                 <p className="text-xs font-normal text-white/45">
                   {departmentLabel}

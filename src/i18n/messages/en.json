@@ -994,8 +994,32 @@
     "closeDetails": "Close details",
     "more": "More options",
     "composerHint": "Enter to send · Shift + Enter for new line",
-    "composerPlaceholder": "Write a message…",
+    "composerPlaceholder": "Ask your digital employee…",
     "emptyChat": "No messages yet. Start the conversation below.",
+    "emptyPrompt": "What would you like to do today?",
+    "suggestions": [
+      "What can you help me with today?",
+      "Draft an email for me",
+      "Summarize this for me",
+      "Give me a quick status update"
+    ],
+    "presence": {
+      "available": "Available",
+      "working": "Working",
+      "researching": "Researching",
+      "reviewing": "Reviewing",
+      "preparing": "Preparing response",
+      "ready": "Ready",
+      "offline": "Offline",
+      "currentlyLabel": "Currently:",
+      "activity": {
+        "reviewing": "Reviewing open opportunities",
+        "drafting": "Drafting a response",
+        "analyzing": "Analyzing recent activity",
+        "preparing": "Preparing a summary",
+        "syncing": "Syncing knowledge"
+      }
+    },
     "today": "Today",
     "yesterday": "Yesterday",
     "detailsTitle": "Details",

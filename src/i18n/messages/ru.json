@@ -994,8 +994,32 @@
     "closeDetails": "Закрыть детали",
     "more": "Ещё",
     "composerHint": "Enter — отправить · Shift + Enter — новая строка",
-    "composerPlaceholder": "Напишите сообщение…",
+    "composerPlaceholder": "Спросите цифрового сотрудника…",
     "emptyChat": "Сообщений пока нет. Начните переписку ниже.",
+    "emptyPrompt": "Чем займёмся сегодня?",
+    "suggestions": [
+      "Чем ты можешь помочь сегодня?",
+      "Составь для меня письмо",
+      "Сделай краткую сводку",
+      "Дай быстрый статус по задачам"
+    ],
+    "presence": {
+      "available": "Доступен",
+      "working": "В работе",
+      "researching": "Исследует",
+      "reviewing": "Анализирует",
+      "preparing": "Готовит ответ",
+      "ready": "Готов",
+      "offline": "Не в сети",
+      "currentlyLabel": "Сейчас:",
+      "activity": {
+        "reviewing": "Просматривает открытые задачи",
+        "drafting": "Готовит ответ",
+        "analyzing": "Анализирует активность",
+        "preparing": "Готовит сводку",
+        "syncing": "Синхронизирует знания"
+      }
+    },
     "today": "Сегодня",
     "yesterday": "Вчера",
     "detailsTitle": "Детали",

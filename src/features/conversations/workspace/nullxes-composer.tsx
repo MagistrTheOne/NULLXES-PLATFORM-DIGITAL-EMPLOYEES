@@ -52,7 +52,7 @@ export function NullxesComposerUI({
     >
       <div
         className={cn(
-          "flex w-full max-w-2xl items-end gap-2 rounded-full border border-white/8 bg-[#0a0a0a] px-3 py-2",
+          "flex w-full max-w-2xl items-end gap-2 rounded-full border border-white/8 bg-white/3 px-3 py-2 transition-colors focus-within:border-brand/50 focus-within:ring-1 focus-within:ring-brand/25",
           surface === "talk" && "max-w-none rounded-2xl px-4 py-3",
         )}
       >

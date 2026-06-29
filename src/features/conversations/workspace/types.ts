@@ -10,4 +10,5 @@ export type NullxesStreamWorkspaceConfig = NullxesMessageContext & {
   surface: NullxesWorkspaceSurface;
   emptyMessage: string;
   composerPlaceholder?: string;
+  agentRole?: string;
 };

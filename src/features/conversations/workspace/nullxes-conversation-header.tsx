@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { ConversationAvatar } from "../components/conversation-avatar";
+import { EmployeePresenceBadge } from "../components/employee-presence";
 
 export function NullxesConversationHeader({
   employeeId,
@@ -43,14 +44,10 @@ export function NullxesConversationHeader({
 }) {
   const t = useTranslations("conversations");
 
-  const subtitleParts = [
-    online ? t("online") : t("offline"),
-    role,
-    departmentLabel,
-  ].filter(Boolean);
+  const metaParts = [role, departmentLabel, modelLabel].filter(Boolean);
 
   return (
-    <header className="flex h-16 shrink-0 items-center justify-between gap-6 border-b border-white/8 px-6">
+    <header className="flex h-16 shrink-0 items-center justify-between gap-6 border-b border-white/6 px-6">
       <div className="flex min-w-0 items-center gap-4">
         <ConversationAvatar
           name={name}
@@ -60,21 +57,18 @@ export function NullxesConversationHeader({
           size="default"
         />
         <div className="min-w-0">
-          <div className="flex items-center gap-2">
-            <p className="truncate text-sm font-medium text-white">{name}</p>
-            <span className="rounded-full bg-emerald-500/20 px-1.5 py-px text-[10px] font-medium text-emerald-400">
-              Live
-            </span>
-          </div>
+          <p className="truncate text-sm font-medium text-white">{name}</p>
           <p className="mt-0.5 flex items-center gap-2 truncate text-xs font-normal text-white/45">
-            <span
-              className={cn(
-                "size-1.5 shrink-0 rounded-full",
-                online ? "bg-white/70" : "bg-white/30",
-              )}
+            <EmployeePresenceBadge
+              employeeId={employeeId}
+              online={online}
+              labelClassName="text-white/55"
             />
-            {subtitleParts.join(" · ")}
-            {modelLabel ? ` · ${modelLabel}` : null}
+            {metaParts.length > 0 ? (
+              <span className="truncate text-white/40">
+                · {metaParts.join(" · ")}
+              </span>
+            ) : null}
           </p>
         </div>
       </div>

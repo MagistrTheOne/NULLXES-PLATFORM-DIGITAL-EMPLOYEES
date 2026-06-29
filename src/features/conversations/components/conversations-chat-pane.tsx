@@ -40,7 +40,7 @@ export function ConversationsChatPane({
   onToggleDetails: () => void;
 }) {
   return (
-    <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-black">
+    <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-transparent">
       <NullxesConversationHeader
         employeeId={employee.id}
         name={employee.name}
@@ -63,6 +63,7 @@ export function ConversationsChatPane({
           chatSession={null}
           employeeId={employee.id}
           employeeName={employee.name}
+          employeeRole={employee.role}
           threadId={threadId}
           brainModelLabel={brainModelLabel}
           isSessionLive={false}

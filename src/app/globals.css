@@ -39,6 +39,7 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  --color-brand: var(--nullxes-accent);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -51,6 +52,9 @@
 :root {
   --background: oklch(0 0 0);
   --foreground: oklch(0.985 0 0);
+  /* Single sanctioned brand accent. Used point-wise only: live presence,
+     active employee marker, input focus. Never as fill/gradient. */
+  --nullxes-accent: #f5c542;
   --card: oklch(0.145 0 0);
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.145 0 0);

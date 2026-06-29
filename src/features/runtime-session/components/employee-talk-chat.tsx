@@ -123,6 +123,7 @@ export function EmployeeTalkChat({
   chatSession,
   employeeId,
   employeeName,
+  employeeRole,
   threadId = null,
   brainModelLabel,
   employeeSessionId,
@@ -136,6 +137,7 @@ export function EmployeeTalkChat({
   chatSession: TalkChatCredentials | null;
   employeeId: string;
   employeeName: string;
+  employeeRole?: string;
   threadId?: string | null;
   brainModelLabel?: string | null;
   employeeSessionId?: string;
@@ -313,6 +315,7 @@ export function EmployeeTalkChat({
   const streamWorkspaceConfig = {
     surface,
     agentDisplayName: employeeName,
+    agentRole: employeeRole,
     viewerName,
     viewerImage,
     emptyMessage: isConversationsSurface ? tConversations("emptyChat") : t("empty"),
