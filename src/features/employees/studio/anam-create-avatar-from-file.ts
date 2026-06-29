@@ -3,6 +3,7 @@ import {
   anamFetchWithKeyPool,
   anamFetchWithSlot,
 } from "@/shared/config/provider-env";
+import { resolveAnamPersonaSlot } from "@/features/provider-provisioning/services/resolve-anam-persona-slot";
 import { ANAM_AVATAR_PROVIDER_ID } from "@/providers/avatar/anam/config";
 
 const MAX_AVATAR_BYTES = Math.floor(4.5 * 1024 * 1024);
@@ -33,6 +34,7 @@ export type CreateAnamAvatarFromFileResult = {
 export async function createAnamAvatarFromFile(input: {
   file: File;
   displayName: string;
+  excludeEmployeeId?: string;
 }): Promise<CreateAnamAvatarFromFileResult> {
   if (input.file.size > MAX_AVATAR_BYTES) {
     throw new Error("Image must be 4.5MB or smaller");
@@ -42,14 +44,26 @@ export async function createAnamAvatarFromFile(input: {
     throw new Error("Upload a PNG, JPG, or WebP image");
   }
 
+  const preferredSlot = await resolveAnamPersonaSlot({
+    excludeEmployeeId: input.excludeEmployeeId,
+  });
+
+  if (!preferredSlot) {
+    throw new Error("No Anam API key is configured");
+  }
+
   const formData = new FormData();
   formData.append("displayName", normalizeDisplayName(input.displayName));
   formData.append("imageFile", input.file, input.file.name);
 
-  const { response: createResponse, slot } = await anamFetchWithKeyPool("/avatars", {
-    method: "POST",
-    body: formData,
-  });
+  const { response: createResponse, slot } = await anamFetchWithKeyPool(
+    "/avatars",
+    {
+      method: "POST",
+      body: formData,
+    },
+    preferredSlot,
+  );
 
   const created = (await createResponse.json()) as AnamAvatarResponse;
   if (!created.id) {

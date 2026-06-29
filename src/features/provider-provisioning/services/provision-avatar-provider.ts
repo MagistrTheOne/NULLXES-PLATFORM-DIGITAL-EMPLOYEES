@@ -1,4 +1,5 @@
 import type { AvatarProviderConfigPayload } from "@/entities/provider-config";
+import type { AnamApiKeySlot } from "@/shared/config/anam-api-pool";
 import {
   anamFetchWithKeyPool,
   hasAnamCredentials,
@@ -6,7 +7,10 @@ import {
 import { resolveAvatarProvider } from "@/shared/providers";
 import { buildAnamPersonaCreatePayload } from "@/features/runtime-session/lib/build-anam-talk-persona-config";
 import { syncAnamPersonaExternalBrain } from "./sync-anam-persona-external-brain";
-import { resolveAnamPersonaSlot } from "./resolve-anam-persona-slot";
+import {
+  isAnamSlotAtPersonaCapacity,
+  resolveAnamPersonaSlot,
+} from "./resolve-anam-persona-slot";
 import type {
   ProvisionAvatarProviderInput,
   ProvisionProviderResult,
@@ -192,9 +196,25 @@ export async function provisionAvatarProvider(
 
   // No studio-pinned key → pick a key that isn't already at its persona cap so
   // we distribute personas across the pool instead of overloading one account.
-  const anamApiKeySlot =
+  let anamApiKeySlot =
     studioAnamApiKeySlot ??
     (await resolveAnamPersonaSlot({ excludeEmployeeId: input.employeeId }));
+
+  if (
+    anamApiKeySlot &&
+    !config.personaId &&
+    studioAnamApiKeySlot &&
+    (await isAnamSlotAtPersonaCapacity(
+      anamApiKeySlot as AnamApiKeySlot,
+      {
+        excludeEmployeeId: input.employeeId,
+      },
+    ))
+  ) {
+    anamApiKeySlot = await resolveAnamPersonaSlot({
+      excludeEmployeeId: input.employeeId,
+    });
+  }
 
   try {
     const avatarResolution: ResolvedAvatar = studioAvatarReady

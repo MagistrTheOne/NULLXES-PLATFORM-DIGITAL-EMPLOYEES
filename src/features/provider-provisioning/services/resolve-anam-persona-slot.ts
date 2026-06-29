@@ -4,7 +4,31 @@ import {
   getAnamApiKeyPool,
   type AnamApiKeySlot,
 } from "@/shared/config/anam-api-pool";
+import { anamFetchWithSlot } from "@/shared/config/provider-env";
 import { db } from "@/shared/db/client";
+
+async function detectPersonaSlot(
+  personaId: string,
+  configuredSlots: AnamApiKeySlot[],
+): Promise<AnamApiKeySlot | null> {
+  for (const slot of configuredSlots) {
+    try {
+      const response = await anamFetchWithSlot(
+        `/personas/${encodeURIComponent(personaId)}`,
+        { method: "GET" },
+        slot,
+      );
+
+      if (response.ok) {
+        return slot;
+      }
+    } catch {
+      continue;
+    }
+  }
+
+  return null;
+}
 
 /**
  * Anam quota is enforced per account (= per API key). Free/limited accounts
@@ -19,23 +43,18 @@ function getMaxPersonasPerKey(): number {
   return Number.isFinite(parsed) && parsed > 0 ? Math.floor(parsed) : 1;
 }
 
-/**
- * Picks the Anam key slot a new persona should be created on:
- * - prefers the first configured slot still under the per-key cap;
- * - if every slot is at capacity, falls back to the least-loaded slot so
- *   provisioning still proceeds (and quota fallback in the fetch pool kicks in).
- * Returns null when no Anam keys are configured.
- */
-export async function resolveAnamPersonaSlot(input?: {
-  excludeEmployeeId?: string;
-}): Promise<AnamApiKeySlot | null> {
-  const pool = getAnamApiKeyPool();
-  if (pool.length === 0) {
-    return null;
-  }
+export { getMaxPersonasPerKey };
 
+async function buildPersonaCountsBySlot(input?: {
+  excludeEmployeeId?: string;
+}): Promise<{
+  configuredSlots: AnamApiKeySlot[];
+  counts: Map<string, number>;
+  firstSlot: AnamApiKeySlot;
+}> {
+  const pool = getAnamApiKeyPool();
   const configuredSlots = pool.map((entry) => entry.slot);
-  const firstSlot = configuredSlots[0];
+  const firstSlot = configuredSlots[0] ?? "ANAM_API_KEY";
 
   const rows = await db
     .select({
@@ -62,15 +81,58 @@ export async function resolveAnamPersonaSlot(input?: {
 
     const metadata =
       (config.providerMetadata as Record<string, unknown> | undefined) ?? {};
-    const slot =
+    let slot =
       typeof metadata.anamApiKeySlot === "string"
         ? metadata.anamApiKeySlot
-        : firstSlot;
+        : null;
 
-    if (counts.has(slot)) {
-      counts.set(slot, (counts.get(slot) ?? 0) + 1);
+    if (!slot && typeof config.personaId === "string") {
+      slot = await detectPersonaSlot(config.personaId, configuredSlots);
     }
+
+    if (!slot || !counts.has(slot)) {
+      continue;
+    }
+
+    counts.set(slot, (counts.get(slot) ?? 0) + 1);
   }
+
+  return { configuredSlots, counts, firstSlot };
+}
+
+export async function countAnamPersonasOnSlot(
+  slot: AnamApiKeySlot,
+  input?: { excludeEmployeeId?: string },
+): Promise<number> {
+  const { counts } = await buildPersonaCountsBySlot(input);
+  return counts.get(slot) ?? 0;
+}
+
+export async function isAnamSlotAtPersonaCapacity(
+  slot: AnamApiKeySlot,
+  input?: { excludeEmployeeId?: string },
+): Promise<boolean> {
+  const count = await countAnamPersonasOnSlot(slot, input);
+  return count >= getMaxPersonasPerKey();
+}
+
+/**
+ * Picks the Anam key slot a new persona should be created on:
+ * - prefers the first configured slot still under the per-key cap;
+ * - if every slot is at capacity, falls back to the least-loaded slot so
+ *   provisioning still proceeds (and quota fallback in the fetch pool kicks in).
+ * Returns null when no Anam keys are configured.
+ */
+export async function resolveAnamPersonaSlot(input?: {
+  excludeEmployeeId?: string;
+}): Promise<AnamApiKeySlot | null> {
+  const pool = getAnamApiKeyPool();
+  if (pool.length === 0) {
+    return null;
+  }
+
+  const { configuredSlots, counts, firstSlot } =
+    await buildPersonaCountsBySlot(input);
 
   const max = getMaxPersonasPerKey();
 
