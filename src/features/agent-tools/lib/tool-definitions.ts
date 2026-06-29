@@ -1,22 +1,42 @@
-export const AGENT_TOOL_DEFINITIONS = [
-  {
-    type: "function" as const,
-    function: {
-      name: "search_knowledge",
-      description:
-        "Search the digital employee knowledge base for relevant documents and facts.",
-      parameters: {
-        type: "object",
-        properties: {
-          query: {
-            type: "string",
-            description: "Search query describing what information is needed.",
-          },
+const SEARCH_KNOWLEDGE_TOOL = {
+  type: "function" as const,
+  function: {
+    name: "search_knowledge",
+    description:
+      "Search the digital employee knowledge base for relevant documents and facts.",
+    parameters: {
+      type: "object",
+      properties: {
+        query: {
+          type: "string",
+          description: "Search query describing what information is needed.",
         },
-        required: ["query"],
       },
+      required: ["query"],
     },
   },
+};
+
+export const SEARCH_WEB_TOOL = {
+  type: "function" as const,
+  function: {
+    name: "search_web",
+    description:
+      "Search the public web for up-to-date information, news, prices, or facts not in the knowledge base. Use for current events and live data.",
+    parameters: {
+      type: "object",
+      properties: {
+        query: {
+          type: "string",
+          description: "Specific web search query.",
+        },
+      },
+      required: ["query"],
+    },
+  },
+};
+
+export const TALK_ACTION_TOOLS = [
   {
     type: "function" as const,
     function: {
@@ -105,9 +125,18 @@ export const AGENT_TOOL_DEFINITIONS = [
   },
 ];
 
-export const TALK_AGENT_TOOL_DEFINITIONS = AGENT_TOOL_DEFINITIONS.filter(
-  (tool) => tool.function.name !== "search_knowledge",
-);
+export const AGENT_TOOL_DEFINITIONS = [
+  SEARCH_KNOWLEDGE_TOOL,
+  SEARCH_WEB_TOOL,
+  ...TALK_ACTION_TOOLS,
+];
+
+export const TALK_AGENT_TOOL_DEFINITIONS = [
+  SEARCH_WEB_TOOL,
+  ...TALK_ACTION_TOOLS,
+];
+
+export type AgentToolDefinition = (typeof AGENT_TOOL_DEFINITIONS)[number];
 
 export type AgentToolExecutionContext = {
   organizationId: string;

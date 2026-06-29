@@ -30,6 +30,17 @@ export async function executeAgentTool(input: {
 }): Promise<AgentToolExecutionResult> {
   const args = parseJsonArguments(input.argumentsJson);
 
+  if (input.toolName === "search_web") {
+    const query = typeof args.query === "string" ? args.query.trim() : "";
+    if (!query) {
+      return { content: "No web search query provided." };
+    }
+
+    const { searchWebOpenAi } = await import("./search-web-openai");
+    const result = await searchWebOpenAi(query);
+    return { content: result };
+  }
+
   if (input.toolName === "search_knowledge") {
     const query = typeof args.query === "string" ? args.query.trim() : "";
     if (!query) {

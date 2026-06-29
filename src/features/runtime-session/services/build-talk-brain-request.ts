@@ -47,7 +47,7 @@ export async function buildTalkBrainRequest(input: {
               searchKnowledge({
                 employeeId: input.employeeId,
                 query: userQuery,
-                topK: 6,
+                topK: 4,
                 useSessionCache: true,
               }),
             { employeeId: input.employeeId },

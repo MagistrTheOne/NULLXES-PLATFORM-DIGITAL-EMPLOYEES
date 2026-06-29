@@ -1,4 +1,5 @@
 export { AGENT_TOOL_DEFINITIONS, TALK_AGENT_TOOL_DEFINITIONS } from "./lib/tool-definitions";
+export type { AgentToolDefinition } from "./lib/tool-definitions";
 export type {
   AgentToolExecutionContext,
   AgentToolExecutionResult,

@@ -1,6 +1,7 @@
 import {
   AGENT_TOOL_DEFINITIONS,
   TALK_AGENT_TOOL_DEFINITIONS,
+  type AgentToolDefinition,
   executeAgentTool,
   type AgentToolExecutionContext,
 } from "@/features/agent-tools";
@@ -83,6 +84,7 @@ async function* runToolLoopStream(input: {
   maxTokens?: number;
   toolContext?: AgentToolExecutionContext;
   mode?: "talk" | "default";
+  tools?: AgentToolDefinition[];
 }): AsyncGenerator<TalkBrainStreamEvent, OpenAiChatMessage[]> {
   const conversation: OpenAiChatMessage[] = [
     { role: "system", content: input.systemPrompt },
@@ -99,9 +101,10 @@ async function* runToolLoopStream(input: {
   }
 
   const toolDefinitions =
-    input.mode === "talk"
+    input.tools ??
+    (input.mode === "talk"
       ? TALK_AGENT_TOOL_DEFINITIONS
-      : AGENT_TOOL_DEFINITIONS;
+      : AGENT_TOOL_DEFINITIONS);
   const maxIterations =
     input.mode === "talk" ? MAX_TOOL_ITERATIONS_TALK : MAX_TOOL_ITERATIONS;
   const toolLoopStartedAt = performance.now();
@@ -176,6 +179,7 @@ export async function* streamTalkBrainResponse(input: {
   temperature?: number;
   maxTokens?: number;
   toolContext?: AgentToolExecutionContext;
+  tools?: AgentToolDefinition[];
   mode?: "talk" | "default";
 }): AsyncGenerator<TalkBrainStreamEvent> {
   const api = resolveBrainApiConfig({

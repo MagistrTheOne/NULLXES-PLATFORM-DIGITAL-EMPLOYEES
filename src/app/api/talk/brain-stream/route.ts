@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { TalkPipelineMessage } from "@/features/runtime-session/actions/talk-voice-pipeline";
 import { assertBrainStreamRateLimit } from "@/features/runtime-session/lib/brain-stream-rate-limit";
+import { resolveTalkBrainTools } from "@/features/runtime-session/lib/resolve-talk-brain-tools";
 import { buildTalkBrainRequest } from "@/features/runtime-session/services/build-talk-brain-request";
 import { resolveTalkBrainAuth } from "@/features/runtime-session/services/resolve-talk-brain-auth";
 import { streamTalkBrainResponse } from "@/features/runtime-session/services/stream-talk-brain-response";
@@ -83,6 +84,15 @@ export async function POST(request: Request): Promise<Response> {
     content: message.content,
   }));
 
+  const talkTools = resolveTalkBrainTools(lastMessage.content);
+  const toolContext = talkTools
+    ? {
+        organizationId: authResult.auth.organizationId,
+        employeeId,
+        sessionId: sessionId || undefined,
+      }
+    : undefined;
+
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
       try {
@@ -93,11 +103,8 @@ export async function POST(request: Request): Promise<Response> {
           messages: openAiMessages,
           temperature: config.temperature,
           maxTokens: config.maxTokens,
-          toolContext: {
-            organizationId: authResult.auth.organizationId,
-            employeeId,
-            sessionId: sessionId || undefined,
-          },
+          toolContext,
+          tools: talkTools,
           mode: "talk",
         })) {
           controller.enqueue(encoder.encode(`${JSON.stringify(event)}\n`));

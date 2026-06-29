@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Activity, ArrowLeft, ChevronDown, ShieldCheck } from "lucide-react";
+import { Activity, ArrowLeft, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useTalkAnam } from "../context/talk-anam-context";
@@ -35,7 +35,6 @@ export function TalkWorkspaceHeader({
   const tCommon = useTranslations("common.actions");
   const { isLive } = useTalkAnam();
   const [elapsed, setElapsed] = useState(0);
-  const [collapsed, setCollapsed] = useState(false);
 
   useEffect(() => {
     if (!isLive) {
@@ -107,40 +106,24 @@ export function TalkWorkspaceHeader({
           >
             {t("endSession")}
           </Button>
-
-          <button
-            type="button"
-            aria-label={collapsed ? "Expand header" : "Collapse header"}
-            onClick={() => setCollapsed((value) => !value)}
-            className="hidden size-8 items-center justify-center rounded-lg border border-white/10 text-white/45 transition-colors hover:bg-white/4 hover:text-white/70 lg:flex"
-          >
-            <ChevronDown
-              className={cn(
-                "size-4 transition-transform",
-                collapsed && "-rotate-180",
-              )}
-            />
-          </button>
         </div>
       </div>
 
-      {!collapsed ? (
-        <div className="flex items-center gap-3 border-t border-white/6 px-4 py-2 text-[10px] text-white/40 sm:hidden">
-          <span className="flex items-center gap-1">
-            <span
-              className={cn(
-                "size-1.5 rounded-full",
-                isLive ? "bg-emerald-400" : "bg-white/30",
-              )}
-            />
-            {isLive ? t("statusOnline") : t("idle")}
-          </span>
-          <span>·</span>
-          <span>{t("statusSecure")}</span>
-          <span>·</span>
-          <span className="tabular-nums">{formatElapsed(elapsed)}</span>
-        </div>
-      ) : null}
+      <div className="flex items-center gap-3 border-t border-white/6 px-4 py-2 text-[10px] text-white/40 sm:hidden">
+        <span className="flex items-center gap-1">
+          <span
+            className={cn(
+              "size-1.5 rounded-full",
+              isLive ? "bg-emerald-400" : "bg-white/30",
+            )}
+          />
+          {isLive ? t("statusOnline") : t("idle")}
+        </span>
+        <span>·</span>
+        <span>{t("statusSecure")}</span>
+        <span>·</span>
+        <span className="tabular-nums">{formatElapsed(elapsed)}</span>
+      </div>
     </header>
   );
 }
