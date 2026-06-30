@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 import { Send } from "lucide-react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DOCS_FAQ, findFaqAnswer } from "../_lib/docs-faq";
+import { DOCS_ASSISTANT } from "../_lib/docs-legal";
 
 type ChatMessage = {
   id: string;
@@ -52,14 +53,22 @@ export function DocsAssistantChat({ compact = false }: { compact?: boolean }) {
       }`}
     >
       <div className="flex items-center gap-3 border-b border-white/10 pb-4">
-        <Avatar size="sm">
-          <AvatarFallback className="bg-white/10 text-white/80">YN</AvatarFallback>
+        <Avatar size="lg">
+          {DOCS_ASSISTANT.avatarUrl ? (
+            <AvatarImage
+              src={DOCS_ASSISTANT.avatarUrl}
+              alt={DOCS_ASSISTANT.name}
+            />
+          ) : null}
+          <AvatarFallback className="bg-white/10 text-white/80">
+            {DOCS_ASSISTANT.initials}
+          </AvatarFallback>
         </Avatar>
         <div>
-          <p className="text-sm font-medium text-white">Yuki Nakora</p>
-          <p className="text-xs text-white/45">
-            Ассистент документации · FAQ
+          <p className="text-sm font-medium text-white">
+            {DOCS_ASSISTANT.name}
           </p>
+          <p className="text-xs text-white/45">{DOCS_ASSISTANT.role}</p>
         </div>
       </div>
 
