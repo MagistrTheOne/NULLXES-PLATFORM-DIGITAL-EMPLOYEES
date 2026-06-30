@@ -10,10 +10,11 @@ export function registerTalkRegenerateHandler(
 
 export async function regenerateTalkMessage(
   botMessageId: string,
-): Promise<void> {
+): Promise<boolean> {
   if (!regenerateHandler) {
-    return;
+    return false;
   }
 
   await regenerateHandler(botMessageId);
+  return true;
 }

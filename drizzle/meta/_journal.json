@@ -183,6 +183,13 @@
       "when": 1783000000000,
       "tag": "0025_organization_provider_credential",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1783100000000,
+      "tag": "0026_session_message_feedback",
+      "breakpoints": true
     }
   ]
 }

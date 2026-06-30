@@ -12,10 +12,10 @@ function talkChannelId(employeeId: string): string {
 export async function sendTalkChatBotMessage(
   employeeId: string,
   text: string,
-): Promise<void> {
+): Promise<string> {
   const trimmed = text.trim();
   if (!trimmed) {
-    return;
+    throw new Error("Message text is required");
   }
 
   const apiKey = getStreamApiKey();
@@ -27,11 +27,13 @@ export async function sendTalkChatBotMessage(
   const server = StreamChat.getInstance(apiKey, secret);
   const channel = server.channel("messaging", talkChannelId(employeeId));
 
-  await channel.sendMessage({
+  const response = await channel.sendMessage({
     text: trimmed,
     user_id: digitalEmployeeChatUserId(employeeId),
     ...({
       custom: { nullxes_talk_role: "assistant" },
     } as Record<string, unknown>),
   });
+
+  return response.message.id;
 }

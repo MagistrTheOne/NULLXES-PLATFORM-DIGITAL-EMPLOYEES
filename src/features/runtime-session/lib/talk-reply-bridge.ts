@@ -19,9 +19,11 @@ export function resetTalkChatReplyDedup(): void {
   lastPostedReply = null;
 }
 
-export async function postTalkEmployeeChatReply(text: string): Promise<void> {
+export async function postTalkEmployeeChatReply(
+  text: string,
+): Promise<string | null> {
   if (!activeEmployeeId || !text.trim()) {
-    return;
+    return null;
   }
 
   const trimmed = text.trim();
@@ -33,12 +35,18 @@ export async function postTalkEmployeeChatReply(text: string): Promise<void> {
     lastPostedReply.normalized === normalized &&
     now - lastPostedReply.at < REPLY_DEDUP_WINDOW_MS
   ) {
-    return;
+    return null;
   }
 
   lastPostedReply = { normalized, at: now };
 
-  await sendTalkChatBotMessageAction(activeEmployeeId, trimmed).catch(
-    () => undefined,
+  const result = await sendTalkChatBotMessageAction(activeEmployeeId, trimmed).catch(
+    () => ({ ok: false as const, message: "Failed to send reply" }),
   );
+
+  if (result.ok) {
+    return result.messageId;
+  }
+
+  return null;
 }

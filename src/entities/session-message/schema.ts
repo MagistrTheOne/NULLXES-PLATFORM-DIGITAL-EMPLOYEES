@@ -7,6 +7,11 @@ export const sessionMessageRoleEnum = pgEnum("session_message_role", [
   "system",
 ]);
 
+export const sessionMessageFeedbackEnum = pgEnum("session_message_feedback", [
+  "up",
+  "down",
+]);
+
 export const employeeSessionMessage = pgTable("employee_session_message", {
   id: uuid("id").primaryKey().defaultRandom(),
   sessionId: uuid("session_id")
@@ -16,6 +21,7 @@ export const employeeSessionMessage = pgTable("employee_session_message", {
   content: text("content").notNull(),
   sequence: integer("sequence").notNull(),
   streamMessageId: text("stream_message_id"),
+  feedback: sessionMessageFeedbackEnum("feedback"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),

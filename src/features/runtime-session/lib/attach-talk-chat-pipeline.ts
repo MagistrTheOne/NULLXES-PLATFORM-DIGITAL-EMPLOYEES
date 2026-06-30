@@ -84,15 +84,16 @@ export function attachTalkChatPipeline(input: {
         messages: pipelineMessages,
       });
 
+      const streamMessageId = await postTalkEmployeeChatReply(replyText);
+
       if (input.employeeSessionId) {
         await appendSessionMessageAction({
           sessionId: input.employeeSessionId,
           role: "assistant",
           content: replyText,
+          streamMessageId: streamMessageId ?? undefined,
         });
       }
-
-      await postTalkEmployeeChatReply(replyText);
 
       const anamClient = input.getAnamClient();
       if (input.isSessionLive && anamClient) {
@@ -109,7 +110,15 @@ export function attachTalkChatPipeline(input: {
       coordinator.failTalkTurn();
       const fallback =
         "I could not process that message right now. Please try again.";
-      await postTalkEmployeeChatReply(fallback);
+      const streamMessageId = await postTalkEmployeeChatReply(fallback);
+      if (input.employeeSessionId) {
+        await appendSessionMessageAction({
+          sessionId: input.employeeSessionId,
+          role: "assistant",
+          content: fallback,
+          streamMessageId: streamMessageId ?? undefined,
+        }).catch(() => undefined);
+      }
       coordinator.completeTalkTurn(turnKey, fallback);
     }
   };

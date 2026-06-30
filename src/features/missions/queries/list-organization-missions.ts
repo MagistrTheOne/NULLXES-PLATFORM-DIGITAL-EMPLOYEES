@@ -1,6 +1,8 @@
 import { and, desc, eq, lt } from "drizzle-orm";
 import { employeeMission } from "@/entities/employee-mission";
 import { digitalEmployee } from "@/entities/digital-employee/schema";
+import type { AvatarProviderConfigPayload } from "@/entities/provider-config";
+import { employeeProviderConfig } from "@/entities/provider-config/schema";
 import { db } from "@/shared/db/client";
 
 export type MissionListItem = {
@@ -17,11 +19,24 @@ export type MissionListItem = {
     | "cancelled";
   employeeId: string;
   employeeName: string;
+  employeeAvatarUrl: string | null;
   leadsCount: number;
   source: "manual" | "scheduled";
   createdAt: Date;
   updatedAt: Date;
 };
+
+function readAvatarPreviewUrl(
+  config: Record<string, unknown> | null | undefined,
+): string | null {
+  if (!config) {
+    return null;
+  }
+
+  const avatar = config as AvatarProviderConfigPayload;
+  const url = avatar.previewUrl ?? avatar.imageUrl ?? null;
+  return typeof url === "string" && url.trim() ? url.trim() : null;
+}
 
 export async function listOrganizationMissions(
   organizationId: string,
@@ -38,6 +53,7 @@ export async function listOrganizationMissions(
       status: employeeMission.status,
       employeeId: employeeMission.employeeId,
       employeeName: digitalEmployee.name,
+      avatarConfig: employeeProviderConfig.config,
       leads: employeeMission.leads,
       source: employeeMission.source,
       createdAt: employeeMission.createdAt,
@@ -47,6 +63,13 @@ export async function listOrganizationMissions(
     .innerJoin(
       digitalEmployee,
       eq(digitalEmployee.id, employeeMission.employeeId),
+    )
+    .leftJoin(
+      employeeProviderConfig,
+      and(
+        eq(employeeProviderConfig.employeeId, employeeMission.employeeId),
+        eq(employeeProviderConfig.providerType, "avatar"),
+      ),
     )
     .where(
       and(
@@ -71,6 +94,7 @@ export async function listOrganizationMissions(
       status: row.status,
       employeeId: row.employeeId,
       employeeName: row.employeeName,
+      employeeAvatarUrl: readAvatarPreviewUrl(row.avatarConfig),
       leadsCount: Array.isArray(row.leads) ? row.leads.length : 0,
       source: row.source,
       createdAt: row.createdAt,

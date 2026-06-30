@@ -7,7 +7,7 @@ import { sendTalkChatBotMessage } from "../services/send-talk-chat-bot-message";
 export async function sendTalkChatBotMessageAction(
   employeeId: string,
   text: string,
-): Promise<{ ok: true } | { ok: false; message: string }> {
+): Promise<{ ok: true; messageId: string } | { ok: false; message: string }> {
   try {
     const workspace = await requireWorkspacePermissionOrThrowMessage(
       "canOperateEmployees",
@@ -22,8 +22,8 @@ export async function sendTalkChatBotMessageAction(
       return { ok: false, message: "Talk is not available for this employee" };
     }
 
-    await sendTalkChatBotMessage(employeeId, text);
-    return { ok: true };
+    const messageId = await sendTalkChatBotMessage(employeeId, text);
+    return { ok: true, messageId };
   } catch (error: unknown) {
     return {
       ok: false,

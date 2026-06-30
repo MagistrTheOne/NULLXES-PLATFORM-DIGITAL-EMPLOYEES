@@ -12,7 +12,7 @@ import {
   Search,
   Users,
 } from "lucide-react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -195,6 +195,13 @@ function MissionCard({ mission }: { mission: MissionListItem }) {
           </p>
           <div className="mt-2 flex items-center gap-2">
             <Avatar size="sm">
+              {mission.employeeAvatarUrl ? (
+                <AvatarImage
+                  src={mission.employeeAvatarUrl}
+                  alt={mission.employeeName}
+                  className="object-cover"
+                />
+              ) : null}
               <AvatarFallback className="bg-white/10 text-white/70">
                 {initials(mission.employeeName)}
               </AvatarFallback>

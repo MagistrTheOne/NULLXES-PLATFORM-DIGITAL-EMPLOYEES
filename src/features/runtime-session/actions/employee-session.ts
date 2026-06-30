@@ -97,6 +97,34 @@ export async function appendSessionMessageAction(input: {
   });
 }
 
+export type SetSessionMessageFeedbackResult =
+  | { ok: true }
+  | { ok: false; message: string };
+
+export async function setSessionMessageFeedbackAction(input: {
+  streamMessageId: string;
+  feedback: "up" | "down" | null;
+}): Promise<SetSessionMessageFeedbackResult> {
+  try {
+    const { organizationId, userId } = await resolveWorkspaceContext();
+    const { setSessionMessageFeedback } = await import(
+      "../services/set-session-message-feedback"
+    );
+    await setSessionMessageFeedback({
+      streamMessageId: input.streamMessageId,
+      organizationId,
+      userId,
+      feedback: input.feedback,
+    });
+    return { ok: true };
+  } catch (error: unknown) {
+    return {
+      ok: false,
+      message: error instanceof Error ? error.message : "Feedback failed",
+    };
+  }
+}
+
 export type StartTalkSessionResult =
   | {
       ok: true;

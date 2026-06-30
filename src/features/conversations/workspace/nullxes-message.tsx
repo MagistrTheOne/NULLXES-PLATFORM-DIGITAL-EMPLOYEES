@@ -23,8 +23,11 @@ import {
 import { useMessageContext } from "stream-chat-react";
 import { cn } from "@/lib/utils";
 import { regenerateTalkMessage } from "@/features/runtime-session/lib/talk-regenerate-bridge";
+import { setSessionMessageFeedbackAction } from "@/features/runtime-session/actions/employee-session";
 import { NullxesVoiceMessage } from "./nullxes-voice-message";
 import type { NullxesWorkspaceSurface } from "./types";
+
+type MessageFeedback = "up" | "down" | null;
 
 type VoiceRecordingAttachment = {
   type?: string;
@@ -99,6 +102,8 @@ export function NullxesMessageActions({
   const tChat = useTranslations("employees.talk.chat");
   const [copied, setCopied] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
+  const [feedback, setFeedback] = useState<MessageFeedback>(null);
+  const [savingFeedback, setSavingFeedback] = useState(false);
 
   const handleCopy = useCallback(async () => {
     if (!text) {
@@ -125,6 +130,48 @@ export function NullxesMessageActions({
     }
   }, [messageId, regenerating]);
 
+  const handleFeedback = useCallback(
+    async (value: "up" | "down") => {
+      if (!messageId || savingFeedback) {
+        return;
+      }
+
+      const previous = feedback;
+      const next = previous === value ? null : value;
+      setFeedback(next);
+      setSavingFeedback(true);
+
+      try {
+        const result = await setSessionMessageFeedbackAction({
+          streamMessageId: messageId,
+          feedback: next,
+        });
+        if (!result.ok) {
+          setFeedback(previous);
+        }
+      } catch {
+        setFeedback(previous);
+      } finally {
+        setSavingFeedback(false);
+      }
+    },
+    [feedback, messageId, savingFeedback],
+  );
+
+  const feedbackButtonClass = (value: "up" | "down") =>
+    cn(
+      "inline-flex items-center gap-1 rounded-md px-2 py-1 text-[10px] transition-colors disabled:opacity-40",
+      feedback === value
+        ? "bg-white/10 text-white"
+        : "text-white/45 hover:bg-white/4 hover:text-white/75",
+    );
+
+  const feedbackIconButtonClass = (value: "up" | "down") =>
+    cn(
+      "size-8 text-white/40 hover:bg-white/4 hover:text-white/75 disabled:opacity-40",
+      feedback === value && "bg-white/10 text-white hover:text-white",
+    );
+
   if (compact) {
     return (
       <div className="mt-2 flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
@@ -137,6 +184,28 @@ export function NullxesMessageActions({
         >
           <Copy className="size-3" />
           {copied ? tChat("copied") : tChat("copy")}
+        </button>
+        <button
+          type="button"
+          disabled={savingFeedback}
+          onClick={() => {
+            void handleFeedback("up");
+          }}
+          className={feedbackButtonClass("up")}
+          aria-pressed={feedback === "up"}
+        >
+          <ThumbsUp className="size-3" />
+        </button>
+        <button
+          type="button"
+          disabled={savingFeedback}
+          onClick={() => {
+            void handleFeedback("down");
+          }}
+          className={feedbackButtonClass("down")}
+          aria-pressed={feedback === "down"}
+        >
+          <ThumbsDown className="size-3" />
         </button>
         <button
           type="button"
@@ -181,7 +250,12 @@ export function NullxesMessageActions({
             type="button"
             variant="ghost"
             size="icon-sm"
-            className="size-8 text-white/40 hover:bg-white/4 hover:text-white/75"
+            disabled={savingFeedback}
+            aria-pressed={feedback === "up"}
+            className={feedbackIconButtonClass("up")}
+            onClick={() => {
+              void handleFeedback("up");
+            }}
           >
             <ThumbsUp className="size-3.5" />
           </Button>
@@ -194,7 +268,12 @@ export function NullxesMessageActions({
             type="button"
             variant="ghost"
             size="icon-sm"
-            className="size-8 text-white/40 hover:bg-white/4 hover:text-white/75"
+            disabled={savingFeedback}
+            aria-pressed={feedback === "down"}
+            className={feedbackIconButtonClass("down")}
+            onClick={() => {
+              void handleFeedback("down");
+            }}
           >
             <ThumbsDown className="size-3.5" />
           </Button>
