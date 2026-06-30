@@ -8,6 +8,7 @@ import {
   processEmployeeTaskReceived,
   scanOverdueEmployeeTasks,
 } from "@/inngest/functions/process-employee-task";
+import { processEmployeeMissionStarted } from "@/inngest/functions/process-employee-mission";
 import { expireStaleEmployeeSessionsJob } from "@/inngest/functions/expire-stale-employee-sessions";
 import { retentionPurge } from "@/inngest/functions/retention-purge";
 import { summarizeCompletedSession } from "@/inngest/functions/session-summary";
@@ -43,5 +44,6 @@ export const { GET, POST, PUT } = serve({
     processEmployeeTaskReceived,
     processEmployeeFollowupDue,
     scanOverdueEmployeeTasks,
+    processEmployeeMissionStarted,
   ],
 });

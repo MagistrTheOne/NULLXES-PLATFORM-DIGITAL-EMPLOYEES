@@ -2,6 +2,7 @@
 
 import { and, eq } from "drizzle-orm";
 import { agentApprovalRequest } from "@/entities/agent-approval/schema";
+import { employeeMission } from "@/entities/employee-mission";
 import { employeeTask } from "@/entities/task/schema";
 import { inngest, isInngestEnabledForSend } from "@/inngest/client";
 import { recordWorkEvent } from "@/features/work-event";
@@ -72,6 +73,26 @@ export async function resolveApprovalAction(input: {
         .update(employeeTask)
         .set({ status: "cancelled", completedAt: new Date() })
         .where(eq(employeeTask.id, approval.taskId));
+    }
+
+    const missionId =
+      typeof approval.payload.missionId === "string"
+        ? approval.payload.missionId
+        : null;
+
+    if (missionId && approval.actionType === "mission_proposals") {
+      await db
+        .update(employeeMission)
+        .set({
+          status: input.decision === "approved" ? "completed" : "cancelled",
+          completedAt: new Date(),
+        })
+        .where(
+          and(
+            eq(employeeMission.id, missionId),
+            eq(employeeMission.organizationId, workspace.organization.id),
+          ),
+        );
     }
 
     return { ok: true };

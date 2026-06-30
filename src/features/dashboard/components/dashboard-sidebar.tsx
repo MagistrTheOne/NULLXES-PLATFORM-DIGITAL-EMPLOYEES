@@ -10,6 +10,7 @@ import {
   KeyRound,
   LayoutDashboard,
   MessageSquare,
+  Radar,
   Settings,
   Users,
 } from "lucide-react";
@@ -32,6 +33,7 @@ import { SidebarUserSection } from "./sidebar-user-section";
 const NAV_ITEMS = [
   { labelKey: "dashboard", href: "/dashboard", icon: LayoutDashboard },
   { labelKey: "employees", href: "/dashboard/employees", icon: Users },
+  { labelKey: "missions", href: "/dashboard/missions", icon: Radar },
   { labelKey: "conversations", href: "/dashboard/conversations", icon: MessageSquare },
   { labelKey: "hq", href: "/dashboard/hq", icon: Building2 },
   { labelKey: "analytics", href: "/dashboard/analytics", icon: BarChart3 },
