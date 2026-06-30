@@ -9,6 +9,8 @@ import {
   scanOverdueEmployeeTasks,
 } from "@/inngest/functions/process-employee-task";
 import { processEmployeeMissionStarted } from "@/inngest/functions/process-employee-mission";
+import { processMissionHandoffStart } from "@/inngest/functions/process-mission-handoff";
+import { runMissionSchedulesDaily } from "@/inngest/functions/run-mission-schedules";
 import { sendMissionOutboundOnApprove } from "@/inngest/functions/send-mission-outbound";
 import { expireStaleEmployeeSessionsJob } from "@/inngest/functions/expire-stale-employee-sessions";
 import { retentionPurge } from "@/inngest/functions/retention-purge";
@@ -47,5 +49,7 @@ export const { GET, POST, PUT } = serve({
     scanOverdueEmployeeTasks,
     processEmployeeMissionStarted,
     sendMissionOutboundOnApprove,
+    runMissionSchedulesDaily,
+    processMissionHandoffStart,
   ],
 });

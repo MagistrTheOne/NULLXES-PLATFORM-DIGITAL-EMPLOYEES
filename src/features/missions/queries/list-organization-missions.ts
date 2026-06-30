@@ -18,6 +18,7 @@ export type MissionListItem = {
   employeeId: string;
   employeeName: string;
   leadsCount: number;
+  source: "manual" | "scheduled";
   createdAt: Date;
   updatedAt: Date;
 };
@@ -38,6 +39,7 @@ export async function listOrganizationMissions(
       employeeId: employeeMission.employeeId,
       employeeName: digitalEmployee.name,
       leads: employeeMission.leads,
+      source: employeeMission.source,
       createdAt: employeeMission.createdAt,
       updatedAt: employeeMission.updatedAt,
     })
@@ -70,6 +72,7 @@ export async function listOrganizationMissions(
       employeeId: row.employeeId,
       employeeName: row.employeeName,
       leadsCount: Array.isArray(row.leads) ? row.leads.length : 0,
+      source: row.source,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
     })),

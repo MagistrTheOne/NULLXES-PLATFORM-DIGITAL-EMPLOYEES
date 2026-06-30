@@ -21,3 +21,18 @@ export type MissionTimelineStep = {
   label: string;
   at: string;
 };
+
+export type MissionHandoffItem = {
+  handoffId: string;
+  fromEmployeeId: string;
+  toEmployeeId: string;
+  toEmployeeName: string;
+  role: string;
+  stage: string;
+  taskId?: string;
+  status: "pending" | "working" | "completed" | "skipped";
+  summary?: string;
+  completedAt?: string;
+};
+
+export type MissionSource = "manual" | "scheduled";

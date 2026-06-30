@@ -2,6 +2,7 @@ import { and, eq } from "drizzle-orm";
 import {
   employeeMission,
   type MissionLeadItem,
+  type MissionSource,
 } from "@/entities/employee-mission";
 import { digitalEmployee } from "@/entities/digital-employee/schema";
 import { inngest, isInngestEnabledForSend } from "@/inngest/client";
@@ -15,6 +16,8 @@ export async function createEmployeeMission(input: {
   title: string;
   brief: string;
   type: "prospecting" | "custom";
+  source?: MissionSource;
+  scheduleId?: string;
 }): Promise<string> {
   const [employee] = await db
     .select({ id: digitalEmployee.id })
@@ -40,10 +43,15 @@ export async function createEmployeeMission(input: {
       title: input.title,
       brief: input.brief,
       type: input.type,
+      source: input.source ?? "manual",
+      scheduleId: input.scheduleId,
       status: "planned",
       timeline: appendMissionTimelineStep([], {
         key: "planned",
-        label: "Mission assigned",
+        label:
+          input.source === "scheduled"
+            ? "Scheduled mission run started"
+            : "Mission assigned",
       }),
     })
     .returning({ id: employeeMission.id });

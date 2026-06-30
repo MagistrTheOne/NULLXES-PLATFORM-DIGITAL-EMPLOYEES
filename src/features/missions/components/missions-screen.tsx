@@ -86,12 +86,22 @@ export function MissionsScreen({
                   </p>
                 </div>
                 <div className="flex shrink-0 flex-col items-end gap-2">
-                  <Badge
-                    variant="outline"
-                    className="border-white/10 bg-transparent text-white/80"
-                  >
-                    {statusLabel(mission.status)}
-                  </Badge>
+                  <div className="flex flex-wrap justify-end gap-2">
+                    {mission.source === "scheduled" ? (
+                      <Badge
+                        variant="outline"
+                        className="border-white/10 bg-transparent text-white/70"
+                      >
+                        Scheduled
+                      </Badge>
+                    ) : null}
+                    <Badge
+                      variant="outline"
+                      className="border-white/10 bg-transparent text-white/80"
+                    >
+                      {statusLabel(mission.status)}
+                    </Badge>
+                  </div>
                   <span className="text-xs text-white/45">
                     {mission.leadsCount} proposals
                   </span>

@@ -2,8 +2,10 @@ import { and, eq } from "drizzle-orm";
 import { employeeMission, type MissionLeadItem } from "@/entities/employee-mission";
 import { digitalEmployee } from "@/entities/digital-employee/schema";
 import { appendMissionTimelineStep } from "@/features/missions/lib/append-mission-timeline-step";
+import { startMissionHandoffChain } from "@/features/missions/services/mission-handoff-chain";
 import { recordWorkEvent } from "@/features/work-event";
 import { sendMissionProposalEmail } from "@/shared/email/send-mission-proposal-email";
+import { inngest, isInngestEnabledForSend } from "@/inngest/client";
 import { db } from "@/shared/db/client";
 
 function proposalHtmlFromDraft(draft: string): string {
@@ -122,24 +124,54 @@ export async function executeMissionOutbound(input: {
     label: `Outbound complete · ${sentCount} sent, ${failedCount} failed, ${skippedCount} skipped`,
   });
 
-  const status =
-    sentCount > 0 && failedCount === 0 && skippedCount === 0
-      ? "completed"
-      : sentCount > 0
-        ? "completed"
-        : "failed";
+  if (sentCount === 0) {
+    await db
+      .update(employeeMission)
+      .set({
+        status: "failed",
+        leads,
+        timeline,
+        completedAt: new Date(),
+        errorMessage:
+          "No proposal emails were delivered. Check contact emails and Resend configuration.",
+      })
+      .where(eq(employeeMission.id, input.missionId));
+
+    await recordWorkEvent({
+      organizationId: input.organizationId,
+      employeeId: mission.employeeId,
+      eventType: "api_response_sent",
+      title: `Mission outbound · ${mission.title}`,
+      summary: `${sentCount} sent, ${failedCount} failed, ${skippedCount} skipped`,
+      metadata: {
+        missionId: input.missionId,
+        sentCount,
+        failedCount,
+        skippedCount,
+      },
+    });
+
+    return {
+      missionId: input.missionId,
+      sentCount,
+      failedCount,
+      skippedCount,
+    };
+  }
+
+  const handoffTimeline = appendMissionTimelineStep(timeline, {
+    key: "handoff_queued",
+    label: "Starting workforce handoff",
+  });
 
   await db
     .update(employeeMission)
     .set({
-      status,
+      status: "working",
       leads,
-      timeline,
-      completedAt: new Date(),
-      errorMessage:
-        sentCount === 0
-          ? "No proposal emails were delivered. Check contact emails and Resend configuration."
-          : undefined,
+      timeline: handoffTimeline,
+      completedAt: null,
+      errorMessage: undefined,
     })
     .where(eq(employeeMission.id, input.missionId));
 
@@ -156,6 +188,21 @@ export async function executeMissionOutbound(input: {
       skippedCount,
     },
   });
+
+  if (isInngestEnabledForSend()) {
+    await inngest.send({
+      name: "employee/mission.handoff.start",
+      data: {
+        missionId: input.missionId,
+        organizationId: input.organizationId,
+      },
+    });
+  } else {
+    await startMissionHandoffChain({
+      missionId: input.missionId,
+      organizationId: input.organizationId,
+    });
+  }
 
   return {
     missionId: input.missionId,

@@ -1,8 +1,14 @@
 import { jsonb, pgEnum, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { digitalEmployee } from "@/entities/digital-employee/schema";
+import { missionSchedule } from "@/entities/mission-schedule/schema";
 import { organization } from "@/entities/organization/schema";
 import { user } from "@/entities/user/schema";
-import type { MissionEvidenceItem, MissionLeadItem, MissionTimelineStep } from "./types";
+import type {
+  MissionEvidenceItem,
+  MissionHandoffItem,
+  MissionLeadItem,
+  MissionTimelineStep,
+} from "./types";
 
 export const employeeMissionStatusEnum = pgEnum("employee_mission_status", [
   "planned",
@@ -16,6 +22,11 @@ export const employeeMissionStatusEnum = pgEnum("employee_mission_status", [
 export const employeeMissionTypeEnum = pgEnum("employee_mission_type", [
   "prospecting",
   "custom",
+]);
+
+export const employeeMissionSourceEnum = pgEnum("employee_mission_source", [
+  "manual",
+  "scheduled",
 ]);
 
 export const employeeMission = pgTable("employee_mission", {
@@ -32,10 +43,15 @@ export const employeeMission = pgTable("employee_mission", {
   title: text("title").notNull(),
   brief: text("brief").notNull(),
   type: employeeMissionTypeEnum("type").notNull().default("custom"),
+  source: employeeMissionSourceEnum("source").notNull().default("manual"),
+  scheduleId: uuid("schedule_id").references(() => missionSchedule.id, {
+    onDelete: "set null",
+  }),
   status: employeeMissionStatusEnum("status").notNull().default("planned"),
   plan: text("plan"),
   evidence: jsonb("evidence").$type<MissionEvidenceItem[]>().notNull().default([]),
   leads: jsonb("leads").$type<MissionLeadItem[]>().notNull().default([]),
+  handoffs: jsonb("handoffs").$type<MissionHandoffItem[]>().notNull().default([]),
   timeline: jsonb("timeline").$type<MissionTimelineStep[]>().notNull().default([]),
   errorMessage: text("error_message"),
   createdAt: timestamp("created_at", { withTimezone: true })

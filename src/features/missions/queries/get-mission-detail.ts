@@ -23,6 +23,9 @@ export type MissionDetail = {
   employeeId: string;
   employeeName: string;
   employeeRole: string;
+  source: "manual" | "scheduled";
+  scheduleId: string | null;
+  handoffs: NonNullable<typeof employeeMission.$inferSelect["handoffs"]>;
   createdAt: Date;
   updatedAt: Date;
   completedAt: Date | null;
@@ -47,6 +50,9 @@ export async function getMissionDetail(
       employeeId: employeeMission.employeeId,
       employeeName: digitalEmployee.name,
       employeeRole: digitalEmployee.role,
+      source: employeeMission.source,
+      scheduleId: employeeMission.scheduleId,
+      handoffs: employeeMission.handoffs,
       createdAt: employeeMission.createdAt,
       updatedAt: employeeMission.updatedAt,
       completedAt: employeeMission.completedAt,
@@ -72,6 +78,7 @@ export async function getMissionDetail(
     ...row,
     evidence: row.evidence ?? [],
     leads: row.leads ?? [],
+    handoffs: row.handoffs ?? [],
     timeline: row.timeline ?? [],
   };
 }

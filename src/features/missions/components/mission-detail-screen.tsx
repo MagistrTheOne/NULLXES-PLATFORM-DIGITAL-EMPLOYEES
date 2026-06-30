@@ -51,12 +51,22 @@ export function MissionDetailScreen({
             {mission.employeeName} · {mission.employeeRole}
           </p>
         </div>
-        <Badge
-          variant="outline"
-          className="border-white/10 bg-transparent text-white/80"
-        >
-          {statusLabel(mission.status)}
-        </Badge>
+        <div className="flex flex-wrap justify-end gap-2">
+          <Badge
+            variant="outline"
+            className="border-white/10 bg-transparent text-white/80"
+          >
+            {statusLabel(mission.status)}
+          </Badge>
+          {mission.source === "scheduled" ? (
+            <Badge
+              variant="outline"
+              className="border-white/10 bg-transparent text-white/70"
+            >
+              Scheduled
+            </Badge>
+          ) : null}
+        </div>
       </div>
 
       {pendingApproval ? (
@@ -188,6 +198,41 @@ export function MissionDetailScreen({
               </article>
             ))}
           </div>
+        </section>
+      ) : null}
+
+      {mission.handoffs.length > 0 ? (
+        <section className="rounded-2xl border border-white/8 bg-[#111111] p-5">
+          <h2 className="text-sm font-medium text-white">Workforce handoff</h2>
+          <ul className="mt-4 space-y-4">
+            {mission.handoffs.map((handoff) => (
+              <li
+                key={handoff.handoffId}
+                className="rounded-xl border border-white/6 bg-black/20 p-4"
+              >
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="text-sm font-medium text-white">
+                    {handoff.toEmployeeName}
+                  </p>
+                  <span className="text-xs text-white/45">{handoff.role}</span>
+                  <Badge
+                    variant="outline"
+                    className="border-white/10 bg-transparent text-white/70"
+                  >
+                    {handoff.status}
+                  </Badge>
+                </div>
+                <p className="mt-2 text-xs uppercase tracking-[0.2em] text-white/40">
+                  {handoff.stage.replaceAll("_", " ")}
+                </p>
+                {handoff.summary ? (
+                  <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-white/70">
+                    {handoff.summary}
+                  </p>
+                ) : null}
+              </li>
+            ))}
+          </ul>
         </section>
       ) : null}
 

@@ -9,6 +9,7 @@ import { buildTalkBrainRequest } from "@/features/runtime-session/services/build
 import { collectTalkBrainResponse } from "@/features/runtime-session/services/stream-talk-brain-response";
 import { recordWorkEvent } from "@/features/work-event";
 import { serializeEmployeeTaskResult } from "@/features/employees/lib/format-employee-task-result";
+import { completeMissionHandoffStep } from "@/features/missions/services/mission-handoff-chain";
 import { db } from "@/shared/db/client";
 import { decryptField } from "@/shared/crypto/field-encryption";
 import { inngest } from "@/inngest/client";
@@ -196,6 +197,12 @@ async function processTaskById(taskId: string, organizationId: string) {
     organizationId,
     event: "task.completed",
     data: { taskId, employeeId: task.employeeId, result },
+  });
+
+  await completeMissionHandoffStep({
+    taskId,
+    organizationId,
+    result,
   });
 
   return { taskId, status: "completed" as const, intent: intent.intent };
