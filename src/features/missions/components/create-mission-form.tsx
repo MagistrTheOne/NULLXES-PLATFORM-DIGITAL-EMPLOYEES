@@ -17,7 +17,7 @@ import { createMissionAction } from "../actions/create-mission";
 import {
   defaultProspectingBrief,
   defaultProspectingTitle,
-} from "../services/create-employee-mission";
+} from "../lib/prospecting-defaults";
 
 type EmployeeOption = {
   id: string;

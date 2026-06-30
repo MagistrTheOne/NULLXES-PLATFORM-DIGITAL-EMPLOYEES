@@ -7,7 +7,13 @@ import {
 import { digitalEmployee } from "@/entities/digital-employee/schema";
 import { inngest, isInngestEnabledForSend } from "@/inngest/client";
 import { appendMissionTimelineStep } from "../lib/append-mission-timeline-step";
+import {
+  defaultProspectingBrief,
+  defaultProspectingTitle,
+} from "../lib/prospecting-defaults";
 import { db } from "@/shared/db/client";
+
+export { defaultProspectingBrief, defaultProspectingTitle };
 
 export async function createEmployeeMission(input: {
   organizationId: string;
@@ -78,14 +84,6 @@ export async function enqueueEmployeeMission(input: {
       organizationId: input.organizationId,
     },
   });
-}
-
-export function defaultProspectingBrief(): string {
-  return "Find 10 B2B companies that could benefit from NULLXES Digital Employees. Focus on companies with enterprise budgets and operational teams that could delegate work to digital employees.";
-}
-
-export function defaultProspectingTitle(employeeName: string): string {
-  return `${employeeName} · B2B prospecting mission`;
 }
 
 export function parseMissionLeadsFromModelOutput(raw: string): MissionLeadItem[] {

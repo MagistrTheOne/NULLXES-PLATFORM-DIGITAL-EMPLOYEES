@@ -1,6 +1,5 @@
 import { jsonb, pgEnum, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { digitalEmployee } from "@/entities/digital-employee/schema";
-import { missionSchedule } from "@/entities/mission-schedule/schema";
 import { organization } from "@/entities/organization/schema";
 import { user } from "@/entities/user/schema";
 import type {
@@ -44,9 +43,7 @@ export const employeeMission = pgTable("employee_mission", {
   brief: text("brief").notNull(),
   type: employeeMissionTypeEnum("type").notNull().default("custom"),
   source: employeeMissionSourceEnum("source").notNull().default("manual"),
-  scheduleId: uuid("schedule_id").references(() => missionSchedule.id, {
-    onDelete: "set null",
-  }),
+  scheduleId: uuid("schedule_id"),
   status: employeeMissionStatusEnum("status").notNull().default("planned"),
   plan: text("plan"),
   evidence: jsonb("evidence").$type<MissionEvidenceItem[]>().notNull().default([]),
