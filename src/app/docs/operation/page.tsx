@@ -12,7 +12,10 @@ export default function DocsOperationPage() {
         </p>
       </header>
 
-      <section className="rounded-2xl border border-white/10 bg-[#111111] p-6">
+      <section
+        id="login"
+        className="scroll-mt-24 rounded-2xl border border-white/10 bg-[#111111] p-6"
+      >
         <h3 className="font-medium text-white">1. Вход в систему</h3>
         <ol className="mt-4 list-decimal space-y-2 pl-5">
           <li>
@@ -27,7 +30,10 @@ export default function DocsOperationPage() {
         </ol>
       </section>
 
-      <section className="rounded-2xl border border-white/10 bg-[#111111] p-6">
+      <section
+        id="create"
+        className="scroll-mt-24 rounded-2xl border border-white/10 bg-[#111111] p-6"
+      >
         <h3 className="font-medium text-white">
           2. Создание цифрового сотрудника
         </h3>
@@ -43,7 +49,10 @@ export default function DocsOperationPage() {
         </ol>
       </section>
 
-      <section className="rounded-2xl border border-white/10 bg-[#111111] p-6">
+      <section
+        id="talk"
+        className="scroll-mt-24 rounded-2xl border border-white/10 bg-[#111111] p-6"
+      >
         <h3 className="font-medium text-white">3. Диалог с сотрудником (Talk)</h3>
         <ol className="mt-4 list-decimal space-y-2 pl-5">
           <li>Откройте карточку сотрудника → Talk</li>
@@ -55,7 +64,10 @@ export default function DocsOperationPage() {
         </ol>
       </section>
 
-      <section className="rounded-2xl border border-white/10 bg-[#111111] p-6">
+      <section
+        id="missions"
+        className="scroll-mt-24 rounded-2xl border border-white/10 bg-[#111111] p-6"
+      >
         <h3 className="font-medium text-white">4. Mission Control — постановка миссии</h3>
         <ol className="mt-4 list-decimal space-y-2 pl-5">
           <li>Sidebar → Missions → Assign mission (/dashboard/missions/new)</li>
@@ -81,7 +93,10 @@ export default function DocsOperationPage() {
         </p>
       </section>
 
-      <section className="rounded-2xl border border-white/10 bg-[#111111] p-6">
+      <section
+        id="settings"
+        className="scroll-mt-24 rounded-2xl border border-white/10 bg-[#111111] p-6"
+      >
         <h3 className="font-medium text-white">5. Настройки организации</h3>
         <ul className="mt-4 list-disc space-y-2 pl-5">
           <li>
@@ -107,7 +122,10 @@ export default function DocsOperationPage() {
         </ul>
       </section>
 
-      <section className="rounded-2xl border border-white/10 bg-[#111111] p-6">
+      <section
+        id="api"
+        className="scroll-mt-24 rounded-2xl border border-white/10 bg-[#111111] p-6"
+      >
         <h3 className="font-medium text-white">6. Public API</h3>
         <p className="mt-3">
           REST API v1 доступен с API key (Settings → Security). Спецификация
@@ -118,7 +136,10 @@ export default function DocsOperationPage() {
         </p>
       </section>
 
-      <section className="rounded-2xl border border-white/10 bg-[#111111] p-6">
+      <section
+        id="monitoring"
+        className="scroll-mt-24 rounded-2xl border border-white/10 bg-[#111111] p-6"
+      >
         <h3 className="font-medium text-white">7. Мониторинг и поддержка</h3>
         <ul className="mt-4 list-disc space-y-2 pl-5">
           <li>Inngest Dashboard — Runs, Events, cron-задачи</li>

@@ -15,7 +15,10 @@ export default function DocsFunctionalPage() {
         </p>
       </header>
 
-      <section className="rounded-2xl border border-white/10 bg-[#111111] p-6">
+      <section
+        id="purpose"
+        className="scroll-mt-24 rounded-2xl border border-white/10 bg-[#111111] p-6"
+      >
         <h3 className="font-medium text-white">1. Назначение</h3>
         <p className="mt-3">
           Платформа обеспечивает единую операционную среду для управления
@@ -25,7 +28,10 @@ export default function DocsFunctionalPage() {
         </p>
       </section>
 
-      <section className="rounded-2xl border border-white/10 bg-[#111111] p-6">
+      <section
+        id="modules"
+        className="scroll-mt-24 rounded-2xl border border-white/10 bg-[#111111] p-6"
+      >
         <h3 className="font-medium text-white">2. Состав функциональных модулей</h3>
         <ul className="mt-4 list-disc space-y-2 pl-5">
           <li>
@@ -80,7 +86,10 @@ export default function DocsFunctionalPage() {
         </ul>
       </section>
 
-      <section className="rounded-2xl border border-white/10 bg-[#111111] p-6">
+      <section
+        id="nlp"
+        className="scroll-mt-24 rounded-2xl border border-white/10 bg-[#111111] p-6"
+      >
         <h3 className="font-medium text-white">3. Обработка естественного языка</h3>
         <p className="mt-3">
           Для генерации и анализа текстов (диалоги, миссии, структурирование
@@ -93,7 +102,10 @@ export default function DocsFunctionalPage() {
         </p>
       </section>
 
-      <section className="rounded-2xl border border-white/10 bg-[#111111] p-6">
+      <section
+        id="stack"
+        className="scroll-mt-24 rounded-2xl border border-white/10 bg-[#111111] p-6"
+      >
         <h3 className="font-medium text-white">4. Технологический стек</h3>
         <ul className="mt-4 list-disc space-y-2 pl-5">
           <li>Next.js 16 (App Router), React 19, TypeScript</li>
@@ -105,7 +117,10 @@ export default function DocsFunctionalPage() {
         </ul>
       </section>
 
-      <section className="rounded-2xl border border-white/10 bg-[#111111] p-6">
+      <section
+        id="roles"
+        className="scroll-mt-24 rounded-2xl border border-white/10 bg-[#111111] p-6"
+      >
         <h3 className="font-medium text-white">5. Роли пользователей</h3>
         <ul className="mt-4 list-disc space-y-2 pl-5">
           <li>

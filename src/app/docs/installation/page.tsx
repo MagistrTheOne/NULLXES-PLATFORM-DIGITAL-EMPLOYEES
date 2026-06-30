@@ -13,7 +13,10 @@ export default function DocsInstallationPage() {
         </p>
       </header>
 
-      <section className="rounded-2xl border border-white/10 bg-[#111111] p-6">
+      <section
+        id="requirements"
+        className="scroll-mt-24 rounded-2xl border border-white/10 bg-[#111111] p-6"
+      >
         <h3 className="font-medium text-white">1. Системные требования</h3>
         <ul className="mt-4 list-disc space-y-2 pl-5">
           <li>Node.js 20+ (сборка и локальная разработка)</li>
@@ -24,7 +27,10 @@ export default function DocsInstallationPage() {
         </ul>
       </section>
 
-      <section className="rounded-2xl border border-white/10 bg-[#111111] p-6">
+      <section
+        id="source"
+        className="scroll-mt-24 rounded-2xl border border-white/10 bg-[#111111] p-6"
+      >
         <h3 className="font-medium text-white">2. Получение исходного кода</h3>
         <pre className="mt-4 overflow-x-auto rounded-xl border border-white/10 bg-black p-4 font-mono text-xs text-white/80">
 {`git clone <repository-url>
@@ -33,7 +39,10 @@ npm install`}
         </pre>
       </section>
 
-      <section className="rounded-2xl border border-white/10 bg-[#111111] p-6">
+      <section
+        id="env"
+        className="scroll-mt-24 rounded-2xl border border-white/10 bg-[#111111] p-6"
+      >
         <h3 className="font-medium text-white">
           3. Переменные окружения (обязательные для production)
         </h3>
@@ -91,7 +100,10 @@ npm install`}
         </p>
       </section>
 
-      <section className="rounded-2xl border border-white/10 bg-[#111111] p-6">
+      <section
+        id="migrations"
+        className="scroll-mt-24 rounded-2xl border border-white/10 bg-[#111111] p-6"
+      >
         <h3 className="font-medium text-white">4. Миграции базы данных</h3>
         <pre className="mt-4 overflow-x-auto rounded-xl border border-white/10 bg-black p-4 font-mono text-xs text-white/80">
 {`npm run db:migrate
@@ -103,7 +115,10 @@ npm run db:verify`}
         </p>
       </section>
 
-      <section className="rounded-2xl border border-white/10 bg-[#111111] p-6">
+      <section
+        id="inngest"
+        className="scroll-mt-24 rounded-2xl border border-white/10 bg-[#111111] p-6"
+      >
         <h3 className="font-medium text-white">5. Регистрация Inngest</h3>
         <ol className="mt-4 list-decimal space-y-2 pl-5">
           <li>
@@ -117,7 +132,10 @@ npm run db:verify`}
         </ol>
       </section>
 
-      <section className="rounded-2xl border border-white/10 bg-[#111111] p-6">
+      <section
+        id="verify"
+        className="scroll-mt-24 rounded-2xl border border-white/10 bg-[#111111] p-6"
+      >
         <h3 className="font-medium text-white">6. Проверка после установки</h3>
         <ol className="mt-4 list-decimal space-y-2 pl-5">
           <li>

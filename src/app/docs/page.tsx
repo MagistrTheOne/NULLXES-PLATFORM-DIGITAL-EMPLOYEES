@@ -24,7 +24,7 @@ const DOC_SECTIONS = [
 export default function DocsOverviewPage() {
   return (
     <div className="flex flex-col gap-10">
-      <section>
+      <section id="overview" className="scroll-mt-24">
         <h2 className="text-2xl font-medium tracking-tight">Обзор</h2>
         <p className="mt-4 text-sm leading-relaxed text-white/60">
           Настоящий раздел размещён на официальном сайте правообладателя
@@ -38,7 +38,10 @@ export default function DocsOverviewPage() {
         </p>
       </section>
 
-      <section className="rounded-2xl border border-white/10 bg-[#111111] p-6">
+      <section
+        id="domain"
+        className="scroll-mt-24 rounded-2xl border border-white/10 bg-[#111111] p-6"
+      >
         <h2 className="text-sm font-medium text-white">
           Принадлежность доменного имени (п. 4 «ж»)
         </h2>
@@ -74,7 +77,10 @@ export default function DocsOverviewPage() {
         </p>
       </section>
 
-      <section className="rounded-2xl border border-white/10 bg-[#111111] p-6">
+      <section
+        id="llm"
+        className="scroll-mt-24 rounded-2xl border border-white/10 bg-[#111111] p-6"
+      >
         <h2 className="text-sm font-medium text-white">
           Обработка текстовых данных (требования к LLM)
         </h2>
@@ -91,7 +97,7 @@ export default function DocsOverviewPage() {
         </p>
       </section>
 
-      <section className="grid gap-4">
+      <section id="sections" className="grid scroll-mt-24 gap-4">
         <h2 className="text-sm font-medium text-white">Разделы документации</h2>
         {DOC_SECTIONS.map((section) => (
           <Link
