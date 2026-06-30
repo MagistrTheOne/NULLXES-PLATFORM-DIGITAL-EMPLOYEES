@@ -51,7 +51,11 @@ export default function TrustPage() {
         </div>
 
         <p className="mt-12 text-sm text-white/50">
-          Questions?{" "}
+          Documentation for software registry review:{" "}
+          <Link href="/docs" className="text-white hover:underline">
+            /docs
+          </Link>
+          . Questions?{" "}
           <Link href="/login" className="text-white hover:underline">
             Sign in
           </Link>{" "}

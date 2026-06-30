@@ -43,6 +43,7 @@ This document outlines deployment considerations for Russia (RU) data residency 
 | `NEXT_PUBLIC_EMAIL_OTP_STEP_UP_ENABLED` | Same value as `EMAIL_OTP_STEP_UP_ENABLED` |
 | Inngest | `INNGEST_EVENT_KEY` + `INNGEST_SIGNING_KEY`; register app URL `https://<domain>/api/inngest` in Inngest Cloud |
 | Public trust page | `/trust` — no authentication required |
+| Public documentation (MinTsifry) | `/docs` — functional, installation, operation guides; no authentication required |
 
 ### Do not copy from local `.env` to Vercel
 
