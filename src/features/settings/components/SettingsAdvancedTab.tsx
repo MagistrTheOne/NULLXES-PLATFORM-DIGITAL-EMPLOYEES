@@ -24,20 +24,24 @@ export function SettingsAdvancedTab({
   const t = useTranslations("settings.advanced");
   const router = useRouter();
   const [message, setMessage] = useState<string | null>(null);
+  const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   function handleAsyncExport(): void {
+    setDownloadUrl(null);
     startTransition(async () => {
       const result = await requestExportJobAction();
-      setMessage(
-        result.ok
-          ? t("queued", { jobId: result.jobId.slice(0, 8) })
-          : result.message,
-      );
+      if (result.ok) {
+        setMessage(t("queued", { jobId: result.jobId.slice(0, 8) }));
+        setDownloadUrl(`/api/settings/export/${result.jobId}`);
+      } else {
+        setMessage(result.message);
+      }
     });
   }
 
   function handleExport(): void {
+    setDownloadUrl(null);
     startTransition(async () => {
       const result = await exportWorkspaceDataAction();
 
@@ -92,7 +96,24 @@ export function SettingsAdvancedTab({
             {t("queueExport")}
           </Button>
         </div>
-        {message ? <p className="mt-3 text-sm text-muted-foreground">{message}</p> : null}
+        {message ? (
+          <p className="mt-3 text-sm text-muted-foreground">
+            {message}
+            {downloadUrl ? (
+              <>
+                {" "}
+                <a
+                  href={downloadUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-white underline underline-offset-4"
+                >
+                  {t("download")}
+                </a>
+              </>
+            ) : null}
+          </p>
+        ) : null}
       </SettingsCard>
 
       {isPlatformAdmin ? (

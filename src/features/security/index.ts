@@ -17,10 +17,6 @@ export {
   revokeApiKey,
   verifyApiKey,
 } from "./services/api-key";
-export {
-  exportOrganizationForMigration,
-  importOrganizationFromMigration,
-} from "./services/org-migration-stub";
 export { recordAuditEvent } from "./services/record-audit-event";
 export {
   runRetentionPurgeForAllOrganizations,

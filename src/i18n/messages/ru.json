@@ -740,6 +740,7 @@
       "exportNow": "Экспортировать сейчас",
       "queueExport": "Поставить в очередь",
       "downloaded": "Экспорт workspace загружен.",
+      "download": "Скачать",
       "queued": "Задача экспорта ({jobId}…). Ссылка на скачивание по готовности.",
       "retentionTitle": "Хранение",
       "sessionsTitle": "Сессии аватаров",

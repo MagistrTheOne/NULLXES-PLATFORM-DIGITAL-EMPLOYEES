@@ -740,6 +740,7 @@
       "exportNow": "Export now",
       "queueExport": "Queue export job",
       "downloaded": "Workspace export downloaded.",
+      "download": "Download",
       "queued": "Export job queued ({jobId}…). Download link when ready.",
       "retentionTitle": "Retention",
       "sessionsTitle": "Avatar sessions",
