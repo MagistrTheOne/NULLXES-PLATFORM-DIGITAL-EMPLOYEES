@@ -5,6 +5,13 @@ import { useLocale, useTranslations } from "next-intl";
 import { Archive, Circle, Loader2, Pause, Plus, Radio, UserRound } from "lucide-react";
 import type { EmployeeStatus } from "@/entities/digital-employee";
 import { AvatarIdlePreview } from "@/features/employees/components/avatar-idle-preview";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
 import { cn } from "@/lib/utils";
 import { formatRelativeTime } from "../lib/format-relative-time";
 import type { OverviewEmployee } from "../types";
@@ -129,6 +136,7 @@ function CreateEmployeeCard({
   );
 }
 
+/** Grid for small teams; arrow carousel once the row would overflow. */
 const GRID_LAYOUT_THRESHOLD = 6;
 
 export function OverviewEmployeeCarousel({
@@ -159,7 +167,6 @@ export function OverviewEmployeeCarousel({
     );
   }
 
-  // Compact grid for small workforces; horizontal scroll once it grows.
   const useGrid = activeFirst.length <= GRID_LAYOUT_THRESHOLD;
 
   return (
@@ -172,11 +179,27 @@ export function OverviewEmployeeCarousel({
           <CreateEmployeeCard onCreateClick={onCreateClick} fullWidth />
         </div>
       ) : (
-        <div className="flex gap-4 overflow-x-auto px-5 py-5">
-          {activeFirst.map((employee) => (
-            <CarouselEmployeeCard key={employee.id} employee={employee} />
-          ))}
-          <CreateEmployeeCard onCreateClick={onCreateClick} />
+        <div className="relative px-5 py-5">
+          <Carousel
+            opts={{
+              align: "start",
+              dragFree: true,
+            }}
+            className="w-full"
+          >
+            <CarouselContent className="-ms-4">
+              {activeFirst.map((employee) => (
+                <CarouselItem key={employee.id} className="basis-[220px] ps-4">
+                  <CarouselEmployeeCard employee={employee} />
+                </CarouselItem>
+              ))}
+              <CarouselItem className="basis-[220px] ps-4">
+                <CreateEmployeeCard onCreateClick={onCreateClick} />
+              </CarouselItem>
+            </CarouselContent>
+            <CarouselPrevious className="start-2 border-border bg-background/90 backdrop-blur-sm hover:bg-background" />
+            <CarouselNext className="end-2 border-border bg-background/90 backdrop-blur-sm hover:bg-background" />
+          </Carousel>
         </div>
       )}
     </OverviewCard>

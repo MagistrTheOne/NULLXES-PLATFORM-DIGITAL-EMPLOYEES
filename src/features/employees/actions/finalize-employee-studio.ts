@@ -10,7 +10,6 @@ import { resolveAnamPersonaVoiceId } from "@/features/employees/studio/resolve-a
 import {
   resolveStudioVoiceSelection,
 } from "@/features/employees/studio/voice/voice-catalog";
-import { isAnamSlotAtPersonaCapacity } from "@/features/provider-provisioning/services/resolve-anam-persona-slot";
 import type { AnamApiKeySlot } from "@/shared/config/anam-api-pool";
 import { buildAnamPersonaCreatePayload } from "@/features/runtime-session/lib/build-anam-talk-persona-config";
 import {
@@ -164,14 +163,6 @@ export async function finalizeEmployeeStudio(
       selectionCheck.mode === "preset"
         ? await resolveStudioAvatarPreset(presetAvatarId)
         : await createAnamAvatarFromFile({ file: file as File, displayName: name });
-
-    if (await isAnamSlotAtPersonaCapacity(avatar.anamApiKeySlot)) {
-      return {
-        status: "failed",
-        message:
-          "This Anam lab key already has a persona. Upload a custom photo to use a free key, or remove another employee from this lab.",
-      };
-    }
 
     const { anamVoiceId, binding } = await resolveAnamPersonaVoiceId(selectedVoice);
     const persona = await createAnamPersona({

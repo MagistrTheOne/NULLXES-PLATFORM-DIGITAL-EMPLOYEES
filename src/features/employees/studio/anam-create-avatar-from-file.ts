@@ -1,9 +1,10 @@
 import type { AnamApiKeySlot } from "@/shared/config/anam-api-pool";
 import {
-  anamFetchWithKeyPool,
   anamFetchWithSlot,
+  isAnamAvatarQuotaError,
+  readAnamErrorMessage,
 } from "@/shared/config/provider-env";
-import { resolveAnamPersonaSlot } from "@/features/provider-provisioning/services/resolve-anam-persona-slot";
+import { listAnamSlotsWithPersonaCapacity } from "@/features/provider-provisioning/services/resolve-anam-persona-slot";
 import { ANAM_AVATAR_PROVIDER_ID } from "@/providers/avatar/anam/config";
 
 const MAX_AVATAR_BYTES = Math.floor(4.5 * 1024 * 1024);
@@ -22,6 +23,13 @@ function normalizeDisplayName(displayName: string): string {
   }
 
   return "NULLXES Digital Employee";
+}
+
+function buildAvatarFormData(file: File, displayName: string): FormData {
+  const formData = new FormData();
+  formData.append("displayName", normalizeDisplayName(displayName));
+  formData.append("imageFile", file, file.name);
+  return formData;
 }
 
 export type CreateAnamAvatarFromFileResult = {
@@ -44,51 +52,74 @@ export async function createAnamAvatarFromFile(input: {
     throw new Error("Upload a PNG, JPG, or WebP image");
   }
 
-  const preferredSlot = await resolveAnamPersonaSlot({
+  const candidateSlots = await listAnamSlotsWithPersonaCapacity({
     excludeEmployeeId: input.excludeEmployeeId,
   });
 
-  if (!preferredSlot) {
-    throw new Error("No Anam API key is configured");
+  if (candidateSlots.length === 0) {
+    throw new Error(
+      "All configured Anam lab keys already have a persona. Add another ANAM_API_KEY or remove an employee from a full lab.",
+    );
   }
 
-  const formData = new FormData();
-  formData.append("displayName", normalizeDisplayName(input.displayName));
-  formData.append("imageFile", input.file, input.file.name);
+  let lastError = "Failed to create Anam avatar";
 
-  const { response: createResponse, slot } = await anamFetchWithKeyPool(
-    "/avatars",
-    {
-      method: "POST",
-      body: formData,
-    },
-    preferredSlot,
-  );
+  for (const slot of candidateSlots) {
+    const createResponse = await anamFetchWithSlot(
+      "/avatars",
+      {
+        method: "POST",
+        body: buildAvatarFormData(input.file, input.displayName),
+      },
+      slot,
+    );
 
-  const created = (await createResponse.json()) as AnamAvatarResponse;
-  if (!created.id) {
-    throw new Error("Anam avatar creation returned an invalid response");
-  }
+    if (createResponse.ok) {
+      const created = (await createResponse.json()) as AnamAvatarResponse;
+      if (!created.id) {
+        throw new Error("Anam avatar creation returned an invalid response");
+      }
 
-  let previewUrl = created.imageUrl ?? "";
+      let previewUrl = created.imageUrl ?? "";
 
-  if (!previewUrl) {
-    const getResponse = await anamFetchWithSlot(`/avatars/${created.id}`, { method: "GET" }, slot);
+      if (!previewUrl) {
+        const getResponse = await anamFetchWithSlot(
+          `/avatars/${created.id}`,
+          { method: "GET" },
+          slot,
+        );
 
-    if (getResponse.ok) {
-      const details = (await getResponse.json()) as AnamAvatarResponse;
-      previewUrl = details.imageUrl ?? "";
+        if (getResponse.ok) {
+          const details = (await getResponse.json()) as AnamAvatarResponse;
+          previewUrl = details.imageUrl ?? "";
+        }
+      }
+
+      if (!previewUrl) {
+        throw new Error("Anam avatar was created but preview URL is unavailable");
+      }
+
+      return {
+        avatarId: created.id,
+        previewUrl,
+        provider: ANAM_AVATAR_PROVIDER_ID,
+        anamApiKeySlot: slot,
+      };
     }
+
+    const detail = await readAnamErrorMessage(createResponse);
+    lastError = detail;
+
+    if (isAnamAvatarQuotaError(createResponse.status, detail)) {
+      continue;
+    }
+
+    throw new Error(
+      `Anam avatar upload failed on ${slot}: ${detail}`,
+    );
   }
 
-  if (!previewUrl) {
-    throw new Error("Anam avatar was created but preview URL is unavailable");
-  }
-
-  return {
-    avatarId: created.id,
-    previewUrl,
-    provider: ANAM_AVATAR_PROVIDER_ID,
-    anamApiKeySlot: slot,
-  };
+  throw new Error(
+    `All Anam lab keys with persona capacity are at the one-shot avatar limit. ${lastError}`,
+  );
 }

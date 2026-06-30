@@ -45,6 +45,7 @@
     "tunnel:ngrok": "ngrok http 3000",
     "polar:setup": "node --env-file=.env --import tsx scripts/setup-polar-products.ts",
     "polar:webhook": "node --env-file=.env --import tsx scripts/setup-polar-webhook.ts",
+    "anam:audit-slots": "node --env-file=.env --import tsx scripts/audit-anam-one-shot-slots.ts",
     "crypto:keygen": "node --import tsx scripts/generate-data-encryption-key.ts",
     "secrets:migrate": "node --env-file=.env --import tsx scripts/migrate-encrypt-secrets.ts",
     "knowledge:backfill-embeddings": "node --env-file=.env --import tsx scripts/backfill-knowledge-embeddings.ts",

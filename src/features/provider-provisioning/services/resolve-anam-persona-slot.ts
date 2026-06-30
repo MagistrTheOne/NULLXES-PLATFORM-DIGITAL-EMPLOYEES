@@ -116,6 +116,16 @@ export async function isAnamSlotAtPersonaCapacity(
   return count >= getMaxPersonasPerKey();
 }
 
+/** Lab keys that can still host another persona (respects ANAM_MAX_PERSONAS_PER_KEY). */
+export async function listAnamSlotsWithPersonaCapacity(input?: {
+  excludeEmployeeId?: string;
+}): Promise<AnamApiKeySlot[]> {
+  const { configuredSlots, counts } = await buildPersonaCountsBySlot(input);
+  const max = getMaxPersonasPerKey();
+
+  return configuredSlots.filter((slot) => (counts.get(slot) ?? 0) < max);
+}
+
 /**
  * Picks the Anam key slot a new persona should be created on:
  * - prefers the first configured slot still under the per-key cap;
