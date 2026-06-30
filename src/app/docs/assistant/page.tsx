@@ -1,6 +1,11 @@
 import { DocsAssistantChat } from "../_components/docs-assistant-chat";
+import { getDocsAssistantProfile } from "../_lib/get-docs-assistant";
 
-export default function DocsAssistantPage() {
+export const revalidate = 300;
+
+export default async function DocsAssistantPage() {
+  const assistant = await getDocsAssistantProfile();
+
   return (
     <article className="flex flex-col gap-8">
       <header id="assistant" className="scroll-mt-24">
@@ -14,7 +19,7 @@ export default function DocsAssistantPage() {
         </p>
       </header>
 
-      <DocsAssistantChat />
+      <DocsAssistantChat assistant={assistant} />
 
       <section
         id="contacts"

@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DOCS_FAQ, findFaqAnswer } from "../_lib/docs-faq";
-import { DOCS_ASSISTANT } from "../_lib/docs-legal";
+import type { DocsAssistantProfile } from "../_lib/get-docs-assistant";
 
 type ChatMessage = {
   id: string;
@@ -21,7 +21,13 @@ function createMessage(role: ChatMessage["role"], content: string): ChatMessage 
   return { id: `${role}-${Date.now()}-${Math.random()}`, role, content };
 }
 
-export function DocsAssistantChat({ compact = false }: { compact?: boolean }) {
+export function DocsAssistantChat({
+  assistant,
+  compact = false,
+}: {
+  assistant: DocsAssistantProfile;
+  compact?: boolean;
+}) {
   const [messages, setMessages] = useState<ChatMessage[]>([
     createMessage("assistant", WELCOME),
   ]);
@@ -54,21 +60,16 @@ export function DocsAssistantChat({ compact = false }: { compact?: boolean }) {
     >
       <div className="flex items-center gap-3 border-b border-white/10 pb-4">
         <Avatar size="lg">
-          {DOCS_ASSISTANT.avatarUrl ? (
-            <AvatarImage
-              src={DOCS_ASSISTANT.avatarUrl}
-              alt={DOCS_ASSISTANT.name}
-            />
+          {assistant.avatarUrl ? (
+            <AvatarImage src={assistant.avatarUrl} alt={assistant.name} />
           ) : null}
           <AvatarFallback className="bg-white/10 text-white/80">
-            {DOCS_ASSISTANT.initials}
+            {assistant.initials}
           </AvatarFallback>
         </Avatar>
         <div>
-          <p className="text-sm font-medium text-white">
-            {DOCS_ASSISTANT.name}
-          </p>
-          <p className="text-xs text-white/45">{DOCS_ASSISTANT.role}</p>
+          <p className="text-sm font-medium text-white">{assistant.name}</p>
+          <p className="text-xs text-white/45">{assistant.role}</p>
         </div>
       </div>
 

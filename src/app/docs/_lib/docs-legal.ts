@@ -1,13 +1,6 @@
 export const DOCS_REPOSITORY_URL =
   "https://github.com/MagistrTheOne/NULLXES-PLATFORM-DIGITAL-EMPLOYEES.git";
 
-export const DOCS_ASSISTANT = {
-  name: "Yuki Nakora",
-  role: "Ассистент документации · FAQ",
-  initials: "YN",
-  avatarUrl: process.env.NEXT_PUBLIC_YUKI_AVATAR_URL ?? "",
-} as const;
-
 export const DOCS_REPOSITORY_CLONE = `git clone ${DOCS_REPOSITORY_URL}
 cd NULLXES-PLATFORM-DIGITAL-EMPLOYEES
 npm install`;
