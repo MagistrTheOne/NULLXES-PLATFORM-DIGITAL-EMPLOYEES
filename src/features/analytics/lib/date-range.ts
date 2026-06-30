@@ -16,11 +16,16 @@ export function formatUtcDate(date: Date): string {
   return date.toISOString().slice(0, 10);
 }
 
-export function getDefaultAnalyticsRange(): AnalyticsDateRange {
+export function buildAnalyticsRangeFromDayCount(dayCount: number): AnalyticsDateRange {
+  const normalizedDays = Math.max(1, Math.min(dayCount, 365));
   const to = startOfUtcDay(new Date());
   const from = new Date(to);
-  from.setUTCDate(from.getUTCDate() - 6);
+  from.setUTCDate(from.getUTCDate() - (normalizedDays - 1));
   return { from, to };
+}
+
+export function getDefaultAnalyticsRange(dayCount = 7): AnalyticsDateRange {
+  return buildAnalyticsRangeFromDayCount(dayCount);
 }
 
 export function getRangeDayCount(range: AnalyticsDateRange): number {
@@ -56,6 +61,7 @@ export function buildDateRange(range: AnalyticsDateRange): string[] {
 
 export function parseAnalyticsDateRange(
   searchParams: Record<string, string | string[] | undefined>,
+  fallbackDayCount = 7,
 ): AnalyticsDateRange {
   const fromParam = searchParams.from;
   const toParam = searchParams.to;
@@ -63,14 +69,14 @@ export function parseAnalyticsDateRange(
   const toValue = Array.isArray(toParam) ? toParam[0] : toParam;
 
   if (!fromValue || !toValue) {
-    return getDefaultAnalyticsRange();
+    return getDefaultAnalyticsRange(fallbackDayCount);
   }
 
   const from = startOfUtcDay(new Date(`${fromValue}T00:00:00.000Z`));
   const to = startOfUtcDay(new Date(`${toValue}T00:00:00.000Z`));
 
   if (Number.isNaN(from.getTime()) || Number.isNaN(to.getTime()) || from > to) {
-    return getDefaultAnalyticsRange();
+    return getDefaultAnalyticsRange(fallbackDayCount);
   }
 
   return { from, to };

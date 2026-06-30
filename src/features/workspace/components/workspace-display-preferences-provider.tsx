@@ -32,6 +32,7 @@ export function useWorkspaceDisplayPreferences(): OrganizationDisplayPreferences
       dateFormat: "MMM d, yyyy",
       timeFormat: "24h",
       language: "en",
+      compactMode: false,
     };
   }
 

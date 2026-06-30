@@ -36,7 +36,12 @@ export function DashboardLayout({
         />
         <SidebarInset className="flex min-h-svh min-w-0 flex-1 flex-col bg-black">
           <DashboardTopbar />
-          <div className={platformPageShellClass({ width: "wide" })}>
+          <div
+            className={platformPageShellClass({
+              width: "wide",
+              compact: displayPreferences.compactMode,
+            })}
+          >
             {children}
           </div>
         </SidebarInset>

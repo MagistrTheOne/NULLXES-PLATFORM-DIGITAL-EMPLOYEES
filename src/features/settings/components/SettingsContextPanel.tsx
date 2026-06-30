@@ -9,6 +9,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { BILLING_PLANS } from "@/features/billing/config/plans";
+import { getKnowledgeChunkLimitForPlan } from "@/features/billing/lib/knowledge-chunk-limit";
 import { resolveBillingPlanId } from "@/features/billing/lib/resolve-billing-plan";
 import { formatDurationSeconds } from "@/features/analytics/lib/format-duration";
 import { formatOrganizationDate } from "@/shared/i18n/format-organization-date";
@@ -66,11 +67,11 @@ export function SettingsContextPanel({
   const [usageOpen, setUsageOpen] = useState(false);
   const [teamOpen, setTeamOpen] = useState(false);
   const billingPlan = BILLING_PLANS[resolveBillingPlanId(organization.billingPlan)];
-  const chunkLimit = 32_000;
+  const chunkLimit = getKnowledgeChunkLimitForPlan(billingPlan.id);
   const chunkPercent =
-    chunkLimit > 0
+    chunkLimit && chunkLimit > 0
       ? Math.min(100, Math.round((context.totalChunks / chunkLimit) * 1000) / 10)
-      : 0;
+      : null;
 
   const usageSummary = [
     `${context.usage.totalSessions} ${t("sessions").toLowerCase()}`,
@@ -109,16 +110,22 @@ export function SettingsContextPanel({
           <div className="space-y-1.5">
             <SummaryRow
               label={t("indexedChunks")}
-              value={`${formatNumber(context.totalChunks, locale)} / ${formatNumber(chunkLimit, locale)}`}
+              value={
+                chunkLimit
+                  ? `${formatNumber(context.totalChunks, locale)} / ${formatNumber(chunkLimit, locale)}`
+                  : `${formatNumber(context.totalChunks, locale)} / ${t("unlimited")}`
+              }
             />
+            {chunkLimit ? (
             <div className="h-1 overflow-hidden rounded-full bg-white/8">
               <div
                 className="h-full rounded-full bg-white/55"
                 style={{
-                  width: `${Math.max(chunkPercent, context.totalChunks > 0 ? 4 : 0)}%`,
+                  width: `${Math.max(chunkPercent ?? 0, context.totalChunks > 0 ? 4 : 0)}%`,
                 }}
               />
             </div>
+            ) : null}
           </div>
           <SummaryRow
             label={t("created")}

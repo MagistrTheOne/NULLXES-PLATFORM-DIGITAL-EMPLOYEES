@@ -11,6 +11,7 @@ export type BillingPlanDefinition = {
     maxEmployees: number | null;
     maxOrganizations: number | null;
     maxSessionSeconds: number | null;
+    maxKnowledgeChunks: number | null;
     allowCustomAvatars: boolean;
   };
   features: string[];
@@ -28,6 +29,7 @@ export const BILLING_PLANS: Record<BillingPlanId, BillingPlanDefinition> = {
       maxEmployees: 1,
       maxOrganizations: 1,
       maxSessionSeconds: 120,
+      maxKnowledgeChunks: 5_000,
       allowCustomAvatars: false,
     },
     features: [
@@ -48,6 +50,7 @@ export const BILLING_PLANS: Record<BillingPlanId, BillingPlanDefinition> = {
       maxEmployees: null,
       maxOrganizations: 1,
       maxSessionSeconds: null,
+      maxKnowledgeChunks: 32_000,
       allowCustomAvatars: true,
     },
     features: [
@@ -69,6 +72,7 @@ export const BILLING_PLANS: Record<BillingPlanId, BillingPlanDefinition> = {
       maxEmployees: null,
       maxOrganizations: null,
       maxSessionSeconds: null,
+      maxKnowledgeChunks: 100_000,
       allowCustomAvatars: true,
     },
     features: [
@@ -89,6 +93,7 @@ export const BILLING_PLANS: Record<BillingPlanId, BillingPlanDefinition> = {
       maxEmployees: null,
       maxOrganizations: null,
       maxSessionSeconds: null,
+      maxKnowledgeChunks: null,
       allowCustomAvatars: true,
     },
     features: [

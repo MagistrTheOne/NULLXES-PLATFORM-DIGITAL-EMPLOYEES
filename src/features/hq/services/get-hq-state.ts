@@ -1,4 +1,4 @@
-import { getDefaultAnalyticsRange } from "@/features/analytics/lib/date-range";
+import { getOrganizationAnalyticsRange } from "@/features/analytics/lib/get-organization-analytics-range";
 import { getEmployeeSessionSummaries } from "@/features/overview/queries/get-employee-session-summaries";
 import { getLiveSessions } from "@/features/overview/queries/get-live-sessions";
 import { listOrganizationEmployees } from "@/features/employees/services/list-organization-employees";
@@ -32,7 +32,7 @@ import type {
  */
 export async function getHqState(organizationId: string): Promise<HqState> {
   return withDatabaseRetry(async () => {
-    const range = getDefaultAnalyticsRange();
+    const range = await getOrganizationAnalyticsRange(organizationId);
     const [
       employees,
       summaries,

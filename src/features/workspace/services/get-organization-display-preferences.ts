@@ -17,6 +17,7 @@ export async function getOrganizationDisplayPreferences(
       dateFormat: settings.dateFormat,
       timeFormat: settings.timeFormat,
       language: settings.language,
+      compactMode: settings.compactMode,
     };
   } catch (error: unknown) {
     if (

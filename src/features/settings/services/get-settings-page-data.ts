@@ -1,7 +1,7 @@
 import { count, eq } from "drizzle-orm";
 import { ensureOrganizationSettings } from "@/entities/organization-settings";
 import { membership } from "@/entities/membership/schema";
-import { getDefaultAnalyticsRange } from "@/features/analytics/lib/date-range";
+import { getOrganizationAnalyticsRange } from "@/features/analytics/lib/get-organization-analytics-range";
 import { getWorkspaceAnalytics } from "@/features/analytics/queries/get-workspace-analytics";
 import { getActiveSessionCount } from "@/features/overview/queries/get-active-session-count";
 import { getWorkspaceIntegrations } from "@/features/integrations/queries/get-workspace-integrations";
@@ -58,8 +58,8 @@ export async function getSettingsPageData(
   workspace: WorkspaceContext,
 ): Promise<SettingsPageData> {
   return withDatabaseRetry(async () => {
-    const range = getDefaultAnalyticsRange();
     const organizationId = workspace.organization.id;
+    const range = await getOrganizationAnalyticsRange(organizationId);
 
     const [
       settings,

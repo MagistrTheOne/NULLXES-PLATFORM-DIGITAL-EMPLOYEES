@@ -19,13 +19,20 @@ export async function runRetentionPurgeForOrganization(
   const [settings] = await db
     .select({
       retentionPolicyDays: organizationSettings.retentionPolicyDays,
+      sessionRetentionDays: organizationSettings.sessionRetentionDays,
     })
     .from(organizationSettings)
     .where(eq(organizationSettings.organizationId, organizationId))
     .limit(1);
 
-  const retentionDays = settings?.retentionPolicyDays ?? 90;
-  const cutoff = new Date(Date.now() - retentionDays * 24 * 60 * 60 * 1000);
+  const retentionPolicyDays = settings?.retentionPolicyDays ?? 90;
+  const sessionRetentionDays = settings?.sessionRetentionDays ?? retentionPolicyDays;
+  const sessionCutoff = new Date(
+    Date.now() - sessionRetentionDays * 24 * 60 * 60 * 1000,
+  );
+  const streamCutoff = new Date(
+    Date.now() - retentionPolicyDays * 24 * 60 * 60 * 1000,
+  );
 
   const employeeRows = await db
     .select({ id: digitalEmployee.id })
@@ -39,7 +46,7 @@ export async function runRetentionPurgeForOrganization(
   if (employeeIds.length > 0) {
     const streamPurge = await purgeStreamChannelsForRetention({
       employeeIds,
-      cutoff,
+      cutoff: streamCutoff,
     });
     purgedStreamChannels = streamPurge.purgedChannels;
 
@@ -48,7 +55,7 @@ export async function runRetentionPurgeForOrganization(
       .where(
         and(
           inArray(employeeSession.employeeId, employeeIds),
-          lt(employeeSession.createdAt, cutoff),
+          lt(employeeSession.createdAt, sessionCutoff),
         ),
       )
       .returning({ id: employeeSession.id });
@@ -72,8 +79,10 @@ export async function runRetentionPurgeForOrganization(
     metadata: {
       purgedSessions,
       purgedStreamChannels,
-      retentionPolicyDays: retentionDays,
-      cutoff: cutoff.toISOString(),
+      retentionPolicyDays,
+      sessionRetentionDays,
+      sessionCutoff: sessionCutoff.toISOString(),
+      streamCutoff: streamCutoff.toISOString(),
     },
   });
 

@@ -10,6 +10,9 @@ export const PLATFORM_MAX_WIDTH = {
 export const platformPagePaddingClass =
   "gap-4 p-4 sm:gap-5 sm:p-5 md:gap-6 md:p-6 2xl:px-8";
 
+export const platformCompactPagePaddingClass =
+  "gap-3 p-3 sm:gap-4 sm:p-4 md:gap-4 md:p-5 2xl:px-6";
+
 /** Break out of a centered max-width parent (e.g. talk workspace). */
 export const platformFullBleedClass =
   "relative left-1/2 w-screen max-w-none -translate-x-1/2 px-4 sm:px-5 md:px-6 2xl:px-8";
@@ -24,12 +27,13 @@ export const platformEmployeeGridClass =
 
 export function platformPageShellClass(options?: {
   width?: keyof typeof PLATFORM_MAX_WIDTH;
+  compact?: boolean;
   className?: string;
 }): string {
   const width = options?.width ?? "wide";
   return cn(
     "mx-auto flex w-full min-w-0 flex-1 flex-col",
-    platformPagePaddingClass,
+    options?.compact ? platformCompactPagePaddingClass : platformPagePaddingClass,
     PLATFORM_MAX_WIDTH[width],
     options?.className,
   );

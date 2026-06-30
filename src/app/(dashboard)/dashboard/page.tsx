@@ -1,5 +1,6 @@
 import { requireAuth } from "@/features/auth/services/require-auth";
 import { ensureWorkspace } from "@/features/auth/services/ensure-workspace";
+import { ensureOrganizationSettings } from "@/entities/organization-settings";
 import { parseAnalyticsDateRange } from "@/features/analytics/lib/date-range";
 import { getDashboardOverview, OverviewScreen } from "@/features/overview";
 
@@ -10,8 +11,12 @@ export default async function DashboardPage({
 }) {
   const session = await requireAuth();
   const workspace = await ensureWorkspace(session.user.id, session.user.name);
+  const settings = await ensureOrganizationSettings(workspace.organization.id);
   const resolvedSearchParams = await searchParams;
-  const range = parseAnalyticsDateRange(resolvedSearchParams);
+  const range = parseAnalyticsDateRange(
+    resolvedSearchParams,
+    settings.defaultTimeRangeDays,
+  );
   const data = await getDashboardOverview(workspace.organization.id, range);
 
   return <OverviewScreen data={data} />;

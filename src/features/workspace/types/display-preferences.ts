@@ -2,6 +2,7 @@ export type OrganizationDisplayPreferences = {
   dateFormat: string;
   timeFormat: string;
   language: string;
+  compactMode: boolean;
 };
 
 export const DEFAULT_ORGANIZATION_DISPLAY_PREFERENCES: OrganizationDisplayPreferences =
@@ -9,4 +10,5 @@ export const DEFAULT_ORGANIZATION_DISPLAY_PREFERENCES: OrganizationDisplayPrefer
     dateFormat: "MMM d, yyyy",
     timeFormat: "24h",
     language: "en",
+    compactMode: false,
   };
