@@ -747,7 +747,26 @@
       "sessionsDescription": "Close stuck server-side talk sessions across the platform. Live browser streams must still be ended by the user.",
       "openSessions": "{count, plural, =0 {No open sessions} one {# open session} other {# open sessions}}",
       "stopSessions": "Stop all sessions",
-      "sessionsStopped": "Closed {count} session(s)."
+      "sessionsStopped": "Closed {count} session(s).",
+      "deleteOrgTitle": "Delete workspace",
+      "deleteOrgDescription": "Permanently delete all organization data. Requires two-factor authentication when enabled.",
+      "deleteOrgButton": "Delete workspace",
+      "deleteOrgDialogTitle": "Delete this workspace?",
+      "deleteOrgDialogDescription": "This permanently deletes \"{name}\" and all associated data. This action cannot be undone.",
+      "deleteOrgCancel": "Cancel",
+      "deleteOrgConfirm": "Delete workspace"
+    },
+    "personalData": {
+      "title": "My personal data",
+      "description": "Export or delete your account data (152-FZ subject rights, Art. 14)",
+      "export": "Export my data",
+      "exported": "Personal data export downloaded.",
+      "deleteAccount": "Delete my account",
+      "deleteAccountTitle": "Delete your account?",
+      "deleteAccountDescription": "This permanently deletes your profile, sessions, and consent records. Type DELETE to confirm.",
+      "deleteAccountConfirmPlaceholder": "Type DELETE",
+      "deleteAccountConfirm": "Delete account",
+      "cancel": "Cancel"
     },
     "billing": {
       "currentPlan": "Current Plan",

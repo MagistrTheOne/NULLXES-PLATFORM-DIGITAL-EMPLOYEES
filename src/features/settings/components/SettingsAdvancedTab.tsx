@@ -3,7 +3,20 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { deleteOrganizationDataAction } from "@/features/security/actions/delete-organization-data";
 import { closeOpenSessionsAction } from "../actions/close-open-sessions";
 import { exportWorkspaceDataAction } from "../actions/export-workspace-data";
 import { requestExportJobAction } from "../actions/request-export-job";
@@ -12,11 +25,13 @@ import { SettingsCard } from "./settings-card";
 
 export function SettingsAdvancedTab({
   settings,
+  organizationName,
   canManageOrganization,
   isPlatformAdmin,
   openSessionCount,
 }: {
   settings: OrganizationSettingsDto;
+  organizationName: string;
   canManageOrganization: boolean;
   isPlatformAdmin: boolean;
   openSessionCount: number;
@@ -24,7 +39,9 @@ export function SettingsAdvancedTab({
   const t = useTranslations("settings.advanced");
   const router = useRouter();
   const [message, setMessage] = useState<string | null>(null);
+  const [orgMessage, setOrgMessage] = useState<string | null>(null);
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
+  const [deleteOrgConfirm, setDeleteOrgConfirm] = useState("");
   const [isPending, startTransition] = useTransition();
 
   function handleAsyncExport(): void {
@@ -72,6 +89,19 @@ export function SettingsAdvancedTab({
       if (result.ok) {
         router.refresh();
       }
+    });
+  }
+
+  function handleDeleteOrganization(): void {
+    startTransition(async () => {
+      const result = await deleteOrganizationDataAction();
+      if (!result.ok) {
+        setOrgMessage(result.message);
+        return;
+      }
+
+      router.push("/login");
+      router.refresh();
     });
   }
 
@@ -144,6 +174,52 @@ export function SettingsAdvancedTab({
           </p>
         </div>
       </SettingsCard>
+
+      {canManageOrganization ? (
+        <SettingsCard
+          title={t("deleteOrgTitle")}
+          description={t("deleteOrgDescription")}
+        >
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button type="button" variant="outline" disabled={isPending}>
+                {t("deleteOrgButton")}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>{t("deleteOrgDialogTitle")}</AlertDialogTitle>
+                <AlertDialogDescription>
+                  {t("deleteOrgDialogDescription", { name: organizationName })}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <Input
+                value={deleteOrgConfirm}
+                onChange={(event) => setDeleteOrgConfirm(event.target.value)}
+                placeholder={organizationName}
+                className="mt-2"
+              />
+              <AlertDialogFooter>
+                <AlertDialogCancel onClick={() => setDeleteOrgConfirm("")}>
+                  {t("deleteOrgCancel")}
+                </AlertDialogCancel>
+                <AlertDialogAction
+                  disabled={
+                    deleteOrgConfirm.trim() !== organizationName.trim() ||
+                    isPending
+                  }
+                  onClick={handleDeleteOrganization}
+                >
+                  {t("deleteOrgConfirm")}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+          {orgMessage ? (
+            <p className="mt-3 text-sm text-muted-foreground">{orgMessage}</p>
+          ) : null}
+        </SettingsCard>
+      ) : null}
     </div>
   );
 }

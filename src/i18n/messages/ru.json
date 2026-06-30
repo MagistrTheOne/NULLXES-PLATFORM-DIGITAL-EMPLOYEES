@@ -747,7 +747,26 @@
       "sessionsDescription": "Закрыть зависшие серверные talk-сессии на всей платформе. Активные потоки в браузере пользователь должен завершить сам.",
       "openSessions": "{count, plural, =0 {Нет открытых сессий} one {# открытая сессия} few {# открытые сессии} many {# открытых сессий} other {# открытых сессий}}",
       "stopSessions": "Остановить все сессии",
-      "sessionsStopped": "Закрыто сессий: {count}."
+      "sessionsStopped": "Закрыто сессий: {count}.",
+      "deleteOrgTitle": "Удаление workspace",
+      "deleteOrgDescription": "Безвозвратное удаление всех данных организации. При включённой 2FA потребуется подтверждение.",
+      "deleteOrgButton": "Удалить workspace",
+      "deleteOrgDialogTitle": "Удалить это workspace?",
+      "deleteOrgDialogDescription": "Будут безвозвратно удалены «{name}» и все связанные данные. Отменить нельзя.",
+      "deleteOrgCancel": "Отмена",
+      "deleteOrgConfirm": "Удалить workspace"
+    },
+    "personalData": {
+      "title": "Мои персональные данные",
+      "description": "Экспорт или удаление данных аккаунта (права субъекта ПДн, ст. 14 152-ФЗ)",
+      "export": "Экспортировать мои данные",
+      "exported": "Экспорт персональных данных загружен.",
+      "deleteAccount": "Удалить мой аккаунт",
+      "deleteAccountTitle": "Удалить аккаунт?",
+      "deleteAccountDescription": "Безвозвратно удаляются профиль, сессии и записи согласий. Введите DELETE для подтверждения.",
+      "deleteAccountConfirmPlaceholder": "Введите DELETE",
+      "deleteAccountConfirm": "Удалить аккаунт",
+      "cancel": "Отмена"
     },
     "billing": {
       "currentPlan": "Текущий план",

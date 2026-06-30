@@ -31,6 +31,7 @@ import {
 } from "../lib/options";
 import type { OrganizationProfileDto, OrganizationSettingsDto } from "../types";
 import { SettingsCard } from "./settings-card";
+import { SettingsPersonalDataCard } from "./SettingsPersonalDataCard";
 
 function Field({
   label,
@@ -447,6 +448,8 @@ export function SettingsGeneralTab({
           </div>
         </SettingsCard>
         ) : null}
+
+        <SettingsPersonalDataCard />
       </div>
     </div>
   );

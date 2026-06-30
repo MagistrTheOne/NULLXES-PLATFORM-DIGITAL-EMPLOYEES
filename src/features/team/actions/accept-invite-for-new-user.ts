@@ -6,7 +6,9 @@ export async function acceptInviteForNewUserAction(input: {
   token: string;
   userId: string;
   email: string;
-}): Promise<{ ok: true } | { ok: false; message: string }> {
+}): Promise<
+  { ok: true; organizationId: string } | { ok: false; message: string }
+> {
   const result = await acceptOrganizationInvite({
     token: input.token,
     userId: input.userId,
@@ -17,5 +19,5 @@ export async function acceptInviteForNewUserAction(input: {
     return result;
   }
 
-  return { ok: true };
+  return { ok: true, organizationId: result.organizationId };
 }

@@ -7,7 +7,7 @@ import { ensureOrganizationSettings } from "@/entities/organization-settings";
 export async function provisionDefaultWorkspace(
   userId: string,
   displayName: string,
-): Promise<void> {
+): Promise<{ organizationId: string }> {
   const slugBase = displayName
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
@@ -28,4 +28,6 @@ export async function provisionDefaultWorkspace(
   });
 
   await ensureOrganizationSettings(org.id);
+
+  return { organizationId: org.id };
 }

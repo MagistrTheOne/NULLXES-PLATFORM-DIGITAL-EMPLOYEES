@@ -3,6 +3,7 @@
 import { assertAvatarStudioSelection } from "@/features/billing/services/assert-avatar-studio-selection";
 import { resolveBillingPlanId } from "@/features/billing/lib/resolve-billing-plan";
 import { requireWorkspacePermissionOrThrowMessage } from "@/features/workspace";
+import { checkForeignDataProcessingAllowed } from "@/features/privacy/services/assert-foreign-data-processing";
 import { createAnamAvatarFromFile } from "@/features/employees/studio/anam-create-avatar-from-file";
 import { resolveStudioAvatarPreset } from "@/features/employees/studio/avatar/list-studio-avatar-presets";
 import { resolveAnamPersonaVoiceId } from "@/features/employees/studio/resolve-anam-persona-voice";
@@ -103,6 +104,14 @@ export async function finalizeEmployeeStudio(
     return { status: "failed", message: "ANAM_API_KEY is not configured" };
   }
 
+  const anamRegionCheck = await checkForeignDataProcessingAllowed(
+    workspace.organization.id,
+    "anam",
+  );
+  if (!anamRegionCheck.allowed) {
+    return { status: "failed", message: anamRegionCheck.message };
+  }
+
   const billingPlan = resolveBillingPlanId(workspace.organization.billingPlan);
   const file = formData.get("file");
   const presetAvatarId = String(formData.get("presetAvatarId") ?? "").trim();
@@ -138,6 +147,16 @@ export async function finalizeEmployeeStudio(
 
   if (!selectionCheck.ok) {
     return { status: "failed", message: selectionCheck.message };
+  }
+
+  if (selectedVoice.provider === "ElevenLabs") {
+    const elevenLabsCheck = await checkForeignDataProcessingAllowed(
+      workspace.organization.id,
+      "elevenlabs",
+    );
+    if (!elevenLabsCheck.allowed) {
+      return { status: "failed", message: elevenLabsCheck.message };
+    }
   }
 
   try {

@@ -3,6 +3,7 @@ import type { TalkPipelineMessage } from "@/features/runtime-session/actions/tal
 import { assertBrainStreamRateLimit } from "@/features/runtime-session/lib/brain-stream-rate-limit";
 import { resolveTalkBrainTools } from "@/features/runtime-session/lib/resolve-talk-brain-tools";
 import { buildTalkBrainRequest } from "@/features/runtime-session/services/build-talk-brain-request";
+import { checkForeignDataProcessingAllowed } from "@/features/privacy/services/assert-foreign-data-processing";
 import { resolveTalkBrainAuth } from "@/features/runtime-session/services/resolve-talk-brain-auth";
 import { streamTalkBrainResponse } from "@/features/runtime-session/services/stream-talk-brain-response";
 import { logServerEvent } from "@/shared/lib/server-log";
@@ -52,6 +53,14 @@ export async function POST(request: Request): Promise<Response> {
       { error: authResult.error },
       { status: authResult.status },
     );
+  }
+
+  const regionCheck = await checkForeignDataProcessingAllowed(
+    authResult.auth.organizationId,
+    "openai",
+  );
+  if (!regionCheck.allowed) {
+    return NextResponse.json({ error: regionCheck.message }, { status: 403 });
   }
 
   const rateLimit = assertBrainStreamRateLimit({

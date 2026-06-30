@@ -1,5 +1,6 @@
 import { StreamChat } from "stream-chat";
 import type { SessionProviderConfigPayload } from "@/entities/provider-config";
+import { assertForeignDataProcessingAllowed } from "@/features/privacy/services/assert-foreign-data-processing";
 import { mergeProviderConfig } from "@/features/provider-provisioning/services/update-provider-config";
 import {
   getPublicStreamApiKey,
@@ -58,6 +59,8 @@ export async function createTalkChatSession(
   if (!employee?.canTalk) {
     return null;
   }
+
+  await assertForeignDataProcessingAllowed(organizationId, "stream");
 
   const threadId = options?.threadId ?? null;
 
