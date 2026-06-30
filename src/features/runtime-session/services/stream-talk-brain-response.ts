@@ -122,7 +122,10 @@ async function* runToolLoopStream(input: {
     });
 
     if (!response.ok) {
-      throw new Error(`Brain tool loop failed with status ${response.status}`);
+      const detail = await readBrainError(response);
+      throw new Error(
+        `Brain tool loop failed with status ${response.status}: ${detail}`,
+      );
     }
 
     const payload = (await response.json()) as {
@@ -224,7 +227,10 @@ export async function* streamTalkBrainResponse(input: {
   });
 
   if (!response.ok || !response.body) {
-    throw new Error(`Brain stream failed with status ${response.status}`);
+    const detail = await readBrainError(response);
+    throw new Error(
+      `Brain stream failed with status ${response.status}: ${detail}`,
+    );
   }
 
   const reader = response.body.getReader();
@@ -294,9 +300,80 @@ export async function* streamTalkBrainResponse(input: {
   }
 }
 
+async function readBrainError(response: Response): Promise<string> {
+  try {
+    const text = await response.text();
+    return text.slice(0, 500);
+  } catch {
+    return response.statusText;
+  }
+}
+
+async function collectStructuredTalkBrainResponse(input: {
+  brainProvider: BrainProvider;
+  model: string;
+  systemPrompt: string;
+  messages: TalkBrainMessage[];
+  temperature?: number;
+  maxTokens?: number;
+  responseFormat?: { type: "json_object" };
+}): Promise<string> {
+  const api = await resolveBrainApiConfig({
+    provider: input.brainProvider,
+    configuredModel: input.model,
+  });
+
+  const conversation: OpenAiChatMessage[] = [
+    { role: "system", content: input.systemPrompt },
+    ...input.messages.map(
+      (message): OpenAiChatMessage => ({
+        role: message.role,
+        content: message.content,
+      }),
+    ),
+  ];
+
+  // vLLM / NULLXES brain often rejects response_format; prompt + JSON parser handle output.
+  const responseFormat =
+    input.responseFormat && api.provider !== "nullxes"
+      ? input.responseFormat
+      : undefined;
+
+  const response = await callBrainChat({
+    api,
+    messages: conversation,
+    temperature: input.temperature,
+    maxTokens: input.maxTokens,
+    stream: false,
+    responseFormat,
+  });
+
+  if (!response.ok) {
+    const detail = await readBrainError(response);
+    throw new Error(
+      `Brain request failed with status ${response.status}: ${detail}`,
+    );
+  }
+
+  const payload = (await response.json()) as {
+    choices?: Array<{ message?: OpenAiCompletionMessage }>;
+  };
+  const content = payload.choices?.[0]?.message?.content?.trim() ?? "";
+
+  if (!content) {
+    throw new Error("Brain returned an empty response");
+  }
+
+  return content;
+}
+
 export async function collectTalkBrainResponse(
   input: Parameters<typeof streamTalkBrainResponse>[0],
 ): Promise<string> {
+  if (input.responseFormat) {
+    return collectStructuredTalkBrainResponse(input);
+  }
+
   let reply = "";
 
   for await (const event of streamTalkBrainResponse(input)) {
