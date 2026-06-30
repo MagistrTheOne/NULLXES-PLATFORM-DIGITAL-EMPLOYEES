@@ -5,6 +5,7 @@ import {
   getMissionDetail,
   MissionDetailScreen,
 } from "@/features/missions";
+import { getPendingMissionApproval } from "@/features/missions/queries/get-pending-mission-approval";
 import { hasWorkspaceAccess } from "@/features/workspace";
 
 export default async function MissionDetailPage({
@@ -20,11 +21,20 @@ export default async function MissionDetailPage({
     redirect("/dashboard");
   }
 
-  const mission = await getMissionDetail(workspace.organization.id, id);
+  const [mission, pendingApproval] = await Promise.all([
+    getMissionDetail(workspace.organization.id, id),
+    getPendingMissionApproval(workspace.organization.id, id),
+  ]);
 
   if (!mission) {
     notFound();
   }
 
-  return <MissionDetailScreen mission={mission} />;
+  return (
+    <MissionDetailScreen
+      mission={mission}
+      pendingApproval={pendingApproval}
+      canManageOrganization={workspace.permissions.canManageOrganization}
+    />
+  );
 }

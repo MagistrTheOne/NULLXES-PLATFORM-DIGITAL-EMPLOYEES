@@ -1,10 +1,13 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { and, eq } from "drizzle-orm";
 import { agentApprovalRequest } from "@/entities/agent-approval/schema";
 import { employeeMission } from "@/entities/employee-mission";
 import { employeeTask } from "@/entities/task/schema";
 import { inngest, isInngestEnabledForSend } from "@/inngest/client";
+import { appendMissionTimelineStep } from "@/features/missions/lib/append-mission-timeline-step";
+import { executeMissionOutbound } from "@/features/missions/services/execute-mission-outbound";
 import { recordWorkEvent } from "@/features/work-event";
 import { requireWorkspacePermissionOrThrowMessage } from "@/features/workspace";
 import { db } from "@/shared/db/client";
@@ -81,18 +84,67 @@ export async function resolveApprovalAction(input: {
         : null;
 
     if (missionId && approval.actionType === "mission_proposals") {
-      await db
-        .update(employeeMission)
-        .set({
-          status: input.decision === "approved" ? "completed" : "cancelled",
-          completedAt: new Date(),
-        })
-        .where(
-          and(
-            eq(employeeMission.id, missionId),
-            eq(employeeMission.organizationId, workspace.organization.id),
-          ),
-        );
+      if (input.decision === "approved") {
+        const [missionRow] = await db
+          .select({
+            timeline: employeeMission.timeline,
+          })
+          .from(employeeMission)
+          .where(
+            and(
+              eq(employeeMission.id, missionId),
+              eq(employeeMission.organizationId, workspace.organization.id),
+            ),
+          )
+          .limit(1);
+
+        await db
+          .update(employeeMission)
+          .set({
+            status: "working",
+            timeline: appendMissionTimelineStep(missionRow?.timeline ?? [], {
+              key: "outbound_queued",
+              label: "Proposal approval received · sending outbound",
+            }),
+          })
+          .where(
+            and(
+              eq(employeeMission.id, missionId),
+              eq(employeeMission.organizationId, workspace.organization.id),
+            ),
+          );
+
+        if (isInngestEnabledForSend()) {
+          await inngest.send({
+            name: "employee/mission.outbound.send",
+            data: {
+              missionId,
+              organizationId: workspace.organization.id,
+            },
+          });
+        } else {
+          await executeMissionOutbound({
+            missionId,
+            organizationId: workspace.organization.id,
+          });
+        }
+      } else {
+        await db
+          .update(employeeMission)
+          .set({
+            status: "cancelled",
+            completedAt: new Date(),
+          })
+          .where(
+            and(
+              eq(employeeMission.id, missionId),
+              eq(employeeMission.organizationId, workspace.organization.id),
+            ),
+          );
+      }
+
+      revalidatePath("/dashboard/missions");
+      revalidatePath(`/dashboard/missions/${missionId}`);
     }
 
     return { ok: true };

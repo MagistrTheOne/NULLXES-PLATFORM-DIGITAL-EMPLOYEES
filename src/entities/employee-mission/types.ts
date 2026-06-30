@@ -10,7 +10,10 @@ export type MissionLeadItem = {
   whyFit: string;
   budgetSignal?: string;
   contactHypothesis?: string;
+  contactEmail?: string;
   proposalDraft: string;
+  sentAt?: string;
+  sendError?: string;
 };
 
 export type MissionTimelineStep = {

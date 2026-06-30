@@ -107,6 +107,9 @@ export function parseMissionLeadsFromModelOutput(raw: string): MissionLeadItem[]
         contactHypothesis: lead.contactHypothesis
           ? String(lead.contactHypothesis).trim()
           : undefined,
+        contactEmail: lead.contactEmail
+          ? String(lead.contactEmail).trim()
+          : undefined,
         proposalDraft: String(lead.proposalDraft ?? "").trim(),
       }))
       .filter((lead) => lead.companyName && lead.whyFit && lead.proposalDraft)
