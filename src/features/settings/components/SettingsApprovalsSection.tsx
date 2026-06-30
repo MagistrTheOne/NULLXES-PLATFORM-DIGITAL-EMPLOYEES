@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
@@ -17,11 +18,13 @@ export function SettingsApprovalsSection({
 }) {
   const t = useTranslations("settings.approvals");
   const locale = useLocale();
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
   function handleResolve(approvalId: string, decision: "approved" | "rejected") {
     startTransition(async () => {
       await resolveApprovalAction({ approvalId, decision });
+      router.refresh();
     });
   }
 

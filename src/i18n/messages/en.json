@@ -799,8 +799,13 @@
       "notEnabled": "Not enabled",
       "activeSessions": "Active Sessions",
       "devices": "{count} device(s)",
-      "sessionTimeout": "Session Timeout",
-      "sessionTimeoutValue": "30 minutes",
+      "sessions": {
+        "current": "this device",
+        "revoke": "Revoke",
+        "revokeOthers": "Sign out other devices",
+        "revoked": "Session revoked.",
+        "revokedOthers": "Signed out {count} other device(s)."
+      },
       "enable2fa": "Enable 2FA (TOTP)",
       "apiAccess": "API Access",
       "apiKeys": "API Keys",
@@ -868,7 +873,14 @@
       "description": "Recent security and administrative events",
       "empty": "No audit events recorded yet.",
       "unknownResource": "resource",
-      "actor": "Actor role: {role}"
+      "actor": "Actor role: {role}",
+      "search": "Search actions",
+      "searchPlaceholder": "e.g. data.exported",
+      "from": "From",
+      "to": "To",
+      "applyFilters": "Apply filters",
+      "reset": "Reset",
+      "loadMore": "Load more ({shown} of {total})"
     },
     "integrations": {
       "title": "Connected Services",

@@ -41,8 +41,19 @@ export type ApiKeyListItem = {
   createdAt: Date;
 };
 
+export type AuthSessionListItem = {
+  id: string;
+  ipAddress: string | null;
+  userAgent: string | null;
+  createdAt: Date;
+  expiresAt: Date;
+  isCurrent: boolean;
+};
+
 export type SecuritySnapshot = {
   activeAuthSessions: number;
+  currentSessionId: string | null;
+  authSessions: AuthSessionListItem[];
   apiKeysConfigured: boolean;
   twoFactorEnabled: boolean;
   requireTwoFactorForAdmins: boolean;
@@ -130,6 +141,7 @@ export type SettingsPageData = {
   security: SecuritySnapshot;
   billing: BillingSnapshot;
   auditEvents: AuditEventListItem[];
+  auditTotal: number;
   pendingApprovals: PendingApprovalRow[];
   brainProviderReadiness: BrainProviderReadinessMap;
   providerKeyStatuses: ProviderKeyStatus[];

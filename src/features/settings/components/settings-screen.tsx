@@ -132,7 +132,10 @@ export function SettingsScreen({ data }: { data: SettingsPageData }) {
             </TabsContent>
 
             <TabsContent value="audit">
-              <SettingsAuditTab events={data.auditEvents} />
+              <SettingsAuditTab
+                initialEvents={data.auditEvents}
+                initialTotal={data.auditTotal}
+              />
             </TabsContent>
 
             <TabsContent value="ai">

@@ -799,8 +799,13 @@
       "notEnabled": "Не включена",
       "activeSessions": "Активные сессии",
       "devices": "{count} устройств",
-      "sessionTimeout": "Таймаут сессии",
-      "sessionTimeoutValue": "30 минут",
+      "sessions": {
+        "current": "это устройство",
+        "revoke": "Отозвать",
+        "revokeOthers": "Выйти на других устройствах",
+        "revoked": "Сессия отозвана.",
+        "revokedOthers": "Завершено сессий: {count}."
+      },
       "enable2fa": "Включить 2FA (TOTP)",
       "apiAccess": "Доступ к API",
       "apiKeys": "API-ключи",
@@ -868,7 +873,14 @@
       "description": "Недавние события безопасности и администрирования",
       "empty": "События аудита пока не записаны.",
       "unknownResource": "ресурс",
-      "actor": "Роль: {role}"
+      "actor": "Роль: {role}",
+      "search": "Поиск по действию",
+      "searchPlaceholder": "например data.exported",
+      "from": "С",
+      "to": "По",
+      "applyFilters": "Применить",
+      "reset": "Сбросить",
+      "loadMore": "Ещё ({shown} из {total})"
     },
     "integrations": {
       "title": "Подключённые сервисы",

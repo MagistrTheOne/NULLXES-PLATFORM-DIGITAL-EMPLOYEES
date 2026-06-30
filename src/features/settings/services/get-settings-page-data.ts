@@ -56,6 +56,7 @@ function toSettingsDto(
 
 export async function getSettingsPageData(
   workspace: WorkspaceContext,
+  options?: { currentSessionId?: string | null },
 ): Promise<SettingsPageData> {
   return withDatabaseRetry(async () => {
     const organizationId = workspace.organization.id;
@@ -69,7 +70,7 @@ export async function getSettingsPageData(
       teamMembers,
       pendingInvites,
       security,
-      auditEvents,
+      auditResult,
       pendingApprovals,
       providerKeyStatuses,
     ] = await Promise.all([
@@ -85,6 +86,7 @@ export async function getSettingsPageData(
       getSecuritySnapshot({
         userId: workspace.user.id,
         organizationId,
+        currentSessionId: options?.currentSessionId,
       }),
       listAuditEvents({ organizationId, limit: 50 }),
       listPendingApprovals(organizationId),
@@ -156,7 +158,7 @@ export async function getSettingsPageData(
         polarReady,
         superProCheckoutUrl,
       },
-      auditEvents: auditEvents.map((event) => ({
+      auditEvents: auditResult.events.map((event) => ({
         id: event.id,
         action: event.action,
         actorUserId: event.actorUserId,
@@ -165,6 +167,7 @@ export async function getSettingsPageData(
         resourceId: event.resourceId,
         createdAt: event.createdAt,
       })),
+      auditTotal: auditResult.total,
       pendingApprovals,
       brainProviderReadiness: getBrainProviderReadinessMap(),
       providerKeyStatuses,

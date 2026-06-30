@@ -1,22 +1,25 @@
-import { and, count, desc, eq, isNull } from "drizzle-orm";
+import { and, count, desc, eq, gt, isNull } from "drizzle-orm";
 import { apiKey } from "@/entities/api-key/schema";
 import { ensureOrganizationSettings } from "@/entities/organization-settings";
 import { user } from "@/entities/user/schema";
 import { session } from "@/features/auth/schema";
 import { countActiveApiKeys } from "@/features/security/services/api-key";
 import { db } from "@/shared/db/client";
+import { listActiveAuthSessionsForUser } from "./list-auth-sessions";
 import type { SecuritySnapshot } from "../types";
 
 export async function getSecuritySnapshot(input: {
   userId: string;
   organizationId: string;
+  currentSessionId?: string | null;
 }): Promise<SecuritySnapshot> {
-  const [sessionRow, userRow, apiKeyCount, orgSettings, apiKeys] =
+  const now = new Date();
+  const [sessionCountRow, userRow, apiKeyCount, orgSettings, apiKeys, authSessions] =
     await Promise.all([
       db
         .select({ total: count() })
         .from(session)
-        .where(eq(session.userId, input.userId)),
+        .where(and(eq(session.userId, input.userId), gt(session.expiresAt, now))),
       db
         .select({ twoFactorEnabled: user.twoFactorEnabled })
         .from(user)
@@ -42,10 +45,16 @@ export async function getSecuritySnapshot(input: {
           ),
         )
         .orderBy(desc(apiKey.createdAt)),
+      listActiveAuthSessionsForUser(input.userId),
     ]);
 
   return {
-    activeAuthSessions: Number(sessionRow[0]?.total ?? 0),
+    activeAuthSessions: Number(sessionCountRow[0]?.total ?? 0),
+    currentSessionId: input.currentSessionId ?? null,
+    authSessions: authSessions.map((row) => ({
+      ...row,
+      isCurrent: row.id === input.currentSessionId,
+    })),
     apiKeysConfigured: apiKeyCount > 0,
     twoFactorEnabled: userRow[0]?.twoFactorEnabled ?? false,
     requireTwoFactorForAdmins: orgSettings.requireTwoFactorForAdmins,

@@ -5,7 +5,9 @@ import { getSettingsPageData, SettingsScreen } from "@/features/settings";
 export default async function SettingsPage() {
   const session = await requireAuth();
   const workspace = await ensureWorkspace(session.user.id, session.user.name);
-  const data = await getSettingsPageData(workspace);
+  const data = await getSettingsPageData(workspace, {
+    currentSessionId: session.session.id,
+  });
 
   return <SettingsScreen data={data} />;
 }

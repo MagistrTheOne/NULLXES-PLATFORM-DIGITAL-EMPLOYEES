@@ -108,10 +108,12 @@ export async function buildOrganizationExportPayload(
     }
   }
 
-  const recentAuditEvents = await listAuditEvents({
-    organizationId,
-    limit: 50,
-  });
+  const recentAuditEvents = (
+    await listAuditEvents({
+      organizationId,
+      limit: 50,
+    })
+  ).events;
 
   return JSON.stringify(
     {

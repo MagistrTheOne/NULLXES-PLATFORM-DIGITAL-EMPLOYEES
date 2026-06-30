@@ -16,6 +16,7 @@ import { updateOutboundWebhookSettingsAction } from "@/features/security/actions
 import { updateSecuritySettingsAction } from "@/features/security/actions/update-security-settings";
 import type { PendingApprovalRow } from "@/features/agent-approval/queries/list-pending-approvals";
 import type { SecuritySnapshot } from "../types";
+import { SettingsActiveSessionsSection } from "./SettingsActiveSessionsSection";
 import { SettingsApprovalsSection } from "./SettingsApprovalsSection";
 import { SettingsCard } from "./settings-card";
 
@@ -211,7 +212,11 @@ export function SettingsSecurityTab({
             label={t("activeSessions")}
             value={t("devices", { count: security.activeAuthSessions })}
           />
-          <StatusRow label={t("sessionTimeout")} value={t("sessionTimeoutValue")} />
+
+          <SettingsActiveSessionsSection
+            sessions={security.authSessions}
+            currentSessionId={security.currentSessionId}
+          />
 
           {!security.twoFactorEnabled && !twoFactorSetup ? (
             <Button
