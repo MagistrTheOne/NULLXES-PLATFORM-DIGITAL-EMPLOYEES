@@ -6,29 +6,35 @@ import {
 
 export function resolveBillingPlanFromPolarProduct(
   productId: string | null | undefined,
+  productPlanMap?: Map<string, BillingPlanId>,
 ): BillingPlanId {
   if (!productId) {
-    return "super_pro";
+    return "free";
   }
 
-  const mappings: Array<[BillingPlanId, string | undefined]> = [
+  const mappedPlan = productPlanMap?.get(productId);
+  if (mappedPlan) {
+    return mappedPlan;
+  }
+
+  const envMappings: Array<[BillingPlanId, string | undefined]> = [
     ["super_pro", getPolarProductId("super_pro")],
     ["enterprise", getPolarProductId("enterprise")],
     ["government", getPolarProductId("government")],
     ["free", getPolarProductId("free")],
   ];
 
-  for (const [planId, envProductId] of mappings) {
+  for (const [planId, envProductId] of envMappings) {
     if (envProductId && envProductId === productId) {
       return planId;
     }
   }
 
-  const productName = productId.toLowerCase();
-  if (productName.includes("enterprise")) {
+  const normalized = productId.toLowerCase();
+  if (normalized.includes("enterprise")) {
     return "enterprise";
   }
-  if (productName.includes("government") || productName.includes("gov")) {
+  if (normalized.includes("government") || normalized.includes("gov")) {
     return "government";
   }
 

@@ -1,6 +1,7 @@
 import { ensureWorkspace } from "@/features/auth/services/ensure-workspace";
 import { isPlatformAdminEmail } from "@/features/admin";
 import { getUserBillingSnapshot } from "@/features/billing/services/get-user-billing-snapshot";
+import { syncOrganizationPolarBilling } from "@/features/billing/services/sync-organization-polar-billing";
 import { DashboardLayout } from "@/features/dashboard";
 import type {
   DashboardShellUser,
@@ -18,6 +19,7 @@ export async function DashboardShell({
   children: React.ReactNode;
 }>) {
   const workspace = await ensureWorkspace(session.user.id, session.user.name);
+  const billingSync = await syncOrganizationPolarBilling(workspace.organization.id);
 
   const user: DashboardShellUser = {
     name: session.user.name,
@@ -33,7 +35,7 @@ export async function DashboardShell({
     organizationType: workspace.organization.type,
     billing: getUserBillingSnapshot({
       organizationId: workspace.organization.id,
-      billingPlan: workspace.organization.billingPlan,
+      billingPlan: billingSync.billingPlan,
       canManageOrganization: workspace.permissions.canManageOrganization,
       customerEmail: session.user.email,
     }),

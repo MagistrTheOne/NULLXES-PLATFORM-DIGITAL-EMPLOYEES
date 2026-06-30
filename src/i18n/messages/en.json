@@ -803,7 +803,13 @@
       "knowledgeSources": "Knowledge sources",
       "customerPortal": "Customer Portal",
       "customerPortalDesc": "Manage subscriptions, invoices, and payment methods in Polar.",
-      "openPortal": "Open Polar Customer Portal"
+      "openPortal": "Open Polar Customer Portal",
+      "manualPlan": "Assigned by NULLXES",
+      "polarSubscription": "Polar subscription",
+      "renewsOn": "Renews on {date}",
+      "cancelsOn": "Cancels on {date}",
+      "polarNotConfigured": "International checkout is unavailable until Polar is configured.",
+      "polarPricesLive": "Self-serve prices are loaded from Polar."
     },
     "security": {
       "authentication": "Authentication",

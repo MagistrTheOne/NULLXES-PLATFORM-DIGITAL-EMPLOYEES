@@ -8,6 +8,11 @@ import { cn } from "@/lib/utils";
 import { formatDurationSeconds } from "@/features/analytics/lib/format-duration";
 import { BILLING_PLANS } from "@/features/billing/config/plans";
 import {
+  getPolarCatalogPriceForTier,
+  resolveEffectiveBillingPlanId,
+} from "@/features/billing/services/get-organization-billing-snapshot";
+import { getBillingPlanDisplay } from "@/features/billing/services/sync-organization-polar-billing";
+import {
   getFlagshipPricingTier,
   getGridPricingTiers,
   resolvePricingTierIdForPlan,
@@ -24,6 +29,12 @@ import { SettingsCard } from "./settings-card";
 const SALES_CONTACT = "mailto:sales@nullxes.com";
 const FOUNDERS_CONTACT = "mailto:founders@nullxes.com";
 
+function formatRenewalDate(isoDate: string): string {
+  return new Intl.DateTimeFormat(undefined, {
+    dateStyle: "medium",
+  }).format(new Date(isoDate));
+}
+
 export function SettingsBillingTab({
   organization,
   usage,
@@ -36,11 +47,34 @@ export function SettingsBillingTab({
   billing: BillingSnapshot;
 }) {
   const t = useTranslations("settings.billing");
-  const planId = resolveBillingPlanId(organization.billingPlan);
+  const dbPlanId = resolveBillingPlanId(organization.billingPlan);
+  const planId = resolveEffectiveBillingPlanId({
+    dbPlanId,
+    subscription: billing.subscription,
+  });
   const activePlan = BILLING_PLANS[planId];
   const currentTierId = resolvePricingTierIdForPlan(planId);
   const polarReady = billing.polarReady;
-  const checkoutUrl = billing.superProCheckoutUrl;
+  const checkoutUrl = billing.checkoutUrl ?? billing.superProCheckoutUrl;
+  const superProPolarPrice = getPolarCatalogPriceForTier(
+    billing.polarCatalog,
+    "super_pro",
+  );
+
+  const polarCatalogProduct = billing.polarCatalog.find(
+    (product) => product.planId === planId,
+  );
+  const currentPlanDisplay = getBillingPlanDisplay({
+    planId,
+    polarProductName:
+      billing.subscription && polarCatalogProduct
+        ? polarCatalogProduct.name
+        : null,
+    polarPriceLabel:
+      billing.subscription?.priceLabel ??
+      polarCatalogProduct?.priceLabel ??
+      null,
+  });
 
   const gridTiers = getGridPricingTiers();
   const flagshipTier = getFlagshipPricingTier();
@@ -115,12 +149,43 @@ export function SettingsBillingTab({
       <SettingsCard title={t("currentPlan")} description={t("currentPlanDesc")}>
         <div className="space-y-4">
           <div className="rounded-xl border border-border bg-background/40 px-4 py-4">
-            <p className="text-2xl font-medium text-foreground">
-              {activePlan.name}
-            </p>
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="text-2xl font-medium text-foreground">
+                {currentPlanDisplay.name}
+              </p>
+              {billing.planSource === "manual" ? (
+                <span className="rounded-full border border-border px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                  {t("manualPlan")}
+                </span>
+              ) : null}
+              {billing.planSource === "polar" ? (
+                <span className="rounded-full border border-foreground/20 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-foreground/70">
+                  {t("polarSubscription")}
+                </span>
+              ) : null}
+            </div>
             <p className="mt-1 text-sm text-muted-foreground">
-              {activePlan.priceLabel} · {activePlan.description}
+              {currentPlanDisplay.priceLabel}
+              {billing.subscription?.priceNote
+                ? ` · ${billing.subscription.priceNote}`
+                : null}{" "}
+              · {currentPlanDisplay.description}
             </p>
+            {billing.subscription ? (
+              <p className="mt-2 text-xs text-muted-foreground">
+                {billing.subscription.cancelAtPeriodEnd
+                  ? t("cancelsOn", {
+                      date: formatRenewalDate(
+                        billing.subscription.currentPeriodEnd,
+                      ),
+                    })
+                  : t("renewsOn", {
+                      date: formatRenewalDate(
+                        billing.subscription.currentPeriodEnd,
+                      ),
+                    })}
+              </p>
+            ) : null}
           </div>
           <ul className="space-y-2 text-sm text-muted-foreground">
             {activePlan.features.map((feature) => (
@@ -131,9 +196,23 @@ export function SettingsBillingTab({
       </SettingsCard>
 
       <SettingsCard title={t("plans")} description={t("plansDesc")}>
+        {!polarReady ? (
+          <p className="mb-4 text-sm text-muted-foreground">
+            {t("polarNotConfigured")}
+          </p>
+        ) : billing.polarCatalog.length > 0 ? (
+          <p className="mb-4 text-sm text-muted-foreground">
+            {t("polarPricesLive")}
+          </p>
+        ) : null}
+
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {gridTiers.map((tier) => {
             const isCurrent = tier.id === currentTierId;
+            const polarPrice =
+              tier.id === "super_pro" ? superProPolarPrice : null;
+            const priceLabel = polarPrice?.priceLabel ?? tier.priceLabel;
+            const priceNote = polarPrice?.priceNote ?? tier.priceNote;
 
             return (
               <div
@@ -158,10 +237,10 @@ export function SettingsBillingTab({
 
                 <div className="mt-4">
                   <p className="text-2xl font-medium tracking-tight text-foreground">
-                    {tier.priceLabel}
+                    {priceLabel}
                   </p>
                   <p className="mt-1 text-[11px] uppercase tracking-wide text-muted-foreground">
-                    {tier.priceNote}
+                    {priceNote}
                   </p>
                 </div>
 
@@ -260,10 +339,10 @@ export function SettingsBillingTab({
         <Button
           type="button"
           variant="outline"
-          disabled={!canManageOrganization || !polarReady}
-          asChild={canManageOrganization && polarReady}
+          disabled={!billing.portalEnabled}
+          asChild={billing.portalEnabled}
         >
-          {canManageOrganization && polarReady ? (
+          {billing.portalEnabled ? (
             <Link href="/api/portal">{t("openPortal")}</Link>
           ) : (
             <span>{t("openPortal")}</span>

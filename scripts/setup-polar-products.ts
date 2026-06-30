@@ -16,24 +16,80 @@ const polar = new Polar({
   server,
 });
 
-async function listAllProducts(): Promise<
-  Array<{ id: string; name: string; isRecurring: boolean }>
-> {
-  const products: Array<{ id: string; name: string; isRecurring: boolean }> =
-    [];
+type ListedProduct = {
+  id: string;
+  name: string;
+  isRecurring: boolean;
+  metadata: Record<string, string>;
+};
 
-  const iterator = await polar.products.list({});
+async function listAllProducts(): Promise<ListedProduct[]> {
+  const products: ListedProduct[] = [];
+
+  const iterator = await polar.products.list({ limit: 100 });
   for await (const page of iterator) {
     for (const product of page.result.items) {
+      const metadata = Object.fromEntries(
+        Object.entries(product.metadata).map(([key, value]) => [
+          key,
+          String(value),
+        ]),
+      );
+
       products.push({
         id: product.id,
         name: product.name,
         isRecurring: product.isRecurring,
+        metadata,
       });
     }
   }
 
   return products;
+}
+
+function findProductByPlan(
+  products: ListedProduct[],
+  planId: string,
+): ListedProduct | undefined {
+  return (
+    products.find((product) => product.metadata.plan === planId) ??
+    products.find((product) => {
+      const name = product.name.toLowerCase();
+      if (planId === "super_pro") {
+        return name.includes("super pro");
+      }
+      if (planId === "enterprise") {
+        return name === "enterprise";
+      }
+      if (planId === "government") {
+        return name.includes("government") || name.includes("gov");
+      }
+      return false;
+    })
+  );
+}
+
+async function ensureProductMetadata(
+  product: ListedProduct,
+  planId: string,
+): Promise<void> {
+  if (product.metadata.plan === planId) {
+    return;
+  }
+
+  await polar.products.update({
+    id: product.id,
+    productUpdate: {
+      metadata: {
+        ...product.metadata,
+        plan: planId,
+        product: "nullxes_digital_employees",
+      },
+    },
+  });
+
+  console.log(`Updated metadata.plan=${planId} on ${product.name}`);
 }
 
 async function main(): Promise<void> {
@@ -46,24 +102,17 @@ async function main(): Promise<void> {
     console.log("No products found in this organization.");
   } else {
     for (const product of existing) {
+      const plan = product.metadata.plan ? ` plan=${product.metadata.plan}` : "";
       console.log(
-        `- ${product.name} (${product.id})${product.isRecurring ? " [recurring]" : ""}`,
+        `- ${product.name} (${product.id})${product.isRecurring ? " [recurring]" : ""}${plan}`,
       );
     }
   }
 
   const superProName = "NULLXES Super Pro";
-  const hasSuperPro = existing.some(
-    (product) =>
-      product.name === superProName ||
-      product.name.toLowerCase().includes("super pro"),
-  );
+  let superPro = findProductByPlan(existing, "super_pro");
 
-  let superProId: string | undefined = existing.find(
-    (product) => product.name === superProName,
-  )?.id;
-
-  if (!hasSuperPro) {
+  if (!superPro) {
     console.log(`\nCreating "${superProName}" ($950/mo)…`);
     const created = await polar.products.create({
       name: superProName,
@@ -81,24 +130,31 @@ async function main(): Promise<void> {
         product: "nullxes_digital_employees",
       },
     });
-    superProId = created.id;
+    superPro = {
+      id: created.id,
+      name: created.name,
+      isRecurring: created.isRecurring,
+      metadata: { plan: "super_pro", product: "nullxes_digital_employees" },
+    };
     console.log(`Created Super Pro product: ${created.id}`);
-  } else if (superProId) {
-    console.log(`\nSuper Pro product already exists: ${superProId}`);
   } else {
-    const match = existing.find((product) =>
-      product.name.toLowerCase().includes("super pro"),
-    );
-    superProId = match?.id;
-    console.log(`\nUsing existing Super Pro-like product: ${superProId}`);
+    console.log(`\nSuper Pro product: ${superPro.id}`);
+    await ensureProductMetadata(superPro, "super_pro");
   }
 
-  console.log("\nAdd these to .env:\n");
-  if (superProId) {
-    console.log(`POLAR_PRODUCT_SUPER_PRO_ID=${superProId}`);
+  const enterprise = findProductByPlan(existing, "enterprise");
+  if (enterprise) {
+    console.log(`Enterprise product: ${enterprise.id}`);
+    await ensureProductMetadata(enterprise, "enterprise");
+  }
+
+  console.log("\nAdd these to .env / Vercel:\n");
+  console.log(`POLAR_PRODUCT_SUPER_PRO_ID=${superPro.id}`);
+  if (enterprise) {
+    console.log(`POLAR_PRODUCT_ENTERPRISE_ID=${enterprise.id}`);
   }
   console.log(
-    "# Free / Enterprise / Government are contact or in-app only — no checkout product required.",
+    "# Government stays sales-led unless you create a Polar product with metadata.plan=government",
   );
 }
 

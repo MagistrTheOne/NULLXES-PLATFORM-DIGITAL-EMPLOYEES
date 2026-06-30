@@ -20,10 +20,8 @@ import { getBrainProviderReadinessMap } from "@/features/brain/lib/brain-provide
 import { listOrganizationProviderKeyStatuses } from "@/features/provider-credentials";
 import { countOpenEmployeeSessions } from "@/features/runtime-session/services/close-open-employee-sessions";
 import type { BrainProviderReadinessMap } from "@/features/brain/lib/brain-provider-readiness";
-import { getPolarProductId } from "@/features/billing/config/plans";
-import { buildPolarCheckoutUrl } from "@/features/billing/lib/build-checkout-url";
-import { resolveBillingPlanId } from "@/features/billing/lib/resolve-billing-plan";
-import { isPolarConfigured } from "@/features/billing/services/polar-config";
+import { getOrganizationBillingSnapshot } from "@/features/billing/services/get-organization-billing-snapshot";
+import { syncOrganizationPolarBilling } from "@/features/billing/services/sync-organization-polar-billing";
 import type { OrganizationSettingsDto, SettingsPageData } from "../types";
 
 function toSettingsDto(
@@ -101,22 +99,16 @@ export async function getSettingsPageData(
       ? await countOpenEmployeeSessions()
       : 0;
 
-    const polarReady = isPolarConfigured();
-    const superProProductId = getPolarProductId("super_pro");
-    const billingPlanId = resolveBillingPlanId(
-      workspace.organization.billingPlan,
-    );
-    const superProCheckoutUrl =
-      billingPlanId === "free" &&
-      workspace.permissions.canManageOrganization &&
-      polarReady &&
-      superProProductId
-        ? buildPolarCheckoutUrl({
-            productId: superProProductId,
-            organizationId,
-            customerEmail: workspace.user.email ?? undefined,
-          })
-        : null;
+    const syncResult = await syncOrganizationPolarBilling(organizationId);
+    const billingPlan = syncResult.billingPlan;
+
+    const billing = await getOrganizationBillingSnapshot({
+      organizationId,
+      billingPlan,
+      polarCustomerId: syncResult.polarCustomerId,
+      canManageOrganization: workspace.permissions.canManageOrganization,
+      customerEmail: workspace.user.email ?? undefined,
+    });
 
     return {
       canManageOrganization: workspace.permissions.canManageOrganization,
@@ -129,7 +121,7 @@ export async function getSettingsPageData(
         id: workspace.organization.id,
         name: workspace.organization.name,
         type: workspace.organization.type,
-        billingPlan: workspace.organization.billingPlan,
+        billingPlan,
         createdAt: workspace.organization.createdAt,
       },
       settings: toSettingsDto(settings),
@@ -158,10 +150,7 @@ export async function getSettingsPageData(
       integrationOAuth: await getWorkspaceIntegrationOAuthState(organizationId),
       emailDeliveryConfigured: isEmailDeliveryConfigured(),
       security,
-      billing: {
-        polarReady,
-        superProCheckoutUrl,
-      },
+      billing,
       auditEvents: auditResult.events.map((event) => ({
         id: event.id,
         action: event.action,

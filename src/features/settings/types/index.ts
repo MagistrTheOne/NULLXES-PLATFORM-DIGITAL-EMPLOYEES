@@ -122,9 +122,20 @@ export type AuditEventListItem = {
   createdAt: Date;
 };
 
+import type {
+  BillingPlanSource,
+  PolarCatalogProduct,
+  PolarSubscriptionSnapshot,
+} from "@/features/billing/types/polar-catalog";
+
 export type BillingSnapshot = {
   polarReady: boolean;
+  polarCatalog: PolarCatalogProduct[];
+  subscription: PolarSubscriptionSnapshot | null;
+  planSource: BillingPlanSource;
+  checkoutUrl: string | null;
   superProCheckoutUrl: string | null;
+  portalEnabled: boolean;
 };
 
 export type SettingsPageData = {

@@ -803,7 +803,13 @@
       "knowledgeSources": "Источники знаний",
       "customerPortal": "Портал клиента",
       "customerPortalDesc": "Подписки, счета и способы оплаты в Polar.",
-      "openPortal": "Открыть Polar Customer Portal"
+      "openPortal": "Открыть Polar Customer Portal",
+      "manualPlan": "Назначен NULLXES",
+      "polarSubscription": "Подписка Polar",
+      "renewsOn": "Продление {date}",
+      "cancelsOn": "Отмена {date}",
+      "polarNotConfigured": "Международная оплата недоступна, пока Polar не настроен.",
+      "polarPricesLive": "Цены self-serve загружаются из Polar."
     },
     "security": {
       "authentication": "Аутентификация",

@@ -1,30 +1,11 @@
 import { Webhooks } from "@polar-sh/nextjs";
 import { eq } from "drizzle-orm";
 import { organization } from "@/entities/organization/schema";
-import { resolveBillingPlanFromPolarProduct } from "@/features/billing/lib/resolve-plan-from-polar-product";
+import { syncOrganizationBillingFromPolarEvent } from "@/features/billing/services/sync-organization-polar-billing";
 import { getPolarWebhookSecret } from "@/features/billing/services/polar-config";
 import { db } from "@/shared/db/client";
 
 const webhookSecret = getPolarWebhookSecret();
-
-async function syncOrganizationBilling(input: {
-  externalId: string;
-  customerId?: string | null;
-  productId?: string | null;
-  fallbackPlan?: "free";
-}): Promise<void> {
-  const billingPlan =
-    input.fallbackPlan ??
-    resolveBillingPlanFromPolarProduct(input.productId ?? undefined);
-
-  await db
-    .update(organization)
-    .set({
-      polarCustomerId: input.customerId ?? undefined,
-      billingPlan,
-    })
-    .where(eq(organization.id, input.externalId));
-}
 
 export const POST = webhookSecret
   ? Webhooks({
@@ -35,7 +16,7 @@ export const POST = webhookSecret
           return;
         }
 
-        await syncOrganizationBilling({
+        await syncOrganizationBillingFromPolarEvent({
           externalId,
           customerId: payload.data.customer?.id,
           productId: payload.data.productId,
@@ -47,7 +28,7 @@ export const POST = webhookSecret
           return;
         }
 
-        await syncOrganizationBilling({
+        await syncOrganizationBillingFromPolarEvent({
           externalId,
           customerId: payload.data.customer?.id,
           fallbackPlan: "free",
@@ -59,7 +40,7 @@ export const POST = webhookSecret
           return;
         }
 
-        await syncOrganizationBilling({
+        await syncOrganizationBillingFromPolarEvent({
           externalId,
           customerId: payload.data.customer?.id,
           productId: payload.data.productId,
