@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { acceptInviteForNewUserAction } from "@/features/team/actions/accept-invite-for-new-user";
 import type { OrganizationInvitePreview } from "@/features/team/services/lookup-organization-invite";
 import type { OAuthProviderId } from "../lib/oauth-providers";
@@ -34,12 +35,22 @@ export function RegisterForm({
   const [name, setName] = useState("");
   const [email, setEmail] = useState(invite?.email ?? "");
   const [password, setPassword] = useState("");
+  const [acceptedPersonalDataPolicy, setAcceptedPersonalDataPolicy] =
+    useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
+
+    if (!acceptedPersonalDataPolicy) {
+      setError(
+        "Please confirm consent to personal data processing before creating an account.",
+      );
+      return;
+    }
+
     setIsSubmitting(true);
 
     const { data, error: signUpError } = await authClient.signUp.email({
@@ -164,6 +175,31 @@ export function RegisterForm({
               className="border-white/10 bg-black/40 text-white"
             />
           </div>
+          <div className="flex items-start gap-3 rounded-lg border border-white/10 bg-black/30 p-3">
+            <Checkbox
+              id="personal-data-consent"
+              checked={acceptedPersonalDataPolicy}
+              onCheckedChange={(checked) =>
+                setAcceptedPersonalDataPolicy(checked === true)
+              }
+              className="mt-0.5 border-white/20 data-[state=checked]:border-white data-[state=checked]:bg-white data-[state=checked]:text-black"
+            />
+            <Label
+              htmlFor="personal-data-consent"
+              className="text-sm leading-relaxed font-normal text-white/70"
+            >
+              I agree to the processing of my personal data in accordance with
+              the{" "}
+              <Link
+                href="/docs/personal-data"
+                target="_blank"
+                className="text-white underline underline-offset-4"
+              >
+                NULLXES personal data policy (152-FZ)
+              </Link>
+              .
+            </Label>
+          </div>
           {error ? (
             <p className="text-sm text-white/80" role="alert">
               {error}
@@ -171,7 +207,7 @@ export function RegisterForm({
           ) : null}
           <Button
             type="submit"
-            disabled={isSubmitting}
+            disabled={isSubmitting || !acceptedPersonalDataPolicy}
             className="bg-white text-black hover:bg-white/90"
           >
             {isSubmitting ? "Creating account..." : "Create account"}

@@ -170,10 +170,7 @@ export function getStreamSecretKey(): string | undefined {
 
 /** Public Stream API key for the Video React SDK (safe to expose in the browser). */
 export function getPublicStreamApiKey(): string | undefined {
-  return (
-    readOptionalEnv("NEXT_PUBLIC_STREAM_API_KEY") ??
-    readOptionalEnv("STREAM_API_KEY")
-  );
+  return readOptionalEnv("NEXT_PUBLIC_STREAM_API_KEY");
 }
 
 /** Inngest — https://www.inngest.com/docs/platform/signing-keys */

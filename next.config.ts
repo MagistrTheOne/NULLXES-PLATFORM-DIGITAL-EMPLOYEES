@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
 import { resolveAppBaseUrl } from "./src/shared/config/env";
 import { loadEnvFiles } from "./src/shared/config/load-env-files";
+import { getSecurityHeaderEntries } from "./src/shared/security/security-header-values";
 
 loadEnvFiles();
 
@@ -23,6 +24,14 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   env: {
     NEXT_PUBLIC_BETTER_AUTH_URL: betterAuthUrl,
+  },
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: getSecurityHeaderEntries(),
+      },
+    ];
   },
   images: {
     remotePatterns: [

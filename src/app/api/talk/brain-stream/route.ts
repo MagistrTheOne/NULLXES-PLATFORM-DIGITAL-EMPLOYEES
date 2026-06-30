@@ -119,7 +119,11 @@ export async function POST(request: Request): Promise<Response> {
           "error",
         );
         controller.enqueue(
-          encoder.encode(`${JSON.stringify({ error: message })}\n`),
+          encoder.encode(
+            `${JSON.stringify({
+              error: "Unable to generate a response. Please try again.",
+            })}\n`,
+          ),
         );
         controller.close();
       }

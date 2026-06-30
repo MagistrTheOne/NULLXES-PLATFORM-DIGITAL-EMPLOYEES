@@ -67,7 +67,7 @@ export async function createTalkChatSession(
 
   if (!apiKey || !secret || !publicApiKey) {
     throw new Error(
-      "STREAM_API_KEY and STREAM_SECRET_KEY must be configured for Talk chat.",
+      "STREAM_API_KEY, STREAM_SECRET_KEY, and NEXT_PUBLIC_STREAM_API_KEY must be configured for Talk chat.",
     );
   }
 

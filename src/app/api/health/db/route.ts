@@ -3,14 +3,30 @@ import { db } from "@/shared/db/client";
 
 export const runtime = "nodejs";
 
-export async function GET() {
+function isAuthorizedHealthRequest(request: Request): boolean {
+  const expected = process.env.HEALTH_CHECK_TOKEN?.trim();
+  if (!expected) {
+    return true;
+  }
+
+  const headerToken = request.headers.get("x-health-token")?.trim();
+  const authHeader = request.headers.get("authorization");
+  const bearerToken = authHeader?.startsWith("Bearer ")
+    ? authHeader.slice("Bearer ".length).trim()
+    : null;
+
+  return headerToken === expected || bearerToken === expected;
+}
+
+export async function GET(request: Request) {
+  if (!isAuthorizedHealthRequest(request)) {
+    return Response.json({ ok: false }, { status: 401 });
+  }
+
   try {
     await db.execute(sql`select 1 as ok`);
     return Response.json({ ok: true });
-  } catch (error: unknown) {
-    const message =
-      error instanceof Error ? error.message : "Database connection failed";
-
-    return Response.json({ ok: false, message }, { status: 500 });
+  } catch {
+    return Response.json({ ok: false }, { status: 503 });
   }
 }

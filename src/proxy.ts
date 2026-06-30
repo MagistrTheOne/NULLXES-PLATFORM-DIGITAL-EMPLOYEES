@@ -30,16 +30,6 @@ export function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/dashboard",
-    "/dashboard/:path*",
-    "/employees",
-    "/employees/:path*",
-    "/analytics",
-    "/analytics/:path*",
-    "/settings",
-    "/settings/:path*",
-    "/login",
-    "/register",
-    "/accept-invite",
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff2?)$).*)",
   ],
 };
