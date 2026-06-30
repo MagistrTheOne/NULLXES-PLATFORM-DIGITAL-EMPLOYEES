@@ -5,6 +5,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import {
   BarChart3,
+  BookText,
   Building2,
   CreditCard,
   KeyRound,
@@ -119,6 +120,19 @@ export function DashboardSidebar({
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ) : null}
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  isActive={isNavItemActive(pathname, "/docs")}
+                  tooltip={t("documentation")}
+                  className="text-white/80 transition-none hover:bg-white/5 hover:text-white data-active:bg-white/10 data-active:text-white"
+                >
+                  <Link href="/docs">
+                    <BookText />
+                    <span>{t("documentation")}</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

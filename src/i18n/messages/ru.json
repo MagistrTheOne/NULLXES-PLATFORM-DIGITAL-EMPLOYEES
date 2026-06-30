@@ -9,7 +9,8 @@
       "analytics": "Аналитика",
       "settings": "Настройки",
       "billing": "Биллинг",
-      "anamAdmin": "Anam Keys",
+      "anamAdmin": "Key",
+      "documentation": "Документация",
       "navigation": "Навигация"
     },
     "brand": {
