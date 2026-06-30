@@ -86,27 +86,78 @@ export async function enqueueEmployeeMission(input: {
   });
 }
 
+function stripCodeFences(raw: string): string {
+  return raw
+    .replace(/^\s*```(?:json)?\s*/i, "")
+    .replace(/\s*```\s*$/i, "")
+    .trim();
+}
+
+function extractJsonCandidate(raw: string): string | null {
+  const cleaned = stripCodeFences(raw);
+
+  const objectStart = cleaned.indexOf("{");
+  const arrayStart = cleaned.indexOf("[");
+  const start =
+    objectStart === -1
+      ? arrayStart
+      : arrayStart === -1
+        ? objectStart
+        : Math.min(objectStart, arrayStart);
+
+  if (start === -1) {
+    return null;
+  }
+
+  const openChar = cleaned[start];
+  const closeChar = openChar === "{" ? "}" : "]";
+  const end = cleaned.lastIndexOf(closeChar);
+  if (end <= start) {
+    return null;
+  }
+
+  return cleaned.slice(start, end + 1);
+}
+
 export function parseMissionLeadsFromModelOutput(raw: string): MissionLeadItem[] {
-  const jsonMatch = raw.match(/\{[\s\S]*\}|\[[\s\S]*\]/);
-  if (!jsonMatch) {
+  const candidate = extractJsonCandidate(raw);
+  if (!candidate) {
     return [];
   }
 
+  let parsed: unknown;
   try {
-    const parsed = JSON.parse(jsonMatch[0]) as
-      | { leads?: MissionLeadItem[] }
-      | MissionLeadItem[];
+    parsed = JSON.parse(candidate);
+  } catch {
+    return [];
+  }
 
-    const leads = Array.isArray(parsed) ? parsed : parsed.leads;
-    if (!Array.isArray(leads)) {
-      return [];
-    }
+  const leadsSource = Array.isArray(parsed)
+    ? parsed
+    : (parsed as { leads?: unknown; results?: unknown; companies?: unknown })
+        ?.leads ??
+      (parsed as { results?: unknown })?.results ??
+      (parsed as { companies?: unknown })?.companies;
 
-    return leads
-      .map((lead) => ({
-        companyName: String(lead.companyName ?? "").trim(),
+  if (!Array.isArray(leadsSource)) {
+    return [];
+  }
+
+  return leadsSource
+    .map((entry) => {
+      const lead = (entry ?? {}) as Record<string, unknown>;
+      const companyName = String(
+        lead.companyName ?? lead.company ?? lead.name ?? "",
+      ).trim();
+      const whyFit = String(lead.whyFit ?? lead.reason ?? lead.fit ?? "").trim();
+      const proposalDraft = String(
+        lead.proposalDraft ?? lead.proposal ?? lead.pitch ?? "",
+      ).trim();
+
+      return {
+        companyName,
         domain: lead.domain ? String(lead.domain).trim() : undefined,
-        whyFit: String(lead.whyFit ?? "").trim(),
+        whyFit: whyFit || (companyName ? `Potential fit for ${companyName}.` : ""),
         budgetSignal: lead.budgetSignal
           ? String(lead.budgetSignal).trim()
           : undefined,
@@ -116,11 +167,13 @@ export function parseMissionLeadsFromModelOutput(raw: string): MissionLeadItem[]
         contactEmail: lead.contactEmail
           ? String(lead.contactEmail).trim()
           : undefined,
-        proposalDraft: String(lead.proposalDraft ?? "").trim(),
-      }))
-      .filter((lead) => lead.companyName && lead.whyFit && lead.proposalDraft)
-      .slice(0, 10);
-  } catch {
-    return [];
-  }
+        proposalDraft:
+          proposalDraft ||
+          (companyName
+            ? `Proposal: deploy NULLXES Digital Employees to support ${companyName}.`
+            : ""),
+      };
+    })
+    .filter((lead) => lead.companyName.length > 0)
+    .slice(0, 10);
 }

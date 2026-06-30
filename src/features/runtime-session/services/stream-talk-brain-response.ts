@@ -58,6 +58,7 @@ async function callBrainChat(input: {
   maxTokens?: number;
   tools?: typeof AGENT_TOOL_DEFINITIONS;
   stream?: boolean;
+  responseFormat?: { type: "json_object" };
 }): Promise<Response> {
   return fetch(`${input.api.baseUrl}/chat/completions`, {
     method: "POST",
@@ -72,6 +73,7 @@ async function callBrainChat(input: {
       stream: input.stream ?? false,
       messages: input.messages,
       ...(input.tools ? { tools: input.tools } : {}),
+      ...(input.responseFormat ? { response_format: input.responseFormat } : {}),
     }),
   });
 }
@@ -181,6 +183,7 @@ export async function* streamTalkBrainResponse(input: {
   toolContext?: AgentToolExecutionContext;
   tools?: AgentToolDefinition[];
   mode?: "talk" | "default";
+  responseFormat?: { type: "json_object" };
 }): AsyncGenerator<TalkBrainStreamEvent> {
   const api = await resolveBrainApiConfig({
     provider: input.brainProvider,
@@ -217,6 +220,7 @@ export async function* streamTalkBrainResponse(input: {
     temperature: input.temperature,
     maxTokens: input.maxTokens,
     stream: true,
+    responseFormat: input.responseFormat,
   });
 
   if (!response.ok || !response.body) {
@@ -272,6 +276,7 @@ export async function* streamTalkBrainResponse(input: {
       temperature: input.temperature,
       maxTokens: input.maxTokens,
       stream: false,
+      responseFormat: input.responseFormat,
     });
 
     if (!fallback.ok) {

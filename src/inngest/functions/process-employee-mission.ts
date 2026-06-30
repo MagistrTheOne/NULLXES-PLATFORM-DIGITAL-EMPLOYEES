@@ -74,18 +74,38 @@ async function generateProspectingLeads(input: {
     throw new Error("Employee runtime not configured for mission processing");
   }
 
+  const leadSchemaHint = `{ "leads": [{ "companyName": "string", "domain": "string", "whyFit": "string", "budgetSignal": "string", "contactHypothesis": "string", "contactEmail": "string", "proposalDraft": "string" }] }`;
+
   const raw = await collectTalkBrainResponse({
     brainProvider: brainRequest.brainProvider,
     model: brainRequest.model,
-    systemPrompt: `${brainRequest.systemPrompt}\n\nRespond with valid JSON only.`,
+    systemPrompt: [
+      brainRequest.systemPrompt,
+      "",
+      "You are operating in data-extraction mode.",
+      "Output ONLY a single JSON object. No prose, no markdown, no code fences.",
+      `The JSON must match this shape: ${leadSchemaHint}`,
+      "Every lead MUST include non-empty companyName, whyFit, and proposalDraft.",
+      "Return up to 10 qualified leads. If research is thin, infer plausible enterprise B2B targets that match the brief.",
+    ].join("\n"),
     messages: [
       {
         role: "user",
-        content: `Mission brief: ${input.brief}\n\nResearch:\n${input.searchResults}`,
+        content: [
+          `You are ${input.employeeName}, a ${input.employeeRole}.`,
+          `Mission brief: ${input.brief}`,
+          "",
+          "Use the research below to produce qualified leads for NULLXES Digital Employees.",
+          "Include contactEmail when you can infer a plausible business email (e.g. sales@domain.com).",
+          "",
+          "Research:",
+          input.searchResults,
+        ].join("\n"),
       },
     ],
     temperature: 0.4,
     maxTokens: brainRequest.maxTokens,
+    responseFormat: { type: "json_object" },
   });
 
   return parseMissionLeadsFromModelOutput(raw);
