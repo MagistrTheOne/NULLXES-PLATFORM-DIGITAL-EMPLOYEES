@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useTransition } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { formatDateFormatPreview, getOrganizationDateFormat } from "@/shared/i18n/format-organization-date";
@@ -218,7 +219,9 @@ export function SettingsGeneralTab({
           }
         >
           <div className="grid gap-4">
-            <StatusRow label={t("theme")} value={t("themeDark")} />
+            <Field label={t("theme")}>
+              <p className="text-sm text-muted-foreground">{t("themeDarkOnly")}</p>
+            </Field>
             <Field label={t("language")}>
               <Select
                 value={preferences.language}
@@ -431,9 +434,30 @@ export function SettingsGeneralTab({
                 </SelectContent>
               </Select>
             </Field>
-            <StatusRow label={t("dataExport")} value={t("dataExportValue")} />
-            <StatusRow label={t("deleteSessions")} value={t("deleteSessionsValue")} />
-            <StatusRow label={t("anonymizeData")} value={t("anonymizeDataValue")} />
+            <div className="grid gap-2 text-sm">
+              <Link
+                href="/settings?tab=advanced"
+                className="flex items-center justify-between gap-4 rounded-xl border border-border bg-background/40 px-4 py-3 transition-colors hover:bg-background/60"
+              >
+                <span className="text-muted-foreground">{t("dataExport")}</span>
+                <span className="text-foreground underline underline-offset-4">
+                  {t("dataExportAction")}
+                </span>
+              </Link>
+              <Link
+                href="/settings?tab=general"
+                className="flex items-center justify-between gap-4 rounded-xl border border-border bg-background/40 px-4 py-3 transition-colors hover:bg-background/60"
+              >
+                <span className="text-muted-foreground">{t("personalData")}</span>
+                <span className="text-foreground underline underline-offset-4">
+                  {t("personalDataAction")}
+                </span>
+              </Link>
+            </div>
+            <StatusRow
+              label={t("deleteSessions")}
+              value={t("deleteSessionsValue")}
+            />
             <StatusRow
               label={t("lastRetentionRun")}
               value={

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
 import { ChevronDown } from "lucide-react";
 import { useTranslations } from "next-intl";
 import {
@@ -8,6 +9,9 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { Button } from "@/components/ui/button";
+import { disconnectIntegrationAction } from "@/features/integrations/actions/disconnect-integration";
+import type { WorkspaceIntegrationOAuthState } from "@/features/integrations/queries/get-workspace-integration-oauth-state";
 import type { SystemStatusItem } from "@/features/overview/types";
 import { cn } from "@/lib/utils";
 import { SettingsCard } from "./settings-card";
@@ -54,11 +58,43 @@ function statusLabel(
 
 export function SettingsIntegrationsTab({
   integrations,
+  integrationOAuth,
+  canManageOrganization,
 }: {
   integrations: SystemStatusItem[];
+  integrationOAuth: WorkspaceIntegrationOAuthState;
+  canManageOrganization: boolean;
 }) {
   const t = useTranslations("settings.integrations");
+  const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
+
+  function handleDisconnect(provider: "slack" | "teams"): void {
+    startTransition(async () => {
+      const result = await disconnectIntegrationAction({ provider });
+      setMessage(result.ok ? t("disconnected") : result.message);
+      if (result.ok) {
+        router.refresh();
+      }
+    });
+  }
+
+  const oauthProviders = [
+    {
+      id: "slack" as const,
+      label: t("services.slack"),
+      state: integrationOAuth.slack,
+      connectHref: "/api/integrations/slack/authorize",
+    },
+    {
+      id: "teams" as const,
+      label: t("services.microsoftTeams"),
+      state: integrationOAuth.teams,
+      connectHref: "/api/integrations/teams/authorize",
+    },
+  ];
 
   const connectedCount = integrations.filter(
     (item) => item.status === "operational",
@@ -88,7 +124,48 @@ export function SettingsIntegrationsTab({
   }
 
   return (
-    <SettingsCard title={t("title")} description={t("description")}>
+    <div className="grid gap-6">
+      <SettingsCard title={t("oauthTitle")} description={t("oauthDescription")}>
+        <ul className="space-y-3">
+          {oauthProviders.map((provider) => (
+            <li
+              key={provider.id}
+              className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-background/40 px-4 py-3"
+            >
+              <div>
+                <p className="text-sm text-foreground">{provider.label}</p>
+                <p className="text-xs text-muted-foreground">
+                  {!provider.state.oauthConfigured
+                    ? t("oauthNotConfigured")
+                    : provider.state.connected
+                      ? t("oauthConnectedStatus")
+                      : t("oauthNotConnectedStatus")}
+                </p>
+              </div>
+              {canManageOrganization && provider.state.oauthConfigured ? (
+                provider.state.connected ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={isPending}
+                    onClick={() => handleDisconnect(provider.id)}
+                  >
+                    {t("disconnect")}
+                  </Button>
+                ) : (
+                  <Button type="button" variant="outline" size="sm" asChild>
+                    <a href={provider.connectHref}>{t("connect")}</a>
+                  </Button>
+                )
+              ) : null}
+            </li>
+          ))}
+        </ul>
+        {message ? <p className="mt-3 text-sm text-muted-foreground">{message}</p> : null}
+      </SettingsCard>
+
+      <SettingsCard title={t("title")} description={t("description")}>
       <Collapsible open={open} onOpenChange={setOpen}>
         <CollapsibleTrigger className="flex w-full items-center justify-between gap-3 rounded-xl border border-border bg-background/40 px-4 py-3 text-left transition-colors hover:bg-background/60">
           <div className="min-w-0">
@@ -132,6 +209,7 @@ export function SettingsIntegrationsTab({
           </ul>
         </CollapsibleContent>
       </Collapsible>
-    </SettingsCard>
+      </SettingsCard>
+    </div>
   );
 }

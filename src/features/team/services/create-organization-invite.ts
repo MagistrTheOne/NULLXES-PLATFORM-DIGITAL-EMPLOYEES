@@ -11,7 +11,10 @@ export async function createOrganizationInvite(input: {
   email: string;
   role: MembershipRole;
   invitedByUserId: string;
-}): Promise<{ ok: true; inviteId: string } | { ok: false; message: string }> {
+}): Promise<
+  | { ok: true; inviteId: string; token: string; emailSent: boolean }
+  | { ok: false; message: string }
+> {
   const normalizedEmail = input.email.trim().toLowerCase();
   if (!normalizedEmail.includes("@")) {
     return { ok: false, message: "Enter a valid email address." };
@@ -48,12 +51,12 @@ export async function createOrganizationInvite(input: {
     return { ok: false, message: "Failed to create invite." };
   }
 
-  await sendInviteEmail({
+  const emailResult = await sendInviteEmail({
     email: normalizedEmail,
     organizationName: input.organizationName,
     role: input.role,
     token,
   });
 
-  return { ok: true, inviteId: invite.id };
+  return { ok: true, inviteId: invite.id, token, emailSent: emailResult.sent };
 }

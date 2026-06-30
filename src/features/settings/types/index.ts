@@ -4,6 +4,7 @@ import type { PendingApprovalRow } from "@/features/agent-approval/queries/list-
 import type { ProviderKeyStatus } from "@/features/provider-credentials";
 import type { MembershipRole } from "@/features/workspace/types";
 import type { SystemStatusItem } from "@/features/overview/types";
+import type { WorkspaceIntegrationOAuthState } from "@/features/integrations/queries/get-workspace-integration-oauth-state";
 
 export type OrganizationSettingsDto = {
   website: string | null;
@@ -138,6 +139,8 @@ export type SettingsPageData = {
   context: SettingsContextPanel;
   pendingInvites: TeamInviteRow[];
   integrations: SystemStatusItem[];
+  integrationOAuth: WorkspaceIntegrationOAuthState;
+  emailDeliveryConfigured: boolean;
   security: SecuritySnapshot;
   billing: BillingSnapshot;
   auditEvents: AuditEventListItem[];

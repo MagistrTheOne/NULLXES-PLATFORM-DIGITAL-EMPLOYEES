@@ -11,9 +11,11 @@ import { SettingsCard } from "./settings-card";
 export function SettingsNotificationsTab({
   settings,
   canManageOrganization,
+  emailDeliveryConfigured,
 }: {
   settings: OrganizationSettingsDto;
   canManageOrganization: boolean;
+  emailDeliveryConfigured: boolean;
 }) {
   const t = useTranslations("settings.notifications");
   const tSettings = useTranslations("settings");
@@ -70,6 +72,11 @@ export function SettingsNotificationsTab({
         </Button>
       }
     >
+      {!emailDeliveryConfigured ? (
+        <p className="mb-4 rounded-xl border border-border bg-background/40 px-4 py-3 text-sm text-muted-foreground">
+          {t("emailNotConfigured")}
+        </p>
+      ) : null}
       {message ? (
         <p className="mb-4 text-sm text-muted-foreground">{message}</p>
       ) : null}

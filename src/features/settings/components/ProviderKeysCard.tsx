@@ -131,7 +131,9 @@ export function ProviderKeysCard({
       description="Use your own provider keys instead of the platform defaults. Keys are encrypted at rest and never shown again after saving."
     >
       <div className="grid gap-3">
-        {statuses.map((status) => (
+        {statuses
+          .filter((status) => status.provider === "openai")
+          .map((status) => (
           <ProviderRow
             key={status.provider}
             status={status}
@@ -139,8 +141,8 @@ export function ProviderKeysCard({
           />
         ))}
         <p className="text-xs text-muted-foreground">
-          The brain runtime currently consumes the OpenAI key. Anthropic and
-          Google keys are stored for upcoming native routing.
+          Anthropic and Google routing is not enabled in this release. Only OpenAI
+          keys are consumed by the brain runtime today.
         </p>
       </div>
     </SettingsCard>

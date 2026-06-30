@@ -167,10 +167,17 @@ export function SettingsAdvancedTab({
         </SettingsCard>
       ) : null}
 
-      <SettingsCard title={t("retentionTitle")}>
+      <SettingsCard title={t("retentionTitle")} description={t("retentionDescription")}>
         <div className="space-y-2 text-sm text-muted-foreground">
           <p>
-            {settings.sessionRetentionDays} / {settings.retentionPolicyDays}
+            {t("sessionRetentionDays", {
+              days: settings.sessionRetentionDays,
+            })}
+          </p>
+          <p>
+            {t("retentionPolicyDays", {
+              days: settings.retentionPolicyDays,
+            })}
           </p>
         </div>
       </SettingsCard>

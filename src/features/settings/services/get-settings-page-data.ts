@@ -5,6 +5,8 @@ import { getOrganizationAnalyticsRange } from "@/features/analytics/lib/get-orga
 import { getWorkspaceAnalytics } from "@/features/analytics/queries/get-workspace-analytics";
 import { getActiveSessionCount } from "@/features/overview/queries/get-active-session-count";
 import { getWorkspaceIntegrations } from "@/features/integrations/queries/get-workspace-integrations";
+import { getWorkspaceIntegrationOAuthState } from "@/features/integrations/queries/get-workspace-integration-oauth-state";
+import { isEmailDeliveryConfigured } from "@/shared/email/resend-client";
 import { listPendingApprovals } from "@/features/agent-approval/queries/list-pending-approvals";
 import { listAuditEvents } from "@/features/security/queries/list-audit-events";
 import { getSecuritySnapshot } from "../queries/get-security-snapshot";
@@ -153,6 +155,8 @@ export async function getSettingsPageData(
       },
       pendingInvites,
       integrations: await getWorkspaceIntegrations(organizationId),
+      integrationOAuth: await getWorkspaceIntegrationOAuthState(organizationId),
+      emailDeliveryConfigured: isEmailDeliveryConfigured(),
       security,
       billing: {
         polarReady,

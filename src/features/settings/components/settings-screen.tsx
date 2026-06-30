@@ -107,6 +107,7 @@ export function SettingsScreen({ data }: { data: SettingsPageData }) {
                 currentUserId={data.currentUserId}
                 actorRole={data.actorRole}
                 dateFormat={data.settings.dateFormat}
+                emailDeliveryConfigured={data.emailDeliveryConfigured}
               />
             </TabsContent>
 
@@ -120,7 +121,11 @@ export function SettingsScreen({ data }: { data: SettingsPageData }) {
             </TabsContent>
 
             <TabsContent value="integrations">
-              <SettingsIntegrationsTab integrations={data.integrations} />
+              <SettingsIntegrationsTab
+                integrations={data.integrations}
+                integrationOAuth={data.integrationOAuth}
+                canManageOrganization={data.canManageOrganization}
+              />
             </TabsContent>
 
             <TabsContent value="security">
@@ -151,6 +156,7 @@ export function SettingsScreen({ data }: { data: SettingsPageData }) {
               <SettingsNotificationsTab
                 settings={data.settings}
                 canManageOrganization={data.canManageOrganization}
+                emailDeliveryConfigured={data.emailDeliveryConfigured}
               />
             </TabsContent>
 

@@ -34,6 +34,7 @@ export function SettingsTeamTab({
   currentUserId,
   actorRole,
   dateFormat,
+  emailDeliveryConfigured,
 }: {
   members: TeamMemberRow[];
   pendingInvites: TeamInviteRow[];
@@ -41,6 +42,7 @@ export function SettingsTeamTab({
   currentUserId: string;
   actorRole: MembershipRole;
   dateFormat: string;
+  emailDeliveryConfigured: boolean;
 }) {
   const t = useTranslations("settings.team");
   const locale = useLocale();
@@ -92,7 +94,10 @@ export function SettingsTeamTab({
     <div className="grid gap-6">
       {canManageMembers ? (
         <SettingsCard title={t("inviteMember")} description={t("inviteDescription")}>
-          <SettingsTeamInviteForm onInvited={() => router.refresh()} />
+          <SettingsTeamInviteForm
+            emailDeliveryConfigured={emailDeliveryConfigured}
+            onInvited={() => router.refresh()}
+          />
         </SettingsCard>
       ) : null}
 

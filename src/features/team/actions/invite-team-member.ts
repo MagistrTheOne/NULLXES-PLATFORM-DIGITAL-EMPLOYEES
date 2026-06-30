@@ -6,11 +6,15 @@ import { ensureWorkspace } from "@/features/auth/services/ensure-workspace";
 import { resolveWorkspacePermissions } from "@/features/workspace/services/resolve-workspace-permissions";
 import type { MembershipRole } from "@/features/workspace/types";
 import { createOrganizationInvite } from "../services/create-organization-invite";
+import { buildInviteAcceptUrl } from "../lib/build-invite-accept-url";
 
 export async function inviteTeamMemberAction(input: {
   email: string;
   role: MembershipRole;
-}): Promise<{ ok: true } | { ok: false; message: string }> {
+}): Promise<
+  | { ok: true; inviteUrl: string; emailSent: boolean }
+  | { ok: false; message: string }
+> {
   const session = await requireAuth();
   const workspace = await ensureWorkspace(session.user.id, session.user.name);
   const permissions = resolveWorkspacePermissions(workspace.membership.role);
@@ -32,5 +36,9 @@ export async function inviteTeamMemberAction(input: {
   }
 
   revalidatePath("/settings");
-  return { ok: true };
+  return {
+    ok: true,
+    inviteUrl: buildInviteAcceptUrl(result.token),
+    emailSent: result.emailSent,
+  };
 }
