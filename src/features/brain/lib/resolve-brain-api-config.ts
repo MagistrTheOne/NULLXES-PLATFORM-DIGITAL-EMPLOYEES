@@ -1,8 +1,8 @@
 import type { BrainProvider } from "@/entities/digital-employee";
 import { resolveBrainModelForProvider } from "@/features/settings/lib/brain-model-defaults";
+import { resolveOrganizationProviderKey } from "@/features/provider-credentials";
 import {
   getOpenAiApiBaseUrl,
-  getOpenAiApiKey,
   getNullxesBrainApiBaseUrl,
   getNullxesBrainApiKey,
   nullxesBrainSupportsTools,
@@ -17,10 +17,11 @@ export type BrainApiConfig = {
   supportsTools: boolean;
 };
 
-export function resolveBrainApiConfig(input: {
+export async function resolveBrainApiConfig(input: {
   provider: BrainProvider;
   configuredModel?: string | null;
-}): BrainApiConfig {
+  organizationId?: string;
+}): Promise<BrainApiConfig> {
   const curatedModel = resolveBrainModelForProvider(
     input.provider,
     input.configuredModel,
@@ -45,7 +46,10 @@ export function resolveBrainApiConfig(input: {
     };
   }
 
-  const apiKey = getOpenAiApiKey();
+  const apiKey = await resolveOrganizationProviderKey(
+    input.organizationId,
+    "openai",
+  );
   if (!apiKey) {
     throw new Error("OPENAI_API_KEY is not configured");
   }

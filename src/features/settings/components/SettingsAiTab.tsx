@@ -13,17 +13,21 @@ import {
 import type { BrainProviderReadinessMap } from "@/features/brain";
 import { updateBrainSettingsAction } from "@/features/brain/actions/update-brain-settings";
 import { getDefaultBrainModelForProvider } from "../lib/brain-model-defaults";
+import type { ProviderKeyStatus } from "@/features/provider-credentials";
 import type { OrganizationSettingsDto } from "../types";
+import { ProviderKeysCard } from "./ProviderKeysCard";
 import { SettingsCard } from "./settings-card";
 
 export function SettingsAiTab({
   settings,
   canManageOrganization,
   providerReadiness,
+  providerKeyStatuses,
 }: {
   settings: OrganizationSettingsDto;
   canManageOrganization: boolean;
   providerReadiness: BrainProviderReadinessMap;
+  providerKeyStatuses: ProviderKeyStatus[];
 }) {
   const t = useTranslations("settings.ai");
   const tSettings = useTranslations("settings");
@@ -105,6 +109,11 @@ export function SettingsAiTab({
           ) : null}
         </div>
       </SettingsCard>
+
+      <ProviderKeysCard
+        statuses={providerKeyStatuses}
+        canManageOrganization={canManageOrganization}
+      />
     </div>
   );
 }

@@ -182,9 +182,10 @@ export async function* streamTalkBrainResponse(input: {
   tools?: AgentToolDefinition[];
   mode?: "talk" | "default";
 }): AsyncGenerator<TalkBrainStreamEvent> {
-  const api = resolveBrainApiConfig({
+  const api = await resolveBrainApiConfig({
     provider: input.brainProvider,
     configuredModel: input.model,
+    organizationId: input.toolContext?.organizationId,
   });
 
   yield {

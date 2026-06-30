@@ -140,6 +140,7 @@ export function SettingsScreen({ data }: { data: SettingsPageData }) {
                 settings={data.settings}
                 canManageOrganization={data.canManageOrganization}
                 providerReadiness={data.brainProviderReadiness}
+                providerKeyStatuses={data.providerKeyStatuses}
               />
             </TabsContent>
 

@@ -70,9 +70,10 @@ export async function buildTalkBrainRequest(input: {
           ? composeShutenTalkSystemPrompt({ personaPrompt })
           : personaPrompt;
 
-      const apiConfig = resolveBrainApiConfig({
+      const apiConfig = await resolveBrainApiConfig({
         provider: employee.brainProvider,
         configuredModel: employee.brainModel,
+        organizationId: input.organizationId,
       });
 
       const maxTokens =

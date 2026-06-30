@@ -15,6 +15,7 @@ import { getPendingInvites } from "@/features/team/queries/get-pending-invites";
 import { getTeamMembers } from "../queries/get-team-members";
 import { isPlatformAdminEmail } from "@/features/admin/lib/is-platform-admin";
 import { getBrainProviderReadinessMap } from "@/features/brain/lib/brain-provider-readiness";
+import { listOrganizationProviderKeyStatuses } from "@/features/provider-credentials";
 import { countOpenEmployeeSessions } from "@/features/runtime-session/services/close-open-employee-sessions";
 import type { BrainProviderReadinessMap } from "@/features/brain/lib/brain-provider-readiness";
 import { getPolarProductId } from "@/features/billing/config/plans";
@@ -70,6 +71,7 @@ export async function getSettingsPageData(
       security,
       auditEvents,
       pendingApprovals,
+      providerKeyStatuses,
     ] = await Promise.all([
       ensureOrganizationSettings(organizationId),
       db
@@ -86,6 +88,7 @@ export async function getSettingsPageData(
       }),
       listAuditEvents({ organizationId, limit: 50 }),
       listPendingApprovals(organizationId),
+      listOrganizationProviderKeyStatuses(organizationId),
     ]);
 
     const memberCount = Number(memberCountRow[0]?.total ?? 0);
@@ -164,6 +167,7 @@ export async function getSettingsPageData(
       })),
       pendingApprovals,
       brainProviderReadiness: getBrainProviderReadinessMap(),
+      providerKeyStatuses,
     };
   });
 }
