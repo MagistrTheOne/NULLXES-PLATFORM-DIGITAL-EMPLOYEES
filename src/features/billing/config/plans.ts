@@ -5,7 +5,6 @@ export type BillingPlanDefinition = {
   name: string;
   priceLabel: string;
   description: string;
-  polarProductIdEnv: string;
   checkoutEnabled: boolean;
   limits: {
     maxEmployees: number | null;
@@ -23,7 +22,6 @@ export const BILLING_PLANS: Record<BillingPlanId, BillingPlanDefinition> = {
     name: "Free",
     priceLabel: "$0",
     description: "Evaluate your first digital employee.",
-    polarProductIdEnv: "POLAR_PRODUCT_FREE_ID",
     checkoutEnabled: false,
     limits: {
       maxEmployees: 1,
@@ -44,7 +42,6 @@ export const BILLING_PLANS: Record<BillingPlanId, BillingPlanDefinition> = {
     name: "Super Pro",
     priceLabel: "$950 / mo",
     description: "Premium workspace for serious digital workforce operations.",
-    polarProductIdEnv: "POLAR_PRODUCT_SUPER_PRO_ID",
     checkoutEnabled: true,
     limits: {
       maxEmployees: null,
@@ -66,7 +63,6 @@ export const BILLING_PLANS: Record<BillingPlanId, BillingPlanDefinition> = {
     name: "Enterprise",
     priceLabel: "Contact sales",
     description: "Custom deployment, security, and SLA.",
-    polarProductIdEnv: "POLAR_PRODUCT_ENTERPRISE_ID",
     checkoutEnabled: false,
     limits: {
       maxEmployees: null,
@@ -87,7 +83,6 @@ export const BILLING_PLANS: Record<BillingPlanId, BillingPlanDefinition> = {
     name: "Government",
     priceLabel: "Contact sales",
     description: "Sovereign and regulated environments.",
-    polarProductIdEnv: "POLAR_PRODUCT_GOVERNMENT_ID",
     checkoutEnabled: false,
     limits: {
       maxEmployees: null,
@@ -105,8 +100,3 @@ export const BILLING_PLANS: Record<BillingPlanId, BillingPlanDefinition> = {
   },
 };
 
-export function getPolarProductId(planId: BillingPlanId): string | undefined {
-  const envName = BILLING_PLANS[planId].polarProductIdEnv;
-  const value = process.env[envName]?.trim();
-  return value && value.length > 0 ? value : undefined;
-}

@@ -33,7 +33,7 @@ export async function DashboardShell({
     organizationName: workspace.organization.name,
     role: workspace.membership.role,
     organizationType: workspace.organization.type,
-    billing: getUserBillingSnapshot({
+    billing: await getUserBillingSnapshot({
       organizationId: workspace.organization.id,
       billingPlan: billingSync.billingPlan,
       canManageOrganization: workspace.permissions.canManageOrganization,

@@ -56,10 +56,6 @@ export function SettingsBillingTab({
   const currentTierId = resolvePricingTierIdForPlan(planId);
   const polarReady = billing.polarReady;
   const checkoutUrl = billing.checkoutUrl ?? billing.superProCheckoutUrl;
-  const superProPolarPrice = getPolarCatalogPriceForTier(
-    billing.polarCatalog,
-    "super_pro",
-  );
 
   const polarCatalogProduct = billing.polarCatalog.find(
     (product) => product.planId === planId,
@@ -209,8 +205,10 @@ export function SettingsBillingTab({
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {gridTiers.map((tier) => {
             const isCurrent = tier.id === currentTierId;
-            const polarPrice =
-              tier.id === "super_pro" ? superProPolarPrice : null;
+            const polarPrice = getPolarCatalogPriceForTier(
+              billing.polarCatalog,
+              tier.id,
+            );
             const priceLabel = polarPrice?.priceLabel ?? tier.priceLabel;
             const priceNote = polarPrice?.priceNote ?? tier.priceNote;
 
@@ -285,12 +283,22 @@ export function SettingsBillingTab({
               </ul>
             </div>
             <div className="flex shrink-0 flex-col items-start gap-2 md:items-end">
-              <p className="text-2xl font-medium tracking-tight text-foreground">
-                {flagshipTier.priceLabel}
-              </p>
-              <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
-                {flagshipTier.priceNote}
-              </p>
+              {(() => {
+                const polarPrice = getPolarCatalogPriceForTier(
+                  billing.polarCatalog,
+                  flagshipTier.id,
+                );
+                return (
+                  <>
+                    <p className="text-2xl font-medium tracking-tight text-foreground">
+                      {polarPrice?.priceLabel ?? flagshipTier.priceLabel}
+                    </p>
+                    <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                      {polarPrice?.priceNote ?? flagshipTier.priceNote}
+                    </p>
+                  </>
+                );
+              })()}
               <Button
                 type="button"
                 className="bg-foreground text-background hover:bg-foreground/90"

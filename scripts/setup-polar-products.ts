@@ -1,5 +1,13 @@
 import { Polar } from "@polar-sh/sdk";
-import { BILLING_PLANS } from "../src/features/billing/config/plans";
+import {
+  BILLING_PLANS,
+  type BillingPlanId,
+} from "../src/features/billing/config/plans";
+import {
+  PRICING_TIERS,
+  type PricingTierId,
+} from "../src/features/billing/config/pricing-tiers";
+import { POLAR_PRODUCT_NAMESPACE } from "../src/features/billing/lib/polar-product-metadata";
 
 const accessToken = process.env.POLAR_ACCESS_TOKEN?.trim();
 
@@ -22,6 +30,81 @@ type ListedProduct = {
   isRecurring: boolean;
   metadata: Record<string, string>;
 };
+
+type ProductSpec = {
+  key: string;
+  name: string;
+  description: string;
+  recurringInterval: "month" | "year";
+  priceAmount: number;
+  metadata: Record<string, string>;
+};
+
+const BILLING_PLAN_SPECS: ProductSpec[] = [
+  {
+    key: "super_pro",
+    name: "NULLXES Super Pro",
+    description: BILLING_PLANS.super_pro.description,
+    recurringInterval: "month",
+    priceAmount: 95_000,
+    metadata: {
+      plan: "super_pro",
+      tier: "super_pro",
+      product: POLAR_PRODUCT_NAMESPACE,
+    },
+  },
+  {
+    key: "enterprise",
+    name: "NULLXES Enterprise",
+    description: BILLING_PLANS.enterprise.description,
+    recurringInterval: "year",
+    priceAmount: 0,
+    metadata: {
+      plan: "enterprise",
+      product: POLAR_PRODUCT_NAMESPACE,
+    },
+  },
+  {
+    key: "government",
+    name: "NULLXES Government",
+    description: BILLING_PLANS.government.description,
+    recurringInterval: "year",
+    priceAmount: 0,
+    metadata: {
+      plan: "government",
+      product: POLAR_PRODUCT_NAMESPACE,
+    },
+  },
+];
+
+const SALES_TIER_IDS: PricingTierId[] = [
+  "discovery",
+  "pilot",
+  "department",
+  "holding",
+  "ultra",
+];
+
+function buildSalesTierSpecs(): ProductSpec[] {
+  return SALES_TIER_IDS.map((tierId) => {
+    const tier = PRICING_TIERS.find((item) => item.id === tierId);
+    if (!tier) {
+      throw new Error(`Missing pricing tier definition: ${tierId}`);
+    }
+
+    return {
+      key: `tier:${tierId}`,
+      name: `NULLXES ${tier.name}`,
+      description: tier.description,
+      recurringInterval: tierId === "ultra" ? "year" : "year",
+      priceAmount: 0,
+      metadata: {
+        tier: tierId,
+        product: POLAR_PRODUCT_NAMESPACE,
+      },
+    };
+  });
+}
 
 async function listAllProducts(): Promise<ListedProduct[]> {
   const products: ListedProduct[] = [];
@@ -48,9 +131,20 @@ async function listAllProducts(): Promise<ListedProduct[]> {
   return products;
 }
 
+function findProductByMetadata(
+  products: ListedProduct[],
+  metadata: Record<string, string>,
+): ListedProduct | undefined {
+  return products.find((product) =>
+    Object.entries(metadata).every(
+      ([key, value]) => product.metadata[key] === value,
+    ),
+  );
+}
+
 function findProductByPlan(
   products: ListedProduct[],
-  planId: string,
+  planId: BillingPlanId,
 ): ListedProduct | undefined {
   return (
     products.find((product) => product.metadata.plan === planId) ??
@@ -60,7 +154,7 @@ function findProductByPlan(
         return name.includes("super pro");
       }
       if (planId === "enterprise") {
-        return name === "enterprise";
+        return name.includes("enterprise");
       }
       if (planId === "government") {
         return name.includes("government") || name.includes("gov");
@@ -70,11 +164,30 @@ function findProductByPlan(
   );
 }
 
+function findProductByTier(
+  products: ListedProduct[],
+  tierId: PricingTierId,
+): ListedProduct | undefined {
+  return (
+    products.find((product) => product.metadata.tier === tierId) ??
+    products.find((product) =>
+      product.name.toLowerCase().includes(
+        PRICING_TIERS.find((tier) => tier.id === tierId)?.name.toLowerCase() ??
+          tierId,
+      ),
+    )
+  );
+}
+
 async function ensureProductMetadata(
   product: ListedProduct,
-  planId: string,
+  metadata: Record<string, string>,
 ): Promise<void> {
-  if (product.metadata.plan === planId) {
+  const needsUpdate = Object.entries(metadata).some(
+    ([key, value]) => product.metadata[key] !== value,
+  );
+
+  if (!needsUpdate) {
     return;
   }
 
@@ -83,18 +196,55 @@ async function ensureProductMetadata(
     productUpdate: {
       metadata: {
         ...product.metadata,
-        plan: planId,
-        product: "nullxes_digital_employees",
+        ...metadata,
       },
     },
   });
 
-  console.log(`Updated metadata.plan=${planId} on ${product.name}`);
+  console.log(`Updated metadata on ${product.name}`);
+}
+
+async function ensureProduct(
+  existing: ListedProduct[],
+  spec: ProductSpec,
+  finder: (products: ListedProduct[]) => ListedProduct | undefined,
+): Promise<ListedProduct> {
+  let product = finder(existing);
+
+  if (!product) {
+    console.log(`\nCreating "${spec.name}"…`);
+    const created = await polar.products.create({
+      name: spec.name,
+      description: spec.description,
+      recurringInterval: spec.recurringInterval,
+      prices: [
+        {
+          amountType: "fixed",
+          priceCurrency: "usd",
+          priceAmount: spec.priceAmount,
+        },
+      ],
+      metadata: spec.metadata,
+    });
+    product = {
+      id: created.id,
+      name: created.name,
+      isRecurring: created.isRecurring,
+      metadata: spec.metadata,
+    };
+    console.log(`Created ${spec.name}: ${created.id}`);
+    existing.push(product);
+    return product;
+  }
+
+  console.log(`\n${spec.name}: ${product.id}`);
+  await ensureProductMetadata(product, spec.metadata);
+  return product;
 }
 
 async function main(): Promise<void> {
   console.log(`Polar server: ${server}`);
-  console.log("Listing existing products (old projects are preserved)…\n");
+  console.log("Syncing NULLXES billing products via Polar Core API…\n");
 
   const existing = await listAllProducts();
 
@@ -103,59 +253,45 @@ async function main(): Promise<void> {
   } else {
     for (const product of existing) {
       const plan = product.metadata.plan ? ` plan=${product.metadata.plan}` : "";
+      const tier = product.metadata.tier ? ` tier=${product.metadata.tier}` : "";
       console.log(
-        `- ${product.name} (${product.id})${product.isRecurring ? " [recurring]" : ""}${plan}`,
+        `- ${product.name} (${product.id})${product.isRecurring ? " [recurring]" : ""}${plan}${tier}`,
       );
     }
   }
 
-  const superProName = "NULLXES Super Pro";
-  let superPro = findProductByPlan(existing, "super_pro");
-
-  if (!superPro) {
-    console.log(`\nCreating "${superProName}" ($950/mo)…`);
-    const created = await polar.products.create({
-      name: superProName,
-      description: BILLING_PLANS.super_pro.description,
-      recurringInterval: "month",
-      prices: [
-        {
-          amountType: "fixed",
-          priceCurrency: "usd",
-          priceAmount: 95_000,
-        },
-      ],
-      metadata: {
-        plan: "super_pro",
-        product: "nullxes_digital_employees",
-      },
-    });
-    superPro = {
-      id: created.id,
-      name: created.name,
-      isRecurring: created.isRecurring,
-      metadata: { plan: "super_pro", product: "nullxes_digital_employees" },
-    };
-    console.log(`Created Super Pro product: ${created.id}`);
-  } else {
-    console.log(`\nSuper Pro product: ${superPro.id}`);
-    await ensureProductMetadata(superPro, "super_pro");
+  for (const spec of BILLING_PLAN_SPECS) {
+    await ensureProduct(existing, spec, (products) =>
+      findProductByPlan(products, spec.metadata.plan as BillingPlanId),
+    );
   }
 
-  const enterprise = findProductByPlan(existing, "enterprise");
-  if (enterprise) {
-    console.log(`Enterprise product: ${enterprise.id}`);
-    await ensureProductMetadata(enterprise, "enterprise");
+  for (const spec of buildSalesTierSpecs()) {
+    const tierId = spec.metadata.tier as PricingTierId;
+    await ensureProduct(existing, spec, (products) =>
+      findProductByTier(products, tierId),
+    );
   }
 
-  console.log("\nAdd these to .env / Vercel:\n");
-  console.log(`POLAR_PRODUCT_SUPER_PRO_ID=${superPro.id}`);
-  if (enterprise) {
-    console.log(`POLAR_PRODUCT_ENTERPRISE_ID=${enterprise.id}`);
-  }
-  console.log(
-    "# Government stays sales-led unless you create a Polar product with metadata.plan=government",
+  const unmapped = existing.filter(
+    (product) =>
+      product.metadata.product !== POLAR_PRODUCT_NAMESPACE &&
+      !product.metadata.plan &&
+      !product.metadata.tier,
   );
+
+  if (unmapped.length > 0) {
+    console.log("\nUnmapped legacy products (safe to archive in Polar UI):");
+    for (const product of unmapped) {
+      console.log(`- ${product.name} (${product.id})`);
+    }
+  }
+
+  console.log("\nPolar catalog is metadata-driven — no POLAR_PRODUCT_* env vars needed.");
+  console.log("Required env only:");
+  console.log("  POLAR_ACCESS_TOKEN");
+  console.log("  POLAR_WEBHOOK_SECRET");
+  console.log("  POLAR_SERVER=production");
 }
 
 main().catch((error: unknown) => {

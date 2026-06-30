@@ -1,5 +1,4 @@
 import {
-  getPolarProductId,
   type BillingPlanId,
 } from "../config/plans";
 import { buildPolarCheckoutUrl } from "../lib/build-checkout-url";
@@ -16,8 +15,8 @@ import type {
 } from "../types/polar-catalog";
 import {
   buildPolarProductPlanMap,
-  getPolarCatalogProductForPlan,
   listPolarCatalog,
+  resolvePolarProductIdForPlan,
 } from "./list-polar-catalog";
 import { isManualBillingPlan } from "../lib/billing-plan-helpers";
 import { isPolarConfigured } from "./polar-config";
@@ -93,9 +92,7 @@ export async function getOrganizationBillingSnapshot(input: {
     }
   }
 
-  const superProProductId =
-    getPolarCatalogProductForPlan(catalog, "super_pro")?.productId ??
-    getPolarProductId("super_pro");
+  const superProProductId = resolvePolarProductIdForPlan(catalog, "super_pro");
 
   const checkoutUrl =
     planId === "free" &&

@@ -1,6 +1,5 @@
 import {
   BILLING_PLANS,
-  getPolarProductId,
   type BillingPlanId,
 } from "../config/plans";
 
@@ -15,19 +14,6 @@ export function resolveBillingPlanFromPolarProduct(
   const mappedPlan = productPlanMap?.get(productId);
   if (mappedPlan) {
     return mappedPlan;
-  }
-
-  const envMappings: Array<[BillingPlanId, string | undefined]> = [
-    ["super_pro", getPolarProductId("super_pro")],
-    ["enterprise", getPolarProductId("enterprise")],
-    ["government", getPolarProductId("government")],
-    ["free", getPolarProductId("free")],
-  ];
-
-  for (const [planId, envProductId] of envMappings) {
-    if (envProductId && envProductId === productId) {
-      return planId;
-    }
   }
 
   const normalized = productId.toLowerCase();

@@ -1,8 +1,21 @@
 import { BILLING_PLANS, type BillingPlanId } from "../config/plans";
+import type { PricingTierId } from "../config/pricing-tiers";
 import type {
   PolarCatalogProduct,
   PolarSubscriptionSnapshot,
 } from "../types/polar-catalog";
+
+function findPolarCatalogProductForTier(
+  catalog: PolarCatalogProduct[],
+  tierId: PricingTierId,
+): PolarCatalogProduct | undefined {
+  return (
+    catalog.find((product) => product.tierId === tierId) ??
+    (tierId === "super_pro"
+      ? catalog.find((product) => product.planId === "super_pro")
+      : undefined)
+  );
+}
 
 export const MANUAL_BILLING_PLANS: BillingPlanId[] = ["enterprise", "government"];
 
@@ -37,13 +50,9 @@ export function resolveEffectiveBillingPlanId(input: {
 
 export function getPolarCatalogPriceForTier(
   catalog: PolarCatalogProduct[],
-  tierId: "free" | "super_pro",
+  tierId: PricingTierId,
 ): Pick<PolarCatalogProduct, "priceLabel" | "priceNote"> | null {
-  if (tierId !== "super_pro") {
-    return null;
-  }
-
-  const product = catalog.find((item) => item.planId === "super_pro");
+  const product = findPolarCatalogProductForTier(catalog, tierId);
   if (!product) {
     return null;
   }
