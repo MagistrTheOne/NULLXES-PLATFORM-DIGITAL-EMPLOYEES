@@ -19,7 +19,7 @@ import {
   getPolarCatalogProductForPlan,
   listPolarCatalog,
 } from "./list-polar-catalog";
-import { isManualBillingPlan } from "./sync-organization-polar-billing";
+import { isManualBillingPlan } from "../lib/billing-plan-helpers";
 import { isPolarConfigured } from "./polar-config";
 import { tryGetPolarClient } from "./polar-client";
 
@@ -127,28 +127,3 @@ export async function getOrganizationBillingSnapshot(input: {
   };
 }
 
-export function resolveEffectiveBillingPlanId(input: {
-  dbPlanId: BillingPlanId;
-  subscription: PolarSubscriptionSnapshot | null;
-}): BillingPlanId {
-  return input.subscription?.planId ?? input.dbPlanId;
-}
-
-export function getPolarCatalogPriceForTier(
-  catalog: PolarCatalogProduct[],
-  tierId: "free" | "super_pro",
-): Pick<PolarCatalogProduct, "priceLabel" | "priceNote"> | null {
-  if (tierId !== "super_pro") {
-    return null;
-  }
-
-  const product = getPolarCatalogProductForPlan(catalog, "super_pro");
-  if (!product) {
-    return null;
-  }
-
-  return {
-    priceLabel: product.priceLabel,
-    priceNote: product.priceNote,
-  };
-}

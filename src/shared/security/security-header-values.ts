@@ -17,8 +17,8 @@ export function getSecurityHeaderEntries(): Array<{ key: string; value: string }
       value: [
         "default-src 'self'",
         isProduction
-          ? "script-src 'self' 'unsafe-inline'"
-          : "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+          ? "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'"
+          : "script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval'",
         "style-src 'self' 'unsafe-inline'",
         "img-src 'self' data: blob: https:",
         "font-src 'self' data:",

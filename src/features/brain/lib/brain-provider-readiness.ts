@@ -5,14 +5,13 @@ import {
   hasNullxesBrainCredentials,
   hasOpenAiCredentials,
 } from "@/shared/config/provider-env";
+import type {
+  BrainProviderReadiness,
+  BrainProviderReadinessMap,
+} from "../types/brain-provider-readiness";
 import { BRAIN_PROVIDERS } from "./brain-model-catalog";
 
-export type BrainProviderReadiness = "ready" | "configure" | "managed";
-
-export type BrainProviderReadinessMap = Record<
-  BrainProvider,
-  BrainProviderReadiness
->;
+export type { BrainProviderReadiness, BrainProviderReadinessMap };
 
 function resolveProviderReadiness(
   provider: BrainProvider,

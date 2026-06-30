@@ -2,17 +2,9 @@ import { and, desc, eq } from "drizzle-orm";
 import { agentApprovalRequest } from "@/entities/agent-approval/schema";
 import { digitalEmployee } from "@/entities/digital-employee/schema";
 import { db } from "@/shared/db/client";
+import type { PendingApprovalRow } from "../types/pending-approval";
 
-export type PendingApprovalRow = {
-  id: string;
-  employeeId: string;
-  employeeName: string;
-  taskId: string | null;
-  actionType: string;
-  payload: Record<string, unknown>;
-  createdAt: Date;
-  expiresAt: Date | null;
-};
+export type { PendingApprovalRow };
 
 export async function listPendingApprovals(
   organizationId: string,

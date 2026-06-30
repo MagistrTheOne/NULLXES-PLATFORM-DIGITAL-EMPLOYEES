@@ -1,10 +1,8 @@
 import { eq } from "drizzle-orm";
 import { organization } from "@/entities/organization/schema";
 import { db } from "@/shared/db/client";
-import {
-  BILLING_PLANS,
-  type BillingPlanId,
-} from "../config/plans";
+import type { BillingPlanId } from "../config/plans";
+import { MANUAL_BILLING_PLANS } from "../lib/billing-plan-helpers";
 import { resolveBillingPlanFromPolarProduct } from "../lib/resolve-plan-from-polar-product";
 import { resolveBillingPlanId } from "../lib/resolve-billing-plan";
 import {
@@ -13,8 +11,6 @@ import {
 } from "./list-polar-catalog";
 import { tryGetPolarClient } from "./polar-client";
 import { isPolarConfigured } from "./polar-config";
-
-const MANUAL_BILLING_PLANS: BillingPlanId[] = ["enterprise", "government"];
 
 export type SyncOrganizationPolarBillingResult = {
   billingPlan: BillingPlanId;
@@ -137,24 +133,4 @@ export async function syncOrganizationBillingFromPolarEvent(input: {
     .where(eq(organization.id, input.externalId));
 }
 
-export function isManualBillingPlan(planId: BillingPlanId): boolean {
-  return MANUAL_BILLING_PLANS.includes(planId);
-}
-
-export function getBillingPlanDisplay(input: {
-  planId: BillingPlanId;
-  polarProductName?: string | null;
-  polarPriceLabel?: string | null;
-}): {
-  name: string;
-  priceLabel: string;
-  description: string;
-} {
-  const plan = BILLING_PLANS[input.planId];
-
-  return {
-    name: input.polarProductName ?? plan.name,
-    priceLabel: input.polarPriceLabel ?? plan.priceLabel,
-    description: plan.description,
-  };
-}
+export { isManualBillingPlan } from "../lib/billing-plan-helpers";

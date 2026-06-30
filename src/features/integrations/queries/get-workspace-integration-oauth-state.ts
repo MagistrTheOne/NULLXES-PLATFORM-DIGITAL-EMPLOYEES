@@ -6,17 +6,9 @@ import {
   isTeamsOAuthConfigured,
 } from "@/features/integrations/lib/integration-oauth-config";
 import { db } from "@/shared/db/client";
+import type { WorkspaceIntegrationOAuthState } from "../types/workspace-integration-oauth-state";
 
-export type WorkspaceIntegrationOAuthState = {
-  slack: {
-    oauthConfigured: boolean;
-    connected: boolean;
-  };
-  teams: {
-    oauthConfigured: boolean;
-    connected: boolean;
-  };
-};
+export type { WorkspaceIntegrationOAuthState };
 
 export async function getWorkspaceIntegrationOAuthState(
   organizationId: string,

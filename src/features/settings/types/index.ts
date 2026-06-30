@@ -1,10 +1,10 @@
 import type { BrainProvider } from "@/entities/digital-employee";
-import type { BrainProviderReadinessMap } from "@/features/brain/lib/brain-provider-readiness";
-import type { PendingApprovalRow } from "@/features/agent-approval/queries/list-pending-approvals";
-import type { ProviderKeyStatus } from "@/features/provider-credentials";
+import type { BrainProviderReadinessMap } from "@/features/brain/types/brain-provider-readiness";
+import type { PendingApprovalRow } from "@/features/agent-approval/types/pending-approval";
+import type { ProviderKeyStatus } from "@/features/provider-credentials/types/provider-key-status";
 import type { MembershipRole } from "@/features/workspace/types";
 import type { SystemStatusItem } from "@/features/overview/types";
-import type { WorkspaceIntegrationOAuthState } from "@/features/integrations/queries/get-workspace-integration-oauth-state";
+import type { WorkspaceIntegrationOAuthState } from "@/features/integrations/types/workspace-integration-oauth-state";
 
 export type OrganizationSettingsDto = {
   website: string | null;

@@ -8,10 +8,10 @@ import { cn } from "@/lib/utils";
 import { formatDurationSeconds } from "@/features/analytics/lib/format-duration";
 import { BILLING_PLANS } from "@/features/billing/config/plans";
 import {
+  getBillingPlanDisplay,
   getPolarCatalogPriceForTier,
   resolveEffectiveBillingPlanId,
-} from "@/features/billing/services/get-organization-billing-snapshot";
-import { getBillingPlanDisplay } from "@/features/billing/services/sync-organization-polar-billing";
+} from "@/features/billing/lib/billing-plan-helpers";
 import {
   getFlagshipPricingTier,
   getGridPricingTiers,

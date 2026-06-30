@@ -10,13 +10,9 @@ import {
 } from "@/shared/config/provider-env";
 import { decryptField, encryptField } from "@/shared/crypto/field-encryption";
 import { db } from "@/shared/db/client";
+import type { ProviderKeyStatus } from "../types/provider-key-status";
 
-export type ProviderKeyStatus = {
-  provider: OrganizationProvider;
-  source: "organization" | "platform" | "none";
-  last4: string | null;
-  updatedAt: Date | null;
-};
+export type { ProviderKeyStatus };
 
 function platformKeyForProvider(
   provider: OrganizationProvider,

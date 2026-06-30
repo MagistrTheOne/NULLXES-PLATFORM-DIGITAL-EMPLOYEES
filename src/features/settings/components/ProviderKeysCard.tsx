@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import type { OrganizationProvider } from "@/entities/organization-provider-credential";
-import type { ProviderKeyStatus } from "@/features/provider-credentials";
+import type { ProviderKeyStatus } from "@/features/provider-credentials/types/provider-key-status";
 import {
   removeProviderCredentialAction,
   setProviderCredentialAction,

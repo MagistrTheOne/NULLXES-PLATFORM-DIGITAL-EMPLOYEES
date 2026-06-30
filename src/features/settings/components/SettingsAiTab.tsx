@@ -13,7 +13,7 @@ import {
 import type { BrainProviderReadinessMap } from "@/features/brain";
 import { updateBrainSettingsAction } from "@/features/brain/actions/update-brain-settings";
 import { getDefaultBrainModelForProvider } from "../lib/brain-model-defaults";
-import type { ProviderKeyStatus } from "@/features/provider-credentials";
+import type { ProviderKeyStatus } from "@/features/provider-credentials/types/provider-key-status";
 import type { OrganizationSettingsDto } from "../types";
 import { ProviderKeysCard } from "./ProviderKeysCard";
 import { SettingsCard } from "./settings-card";
