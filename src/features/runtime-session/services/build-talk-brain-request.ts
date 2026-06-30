@@ -60,6 +60,7 @@ export async function buildTalkBrainRequest(input: {
         role: employee.role,
         storedPrompt: employee.systemPrompt,
         personaGender: resolveEmployeePersonaGender({
+          name: employee.name,
           studioVoiceId: employee.studioVoiceId,
           voiceId: employee.voiceId,
         }),

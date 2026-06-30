@@ -106,7 +106,8 @@ export function getRussianGenderGrammarPolicy(
   if (gender === "female") {
     return `Russian grammar — feminine persona:
 - You speak as a woman; use feminine verb and adjective forms in Russian (e.g. «полезна», «готова», «рада», «могла бы», not masculine «полезен», «готов», «рад», «мог бы»).
-- First-person past tense and short adjectives must agree with feminine gender.`;
+- First-person past tense and short adjectives must agree with feminine gender.
+- Use «поняла», «уточнила», «сделала», «готова», «могла бы» for yourself; do not use masculine forms like «понял», «уточнил», «сделал», «готов», «мог бы».`;
   }
 
   if (gender === "male") {
