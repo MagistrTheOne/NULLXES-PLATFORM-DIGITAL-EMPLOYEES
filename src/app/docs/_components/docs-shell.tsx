@@ -182,15 +182,35 @@ export function DocsShell({ children }: { children: ReactNode }) {
                   Нужна помощь?
                 </p>
                 <p className="mt-1 text-xs leading-relaxed text-white/50">
-                  Если у вас есть вопросы по документации или продукту,
-                  обратитесь в поддержку.
+                  Спросите Yuki Nakora в чате FAQ или обратитесь к
+                  правообладателю напрямую.
                 </p>
-                <Link
-                  href="/trust"
-                  className="mt-3 inline-block text-xs text-white underline underline-offset-4"
-                >
-                  Центр доверия
-                </Link>
+                <div className="mt-3 flex flex-col gap-2 text-xs">
+                  <Link
+                    href="/docs/assistant"
+                    className="text-white underline underline-offset-4"
+                  >
+                    Чат с ассистентом
+                  </Link>
+                  <Link
+                    href="/docs/personal-data"
+                    className="text-white underline underline-offset-4"
+                  >
+                    Персональные данные (152-ФЗ)
+                  </Link>
+                  <Link
+                    href="/trust"
+                    className="text-white underline underline-offset-4"
+                  >
+                    Центр доверия
+                  </Link>
+                  <a
+                    href="mailto:ceo@nullxes.com"
+                    className="text-white/70 underline underline-offset-4"
+                  >
+                    ceo@nullxes.com
+                  </a>
+                </div>
               </div>
 
               <div className="text-xs text-white/40">

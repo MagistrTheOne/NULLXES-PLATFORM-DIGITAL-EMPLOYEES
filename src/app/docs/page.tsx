@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { DOCS_LEGAL_ENTITY } from "./_lib/docs-legal";
 
 const DOC_SECTIONS = [
   {
@@ -18,6 +19,18 @@ const DOC_SECTIONS = [
     title: "Информация для эксплуатации",
     description:
       "Руководство пользователя: вход в систему, создание цифрового сотрудника, миссии, разговоры, настройки организации и API.",
+  },
+  {
+    href: "/docs/personal-data",
+    title: "Персональные данные (152-ФЗ)",
+    description:
+      "Оператор ПДн, комплект документов, условия хранения и права субъектов персональных данных.",
+  },
+  {
+    href: "/docs/assistant",
+    title: "Чат с ассистентом",
+    description:
+      "Yuki Nakora — FAQ-ассистент по документации, установке и эксплуатации платформы.",
   },
 ] as const;
 
@@ -58,7 +71,7 @@ export default function DocsOverviewPage() {
           </div>
           <div>
             <dt className="text-white/40">Правообладатель / оператор сайта</dt>
-            <dd className="mt-1 text-white">NULLXES</dd>
+            <dd className="mt-1 text-white">{DOCS_LEGAL_ENTITY.shortName}</dd>
           </div>
           <div>
             <dt className="text-white/40">Программное обеспечение</dt>
@@ -70,11 +83,67 @@ export default function DocsOverviewPage() {
         </dl>
         <p className="mt-4 text-sm leading-relaxed text-white/60">
           Сайт{" "}
-          <span className="font-mono text-white">nullxesdai.online</span>{" "}
+          <span className="font-mono text-white">{DOCS_LEGAL_ENTITY.domain}</span>{" "}
           используется правообладателем для размещения программного обеспечения,
           документации и служебных интерфейсов. Доступ к продуктовым функциям
           осуществляется после аутентификации пользователя организации.
         </p>
+      </section>
+
+      <section
+        id="legal"
+        className="scroll-mt-24 rounded-2xl border border-white/10 bg-[#111111] p-6"
+      >
+        <h2 className="text-sm font-medium text-white">
+          Реквизиты правообладателя
+        </h2>
+        <dl className="mt-4 grid gap-3 text-sm text-white/60">
+          <div>
+            <dt className="text-white/40">Полное наименование</dt>
+            <dd className="mt-1 text-white">{DOCS_LEGAL_ENTITY.fullName}</dd>
+          </div>
+          <div>
+            <dt className="text-white/40">ОГРН</dt>
+            <dd className="mt-1 font-mono text-white">{DOCS_LEGAL_ENTITY.ogrn}</dd>
+          </div>
+          <div>
+            <dt className="text-white/40">ИНН / КПП</dt>
+            <dd className="mt-1 font-mono text-white">
+              {DOCS_LEGAL_ENTITY.inn} / {DOCS_LEGAL_ENTITY.kpp}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-white/40">Дата регистрации</dt>
+            <dd className="mt-1 text-white">{DOCS_LEGAL_ENTITY.registeredAt}</dd>
+          </div>
+          <div>
+            <dt className="text-white/40">Руководитель</dt>
+            <dd className="mt-1 text-white">
+              {DOCS_LEGAL_ENTITY.director} ({DOCS_LEGAL_ENTITY.directorEn})
+            </dd>
+          </div>
+          <div>
+            <dt className="text-white/40">Email</dt>
+            <dd className="mt-1">
+              <a href={`mailto:${DOCS_LEGAL_ENTITY.email}`} className="text-white underline">
+                {DOCS_LEGAL_ENTITY.email}
+              </a>
+            </dd>
+          </div>
+          <div>
+            <dt className="text-white/40">Telegram</dt>
+            <dd className="mt-1">
+              <a
+                href="https://t.me/MagistrTheOne"
+                className="text-white underline"
+                target="_blank"
+                rel="noreferrer"
+              >
+                {DOCS_LEGAL_ENTITY.telegram}
+              </a>
+            </dd>
+          </div>
+        </dl>
       </section>
 
       <section
@@ -103,7 +172,7 @@ export default function DocsOverviewPage() {
           <Link
             key={section.href}
             href={section.href}
-            className="rounded-2xl border border-white/10 bg-[#111111] p-6 transition-colors hover:border-white/20 hover:bg-white/[0.03]"
+            className="rounded-2xl border border-white/10 bg-[#111111] p-6 transition-colors hover:border-white/20 hover:bg-white/3"
           >
             <h3 className="text-sm font-medium text-white">{section.title}</h3>
             <p className="mt-2 text-sm leading-relaxed text-white/60">

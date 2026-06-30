@@ -23,8 +23,18 @@ export const DOCS_NAV: DocsNavGroup[] = [
         toc: [
           { id: "overview", label: "Обзор" },
           { id: "domain", label: "Принадлежность домена" },
+          { id: "legal", label: "Реквизиты правообладателя" },
           { id: "llm", label: "Обработка текстовых данных" },
           { id: "sections", label: "Разделы документации" },
+        ],
+      },
+      {
+        href: "/docs/assistant",
+        label: "Чат с ассистентом",
+        breadcrumb: "Чат с ассистентом",
+        toc: [
+          { id: "assistant", label: "Ассистент FAQ" },
+          { id: "contacts", label: "Контакты" },
         ],
       },
     ],
@@ -56,10 +66,27 @@ export const DOCS_NAV: DocsNavGroup[] = [
         toc: [
           { id: "requirements", label: "Системные требования" },
           { id: "source", label: "Исходный код" },
+          { id: "contacts", label: "Контакты разработчика" },
           { id: "env", label: "Переменные окружения" },
           { id: "migrations", label: "Миграции БД" },
           { id: "inngest", label: "Регистрация Inngest" },
           { id: "verify", label: "Проверка установки" },
+        ],
+      },
+    ],
+  },
+  {
+    label: "Соответствие",
+    items: [
+      {
+        href: "/docs/personal-data",
+        label: "Персональные данные",
+        breadcrumb: "Персональные данные",
+        toc: [
+          { id: "operator", label: "Оператор ПДн" },
+          { id: "documents", label: "Комплект документов" },
+          { id: "storage", label: "Хранение" },
+          { id: "rights", label: "Права субъектов" },
         ],
       },
     ],

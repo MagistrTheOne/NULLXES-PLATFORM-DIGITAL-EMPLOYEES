@@ -145,13 +145,13 @@ function MissionCard({ mission }: { mission: MissionListItem }) {
   }
 
   return (
-    <div className="rounded-2xl border border-white/8 bg-[#111111] p-5 transition-colors hover:border-white/15">
-      <div className="flex flex-col gap-5 lg:flex-row lg:items-center">
+    <div className="w-full min-w-0 overflow-hidden rounded-2xl border border-white/8 bg-[#111111] p-5 transition-colors hover:border-white/15">
+      <div className="flex min-w-0 flex-col gap-5 lg:flex-row lg:items-center">
         <div className="flex min-w-0 flex-1 items-start gap-4">
           <span className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-white/70">
             <Radar className="size-5" />
           </span>
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <p className="truncate text-base font-medium text-white">
               {mission.title}
             </p>
@@ -160,7 +160,7 @@ function MissionCard({ mission }: { mission: MissionListItem }) {
               {" · "}
               {mission.type === "prospecting" ? "Prospecting" : "Custom"}
             </p>
-            <p className="mt-2 line-clamp-2 max-w-md text-sm text-white/45">
+            <p className="mt-2 line-clamp-2 text-sm text-white/45">
               {mission.brief}
             </p>
           </div>
@@ -425,7 +425,7 @@ export function MissionsScreen({
         </div>
       ) : (
         <>
-          <div className="grid gap-3">
+          <div className="grid min-w-0 gap-3">
             {paged.map((mission) => (
               <MissionCard key={mission.id} mission={mission} />
             ))}

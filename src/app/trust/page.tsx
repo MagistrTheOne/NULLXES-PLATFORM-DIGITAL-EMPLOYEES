@@ -18,6 +18,10 @@ const TRUST_SECTIONS = [
     body: "Security-relevant actions are recorded in an immutable audit log. Session data is purged automatically according to your organization's retention policy.",
   },
   {
+    title: "Personal data (152-FZ)",
+    body: "Personal data processing documentation is maintained in accordance with Russian Federal Law No. 152-FZ, GOST R ISO/IEC 27001-2021 and GOST R 7.0.8-2013. See the documentation portal for operator details, document kit, storage conditions and subject rights.",
+  },
+  {
     title: "Transparency",
     body: "Workspace owners can export organization data, review audit events, and request asynchronous export jobs for compliance workflows.",
   },
@@ -54,6 +58,14 @@ export default function TrustPage() {
           Documentation for software registry review:{" "}
           <Link href="/docs" className="text-white hover:underline">
             /docs
+          </Link>
+          . Personal data (152-FZ):{" "}
+          <Link href="/docs/personal-data" className="text-white hover:underline">
+            /docs/personal-data
+          </Link>
+          . FAQ assistant:{" "}
+          <Link href="/docs/assistant" className="text-white hover:underline">
+            /docs/assistant
           </Link>
           . Questions?{" "}
           <Link href="/login" className="text-white hover:underline">
