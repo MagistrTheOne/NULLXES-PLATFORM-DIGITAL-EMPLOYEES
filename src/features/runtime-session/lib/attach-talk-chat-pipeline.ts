@@ -48,6 +48,7 @@ export function attachTalkChatPipeline(input: {
   channel: StreamChannel;
   employeeId: string;
   employeeSessionId?: string;
+  scenarioSessionId?: string;
   actorUserId: string;
   isSessionLive: boolean;
   voiceMode: TalkVoiceMode;
@@ -81,6 +82,7 @@ export function attachTalkChatPipeline(input: {
       const replyText = await streamTalkBrainReply({
         employeeId: input.employeeId,
         sessionId: input.employeeSessionId,
+        scenarioSessionId: input.scenarioSessionId,
         messages: pipelineMessages,
       });
 

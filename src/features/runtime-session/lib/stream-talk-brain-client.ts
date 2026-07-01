@@ -4,6 +4,7 @@ import { resolveAgentToolTraceKey } from "./map-agent-tool-trace";
 export async function streamTalkBrainReply(input: {
   employeeId: string;
   sessionId?: string;
+  scenarioSessionId?: string;
   messages: TalkPipelineMessage[];
   onChunk?: (chunk: string) => void | Promise<void>;
   onToolTrace?: (traceKey: string | null) => void | Promise<void>;
@@ -16,6 +17,7 @@ export async function streamTalkBrainReply(input: {
     body: JSON.stringify({
       employeeId: input.employeeId,
       sessionId: input.sessionId,
+      scenarioSessionId: input.scenarioSessionId,
       messages: input.messages,
     }),
     signal: input.signal,

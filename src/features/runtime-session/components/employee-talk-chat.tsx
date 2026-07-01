@@ -132,6 +132,7 @@ export function EmployeeTalkChat({
   threadId = null,
   brainModelLabel,
   employeeSessionId,
+  scenarioSessionId,
   isSessionLive,
   voiceMode,
   viewerName,
@@ -146,6 +147,7 @@ export function EmployeeTalkChat({
   threadId?: string | null;
   brainModelLabel?: string | null;
   employeeSessionId?: string;
+  scenarioSessionId?: string;
   isSessionLive: boolean;
   voiceMode: TalkVoiceMode;
   viewerName?: string;
@@ -265,6 +267,7 @@ export function EmployeeTalkChat({
       channel,
       employeeId,
       employeeSessionId,
+      scenarioSessionId,
       actorUserId: activeChatSession!.userId,
       isSessionLive,
       voiceMode,
@@ -280,6 +283,7 @@ export function EmployeeTalkChat({
     channel,
     employeeId,
     employeeSessionId,
+    scenarioSessionId,
     getClient,
     isSessionLive,
     uiState,

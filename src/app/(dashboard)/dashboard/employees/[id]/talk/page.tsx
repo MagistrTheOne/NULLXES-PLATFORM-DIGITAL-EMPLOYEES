@@ -3,6 +3,7 @@ import { requireAuth } from "@/features/auth/services/require-auth";
 import { ensureWorkspace } from "@/features/auth/services/ensure-workspace";
 import { resolveEmployeeDepartment } from "@/features/hq/lib/map-employee-department";
 import { getEmployeeTalkContext } from "@/features/runtime-session/services/get-employee-talk-context";
+import { getScenarioSessionForUser } from "@/features/scenarios/services/scenario-session";
 import { getTalkAgentPanel } from "@/features/runtime-session/queries/get-talk-agent-panel";
 import { getTalkAgentActivity } from "@/features/runtime-session/queries/get-talk-agent-activity";
 import { buildTalkAgentDetails } from "@/features/runtime-session/lib/build-talk-agent-details";
@@ -14,10 +15,13 @@ import { notFound, redirect } from "next/navigation";
 
 export default async function EmployeeTalkPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ scenario?: string }>;
 }) {
   const { id } = await params;
+  const { scenario: scenarioSessionId } = await searchParams;
   const session = await requireAuth();
   const workspace = await ensureWorkspace(session.user.id, session.user.name);
   const employee = await getEmployeeTalkContext(workspace.organization.id, id);
@@ -28,6 +32,24 @@ export default async function EmployeeTalkPage({
 
   if (!employee.canTalk) {
     redirect(`/dashboard/employees/${id}`);
+  }
+
+  let validatedScenarioSessionId: string | undefined;
+  if (scenarioSessionId?.trim()) {
+    const scenarioSession = await getScenarioSessionForUser({
+      scenarioSessionId: scenarioSessionId.trim(),
+      organizationId: workspace.organization.id,
+      userId: session.user.id,
+    });
+
+    if (
+      scenarioSession &&
+      scenarioSession.employeeId === employee.id &&
+      scenarioSession.status !== "completed" &&
+      scenarioSession.status !== "abandoned"
+    ) {
+      validatedScenarioSessionId = scenarioSession.id;
+    }
   }
 
   const brainModelLabel = formatBrainModelDisplay({
@@ -67,6 +89,7 @@ export default async function EmployeeTalkPage({
       actorUserId={session.user.id}
       actorUserName={session.user.name}
       employeeId={employee.id}
+      scenarioSessionId={validatedScenarioSessionId}
       avatarPreviewUrl={employee.avatarPreviewUrl}
       sessionLimitSeconds={employee.sessionLimitSeconds}
       brainModelLabel={brainModelLabel}

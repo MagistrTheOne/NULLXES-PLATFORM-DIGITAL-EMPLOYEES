@@ -13,6 +13,7 @@ export const runtime = "nodejs";
 type BrainStreamRequest = {
   employeeId?: string;
   sessionId?: string;
+  scenarioSessionId?: string;
   messages?: TalkPipelineMessage[];
 };
 
@@ -26,6 +27,7 @@ export async function POST(request: Request): Promise<Response> {
 
   const employeeId = body.employeeId?.trim();
   const sessionId = body.sessionId?.trim();
+  const scenarioSessionId = body.scenarioSessionId?.trim();
   const messages = body.messages;
 
   if (!employeeId || !Array.isArray(messages) || messages.length === 0) {
@@ -75,6 +77,8 @@ export async function POST(request: Request): Promise<Response> {
   const config = await buildTalkBrainRequest({
     organizationId: authResult.auth.organizationId,
     employeeId,
+    userId: authResult.auth.userId,
+    scenarioSessionId: scenarioSessionId || undefined,
     messages: messages.map((message) => ({
       role: message.role === "user" ? "user" : "assistant",
       content: message.content,

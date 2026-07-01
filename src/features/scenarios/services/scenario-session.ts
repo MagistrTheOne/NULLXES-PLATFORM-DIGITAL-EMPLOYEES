@@ -127,3 +127,11 @@ export async function getActiveScenarioSessionForTalk(input: {
 
   return row;
 }
+
+export async function findScenarioSessionByTalkSessionId(
+  talkSessionId: string,
+) {
+  return db.query.employeeScenarioSession.findFirst({
+    where: eq(employeeScenarioSession.talkSessionId, talkSessionId),
+  });
+}

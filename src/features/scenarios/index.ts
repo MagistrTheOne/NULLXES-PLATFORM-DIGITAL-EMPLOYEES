@@ -24,6 +24,7 @@ export {
   getActiveScenarioSessionForTalk,
   getScenarioSessionForUser,
   linkScenarioTalkSession,
+  findScenarioSessionByTalkSessionId,
 } from "./services/scenario-session";
 export {
   generateScenarioDebrief,

@@ -26,6 +26,7 @@ export function EmployeeAnamStage({
   employeeId,
   employeeName,
   employeeSessionId,
+  scenarioSessionId,
   avatarPreviewUrl,
   sessionToken,
   voiceMode,
@@ -33,6 +34,7 @@ export function EmployeeAnamStage({
   employeeId: string;
   employeeName: string;
   employeeSessionId: string;
+  scenarioSessionId?: string;
   avatarPreviewUrl: string | null;
   sessionToken: string | null;
   voiceMode: TalkVoiceMode;
@@ -145,6 +147,7 @@ export function EmployeeAnamStage({
         anamClient,
         employeeId,
         employeeSessionId,
+        scenarioSessionId,
         voiceMode,
         setPipelineState,
       });

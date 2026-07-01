@@ -14,14 +14,18 @@ import { TalkSessionRatingDialog } from "./talk-session-rating-dialog";
 
 type PendingSessionEnd = {
   sessionId: string;
-  afterComplete: "stay" | "leave";
+  afterComplete: "stay" | "leave" | "debrief";
 };
 
 function TalkSessionShell({
   employeeName,
   sessionLimitSeconds,
+  scenarioSessionId,
+  employeeId,
   ...roomProps
-}: EmployeeTalkSessionInputProps & { employeeName: string }) {
+}: EmployeeTalkSessionInputProps & {
+  employeeName: string;
+}) {
   const router = useRouter();
   const { stopSession } = useTalkAnam();
   const [activeSession, setActiveSession] = useState<ActiveTalkSession | null>(
@@ -55,13 +59,30 @@ function TalkSessionShell({
 
         if (afterComplete === "leave") {
           router.push("/dashboard/employees");
+        } else if (afterComplete === "debrief" && scenarioSessionId) {
+          router.push(
+            `/dashboard/employees/${employeeId}/scenarios/${scenarioSessionId}/debrief`,
+          );
         }
       } finally {
         setIsEndingSession(false);
       }
     },
-    [router],
+    [router, scenarioSessionId, employeeId],
   );
+
+  useEffect(() => {
+    if (!scenarioSessionId || !pendingEnd || isEndingSession) {
+      return;
+    }
+
+    void finalizeSession(pendingEnd.sessionId, pendingEnd.afterComplete);
+  }, [
+    finalizeSession,
+    isEndingSession,
+    pendingEnd,
+    scenarioSessionId,
+  ]);
 
   const beginSessionEnd = useCallback(
     async (
@@ -80,8 +101,11 @@ function TalkSessionShell({
     if (!activeSession || isEndingSession) {
       return;
     }
-    await beginSessionEnd(activeSession, "stay");
-  }, [activeSession, beginSessionEnd, isEndingSession]);
+    await beginSessionEnd(
+      activeSession,
+      scenarioSessionId ? "debrief" : "stay",
+    );
+  }, [activeSession, beginSessionEnd, isEndingSession, scenarioSessionId]);
 
   const handleLeaveSession = useCallback(async () => {
     if (isEndingSession || isLimitLeaving) {
@@ -89,12 +113,22 @@ function TalkSessionShell({
     }
 
     if (activeSession) {
-      await beginSessionEnd(activeSession, "leave");
+      await beginSessionEnd(
+        activeSession,
+        scenarioSessionId ? "debrief" : "leave",
+      );
       return;
     }
 
     router.push("/dashboard/employees");
-  }, [activeSession, beginSessionEnd, isEndingSession, isLimitLeaving, router]);
+  }, [
+    activeSession,
+    beginSessionEnd,
+    isEndingSession,
+    isLimitLeaving,
+    router,
+    scenarioSessionId,
+  ]);
 
   const handleSessionLimitReached = useCallback(async () => {
     if (limitHandledRef.current || isLimitLeaving || !activeSession) {
@@ -104,17 +138,22 @@ function TalkSessionShell({
     limitHandledRef.current = true;
     setIsLimitLeaving(true);
     try {
-      await beginSessionEnd(activeSession, "leave");
+      await beginSessionEnd(
+        activeSession,
+        scenarioSessionId ? "debrief" : "leave",
+      );
     } finally {
       setIsLimitLeaving(false);
     }
-  }, [activeSession, beginSessionEnd, isLimitLeaving]);
+  }, [activeSession, beginSessionEnd, isLimitLeaving, scenarioSessionId]);
 
   return (
     <>
       <div className="flex min-h-0 flex-1 flex-col pb-[env(safe-area-inset-bottom)]">
         <EmployeeTalkRoom
           {...roomProps}
+          employeeId={employeeId}
+          scenarioSessionId={scenarioSessionId}
           employeeName={employeeName}
           sessionLimitSeconds={sessionLimitSeconds}
           activeSession={activeSession}
@@ -129,7 +168,7 @@ function TalkSessionShell({
       </div>
 
       <TalkSessionRatingDialog
-        open={pendingEnd !== null}
+        open={pendingEnd !== null && !scenarioSessionId}
         employeeName={employeeName}
         isSubmitting={isEndingSession}
         onSubmit={(rating) => {

@@ -3,6 +3,11 @@
 import { requireWorkspacePermissionOrThrowMessage } from "@/features/workspace";
 import { dispatchOrganizationWebhook } from "@/features/public-api/services/dispatch-outbound-webhook";
 import { inngest, isInngestEnabledForSend } from "@/inngest/client";
+import { generateScenarioDebrief } from "@/features/scenarios/services/generate-scenario-debrief";
+import {
+  findScenarioSessionByTalkSessionId,
+  linkScenarioTalkSession,
+} from "@/features/scenarios/services/scenario-session";
 import { createAnamTalkSessionTokenForEmployee } from "../services/create-anam-talk-session";
 import { resolveTalkVoiceMode } from "../services/resolve-talk-voice-mode";
 import { getEmployeeTalkContext } from "../services/get-employee-talk-context";
@@ -55,6 +60,19 @@ export async function completeTalkSessionAction(
   }
 
   if (result) {
+    const scenarioSession = await findScenarioSessionByTalkSessionId(sessionId);
+    if (scenarioSession) {
+      try {
+        await generateScenarioDebrief({
+          scenarioSessionId: scenarioSession.id,
+          organizationId,
+          userId,
+        });
+      } catch {
+        // Debrief generation is best-effort; talk session completion already persisted.
+      }
+    }
+
     void dispatchOrganizationWebhook({
       organizationId,
       event: "session.completed",
@@ -136,6 +154,7 @@ export type StartTalkSessionResult =
 
 export async function startTalkSessionAction(
   employeeId: string,
+  scenarioSessionId?: string,
 ): Promise<StartTalkSessionResult> {
   try {
     const { organizationId, userId } = await resolveWorkspaceContext();
@@ -153,6 +172,15 @@ export async function startTalkSessionAction(
           employeeId,
           userId,
         });
+
+        if (scenarioSessionId) {
+          await linkScenarioTalkSession({
+            scenarioSessionId,
+            organizationId,
+            userId,
+            talkSessionId: sessionId,
+          });
+        }
 
         const anamToken = await createAnamTalkSessionTokenForEmployee(
           organizationId,

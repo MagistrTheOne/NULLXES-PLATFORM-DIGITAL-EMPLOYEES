@@ -71,6 +71,7 @@ export type ActiveTalkSession = {
 
 function TalkStageControls({
   employeeId,
+  scenarioSessionId,
   activeSession,
   onSessionStarted,
   onStopSession,
@@ -81,6 +82,7 @@ function TalkStageControls({
   onShare,
 }: {
   employeeId: string;
+  scenarioSessionId?: string;
   activeSession: ActiveTalkSession | null;
   onSessionStarted: (session: ActiveTalkSession) => void;
   onStopSession: () => Promise<void>;
@@ -111,7 +113,7 @@ function TalkStageControls({
     setIsStarting(true);
     setStartError(null);
     try {
-      const result = await startTalkSessionAction(employeeId);
+      const result = await startTalkSessionAction(employeeId, scenarioSessionId);
       if (!result.ok) {
         setStartError(result.message);
         return;
@@ -273,6 +275,7 @@ export type EmployeeTalkSessionInputProps = {
   actorUserId: string;
   actorUserName: string;
   employeeId: string;
+  scenarioSessionId?: string;
   avatarPreviewUrl: string | null;
   sessionLimitSeconds: number;
   brainModelLabel: string | null;
@@ -295,6 +298,7 @@ export type EmployeeTalkRoomProps = EmployeeTalkSessionInputProps & {
 export function EmployeeTalkRoom({
   employeeName,
   employeeId,
+  scenarioSessionId,
   avatarPreviewUrl,
   actorUserName,
   chatSession,
@@ -356,6 +360,7 @@ export function EmployeeTalkRoom({
               employeeId={employeeId}
               employeeName={employeeName}
               employeeSessionId={activeSession?.sessionId ?? ""}
+              scenarioSessionId={scenarioSessionId}
               avatarPreviewUrl={avatarPreviewUrl}
               sessionToken={activeSession?.sessionToken ?? null}
               voiceMode={activeSession?.voiceMode ?? "anam"}
@@ -366,6 +371,7 @@ export function EmployeeTalkRoom({
             />
             <TalkStageControls
               employeeId={employeeId}
+              scenarioSessionId={scenarioSessionId}
               activeSession={activeSession}
               onSessionStarted={onActiveSessionChange}
               onStopSession={onStopSession}
@@ -477,6 +483,7 @@ export function EmployeeTalkRoom({
               threadId={threads.activeThreadId}
               brainModelLabel={brainModelLabel}
               employeeSessionId={activeSession?.sessionId}
+              scenarioSessionId={scenarioSessionId}
               isSessionLive={Boolean(activeSession)}
               voiceMode={activeSession?.voiceMode ?? "anam"}
               viewerName={viewer.name}

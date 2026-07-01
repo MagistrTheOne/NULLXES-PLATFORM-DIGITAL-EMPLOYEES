@@ -5,6 +5,12 @@ import { resolveNullxesBrainMaxTokens } from "@/features/brain/lib/resolve-nullx
 import { composeTalkSystemPrompt } from "@/features/employees/lib/build-system-prompt";
 import { resolveEmployeePersonaGender } from "@/features/employees/lib/resolve-employee-persona-gender";
 import {
+  appendScenarioOverlayToPrompt,
+  buildScenarioOverlayPrompt,
+} from "@/features/scenarios/lib/build-scenario-overlay-prompt";
+import { getScenarioTemplateById } from "@/features/scenarios/lib/scenario-templates";
+import { getActiveScenarioSessionForTalk } from "@/features/scenarios/services/scenario-session";
+import {
   formatKnowledgeContext,
   searchKnowledge,
 } from "@/features/knowledge-retrieval";
@@ -26,6 +32,8 @@ export type TalkBrainRequestConfig = {
 export async function buildTalkBrainRequest(input: {
   organizationId: string;
   employeeId: string;
+  userId?: string;
+  scenarioSessionId?: string;
   messages: TalkBrainMessage[];
 }): Promise<TalkBrainRequestConfig | null> {
   return measureTalkPerf(
@@ -82,6 +90,31 @@ export async function buildTalkBrainRequest(input: {
           ? resolveNullxesBrainMaxTokens(employee.maxTokens)
           : employee.maxTokens;
 
+      let systemPrompt = knowledgeBlock
+        ? `${brainPrompt}\n\n${knowledgeBlock}`
+        : brainPrompt;
+
+      if (input.scenarioSessionId && input.userId) {
+        const scenarioSession = await getActiveScenarioSessionForTalk({
+          scenarioSessionId: input.scenarioSessionId,
+          organizationId: input.organizationId,
+          employeeId: input.employeeId,
+          userId: input.userId,
+        });
+        const template = scenarioSession
+          ? getScenarioTemplateById(scenarioSession.templateId)
+          : undefined;
+
+        if (template) {
+          const overlay = buildScenarioOverlayPrompt({
+            template,
+            employeeName: employee.name,
+            employeeRole: employee.role,
+          });
+          systemPrompt = appendScenarioOverlayToPrompt(systemPrompt, overlay);
+        }
+      }
+
       return {
         brainProvider: employee.brainProvider,
         model: apiConfig.model,
@@ -89,9 +122,7 @@ export async function buildTalkBrainRequest(input: {
           provider: employee.brainProvider,
           modelId: apiConfig.model,
         }),
-        systemPrompt: knowledgeBlock
-          ? `${brainPrompt}\n\n${knowledgeBlock}`
-          : brainPrompt,
+        systemPrompt,
         temperature:
           employee.brainProvider === "nullxes"
             ? Math.min(employee.temperature, 0.4)

@@ -55,6 +55,7 @@ export function attachTalkVoicePipeline(input: {
   anamClient: AnamClient;
   employeeId: string;
   employeeSessionId?: string;
+  scenarioSessionId?: string;
   voiceMode: TalkVoiceMode;
   setPipelineState: (state: TalkPipelineState) => void;
 }): () => void {
@@ -115,6 +116,7 @@ export function attachTalkVoicePipeline(input: {
           replyText = await streamTalkBrainReply({
             employeeId: input.employeeId,
             sessionId: input.employeeSessionId,
+            scenarioSessionId: input.scenarioSessionId,
             messages: pipelineMessages,
           });
 
@@ -131,6 +133,7 @@ export function attachTalkVoicePipeline(input: {
           replyText = await streamTalkBrainReply({
             employeeId: input.employeeId,
             sessionId: input.employeeSessionId,
+            scenarioSessionId: input.scenarioSessionId,
             messages: pipelineMessages,
             onChunk: async (chunk) => {
               if (chunk.trim()) {
