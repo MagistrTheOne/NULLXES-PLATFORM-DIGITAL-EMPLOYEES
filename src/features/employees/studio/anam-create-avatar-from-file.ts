@@ -1,4 +1,5 @@
 import type { AnamApiKeySlot } from "@/shared/config/anam-api-pool";
+import { getAnamApiKeyPool } from "@/shared/config/anam-api-pool";
 import {
   anamFetchWithSlot,
   isAnamAvatarQuotaError,
@@ -43,6 +44,8 @@ export async function createAnamAvatarFromFile(input: {
   file: File;
   displayName: string;
   excludeEmployeeId?: string;
+  /** When set, upload only to this lab key (used after admin repoint). */
+  preferredSlot?: AnamApiKeySlot | null;
 }): Promise<CreateAnamAvatarFromFileResult> {
   if (input.file.size > MAX_AVATAR_BYTES) {
     throw new Error("Image must be 4.5MB or smaller");
@@ -52,13 +55,25 @@ export async function createAnamAvatarFromFile(input: {
     throw new Error("Upload a PNG, JPG, or WebP image");
   }
 
-  const candidateSlots = await listAnamSlotsWithPersonaCapacity({
-    excludeEmployeeId: input.excludeEmployeeId,
-  });
+  const candidateSlots: AnamApiKeySlot[] = input.preferredSlot
+    ? (() => {
+        const pool = getAnamApiKeyPool();
+        if (!pool.some((entry) => entry.slot === input.preferredSlot)) {
+          throw new Error(
+            `${input.preferredSlot} is not configured on this server. Add the Anam API key to Vercel env.`,
+          );
+        }
+        return [input.preferredSlot];
+      })()
+    : await listAnamSlotsWithPersonaCapacity({
+        excludeEmployeeId: input.excludeEmployeeId,
+      });
 
   if (candidateSlots.length === 0) {
     throw new Error(
-      "All configured Anam lab keys already have a persona. Add another ANAM_API_KEY or remove an employee from a full lab.",
+      input.preferredSlot
+        ? `Anam key ${input.preferredSlot} is not available for avatar upload.`
+        : "All configured Anam lab keys already have a persona. Add another ANAM_API_KEY or remove an employee from a full lab.",
     );
   }
 
@@ -120,6 +135,8 @@ export async function createAnamAvatarFromFile(input: {
   }
 
   throw new Error(
-    `All Anam lab keys with persona capacity are at the one-shot avatar limit. ${lastError}`,
+    input.preferredSlot
+      ? `Anam avatar upload failed on pinned key ${input.preferredSlot}. ${lastError}`
+      : `All Anam lab keys with persona capacity are at the one-shot avatar limit. ${lastError}`,
   );
 }

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { AnamPoolStatus } from "../services/get-anam-pool-status";
+import { AnamAdminRepointButton } from "./anam-admin-repoint-button";
 import {
   PlatformMetricCell,
   PlatformMetricGrid,
@@ -39,6 +40,9 @@ function EmployeeRow({
         <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-white/55 sm:line-clamp-none">
           {employee.failureReason}
         </p>
+      ) : null}
+      {employee.provisioningStatus === "failed" ? (
+        <AnamAdminRepointButton employee={employee} />
       ) : null}
     </div>
   );

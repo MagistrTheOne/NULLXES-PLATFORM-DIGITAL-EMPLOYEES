@@ -88,6 +88,10 @@ async function createAnamPersona(input: {
 
 export async function finalizeEmployeeStudio(
   formData: FormData,
+  options?: {
+    employeeId?: string;
+    preferredAnamSlot?: AnamApiKeySlot | null;
+  },
 ): Promise<FinalizeEmployeeStudioResult> {
   let workspace;
   try {
@@ -162,7 +166,12 @@ export async function finalizeEmployeeStudio(
     const avatar =
       selectionCheck.mode === "preset"
         ? await resolveStudioAvatarPreset(presetAvatarId)
-        : await createAnamAvatarFromFile({ file: file as File, displayName: name });
+        : await createAnamAvatarFromFile({
+            file: file as File,
+            displayName: name,
+            excludeEmployeeId: options?.employeeId,
+            preferredSlot: options?.preferredAnamSlot,
+          });
 
     const { anamVoiceId, binding } = await resolveAnamPersonaVoiceId(selectedVoice);
     const persona = await createAnamPersona({

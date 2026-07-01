@@ -12,7 +12,8 @@ import { buildStudioDraft } from "@/features/employees/actions/build-studio-draf
 import { finalizeEmployeeStudio } from "@/features/employees/actions/finalize-employee-studio";
 import { enqueueEmployeeProvisioning } from "@/features/provider-provisioning/orchestrator/enqueue-employee-provisioning";
 import { db } from "@/shared/db/client";
-import { mergeProviderConfig } from "@/features/provider-provisioning/services/update-provider-config";
+import type { AnamApiKeySlot } from "@/shared/config/anam-api-pool";
+import { getProviderConfigRow, mergeProviderConfig } from "@/features/provider-provisioning/services/update-provider-config";
 
 export type ProvisionEmployeeAvatarStudioResult =
   | { ok: true; employeeId: string }
@@ -22,7 +23,19 @@ export async function provisionEmployeeAvatarStudio(
   employeeId: string,
   formData: FormData,
 ): Promise<ProvisionEmployeeAvatarStudioResult> {
-  const studio = await finalizeEmployeeStudio(formData);
+  const avatarRow = await getProviderConfigRow(employeeId, "avatar");
+  const existingAvatarConfig = avatarRow?.config as
+    | AvatarProviderConfigPayload
+    | undefined;
+  const pinnedSlot =
+    typeof existingAvatarConfig?.providerMetadata?.anamApiKeySlot === "string"
+      ? (existingAvatarConfig.providerMetadata.anamApiKeySlot as AnamApiKeySlot)
+      : null;
+
+  const studio = await finalizeEmployeeStudio(formData, {
+    employeeId,
+    preferredAnamSlot: pinnedSlot,
+  });
 
   if (studio.status === "failed") {
     await mergeProviderConfig(employeeId, "avatar", {
