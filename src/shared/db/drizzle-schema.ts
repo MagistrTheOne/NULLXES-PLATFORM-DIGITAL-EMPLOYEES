@@ -1,5 +1,7 @@
 import * as employeeMissionRelations from "@/entities/employee-mission/relations";
 import * as employeeMissionSchema from "@/entities/employee-mission/schema";
+import * as employeeScenarioSessionRelations from "@/entities/employee-scenario-session/relations";
+import * as employeeScenarioSessionSchema from "@/entities/employee-scenario-session/schema";
 import * as missionScheduleRelations from "@/entities/mission-schedule/relations";
 import * as missionScheduleSchema from "@/entities/mission-schedule/schema";
 import * as organizationProviderCredentialRelations from "@/entities/organization-provider-credential/relations";
@@ -90,6 +92,8 @@ export const drizzleSchema = {
   ...taskRelations,
   ...employeeMissionSchema,
   ...employeeMissionRelations,
+  ...employeeScenarioSessionSchema,
+  ...employeeScenarioSessionRelations,
   ...missionScheduleSchema,
   ...missionScheduleRelations,
   ...organizationProviderCredentialSchema,
