@@ -1,5 +1,5 @@
-import { createHash, randomBytes } from "node:crypto";
-import { and, eq, isNull } from "drizzle-orm";
+import { createHash, createHmac, randomBytes } from "node:crypto";
+import { and, eq, inArray, isNull } from "drizzle-orm";
 import { apiKey } from "@/entities/api-key/schema";
 import {
   API_SCOPES,
@@ -9,8 +9,49 @@ import {
 } from "@/features/public-api/lib/api-scopes";
 import { db } from "@/shared/db/client";
 
-function hashApiKey(rawKey: string): string {
+/**
+ * Key hashing.
+ *
+ * Plain SHA-256 of an API key is brute-forceable offline if the database
+ * leaks (the `nx_live_` prefix narrows the search space). HMAC-SHA256 with a
+ * server-side pepper (`API_KEY_PEPPER`, never stored in the DB) makes leaked
+ * hashes useless without also compromising the app environment.
+ *
+ * Peppered hashes are stored with an `hmac1:` prefix. Legacy plain-SHA-256
+ * hashes keep verifying and are upgraded in place on first successful use,
+ * so setting the pepper requires no key re-issuance.
+ */
+const HMAC_HASH_PREFIX = "hmac1:";
+
+function getApiKeyPepper(): string | null {
+  return process.env.API_KEY_PEPPER?.trim() || null;
+}
+
+function legacyHashApiKey(rawKey: string): string {
   return createHash("sha256").update(rawKey).digest("hex");
+}
+
+function pepperedHashApiKey(rawKey: string, pepper: string): string {
+  return (
+    HMAC_HASH_PREFIX + createHmac("sha256", pepper).update(rawKey).digest("hex")
+  );
+}
+
+function computeApiKeyHashes(rawKey: string): {
+  /** Preferred hash for new keys and in-place upgrades. */
+  primary: string;
+  /** All hashes that may match rows written before/after the pepper rollout. */
+  candidates: string[];
+} {
+  const legacy = legacyHashApiKey(rawKey);
+  const pepper = getApiKeyPepper();
+
+  if (!pepper) {
+    return { primary: legacy, candidates: [legacy] };
+  }
+
+  const peppered = pepperedHashApiKey(rawKey, pepper);
+  return { primary: peppered, candidates: [peppered, legacy] };
 }
 
 const LEGACY_KEY_PREFIX = "nx_";
@@ -43,7 +84,7 @@ export async function createApiKey(input: {
       organizationId: input.organizationId,
       name: input.name.trim(),
       keyPrefix,
-      keyHash: hashApiKey(rawKey),
+      keyHash: computeApiKeyHashes(rawKey).primary,
       scopes,
       expiresAt: input.expiresAt ?? null,
       createdByUserId: input.createdByUserId,
@@ -87,7 +128,7 @@ export async function verifyApiKey(
     return null;
   }
 
-  const keyHash = hashApiKey(rawKey);
+  const { primary, candidates } = computeApiKeyHashes(rawKey);
   const [row] = await db
     .select({
       id: apiKey.id,
@@ -95,9 +136,10 @@ export async function verifyApiKey(
       createdByUserId: apiKey.createdByUserId,
       scopes: apiKey.scopes,
       expiresAt: apiKey.expiresAt,
+      keyHash: apiKey.keyHash,
     })
     .from(apiKey)
-    .where(and(eq(apiKey.keyHash, keyHash), isNull(apiKey.revokedAt)))
+    .where(and(inArray(apiKey.keyHash, candidates), isNull(apiKey.revokedAt)))
     .limit(1);
 
   if (!row) {
@@ -108,7 +150,11 @@ export async function verifyApiKey(
 
   await db
     .update(apiKey)
-    .set({ lastUsedAt: new Date() })
+    .set({
+      lastUsedAt: new Date(),
+      // Upgrade legacy SHA-256 rows to the peppered hash on first use.
+      ...(row.keyHash !== primary ? { keyHash: primary } : {}),
+    })
     .where(eq(apiKey.id, row.id));
 
   return {
