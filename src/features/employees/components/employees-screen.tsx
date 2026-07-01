@@ -20,6 +20,7 @@ import {
   EmployeeMaterializationOverlay,
   type EmployeeMaterializationTarget,
 } from "./employee-materialization-overlay";
+import { ScenarioPostCreateSheet } from "@/features/scenarios/components/scenario-post-create-sheet";
 
 async function retainPortraitPreviewUrl(url: string): Promise<string> {
   if (!url.startsWith("blob:")) {
@@ -69,6 +70,10 @@ export function EmployeesScreen({
   const [page, setPage] = useState(1);
   const [materialization, setMaterialization] =
     useState<EmployeeMaterializationTarget | null>(null);
+  const [postCreateScenario, setPostCreateScenario] = useState<{
+    employeeId: string;
+    name: string;
+  } | null>(null);
   const materializationPreviewRef = useRef<string | null>(null);
 
   useEffect(() => {
@@ -162,6 +167,8 @@ export function EmployeesScreen({
       role,
       portraitPreviewUrl: retainedPortrait,
     });
+
+    setPostCreateScenario({ employeeId, name });
 
     router.refresh();
 
@@ -258,6 +265,19 @@ export function EmployeesScreen({
             void revalidateEmployeePaths(materialization.employeeId).then(() =>
               router.refresh(),
             );
+          }}
+        />
+      ) : null}
+
+      {postCreateScenario ? (
+        <ScenarioPostCreateSheet
+          open
+          employeeId={postCreateScenario.employeeId}
+          employeeName={postCreateScenario.name}
+          onOpenChange={(open) => {
+            if (!open) {
+              setPostCreateScenario(null);
+            }
           }}
         />
       ) : null}

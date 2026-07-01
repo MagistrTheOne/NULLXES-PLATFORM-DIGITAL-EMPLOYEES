@@ -120,22 +120,39 @@ export function EmployeeCard({ employee }: { employee: EmployeeListItem }) {
             </p>
           ) : null}
         </div>
-        <div className="mt-auto flex items-center justify-between gap-3">
-          <Button
-            type="button"
-            disabled={!canTalk}
-            variant="outline"
-            className="border-white/10 bg-transparent text-white hover:bg-white/5 disabled:opacity-40"
-            asChild={canTalk}
-          >
-            {canTalk ? (
-              <Link href={`/dashboard/employees/${employee.id}/talk`}>
-                {tActions("talk")}
-              </Link>
-            ) : (
-              <span>{tActions("talk")}</span>
-            )}
-          </Button>
+        <div className="mt-auto flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              type="button"
+              disabled={!canTalk}
+              variant="outline"
+              className="border-white/10 bg-transparent text-white hover:bg-white/5 disabled:opacity-40"
+              asChild={canTalk}
+            >
+              {canTalk ? (
+                <Link href={`/dashboard/employees/${employee.id}/talk`}>
+                  {tActions("talk")}
+                </Link>
+              ) : (
+                <span>{tActions("talk")}</span>
+              )}
+            </Button>
+            <Button
+              type="button"
+              disabled={!canTalk}
+              variant="outline"
+              className="border-white/10 bg-transparent text-white hover:bg-white/5 disabled:opacity-40"
+              asChild={canTalk}
+            >
+              {canTalk ? (
+                <Link href={`/dashboard/employees/${employee.id}/scenarios`}>
+                  {tActions("runScenario")}
+                </Link>
+              ) : (
+                <span>{tActions("runScenario")}</span>
+              )}
+            </Button>
+          </div>
           <span className="text-xs text-white/50">{createdLabel}</span>
         </div>
       </CardContent>

@@ -184,6 +184,21 @@ export async function EmployeeDetailScreen({
                 <span>{tCommon("talk")}</span>
               )}
             </Button>
+            <Button
+              type="button"
+              disabled={!employee.canTalk}
+              variant="outline"
+              className="border-white/12 bg-transparent text-white hover:bg-white/5 disabled:opacity-40"
+              asChild={employee.canTalk}
+            >
+              {employee.canTalk ? (
+                <Link href={`/dashboard/employees/${employee.id}/scenarios`}>
+                  {tCommon("runScenario")}
+                </Link>
+              ) : (
+                <span>{tCommon("runScenario")}</span>
+              )}
+            </Button>
             {!employee.canTalk ? (
               <div className="space-y-1 text-xs text-white/45">
                 <p>{t("talkLocked")}</p>

@@ -12,6 +12,7 @@ import { OverviewEmployeeCarousel } from "./OverviewEmployeeCarousel";
 import { OverviewHeader } from "./OverviewHeader";
 import { OverviewMetricsStrip } from "./overview-metrics-strip";
 import { OverviewSecondaryPanels } from "./overview-secondary-panels";
+import { ScenarioPostCreateSheet } from "@/features/scenarios/components/scenario-post-create-sheet";
 
 export function OverviewScreen({ data }: { data: DashboardOverview }) {
   const router = useRouter();
@@ -19,6 +20,10 @@ export function OverviewScreen({ data }: { data: DashboardOverview }) {
   const tCommon = useTranslations("common");
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [upgradeDialogOpen, setUpgradeDialogOpen] = useState(false);
+  const [postCreateScenario, setPostCreateScenario] = useState<{
+    employeeId: string;
+    name: string;
+  } | null>(null);
   const { isAtEmployeeLimit } = useEmployeeCreateEligibility(
     data.employees.length,
   );
@@ -35,10 +40,15 @@ export function OverviewScreen({ data }: { data: DashboardOverview }) {
 
   async function handleCreateComplete({
     employeeId,
+    name,
   }: {
     employeeId: string;
     avatarProvisionStarted: boolean;
+    name: string;
+    role: string;
+    portraitPreviewUrl: string;
   }): Promise<void> {
+    setPostCreateScenario({ employeeId, name });
     router.refresh();
 
     const refreshDelaysMs = [8000, 30000, 90000];
@@ -92,6 +102,19 @@ export function OverviewScreen({ data }: { data: DashboardOverview }) {
         onOpenChange={setUpgradeDialogOpen}
         reason="employee_limit"
       />
+
+      {postCreateScenario ? (
+        <ScenarioPostCreateSheet
+          open
+          employeeId={postCreateScenario.employeeId}
+          employeeName={postCreateScenario.name}
+          onOpenChange={(open) => {
+            if (!open) {
+              setPostCreateScenario(null);
+            }
+          }}
+        />
+      ) : null}
     </>
   );
 }

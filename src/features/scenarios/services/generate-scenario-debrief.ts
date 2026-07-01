@@ -3,6 +3,7 @@ import type { ScenarioDebrief } from "@/entities/employee-scenario-session";
 import { employeeScenarioSession } from "@/entities/employee-scenario-session/schema";
 import { employeeSessionMessage } from "@/entities/session-message/schema";
 import { db } from "@/shared/db/client";
+import { recordWorkEvent } from "@/features/work-event";
 import { collectTalkBrainResponse } from "@/features/runtime-session/services/stream-talk-brain-response";
 import { getEmployeeTalkContext } from "@/features/runtime-session/services/get-employee-talk-context";
 import { resolveBrainApiConfig } from "@/features/brain/lib/resolve-brain-api-config";
@@ -172,6 +173,22 @@ export async function generateScenarioDebrief(input: {
       },
     })
     .where(eq(employeeScenarioSession.id, input.scenarioSessionId));
+
+  await recordWorkEvent({
+    organizationId: input.organizationId,
+    employeeId: row.employeeId,
+    sessionId: row.talkSessionId ?? undefined,
+    eventType: "task_completed",
+    title: "Scenario completed",
+    summary: template.id,
+    metadata: {
+      scenario: true,
+      event: "scenario_completed",
+      scenarioSessionId: input.scenarioSessionId,
+      templateId: row.templateId,
+      score: debrief.score,
+    },
+  });
 
   return debrief;
 }
