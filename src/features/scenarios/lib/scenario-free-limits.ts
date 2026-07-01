@@ -5,21 +5,11 @@ import {
   type BillingPlanId,
 } from "@/features/billing/config/plans";
 import { db } from "@/shared/db/client";
-
-const FREE_SCENARIO_MONTHLY_LIMIT = 3;
+import { getScenarioMonthlyLimitForPlan } from "./scenario-plan-limits";
 
 function startOfUtcMonth(): Date {
   const now = new Date();
   return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
-}
-
-export function getScenarioMonthlyLimitForPlan(
-  billingPlan: BillingPlanId,
-): number | null {
-  if (billingPlan === "free") {
-    return FREE_SCENARIO_MONTHLY_LIMIT;
-  }
-  return null;
 }
 
 export async function assertCanStartScenario(input: {

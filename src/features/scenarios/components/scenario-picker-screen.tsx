@@ -10,9 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import type { BillingPlanId } from "@/features/billing/config/plans";
 import { useWorkspaceBilling } from "@/features/workspace/components/workspace-billing-provider";
 import { startScenarioSessionAction } from "../actions/scenario-session";
-import {
-  getScenarioMonthlyLimitForPlan,
-} from "../lib/scenario-free-limits";
+import { getScenarioMonthlyLimitForPlan } from "../lib/scenario-plan-limits";
 import {
   rankScenarioTemplatesForRole,
   SCENARIO_TEMPLATES,

@@ -17,8 +17,11 @@ export {
 export {
   assertCanStartScenario,
   countScenariosThisMonth,
-  getScenarioMonthlyLimitForPlan,
 } from "./lib/scenario-free-limits";
+export {
+  FREE_SCENARIO_MONTHLY_LIMIT,
+  getScenarioMonthlyLimitForPlan,
+} from "./lib/scenario-plan-limits";
 export {
   createScenarioSession,
   getActiveScenarioSessionForTalk,
