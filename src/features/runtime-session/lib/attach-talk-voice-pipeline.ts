@@ -14,8 +14,8 @@ import {
 import { playTalkVoiceReply } from "./play-talk-voice-reply";
 import { postTalkEmployeeChatReply } from "./talk-reply-bridge";
 
-const USER_MESSAGE_DEBOUNCE_MS = 160;
-const USER_MESSAGE_DEBOUNCE_SHORT_MS = 90;
+const USER_MESSAGE_DEBOUNCE_MS = 100;
+const USER_MESSAGE_DEBOUNCE_SHORT_MS = 50;
 const SHORT_USER_MESSAGE_MAX_LENGTH = 20;
 const MIN_USER_MESSAGE_LENGTH = 2;
 

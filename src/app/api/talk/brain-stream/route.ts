@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { TalkPipelineMessage } from "@/features/runtime-session/actions/talk-voice-pipeline";
 import { assertBrainStreamRateLimit } from "@/features/runtime-session/lib/brain-stream-rate-limit";
 import { resolveTalkBrainTools } from "@/features/runtime-session/lib/resolve-talk-brain-tools";
+import { trimTalkHistory } from "@/features/runtime-session/lib/trim-talk-history";
 import { buildTalkBrainRequest } from "@/features/runtime-session/services/build-talk-brain-request";
 import { checkForeignDataProcessingAllowed } from "@/features/privacy/services/assert-foreign-data-processing";
 import { resolveTalkBrainAuth } from "@/features/runtime-session/services/resolve-talk-brain-auth";
@@ -57,14 +58,6 @@ export async function POST(request: Request): Promise<Response> {
     );
   }
 
-  const regionCheck = await checkForeignDataProcessingAllowed(
-    authResult.auth.organizationId,
-    "openai",
-  );
-  if (!regionCheck.allowed) {
-    return NextResponse.json({ error: regionCheck.message }, { status: 403 });
-  }
-
   const rateLimit = assertBrainStreamRateLimit({
     userId: authResult.auth.userId,
     employeeId,
@@ -74,28 +67,36 @@ export async function POST(request: Request): Promise<Response> {
     return NextResponse.json({ error: rateLimit.error }, { status: 429 });
   }
 
-  const config = await buildTalkBrainRequest({
-    organizationId: authResult.auth.organizationId,
-    employeeId,
-    userId: authResult.auth.userId,
-    scenarioSessionId: scenarioSessionId || undefined,
-    messages: messages.map((message) => ({
-      role: message.role === "user" ? "user" : "assistant",
-      content: message.content,
-    })),
-  });
+  // Old turns add prompt tokens without helping a live voice conversation.
+  const recentMessages = trimTalkHistory(messages);
+  const openAiMessages = recentMessages.map((message) => ({
+    role: (message.role === "user" ? "user" : "assistant") as
+      | "user"
+      | "assistant",
+    content: message.content,
+  }));
+
+  // Region check and brain request build are independent — run in parallel.
+  const [regionCheck, config] = await Promise.all([
+    checkForeignDataProcessingAllowed(authResult.auth.organizationId, "openai"),
+    buildTalkBrainRequest({
+      organizationId: authResult.auth.organizationId,
+      employeeId,
+      userId: authResult.auth.userId,
+      scenarioSessionId: scenarioSessionId || undefined,
+      messages: openAiMessages,
+    }),
+  ]);
+
+  if (!regionCheck.allowed) {
+    return NextResponse.json({ error: regionCheck.message }, { status: 403 });
+  }
 
   if (!config) {
     return NextResponse.json({ error: "Employee not found" }, { status: 404 });
   }
 
   const encoder = new TextEncoder();
-  const openAiMessages = messages.map((message) => ({
-    role: (message.role === "user" ? "user" : "assistant") as
-      | "user"
-      | "assistant",
-    content: message.content,
-  }));
 
   const talkTools = resolveTalkBrainTools(lastMessage.content);
   const toolContext = talkTools

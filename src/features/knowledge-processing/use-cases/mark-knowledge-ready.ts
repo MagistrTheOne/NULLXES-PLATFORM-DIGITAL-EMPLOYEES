@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { knowledgeSource } from "@/entities/knowledge/schema";
 import type { KnowledgeSourceStatus } from "@/entities/knowledge";
+import { invalidateReadyKnowledgeCache } from "@/features/knowledge-retrieval/services/has-ready-knowledge";
 import { dbWithTransactions } from "@/shared/db/pool-client";
 import { assertKnowledgeStatusTransition } from "../services/assert-status-transition";
 import { getKnowledgeSourceOrThrow } from "../services/get-knowledge-source";
@@ -28,6 +29,8 @@ export async function markKnowledgeReady(
     if (!source) {
       throw new Error("Failed to mark knowledge source as ready");
     }
+
+    invalidateReadyKnowledgeCache(source.employeeId);
 
     return { source, previousStatus, nextStatus };
   });

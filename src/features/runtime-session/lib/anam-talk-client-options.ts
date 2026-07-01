@@ -1,6 +1,10 @@
 import type { AnamClientOptions } from "@anam-ai/js-sdk";
 
-const DEFAULT_END_OF_SPEECH_SENSITIVITY = 0.32;
+// 0.5 balances turn-taking speed against cutting the user off mid-sentence.
+// Lower values (e.g. 0.3) keep the mic open longer but add noticeable delay
+// before the persona starts answering. Override per deployment via
+// NEXT_PUBLIC_ANAM_END_OF_SPEECH_SENSITIVITY.
+const DEFAULT_END_OF_SPEECH_SENSITIVITY = 0.5;
 
 function resolveEndOfSpeechSensitivity(): number {
   const raw =

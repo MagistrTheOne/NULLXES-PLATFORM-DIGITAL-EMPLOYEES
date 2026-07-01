@@ -1,6 +1,7 @@
 "use server";
 
 import { requireWorkspacePermissionOrThrowMessage } from "@/features/workspace";
+import { trimTalkHistory } from "../lib/trim-talk-history";
 import { buildTalkBrainRequest } from "../services/build-talk-brain-request";
 import { getEmployeeTalkContext } from "../services/get-employee-talk-context";
 import { collectTalkBrainResponse } from "../services/stream-talk-brain-response";
@@ -88,7 +89,7 @@ export async function processTalkTurnAction(
   }
 
   try {
-    const openAiMessages = messages.map((message) => ({
+    const openAiMessages = trimTalkHistory(messages).map((message) => ({
       role: (message.role === "user" ? "user" : "assistant") as
         | "user"
         | "assistant",

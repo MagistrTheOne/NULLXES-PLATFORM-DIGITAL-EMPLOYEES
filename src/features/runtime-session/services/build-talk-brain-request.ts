@@ -14,6 +14,7 @@ import {
   formatKnowledgeContext,
   searchKnowledge,
 } from "@/features/knowledge-retrieval";
+import { hasReadyKnowledge } from "@/features/knowledge-retrieval/services/has-ready-knowledge";
 import type { BrainProvider } from "@/entities/digital-employee";
 import { measureTalkPerf } from "../lib/talk-perf-log";
 import { getEmployeeTalkContext } from "./get-employee-talk-context";
@@ -48,19 +49,42 @@ export async function buildTalkBrainRequest(input: {
       }
 
       const userQuery = input.messages.at(-1)?.content.trim() ?? "";
-      const retrieved = userQuery
-        ? await measureTalkPerf(
-            "talk.brain.rag",
-            () =>
-              searchKnowledge({
-                employeeId: input.employeeId,
-                query: userQuery,
-                topK: 4,
-                useSessionCache: true,
-              }),
-            { employeeId: input.employeeId },
-          )
-        : [];
+
+      // RAG, brain config, and scenario lookup are independent — run them in
+      // parallel to cut serial DB roundtrips before the LLM call.
+      const [retrieved, apiConfig, scenarioSession] = await Promise.all([
+        userQuery
+          ? measureTalkPerf(
+              "talk.brain.rag",
+              async () => {
+                // Employees without knowledge skip embedding + pgvector entirely.
+                if (!(await hasReadyKnowledge(input.employeeId))) {
+                  return [];
+                }
+                return searchKnowledge({
+                  employeeId: input.employeeId,
+                  query: userQuery,
+                  topK: 4,
+                  useSessionCache: true,
+                });
+              },
+              { employeeId: input.employeeId },
+            )
+          : Promise.resolve([]),
+        resolveBrainApiConfig({
+          provider: employee.brainProvider,
+          configuredModel: employee.brainModel,
+          organizationId: input.organizationId,
+        }),
+        input.scenarioSessionId && input.userId
+          ? getActiveScenarioSessionForTalk({
+              scenarioSessionId: input.scenarioSessionId,
+              organizationId: input.organizationId,
+              employeeId: input.employeeId,
+              userId: input.userId,
+            })
+          : Promise.resolve(null),
+      ]);
 
       const knowledgeBlock = formatKnowledgeContext(retrieved);
       const personaPrompt = composeTalkSystemPrompt({
@@ -79,12 +103,6 @@ export async function buildTalkBrainRequest(input: {
           ? composeShutenTalkSystemPrompt({ personaPrompt })
           : personaPrompt;
 
-      const apiConfig = await resolveBrainApiConfig({
-        provider: employee.brainProvider,
-        configuredModel: employee.brainModel,
-        organizationId: input.organizationId,
-      });
-
       const maxTokens =
         employee.brainProvider === "nullxes"
           ? resolveNullxesBrainMaxTokens(employee.maxTokens)
@@ -94,25 +112,17 @@ export async function buildTalkBrainRequest(input: {
         ? `${brainPrompt}\n\n${knowledgeBlock}`
         : brainPrompt;
 
-      if (input.scenarioSessionId && input.userId) {
-        const scenarioSession = await getActiveScenarioSessionForTalk({
-          scenarioSessionId: input.scenarioSessionId,
-          organizationId: input.organizationId,
-          employeeId: input.employeeId,
-          userId: input.userId,
-        });
-        const template = scenarioSession
-          ? getScenarioTemplateById(scenarioSession.templateId)
-          : undefined;
+      const template = scenarioSession
+        ? getScenarioTemplateById(scenarioSession.templateId)
+        : undefined;
 
-        if (template) {
-          const overlay = buildScenarioOverlayPrompt({
-            template,
-            employeeName: employee.name,
-            employeeRole: employee.role,
-          });
-          systemPrompt = appendScenarioOverlayToPrompt(systemPrompt, overlay);
-        }
+      if (template) {
+        const overlay = buildScenarioOverlayPrompt({
+          template,
+          employeeName: employee.name,
+          employeeRole: employee.role,
+        });
+        systemPrompt = appendScenarioOverlayToPrompt(systemPrompt, overlay);
       }
 
       return {
