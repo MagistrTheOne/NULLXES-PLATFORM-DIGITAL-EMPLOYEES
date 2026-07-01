@@ -6,6 +6,10 @@ import {
   readAnamErrorMessage,
 } from "@/shared/config/provider-env";
 import { listAnamSlotsWithPersonaCapacity } from "@/features/provider-provisioning/services/resolve-anam-persona-slot";
+import {
+  getDefaultAnamAvatarSlot,
+  listAnamSlotsWithOneShotCapacity,
+} from "@/features/provider-provisioning/services/list-anam-one-shot-slots";
 import { ANAM_AVATAR_PROVIDER_ID } from "@/providers/avatar/anam/config";
 
 const MAX_AVATAR_BYTES = Math.floor(4.5 * 1024 * 1024);
@@ -65,9 +69,21 @@ export async function createAnamAvatarFromFile(input: {
         }
         return [input.preferredSlot];
       })()
-    : await listAnamSlotsWithPersonaCapacity({
-        excludeEmployeeId: input.excludeEmployeeId,
-      });
+    : await (async () => {
+        const defaultSlot = getDefaultAnamAvatarSlot();
+        if (defaultSlot) {
+          return [defaultSlot];
+        }
+
+        const oneShotFree = await listAnamSlotsWithOneShotCapacity();
+        if (oneShotFree.length > 0) {
+          return oneShotFree;
+        }
+
+        return listAnamSlotsWithPersonaCapacity({
+          excludeEmployeeId: input.excludeEmployeeId,
+        });
+      })();
 
   if (candidateSlots.length === 0) {
     throw new Error(

@@ -39,8 +39,7 @@ export function MissionApprovalPanel({
       <h2 className="text-sm font-medium text-white">Approval required</h2>
       <p className="mt-2 text-sm text-white/60">
         {leadCount ?? "Multiple"} proposal drafts are ready for review. Approve to
-        send outbound emails from Yuki&apos;s automation sender, or reject to
-        cancel this mission.
+        send outbound emails via Resend automation, or reject to cancel this mission.
       </p>
       {canManage ? (
         <div className="mt-4 flex flex-wrap gap-3">

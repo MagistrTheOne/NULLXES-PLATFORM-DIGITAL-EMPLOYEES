@@ -136,7 +136,7 @@ export async function createEmployeeRecord(
           employeeId: employee.id,
           providerType: "avatar",
           providerId: avatarProvider,
-          config: {
+            config: {
             photoFileName: input.photoFileName,
             photoFileSize: input.photoFileSize,
             displayName: name,
@@ -145,6 +145,9 @@ export async function createEmployeeRecord(
               source: "studio",
               studioVoiceId: input.studioVoiceId,
               customElevenLabsVoiceId: input.customElevenLabsVoiceId ?? null,
+              ...(process.env.ANAM_DEFAULT_AVATAR_SLOT?.trim()
+                ? { anamApiKeySlot: process.env.ANAM_DEFAULT_AVATAR_SLOT.trim() }
+                : {}),
             },
           },
         },

@@ -3,6 +3,23 @@ import {
   getResendClient,
 } from "./resend-client";
 
+function buildMissionFromAddress(employeeName: string): string {
+  const configured = getResendAutomationFromAddress();
+  const match = configured.match(/^(.+?)<([^>]+)>$/);
+  if (match) {
+    const email = match[2]?.trim();
+    if (email) {
+      return `${employeeName.trim()} · NULLXES Digital Employees <${email}>`;
+    }
+  }
+
+  if (configured.includes("@")) {
+    return `${employeeName.trim()} · NULLXES Digital Employees <${configured}>`;
+  }
+
+  return configured;
+}
+
 export async function sendMissionProposalEmail(input: {
   to: string;
   companyName: string;
@@ -21,7 +38,7 @@ export async function sendMissionProposalEmail(input: {
 
   try {
     const { error } = await resend.emails.send({
-      from: getResendAutomationFromAddress(),
+      from: buildMissionFromAddress(input.employeeName),
       to: [to],
       subject: `NULLXES Digital Employees · ${input.companyName}`,
       html: `
