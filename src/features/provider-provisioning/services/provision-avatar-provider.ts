@@ -4,7 +4,6 @@ import {
   anamFetchWithKeyPool,
   hasAnamCredentials,
 } from "@/shared/config/provider-env";
-import { resolveAvatarProvider } from "@/shared/providers";
 import { buildAnamPersonaCreatePayload } from "@/features/runtime-session/lib/build-anam-talk-persona-config";
 import { syncAnamPersonaExternalBrain } from "./sync-anam-persona-external-brain";
 import {
@@ -61,12 +60,13 @@ type ResolvedAvatar = {
 };
 
 async function resolveAvatarId(
-  employeeId: string,
   employeeName: string,
   config: AvatarProviderConfigPayload,
   preferredSlot?: string | null,
 ): Promise<ResolvedAvatar> {
-  if (config.avatarId && !config.imageUrl) {
+  // Reuse the stored avatar whenever it exists — re-provisioning after a
+  // failure must not burn another one-shot avatar against the account quota.
+  if (config.avatarId) {
     return { avatarId: config.avatarId, slot: preferredSlot ?? null };
   }
 
@@ -74,15 +74,27 @@ async function resolveAvatarId(
     // One-shot avatars count against a per-account quota, so create them on the
     // resolved slot. The pool rotates on quota errors and reports the slot it
     // landed on, which the persona then reuses to stay on the same account.
-    const adapter = resolveAvatarProvider("anam");
-    const created = await adapter.createAvatar({
-      employeeId,
-      name: employeeName,
+    const { response, slot } = await anamFetchWithKeyPool(
+      "/avatars",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          displayName: employeeName,
+          imageUrl: config.imageUrl,
+        }),
+      },
       preferredSlot,
-    });
+    );
+
+    const created = (await response.json()) as { id?: string };
+    if (!created.id) {
+      throw new Error("Anam createAvatar returned an invalid response");
+    }
+
     return {
-      avatarId: created.avatarId,
-      slot: created.apiKeySlot ?? preferredSlot ?? null,
+      avatarId: created.id,
+      slot: slot ?? preferredSlot ?? null,
     };
   }
 
@@ -200,10 +212,18 @@ export async function provisionAvatarProvider(
     studioAnamApiKeySlot ??
     (await resolveAnamPersonaSlot({ excludeEmployeeId: input.employeeId }));
 
+  // A one-shot avatar only exists on the account that created it. When the
+  // employee already has an avatarId pinned to a studio slot, the persona MUST
+  // stay on that slot — moving to another key yields Anam 400 "Avatar not found".
+  const avatarPinnedToStudioSlot = Boolean(
+    config.avatarId && studioAnamApiKeySlot,
+  );
+
   if (
     anamApiKeySlot &&
     !config.personaId &&
     studioAnamApiKeySlot &&
+    !avatarPinnedToStudioSlot &&
     (await isAnamSlotAtPersonaCapacity(
       anamApiKeySlot as AnamApiKeySlot,
       {
@@ -219,12 +239,7 @@ export async function provisionAvatarProvider(
   try {
     const avatarResolution: ResolvedAvatar = studioAvatarReady
       ? { avatarId: config.avatarId!, slot: anamApiKeySlot }
-      : await resolveAvatarId(
-          input.employeeId,
-          input.employeeName,
-          config,
-          anamApiKeySlot,
-        );
+      : await resolveAvatarId(input.employeeName, config, anamApiKeySlot);
     const avatarId = avatarResolution.avatarId;
     // Pin the persona to whichever account the avatar ended up on.
     const personaSlot = avatarResolution.slot ?? anamApiKeySlot;
@@ -238,29 +253,79 @@ export async function provisionAvatarProvider(
           personaSlot,
         );
 
-    let persona: AnamPersonaResponse;
-    let usedApiKeySlot = personaSlot;
-
-    const personaPayload = buildAnamPersonaCreatePayload({
-      name: input.employeeName,
-      avatarId,
-      voiceId,
-    });
-
-    const { response: personaResponse, slot } = await anamFetchWithKeyPool(
-      "/personas",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+    const createPersona = async (
+      personaAvatarId: string,
+      preferredSlot: string | null,
+    ): Promise<{ persona: AnamPersonaResponse; slot: string }> => {
+      const { response, slot } = await anamFetchWithKeyPool(
+        "/personas",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(
+            buildAnamPersonaCreatePayload({
+              name: input.employeeName,
+              avatarId: personaAvatarId,
+              voiceId,
+            }),
+          ),
         },
-        body: JSON.stringify(personaPayload),
-      },
-      personaSlot,
-    );
+        preferredSlot,
+      );
 
-    persona = (await personaResponse.json()) as AnamPersonaResponse;
-    usedApiKeySlot = slot;
+      return {
+        persona: (await response.json()) as AnamPersonaResponse,
+        slot,
+      };
+    };
+
+    let persona: AnamPersonaResponse;
+    let usedApiKeySlot: string = personaSlot ?? "";
+    let finalAvatarId = avatarId;
+
+    try {
+      const created = await createPersona(avatarId, personaSlot);
+      persona = created.persona;
+      usedApiKeySlot = created.slot;
+    } catch (personaError) {
+      const detail =
+        personaError instanceof Error ? personaError.message : "";
+      const avatarMissing = /avatar not found/i.test(detail);
+
+      // The stored one-shot avatar no longer exists on its account (deleted or
+      // slot metadata drifted). If we still have a source image (upload or the
+      // rendered preview), recreate the avatar and retry persona creation once.
+      const sourceImageUrl = config.imageUrl ?? config.previewUrl;
+      if (!avatarMissing || !sourceImageUrl) {
+        throw personaError;
+      }
+
+      const { response: avatarResponse, slot: recreatedSlot } =
+        await anamFetchWithKeyPool(
+          "/avatars",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              displayName: input.employeeName,
+              imageUrl: sourceImageUrl,
+            }),
+          },
+          personaSlot,
+        );
+
+      const recreated = (await avatarResponse.json()) as { id?: string };
+      if (!recreated.id) {
+        throw new Error("Anam avatar recreation returned an invalid response");
+      }
+
+      finalAvatarId = recreated.id;
+      const retried = await createPersona(recreated.id, recreatedSlot);
+      persona = retried.persona;
+      usedApiKeySlot = retried.slot;
+    }
 
     if (!persona.id) {
       throw new Error("Anam create persona returned an invalid response");
@@ -269,7 +334,7 @@ export async function provisionAvatarProvider(
     const providerMetadata = {
       provisionedAt: new Date().toISOString(),
       resourceType: "anam_persona",
-      avatarId,
+      avatarId: finalAvatarId,
       anamPersonaVoiceId: voiceId,
       voiceId,
       llmId: ANAM_EXTERNAL_LLM_ID,
@@ -279,7 +344,7 @@ export async function provisionAvatarProvider(
     await mergeProviderConfig(input.employeeId, "avatar", {
       provisioningStatus: "ready",
       personaId: persona.id,
-      avatarId,
+      avatarId: finalAvatarId,
       providerMetadata,
       failureReason: undefined,
     });
