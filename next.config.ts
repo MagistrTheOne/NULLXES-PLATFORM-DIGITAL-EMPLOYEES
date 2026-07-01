@@ -26,10 +26,17 @@ const nextConfig: NextConfig = {
     NEXT_PUBLIC_BETTER_AUTH_URL: betterAuthUrl,
   },
   async headers() {
+    // CSP is owned by src/proxy.ts (per-request nonce). Setting a second,
+    // nonce-less CSP here would make browsers enforce the intersection of
+    // both policies and break nonce'd scripts.
+    const staticHeaders = getSecurityHeaderEntries().filter(
+      (header) => header.key !== "Content-Security-Policy",
+    );
+
     return [
       {
         source: "/:path*",
-        headers: getSecurityHeaderEntries(),
+        headers: staticHeaders,
       },
     ];
   },

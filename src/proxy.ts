@@ -1,6 +1,7 @@
 import { getSessionCookie } from "better-auth/cookies";
 import { NextRequest, NextResponse } from "next/server";
 import { applySecurityHeaders } from "@/shared/security/apply-security-headers";
+import { buildContentSecurityPolicy } from "@/shared/security/security-header-values";
 
 const PROTECTED_PREFIXES = [
   "/dashboard",
@@ -15,6 +16,15 @@ function isProtectedRoute(pathname: string): boolean {
   );
 }
 
+function generateNonce(): string {
+  const bytes = crypto.getRandomValues(new Uint8Array(16));
+  let binary = "";
+  for (const byte of bytes) {
+    binary += String.fromCharCode(byte);
+  }
+  return btoa(binary);
+}
+
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const sessionCookie = getSessionCookie(request);
@@ -25,7 +35,21 @@ export function proxy(request: NextRequest) {
     return applySecurityHeaders(NextResponse.redirect(loginUrl));
   }
 
-  return applySecurityHeaders(NextResponse.next());
+  // Per-request nonce: Next.js reads the CSP from the forwarded request
+  // headers and stamps the nonce onto every script tag it renders.
+  const nonce = generateNonce();
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-nonce", nonce);
+  requestHeaders.set(
+    "Content-Security-Policy",
+    buildContentSecurityPolicy(nonce),
+  );
+
+  const response = NextResponse.next({
+    request: { headers: requestHeaders },
+  });
+
+  return applySecurityHeaders(response, nonce);
 }
 
 export const config = {
