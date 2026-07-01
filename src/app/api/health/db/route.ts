@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import { db } from "@/shared/db/client";
+import { timingSafeStringEqual } from "@/shared/crypto/timing-safe-compare";
 
 export const runtime = "nodejs";
 
@@ -15,7 +16,10 @@ function isAuthorizedHealthRequest(request: Request): boolean {
     ? authHeader.slice("Bearer ".length).trim()
     : null;
 
-  return headerToken === expected || bearerToken === expected;
+  return (
+    timingSafeStringEqual(headerToken, expected) ||
+    timingSafeStringEqual(bearerToken, expected)
+  );
 }
 
 export async function GET(request: Request) {
