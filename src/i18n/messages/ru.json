@@ -25,6 +25,7 @@
       "edit": "Изменить",
       "delete": "Удалить",
       "talk": "Разговор",
+      "runScenario": "Запустить сценарий",
       "logout": "Выйти",
       "saveChanges": "Сохранить",
       "applyRange": "Применить период"
@@ -364,6 +365,81 @@
         "brainOrgDefaultNotConfigured": "Мозг по умолчанию организации не настроен. Выберите свою модель или обновите настройки workspace.",
         "brainProviderNotConfigured": "Выбранный провайдер мозга не настроен для этого workspace.",
         "brainModelRequired": "Выберите модель мозга перед продолжением."
+      }
+    },
+    "scenarios": {
+      "picker": {
+        "title": "Сценарии workforce",
+        "subtitle": "Пройдите guided-симуляцию с {name} ({role}). Сценарий — overlay поверх Talk, запись сотрудника не меняется.",
+        "backToEmployee": "К сотруднику",
+        "recommended": "Рекомендуем для этой роли",
+        "allScenarios": "Все сценарии",
+        "monthlyUsage": "Использовано {used} из {limit} сценариев в этом месяце",
+        "limitReached": "Достигнут лимит Free на сценарии в этом месяце. Upgrade — безлимитные симуляции и более длинные Talk-сессии.",
+        "upgrade": "Upgrade на Super Pro",
+        "billing": "Биллинг",
+        "starting": "Запуск сценария…"
+      },
+      "debrief": {
+        "eyebrow": "Debrief сценария",
+        "title": "Результаты симуляции",
+        "backToEmployee": "К сотруднику",
+        "scoreLabel": "Оценка",
+        "scoreHint": "По покрытию целей и качеству диалога.",
+        "summary": "Резюме",
+        "objectives": "Цели",
+        "objectiveMet": "Выполнено",
+        "objectiveMissed": "Нужна доработка",
+        "strengths": "Сильные стороны",
+        "improvements": "Улучшить в следующий раз",
+        "proUpsellTitle": "Вынести workflow в production",
+        "proUpsellBody": "Super Pro — безлимитные сотрудники, custom avatars, missions и более длинные Talk-сессии для реальных операций.",
+        "upgrade": "Upgrade на Super Pro",
+        "billing": "Биллинг",
+        "runAnother": "Ещё один сценарий",
+        "openTalk": "Открыть Talk"
+      },
+      "postCreate": {
+        "title": "Проверить в сценарии",
+        "description": "Запустите 90-секундную симуляцию и посмотрите, как {name} отрабатывает реальный use case.",
+        "runScenario": "Запустить сценарий",
+        "skip": "Пропустить"
+      },
+      "templates": {
+        "runScenario": "Запустить сценарий",
+        "difficulty": {
+          "starter": "Старт",
+          "standard": "Стандарт",
+          "advanced": "Продвинутый"
+        },
+        "salesCfoPushback": {
+          "title": "Pushback CFO по бюджету",
+          "description": "Отработайте ROI и срочность, когда CFO оспаривает enterprise-предложение."
+        },
+        "supportEscalation": {
+          "title": "Эскалация после инцидента",
+          "description": "Снизьте напряжение с недовольным клиентом после сбоя billing."
+        },
+        "legalContractReview": {
+          "title": "Briefing по договору",
+          "description": "Объясните counsel liability, data processing и условия расторжения."
+        },
+        "marketingCampaignPitch": {
+          "title": "Review бюджета кампании",
+          "description": "Пitch demand-gen плана скептичному CMO."
+        },
+        "opsIncidentResponse": {
+          "title": "Update на incident bridge",
+          "description": "Дайте чёткий ops-update во время активного инцидента."
+        },
+        "analystExecBriefing": {
+          "title": "Executive data briefing",
+          "description": "Донесите insight по churn с evidence и next actions."
+        },
+        "automationStakeholderBuyin": {
+          "title": "Buy-in на automation",
+          "description": "Убедите skeptical department head поддержать pilot automation."
+        }
       }
     },
     "talk": {

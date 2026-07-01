@@ -25,6 +25,7 @@
       "edit": "Edit",
       "delete": "Delete",
       "talk": "Talk",
+      "runScenario": "Run scenario",
       "logout": "Logout",
       "saveChanges": "Save changes",
       "applyRange": "Apply range"
@@ -364,6 +365,81 @@
         "brainOrgDefaultNotConfigured": "Organization default brain is not configured. Choose a custom model or update workspace settings.",
         "brainProviderNotConfigured": "Selected brain provider is not configured for this workspace.",
         "brainModelRequired": "Select a brain model before continuing."
+      }
+    },
+    "scenarios": {
+      "picker": {
+        "title": "Workforce Scenarios",
+        "subtitle": "Run a guided simulation with {name} ({role}). Scenarios overlay Talk without changing the employee record.",
+        "backToEmployee": "Back to employee",
+        "recommended": "Recommended for this role",
+        "allScenarios": "All scenarios",
+        "monthlyUsage": "{used} of {limit} scenarios used this month",
+        "limitReached": "You reached the Free scenario limit for this month. Upgrade for unlimited simulations and longer Talk sessions.",
+        "upgrade": "Upgrade to Super Pro",
+        "billing": "View billing",
+        "starting": "Starting scenario…"
+      },
+      "debrief": {
+        "eyebrow": "Scenario debrief",
+        "title": "Simulation results",
+        "backToEmployee": "Back to employee",
+        "scoreLabel": "Score",
+        "scoreHint": "Based on objective coverage and dialogue quality.",
+        "summary": "Summary",
+        "objectives": "Objectives",
+        "objectiveMet": "Met",
+        "objectiveMissed": "Needs work",
+        "strengths": "Strengths",
+        "improvements": "Improve next time",
+        "proUpsellTitle": "Deploy this workflow in production",
+        "proUpsellBody": "Super Pro unlocks unlimited employees, custom avatars, missions, and longer Talk sessions for real operations.",
+        "upgrade": "Upgrade to Super Pro",
+        "billing": "View billing",
+        "runAnother": "Run another scenario",
+        "openTalk": "Open Talk"
+      },
+      "postCreate": {
+        "title": "Test in a scenario",
+        "description": "Run a 90-second workforce simulation to see how {name} handles a real use case.",
+        "runScenario": "Run scenario",
+        "skip": "Skip for now"
+      },
+      "templates": {
+        "runScenario": "Run scenario",
+        "difficulty": {
+          "starter": "Starter",
+          "standard": "Standard",
+          "advanced": "Advanced"
+        },
+        "salesCfoPushback": {
+          "title": "CFO budget pushback",
+          "description": "Defend ROI and urgency while a CFO challenges your enterprise proposal."
+        },
+        "supportEscalation": {
+          "title": "Production outage escalation",
+          "description": "De-escalate a frustrated customer after a billing incident."
+        },
+        "legalContractReview": {
+          "title": "Contract review briefing",
+          "description": "Walk counsel through liability, data processing, and termination terms."
+        },
+        "marketingCampaignPitch": {
+          "title": "Campaign budget review",
+          "description": "Pitch a demand-generation plan to a skeptical CMO."
+        },
+        "opsIncidentResponse": {
+          "title": "Incident bridge update",
+          "description": "Lead a concise operations update during an active incident."
+        },
+        "analystExecBriefing": {
+          "title": "Executive data briefing",
+          "description": "Deliver a sharp churn insight with evidence and next actions."
+        },
+        "automationStakeholderBuyin": {
+          "title": "Automation stakeholder buy-in",
+          "description": "Win support for a workflow automation pilot from a skeptical department head."
+        }
       }
     },
     "talk": {
