@@ -24,9 +24,12 @@ export const NULLXES_CONVERSATION_START_POLICY = `Conversation start:
 - Do not repeat a greeting or re-introduce yourself in the same session unless the user asks.`;
 
 export const NULLXES_MISSION_STATUS_POLICY = `Mission status:
-- When asked about missions, assignments, progress, deliverables, or prospecting work, call list_missions first.
-- Answer using the live status from the tool (planned, in progress, awaiting approval, completed, failed).
-- Mention goal, skills, and brief when relevant. Do not guess mission state without checking.`;
+- When asked about missions, tasks, assignments, progress, outbound sends, or prospecting work, call list_missions first.
+- Report live status (planned, in progress, awaiting approval, completed, failed, cancelled).
+- For outbound: say who was emailed, what was sent, and why each lead was chosen. Use lead contact, company, whyFit, sentAt, and sendError from the tool output.
+- Mention goal, skills, brief, handoffs, and recent timeline when relevant. Do not guess without checking.
+- If the operator asks to stop, interrupt, or cancel a mission, call cancel_mission with the mission id.
+- If the operator asks to continue with new instructions, call cancel_mission when still running, then restart_mission with the updated brief/goal/skills.`;
 
 /** Default spoken language policy for Anam / talk sessions. */
 export const NULLXES_LANGUAGE_POLICY_RU = `Language policy:

@@ -1,14 +1,11 @@
 import type { AnamApiKeySlot } from "@/shared/config/anam-api-pool";
-import { getAnamApiKeyPool } from "@/shared/config/anam-api-pool";
 import {
   anamFetchWithSlot,
   isAnamAvatarQuotaError,
   readAnamErrorMessage,
 } from "@/shared/config/provider-env";
-import { listAnamSlotsWithPersonaCapacity } from "@/features/provider-provisioning/services/resolve-anam-persona-slot";
 import {
-  getDefaultAnamAvatarSlot,
-  listAnamSlotsWithOneShotCapacity,
+  resolveAnamAvatarUploadSlots,
 } from "@/features/provider-provisioning/services/list-anam-one-shot-slots";
 import { ANAM_AVATAR_PROVIDER_ID } from "@/providers/avatar/anam/config";
 
@@ -59,37 +56,14 @@ export async function createAnamAvatarFromFile(input: {
     throw new Error("Upload a PNG, JPG, or WebP image");
   }
 
-  const candidateSlots: AnamApiKeySlot[] = input.preferredSlot
-    ? (() => {
-        const pool = getAnamApiKeyPool();
-        if (!pool.some((entry) => entry.slot === input.preferredSlot)) {
-          throw new Error(
-            `${input.preferredSlot} is not configured on this server. Add the Anam API key to Vercel env.`,
-          );
-        }
-        return [input.preferredSlot];
-      })()
-    : await (async () => {
-        const defaultSlot = getDefaultAnamAvatarSlot();
-        if (defaultSlot) {
-          return [defaultSlot];
-        }
-
-        const oneShotFree = await listAnamSlotsWithOneShotCapacity();
-        if (oneShotFree.length > 0) {
-          return oneShotFree;
-        }
-
-        return listAnamSlotsWithPersonaCapacity({
-          excludeEmployeeId: input.excludeEmployeeId,
-        });
-      })();
+  const candidateSlots = await resolveAnamAvatarUploadSlots({
+    preferredSlot: input.preferredSlot,
+    excludeEmployeeId: input.excludeEmployeeId,
+  });
 
   if (candidateSlots.length === 0) {
     throw new Error(
-      input.preferredSlot
-        ? `Anam key ${input.preferredSlot} is not available for avatar upload.`
-        : "All configured Anam lab keys already have a persona. Add another ANAM_API_KEY or remove an employee from a full lab.",
+      "All configured Anam lab keys are at the one-shot avatar limit. Delete unused one-shot avatars in Anam or add another ANAM_API_KEY.",
     );
   }
 

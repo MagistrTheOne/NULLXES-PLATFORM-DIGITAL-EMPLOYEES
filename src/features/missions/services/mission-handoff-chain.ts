@@ -19,7 +19,7 @@ import { db } from "@/shared/db/client";
 
 type MissionHandoffStage = {
   stage: string;
-  targetName: string;
+  roleQueries: string[];
   title: string;
   buildDescription: (input: {
     missionTitle: string;
@@ -32,14 +32,14 @@ type MissionHandoffStage = {
 const MISSION_HANDOFF_STAGES: MissionHandoffStage[] = [
   {
     stage: "legal_review",
-    targetName: "Megan",
+    roleQueries: ["legal", "compliance", "marketing"],
     title: "Legal review of outbound proposals",
     buildDescription: ({ missionTitle, missionBrief, leads }) => {
       const proposalLines = leads
         .filter((lead) => lead.sentAt)
         .map(
           (lead) =>
-            `- ${lead.companyName}${lead.domain ? ` (${lead.domain})` : ""}\n  Proposal: ${lead.proposalDraft.slice(0, 1200)}`,
+            `- ${lead.companyName}${lead.domain ? ` (${lead.domain})` : ""}\n  To: ${lead.contactEmail ?? "unknown"}\n  Proposal: ${lead.proposalDraft.slice(0, 1200)}`,
         )
         .join("\n\n");
 
@@ -58,7 +58,7 @@ const MISSION_HANDOFF_STAGES: MissionHandoffStage[] = [
   },
   {
     stage: "automation_plan",
-    targetName: "Atlas",
+    roleQueries: ["automation", "engineer", "operations", "workflow"],
     title: "Automation follow-up plan",
     buildDescription: ({ missionTitle, missionBrief, leads, priorSummary }) => {
       const sentCount = leads.filter((lead) => lead.sentAt).length;
@@ -72,7 +72,7 @@ const MISSION_HANDOFF_STAGES: MissionHandoffStage[] = [
         `Mission brief: ${missionBrief}`,
         `Sent proposals: ${sentCount}`,
         "",
-        "Megan legal review:",
+        "Prior review:",
         priorSummary ?? "No prior review available.",
       ].join("\n");
     },
@@ -186,7 +186,7 @@ export async function startMissionHandoffStage(input: {
   const target = await resolveWorkforceHandoffTarget({
     organizationId: input.organizationId,
     fromEmployeeId: mission.employeeId,
-    toEmployeeName: stage.targetName,
+    roleQueries: stage.roleQueries,
   });
 
   const handoffs = [...(mission.handoffs ?? [])];
@@ -198,18 +198,18 @@ export async function startMissionHandoffStage(input: {
         fromEmployeeId: mission.employeeId,
         target: {
           id: randomUUID(),
-          name: stage.targetName,
-          role: stage.targetName,
+          name: "No matching employee",
+          role: stage.roleQueries.join(" · "),
         },
         stage: stage.stage,
         status: "skipped",
-        summary: `${stage.targetName} is not available in this organization.`,
+        summary: `No digital employee in this organization matched: ${stage.roleQueries.join(", ")}.`,
       }),
     );
 
     const timeline = appendMissionTimelineStep(mission.timeline ?? [], {
       key: `handoff_skipped_${stage.stage}`,
-      label: `${stage.targetName} unavailable · skipped ${stage.stage}`,
+      label: `${stage.title} skipped · no matching employee`,
     });
 
     await persistMissionHandoffs({

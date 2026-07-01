@@ -199,7 +199,12 @@ export function MissionDetailScreen({
                     Budget signal: {lead.budgetSignal}
                   </p>
                 ) : null}
-                {lead.contactHypothesis ? (
+                {lead.contactName ? (
+                  <p className="mt-1 text-xs text-white/50">
+                    Contact: {lead.contactName}
+                    {lead.contactHypothesis ? ` · ${lead.contactHypothesis}` : ""}
+                  </p>
+                ) : lead.contactHypothesis ? (
                   <p className="mt-1 text-xs text-white/50">
                     Contact: {lead.contactHypothesis}
                   </p>
@@ -207,6 +212,19 @@ export function MissionDetailScreen({
                 {lead.contactEmail ? (
                   <p className="mt-1 text-xs text-white/50">
                     Email: {lead.contactEmail}
+                  </p>
+                ) : null}
+                {lead.contactSourceUrl ? (
+                  <p className="mt-1 text-xs text-white/50">
+                    Source:{" "}
+                    <a
+                      href={lead.contactSourceUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="underline underline-offset-2"
+                    >
+                      {lead.contactSourceUrl}
+                    </a>
                   </p>
                 ) : null}
                 {lead.sendError ? (

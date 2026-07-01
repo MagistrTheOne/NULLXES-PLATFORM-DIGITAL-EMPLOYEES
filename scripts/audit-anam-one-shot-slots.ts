@@ -4,7 +4,7 @@ import { getAnamApiBaseUrl } from "../src/shared/config/provider-env";
 
 loadEnvFiles();
 
-const ONE_SHOT_CAP = 2;
+const ONE_SHOT_CAP = Number(process.env.ANAM_ONE_SHOT_CAP_PER_KEY ?? "1") || 1;
 
 type AnamAvatarRow = {
   id: string;

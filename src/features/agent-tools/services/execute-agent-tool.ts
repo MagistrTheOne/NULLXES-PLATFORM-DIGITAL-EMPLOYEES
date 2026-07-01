@@ -72,6 +72,8 @@ export async function executeAgentTool(input: {
       typeof args.limit === "number" && args.limit > 0
         ? Math.min(Math.floor(args.limit), 10)
         : 5;
+    const missionId =
+      typeof args.missionId === "string" ? args.missionId.trim() : undefined;
 
     const { listEmployeeMissionsForAgentTool } = await import(
       "@/features/missions/queries/list-employee-missions-for-agent-tool"
@@ -81,9 +83,62 @@ export async function executeAgentTool(input: {
       organizationId: input.context.organizationId,
       employeeId: input.context.employeeId,
       limit,
+      missionId,
     });
 
     return { content };
+  }
+
+  if (input.toolName === "cancel_mission") {
+    const missionId =
+      typeof args.missionId === "string" ? args.missionId.trim() : "";
+    const reason = typeof args.reason === "string" ? args.reason.trim() : "";
+
+    if (!missionId) {
+      return { content: "cancel_mission requires missionId. Call list_missions first." };
+    }
+
+    const { cancelMissionAction } = await import(
+      "@/features/missions/actions/manage-mission"
+    );
+
+    const result = await cancelMissionAction({ missionId, reason });
+    return {
+      content: result.ok
+        ? `Mission ${missionId} cancelled.`
+        : result.message,
+    };
+  }
+
+  if (input.toolName === "restart_mission") {
+    const missionId =
+      typeof args.missionId === "string" ? args.missionId.trim() : "";
+    const brief = typeof args.brief === "string" ? args.brief.trim() : undefined;
+    const goal = typeof args.goal === "string" ? args.goal.trim() : undefined;
+    const skills = typeof args.skills === "string" ? args.skills.trim() : undefined;
+    const reason = typeof args.reason === "string" ? args.reason.trim() : undefined;
+
+    if (!missionId) {
+      return { content: "restart_mission requires missionId. Call list_missions first." };
+    }
+
+    const { restartMissionAction } = await import(
+      "@/features/missions/actions/manage-mission"
+    );
+
+    const result = await restartMissionAction({
+      missionId,
+      brief,
+      goal,
+      skills,
+      reason,
+    });
+
+    return {
+      content: result.ok
+        ? `Mission ${missionId} restarted with updated inputs.`
+        : result.message,
+    };
   }
 
   if (input.toolName === "list_workforce_peers") {

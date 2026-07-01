@@ -2,6 +2,7 @@ import {
   getResendAutomationFromAddress,
   getResendClient,
 } from "./resend-client";
+import { buildMissionOutboundEmailHtml } from "./mission-proposal-html";
 
 function buildMissionFromAddress(employeeName: string): string {
   const configured = getResendAutomationFromAddress();
@@ -24,7 +25,8 @@ export async function sendMissionProposalEmail(input: {
   to: string;
   companyName: string;
   employeeName: string;
-  proposalHtml: string;
+  proposalDraft: string;
+  language: "ru" | "en";
 }): Promise<{ sent: boolean; error?: string }> {
   const resend = getResendClient();
   if (!resend) {
@@ -36,16 +38,19 @@ export async function sendMissionProposalEmail(input: {
     return { sent: false, error: "Invalid recipient email." };
   }
 
+  const html = buildMissionOutboundEmailHtml({
+    companyName: input.companyName,
+    employeeName: input.employeeName,
+    proposalDraft: input.proposalDraft,
+    language: input.language,
+  });
+
   try {
     const { error } = await resend.emails.send({
       from: buildMissionFromAddress(input.employeeName),
       to: [to],
       subject: `NULLXES Digital Employees · ${input.companyName}`,
-      html: `
-        <p>Hello,</p>
-        ${input.proposalHtml}
-        <p>Best regards,<br/>${input.employeeName}<br/>NULLXES Digital Employees</p>
-      `.trim(),
+      html,
     });
 
     if (error) {

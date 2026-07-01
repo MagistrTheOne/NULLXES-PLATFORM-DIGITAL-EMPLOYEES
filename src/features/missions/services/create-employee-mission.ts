@@ -168,9 +168,17 @@ export function parseMissionLeadsFromModelOutput(raw: string): MissionLeadItem[]
         contactHypothesis: lead.contactHypothesis
           ? String(lead.contactHypothesis).trim()
           : undefined,
+        contactName: lead.contactName
+          ? String(lead.contactName).trim()
+          : undefined,
         contactEmail: lead.contactEmail
           ? String(lead.contactEmail).trim()
           : undefined,
+        contactSourceUrl: lead.contactSourceUrl
+          ? String(lead.contactSourceUrl).trim()
+          : lead.sourceUrl
+            ? String(lead.sourceUrl).trim()
+            : undefined,
         proposalDraft:
           proposalDraft ||
           (companyName

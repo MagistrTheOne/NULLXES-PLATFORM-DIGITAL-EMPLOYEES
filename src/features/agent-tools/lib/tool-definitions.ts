@@ -65,7 +65,7 @@ export const TALK_ACTION_TOOLS = [
     function: {
       name: "list_missions",
       description:
-        "List missions assigned to this digital employee with live status, goal, skills, and brief.",
+        "List missions for this digital employee with live status, outbound sends (who, what, why), handoffs, and timeline.",
       parameters: {
         type: "object",
         properties: {
@@ -73,7 +73,46 @@ export const TALK_ACTION_TOOLS = [
             type: "number",
             description: "Maximum missions to return (default 5, max 10).",
           },
+          missionId: {
+            type: "string",
+            description: "Optional mission UUID for a detailed single-mission report.",
+          },
         },
+      },
+    },
+  },
+  {
+    type: "function" as const,
+    function: {
+      name: "cancel_mission",
+      description:
+        "Cancel an in-progress or awaiting-approval mission. Use when the operator asks to stop or interrupt a mission.",
+      parameters: {
+        type: "object",
+        properties: {
+          missionId: { type: "string", description: "Mission UUID from list_missions." },
+          reason: { type: "string", description: "Why the mission was cancelled." },
+        },
+        required: ["missionId"],
+      },
+    },
+  },
+  {
+    type: "function" as const,
+    function: {
+      name: "restart_mission",
+      description:
+        "Restart a cancelled or failed mission with optional updated brief, goal, or skills.",
+      parameters: {
+        type: "object",
+        properties: {
+          missionId: { type: "string", description: "Mission UUID from list_missions." },
+          brief: { type: "string", description: "Updated mission brief." },
+          goal: { type: "string", description: "Updated mission goal." },
+          skills: { type: "string", description: "Updated skills (comma-separated)." },
+          reason: { type: "string", description: "Why the mission is being restarted." },
+        },
+        required: ["missionId"],
       },
     },
   },

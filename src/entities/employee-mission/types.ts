@@ -9,8 +9,10 @@ export type MissionLeadItem = {
   domain?: string;
   whyFit: string;
   budgetSignal?: string;
+  contactName?: string;
   contactHypothesis?: string;
   contactEmail?: string;
+  contactSourceUrl?: string;
   proposalDraft: string;
   sentAt?: string;
   sendError?: string;

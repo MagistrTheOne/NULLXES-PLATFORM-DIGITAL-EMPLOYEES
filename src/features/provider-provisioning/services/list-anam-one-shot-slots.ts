@@ -3,6 +3,7 @@ import {
   type AnamApiKeySlot,
 } from "@/shared/config/anam-api-pool";
 import { getAnamApiBaseUrl } from "@/shared/config/provider-env";
+import { listAnamSlotsWithPersonaCapacity } from "@/features/provider-provisioning/services/resolve-anam-persona-slot";
 
 const DEFAULT_ONE_SHOT_CAP = 1;
 
@@ -72,4 +73,55 @@ export function getDefaultAnamAvatarSlot(): AnamApiKeySlot | null {
   }
 
   return raw as AnamApiKeySlot;
+}
+
+function uniqueSlots(slots: AnamApiKeySlot[]): AnamApiKeySlot[] {
+  const seen = new Set<AnamApiKeySlot>();
+  const ordered: AnamApiKeySlot[] = [];
+
+  for (const slot of slots) {
+    if (!seen.has(slot)) {
+      seen.add(slot);
+      ordered.push(slot);
+    }
+  }
+
+  return ordered;
+}
+
+/** Ordered lab keys to try for one-shot avatar upload — skips full keys via live Anam API check. */
+export async function resolveAnamAvatarUploadSlots(input: {
+  preferredSlot?: AnamApiKeySlot | null;
+  excludeEmployeeId?: string;
+}): Promise<AnamApiKeySlot[]> {
+  const pool = getAnamApiKeyPool();
+  if (pool.length === 0) {
+    return [];
+  }
+
+  const oneShotFree = await listAnamSlotsWithOneShotCapacity();
+  if (oneShotFree.length === 0) {
+    return listAnamSlotsWithPersonaCapacity({
+      excludeEmployeeId: input.excludeEmployeeId,
+    });
+  }
+
+  const ordered: AnamApiKeySlot[] = [];
+
+  if (input.preferredSlot && oneShotFree.includes(input.preferredSlot)) {
+    ordered.push(input.preferredSlot);
+  }
+
+  const defaultSlot = getDefaultAnamAvatarSlot();
+  if (defaultSlot && oneShotFree.includes(defaultSlot)) {
+    ordered.push(defaultSlot);
+  }
+
+  for (const entry of pool) {
+    if (oneShotFree.includes(entry.slot)) {
+      ordered.push(entry.slot);
+    }
+  }
+
+  return uniqueSlots(ordered);
 }

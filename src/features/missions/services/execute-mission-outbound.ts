@@ -1,6 +1,9 @@
 import { and, eq } from "drizzle-orm";
 import { employeeMission, type MissionLeadItem } from "@/entities/employee-mission";
 import { digitalEmployee } from "@/entities/digital-employee/schema";
+import { detectMissionLanguage } from "@/features/missions/lib/detect-mission-language";
+import { extractMissionResearchCorpus } from "@/features/missions/lib/mission-research-evidence";
+import { isVerifiedLeadContact } from "@/features/missions/lib/verify-lead-contact";
 import { appendMissionTimelineStep } from "@/features/missions/lib/append-mission-timeline-step";
 import { startMissionHandoffChain } from "@/features/missions/services/mission-handoff-chain";
 import { recordWorkEvent } from "@/features/work-event";
@@ -8,37 +11,17 @@ import { sendMissionProposalEmail } from "@/shared/email/send-mission-proposal-e
 import { inngest, isInngestEnabledForSend } from "@/inngest/client";
 import { db } from "@/shared/db/client";
 
-function proposalHtmlFromDraft(draft: string): string {
-  const paragraphs = draft
-    .split(/\n{2,}/)
-    .map((part) => part.trim())
-    .filter(Boolean);
-
-  if (paragraphs.length === 0) {
-    return `<p>${draft.trim()}</p>`;
-  }
-
-  return paragraphs.map((part) => `<p>${part}</p>`).join("");
-}
-
-function resolveLeadRecipient(lead: MissionLeadItem): string | null {
+function resolveLeadRecipient(lead: MissionLeadItem, research: string): string | null {
   const explicit = lead.contactEmail?.trim();
-  if (explicit && explicit.includes("@")) {
-    return explicit;
+  if (!explicit || !explicit.includes("@")) {
+    return null;
   }
 
-  const hypothesis = lead.contactHypothesis?.trim() ?? "";
-  const emailInHypothesis = hypothesis.match(/[^\s<>]+@[^\s<>]+/);
-  if (emailInHypothesis) {
-    return emailInHypothesis[0];
+  if (!isVerifiedLeadContact(lead, research)) {
+    return null;
   }
 
-  const domain = lead.domain?.trim().replace(/^https?:\/\//, "").replace(/\/.*$/, "");
-  if (domain && domain.includes(".")) {
-    return `info@${domain}`;
-  }
-
-  return null;
+  return explicit;
 }
 
 export async function executeMissionOutbound(input: {
@@ -55,7 +38,10 @@ export async function executeMissionOutbound(input: {
       id: employeeMission.id,
       employeeId: employeeMission.employeeId,
       title: employeeMission.title,
+      brief: employeeMission.brief,
+      goal: employeeMission.goal,
       leads: employeeMission.leads,
+      evidence: employeeMission.evidence,
       timeline: employeeMission.timeline,
       employeeName: digitalEmployee.name,
     })
@@ -76,6 +62,8 @@ export async function executeMissionOutbound(input: {
     throw new Error("Mission not found");
   }
 
+  const research = extractMissionResearchCorpus(mission.evidence);
+  const language = detectMissionLanguage(mission.brief, mission.goal);
   const leads = [...(mission.leads ?? [])];
   let sentCount = 0;
   let failedCount = 0;
@@ -83,13 +71,16 @@ export async function executeMissionOutbound(input: {
 
   for (let index = 0; index < leads.length; index += 1) {
     const lead = leads[index];
-    const recipient = resolveLeadRecipient(lead);
+    const recipient = resolveLeadRecipient(lead, research);
 
     if (!recipient) {
       skippedCount += 1;
       leads[index] = {
         ...lead,
-        sendError: "No deliverable email address for this lead.",
+        sendError:
+          language === "ru"
+            ? "Нет подтверждённого email контакта из research."
+            : "No verified contact email from research.",
       };
       continue;
     }
@@ -98,7 +89,8 @@ export async function executeMissionOutbound(input: {
       to: recipient,
       companyName: lead.companyName,
       employeeName: mission.employeeName,
-      proposalHtml: proposalHtmlFromDraft(lead.proposalDraft),
+      proposalDraft: lead.proposalDraft,
+      language,
     });
 
     if (delivery.sent) {
@@ -133,7 +125,9 @@ export async function executeMissionOutbound(input: {
         timeline,
         completedAt: new Date(),
         errorMessage:
-          "No proposal emails were delivered. Check contact emails and Resend configuration.",
+          language === "ru"
+            ? "Ни одно письмо не отправлено. Нужны подтверждённые контакты из research и настроенный Resend."
+            : "No proposal emails were delivered. Verified research contacts and Resend are required.",
       })
       .where(eq(employeeMission.id, input.missionId));
 

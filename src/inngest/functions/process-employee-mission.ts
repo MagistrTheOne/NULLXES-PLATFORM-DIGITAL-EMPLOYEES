@@ -5,40 +5,53 @@ import {
   type MissionEvidenceItem,
   type MissionLeadItem,
 } from "@/entities/employee-mission";
-import { searchWebOpenAi } from "@/features/agent-tools/services/search-web-openai";
 import { buildTalkBrainRequest } from "@/features/runtime-session/services/build-talk-brain-request";
 import { collectTalkBrainResponse } from "@/features/runtime-session/services/stream-talk-brain-response";
 import { recordWorkEvent } from "@/features/work-event";
 import { appendMissionTimelineStep } from "@/features/missions/lib/append-mission-timeline-step";
 import { buildMissionExecutionContext } from "@/features/missions/lib/build-mission-execution-context";
+import {
+  detectMissionLanguage,
+  missionLanguageLabel,
+} from "@/features/missions/lib/detect-mission-language";
+import { buildEvidenceFromSearch } from "@/features/missions/lib/mission-research-evidence";
+import { filterVerifiedMissionLeads } from "@/features/missions/lib/verify-lead-contact";
 import { parseMissionLeadsFromModelOutput } from "@/features/missions/services/create-employee-mission";
+import { researchMissionProspects } from "@/features/missions/services/research-mission-prospects";
+import { sendMissionContactsDigestEmail } from "@/shared/email/send-mission-contacts-digest-email";
 import { db } from "@/shared/db/client";
 import { inngest } from "@/inngest/client";
 
 const PROSPECTING_PLAN = `1. Research target companies using web search.
-2. Qualify companies with enterprise budget signals.
-3. Draft personalized digital employee proposals.
-4. Submit proposals for human approval before any outbound send.`;
+2. Find verified B2B decision-maker contacts (published email + source URL).
+3. Qualify companies with enterprise budget signals.
+4. Draft personalized digital employee proposals in the mission language.
+5. Submit proposals for human approval before any outbound send.`;
 
-function buildEvidenceFromSearch(searchResults: string): MissionEvidenceItem[] {
-  const urlMatches = [...searchResults.matchAll(/https?:\/\/[^\s)>\]"']+/g)]
-    .map((match) => match[0])
-    .slice(0, 8);
+const LEAD_SCHEMA_HINT = `{ "leads": [{ "companyName": "string", "domain": "string", "whyFit": "string", "budgetSignal": "string", "contactName": "string", "contactHypothesis": "string", "contactEmail": "string", "contactSourceUrl": "string", "proposalDraft": "string" }] }`;
 
-  if (urlMatches.length === 0) {
+function buildLeadExtractionRules(language: "ru" | "en"): string[] {
+  const languageLabel = missionLanguageLabel(language);
+
+  if (language === "ru") {
     return [
-      {
-        source: "Web research",
-        snippet: searchResults.slice(0, 500),
-      },
+      "Пиши proposalDraft только на русском.",
+      "contactEmail — только если email дословно есть в research. Запрещено угадывать (info@, sales@, digital@ и т.п.).",
+      "contactName — полное имя человека из источника.",
+      "contactSourceUrl — URL страницы, где найден контакт или email.",
+      "Если нет подтверждённого email — не включай lead в массив.",
+      "Верни до 10 leads с подтверждёнными контактами.",
     ];
   }
 
-  return urlMatches.map((url, index) => ({
-    source: `Source ${index + 1}`,
-    url,
-    snippet: searchResults.slice(0, 240),
-  }));
+  return [
+    "Write proposalDraft in English only.",
+    "contactEmail only when the email appears verbatim in research. Never guess (info@, sales@, digital@, etc.).",
+    "contactName is the person's full name from the source.",
+    "contactSourceUrl is the page URL where the contact or email was found.",
+    "If there is no verified email, do not include the lead.",
+    "Return up to 10 leads with verified contacts.",
+  ];
 }
 
 async function generateProspectingLeads(input: {
@@ -48,6 +61,7 @@ async function generateProspectingLeads(input: {
   employeeRole: string;
   missionContext: string;
   searchResults: string;
+  language: "ru" | "en";
 }): Promise<MissionLeadItem[]> {
   const brainRequest = await buildTalkBrainRequest({
     organizationId: input.organizationId,
@@ -58,11 +72,9 @@ async function generateProspectingLeads(input: {
         content: [
           `You are ${input.employeeName}, a ${input.employeeRole}.`,
           input.missionContext,
+          `Mission language: ${missionLanguageLabel(input.language)}`,
           "",
-          "Using the research below, return JSON only:",
-          `{ "leads": [{ "companyName": "", "domain": "", "whyFit": "", "budgetSignal": "", "contactHypothesis": "", "contactEmail": "", "proposalDraft": "" }] }`,
-          "Return up to 10 qualified leads with concise proposal drafts for NULLXES Digital Employees.",
-          "Include contactEmail when you can infer a plausible business email (e.g. sales@domain.com).",
+          ...buildLeadExtractionRules(input.language),
           "",
           "Research:",
           input.searchResults,
@@ -75,8 +87,6 @@ async function generateProspectingLeads(input: {
     throw new Error("Employee runtime not configured for mission processing");
   }
 
-  const leadSchemaHint = `{ "leads": [{ "companyName": "string", "domain": "string", "whyFit": "string", "budgetSignal": "string", "contactHypothesis": "string", "contactEmail": "string", "proposalDraft": "string" }] }`;
-
   const raw = await collectTalkBrainResponse({
     brainProvider: brainRequest.brainProvider,
     model: brainRequest.model,
@@ -85,9 +95,10 @@ async function generateProspectingLeads(input: {
       "",
       "You are operating in data-extraction mode.",
       "Output ONLY a single JSON object. No prose, no markdown, no code fences.",
-      `The JSON must match this shape: ${leadSchemaHint}`,
-      "Every lead MUST include non-empty companyName, whyFit, and proposalDraft.",
-      "Return up to 10 qualified leads. If research is thin, infer plausible enterprise B2B targets that match the brief.",
+      `The JSON must match this shape: ${LEAD_SCHEMA_HINT}`,
+      "Every lead MUST include non-empty companyName, whyFit, proposalDraft, contactName, contactEmail, and contactSourceUrl.",
+      ...buildLeadExtractionRules(input.language),
+      "Do not invent companies or contacts not supported by the research corpus.",
     ].join("\n"),
     messages: [
       {
@@ -97,19 +108,19 @@ async function generateProspectingLeads(input: {
           input.missionContext,
           "",
           "Use the research below to produce qualified leads for NULLXES Digital Employees.",
-          "Include contactEmail when you can infer a plausible business email (e.g. sales@domain.com).",
           "",
           "Research:",
           input.searchResults,
         ].join("\n"),
       },
     ],
-    temperature: 0.4,
+    temperature: 0.2,
     maxTokens: brainRequest.maxTokens,
     responseFormat: { type: "json_object" },
   });
 
-  return parseMissionLeadsFromModelOutput(raw);
+  const parsed = parseMissionLeadsFromModelOutput(raw);
+  return filterVerifiedMissionLeads(parsed, input.searchResults);
 }
 
 async function processMissionById(missionId: string, organizationId: string) {
@@ -134,6 +145,7 @@ async function processMissionById(missionId: string, organizationId: string) {
   }
 
   let timeline = mission.timeline ?? [];
+  const language = detectMissionLanguage(mission.brief, mission.goal);
 
   try {
     await db
@@ -168,13 +180,13 @@ async function processMissionById(missionId: string, organizationId: string) {
       skills: mission.skills,
     });
 
-    const searchQuery =
-      mission.type === "prospecting"
-        ? `${missionContext} enterprise B2B companies budget digital workforce automation`
-        : missionContext;
+    const searchResults = await researchMissionProspects({
+      missionContext,
+      brief: mission.brief,
+      goal: mission.goal,
+    });
 
-    const searchResults = await searchWebOpenAi(searchQuery);
-    const evidence = buildEvidenceFromSearch(searchResults);
+    const evidence: MissionEvidenceItem[] = buildEvidenceFromSearch(searchResults);
 
     timeline = appendMissionTimelineStep(timeline, {
       key: "researched",
@@ -196,15 +208,33 @@ async function processMissionById(missionId: string, organizationId: string) {
       employeeRole: mission.employee.role,
       missionContext,
       searchResults,
+      language,
     });
 
     if (leads.length === 0) {
-      throw new Error("Mission produced no qualified leads");
+      throw new Error(
+        language === "ru"
+          ? "Не найдено leads с подтверждёнными B2B контактами из web research."
+          : "No leads with verified B2B contacts found in web research.",
+      );
     }
 
     timeline = appendMissionTimelineStep(timeline, {
       key: "drafted",
       label: `${leads.length} proposal drafts prepared`,
+    });
+
+    await sendMissionContactsDigestEmail({
+      missionTitle: mission.title,
+      employeeName: mission.employee.name,
+      language,
+      leads,
+      research: searchResults,
+    });
+
+    timeline = appendMissionTimelineStep(timeline, {
+      key: "contacts_digest",
+      label: "Contacts digest sent to CEO",
     });
 
     const [approval] = await db
@@ -220,6 +250,7 @@ async function processMissionById(missionId: string, organizationId: string) {
           preview: leads.slice(0, 3).map((lead) => ({
             companyName: lead.companyName,
             whyFit: lead.whyFit,
+            contactEmail: lead.contactEmail,
           })),
         },
         status: "pending",

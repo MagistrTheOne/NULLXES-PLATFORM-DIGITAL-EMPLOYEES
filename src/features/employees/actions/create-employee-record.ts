@@ -145,9 +145,6 @@ export async function createEmployeeRecord(
               source: "studio",
               studioVoiceId: input.studioVoiceId,
               customElevenLabsVoiceId: input.customElevenLabsVoiceId ?? null,
-              ...(process.env.ANAM_DEFAULT_AVATAR_SLOT?.trim()
-                ? { anamApiKeySlot: process.env.ANAM_DEFAULT_AVATAR_SLOT.trim() }
-                : {}),
             },
           },
         },

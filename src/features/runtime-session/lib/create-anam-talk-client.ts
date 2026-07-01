@@ -1,4 +1,5 @@
 import { createClient, type AnamClient } from "@anam-ai/js-sdk";
+import { buildAnamTalkClientOptions } from "./anam-talk-client-options";
 import { patchAnamBrowserFetch } from "./patch-anam-browser-fetch";
 
 patchAnamBrowserFetch();
@@ -10,9 +11,5 @@ patchAnamBrowserFetch();
 export function createAnamTalkClient(sessionToken: string): AnamClient {
   patchAnamBrowserFetch();
 
-  return createClient(sessionToken, {
-    metrics: {
-      disableClientMetrics: true,
-    },
-  });
+  return createClient(sessionToken, buildAnamTalkClientOptions());
 }

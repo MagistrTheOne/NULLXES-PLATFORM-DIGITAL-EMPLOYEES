@@ -12,6 +12,10 @@ import { useTalkAnam } from "@/features/runtime-session/context/talk-anam-contex
 import { attachTalkAnamSessionEvents } from "@/features/runtime-session/lib/attach-talk-anam-session-events";
 import { attachTalkVoicePipeline } from "@/features/runtime-session/lib/attach-talk-voice-pipeline";
 import { createAnamTalkClient } from "@/features/runtime-session/lib/create-anam-talk-client";
+import {
+  acquireAnamInputAudioStream,
+  releaseAnamInputAudioStream,
+} from "@/features/runtime-session/lib/acquire-anam-input-audio-stream";
 import type { TalkVoiceMode } from "@/features/runtime-session/services/resolve-talk-voice-mode";
 import { AvatarIdlePreview } from "@/features/employees/components/avatar-idle-preview";
 import { TalkStageHud } from "./talk-stage-hud";
@@ -72,6 +76,7 @@ export function EmployeeAnamStage({
     let disposed = false;
     let startGeneration = 0;
     let activeClient: ReturnType<typeof createAnamTalkClient> | null = null;
+    let inputAudioStream: MediaStream | null = null;
     let detachVoicePipeline: (() => void) | null = null;
     let detachSessionEvents: (() => void) | null = null;
 
@@ -144,12 +149,21 @@ export function EmployeeAnamStage({
         setPipelineState,
       });
 
-      // Let the SDK own microphone capture: by default Anam requests the mic on
-      // stream start and runs STT, emitting MIC_PERMISSION_* and USER_SPEECH_*
-      // events we surface for the live mic indicator.
+      // Anam SDK: pass a dedicated input MediaStream for reliable mic capture.
+      // @see https://anam.ai/docs/javascript-sdk/reference/audio-control
       try {
         setMicPermission("pending");
-        await anamClient.streamToVideoElement(ANAM_VIDEO_ELEMENT_ID);
+        inputAudioStream = await acquireAnamInputAudioStream();
+        if (disposed || generation !== startGeneration) {
+          releaseAnamInputAudioStream(inputAudioStream);
+          inputAudioStream = null;
+          return;
+        }
+
+        await anamClient.streamToVideoElement(
+          ANAM_VIDEO_ELEMENT_ID,
+          inputAudioStream,
+        );
       } catch (error: unknown) {
         if (
           !disposed &&
@@ -175,6 +189,8 @@ export function EmployeeAnamStage({
       startGeneration += 1;
       detachVoicePipeline?.();
       detachSessionEvents?.();
+      releaseAnamInputAudioStream(inputAudioStream);
+      inputAudioStream = null;
       const client = activeClient;
       activeClient = null;
       registerClient(null);
@@ -200,7 +216,7 @@ export function EmployeeAnamStage({
       return;
     }
     syncMicFromClient();
-    const interval = window.setInterval(syncMicFromClient, 1500);
+    const interval = window.setInterval(syncMicFromClient, 800);
     return () => window.clearInterval(interval);
   }, [status, syncMicFromClient]);
 

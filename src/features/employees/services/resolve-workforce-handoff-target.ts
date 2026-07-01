@@ -47,6 +47,7 @@ export async function resolveWorkforceHandoffTarget(input: {
   fromEmployeeId: string;
   toEmployeeId?: string;
   toEmployeeName?: string;
+  roleQueries?: string[];
 }): Promise<WorkforcePeer | null> {
   if (input.toEmployeeId) {
     const [row] = await db
@@ -70,7 +71,30 @@ export async function resolveWorkforceHandoffTarget(input: {
   }
 
   const nameQuery = input.toEmployeeName?.trim().toLowerCase();
-  if (!nameQuery) {
+  if (nameQuery) {
+    const peers = await listWorkforcePeers({
+      organizationId: input.organizationId,
+      employeeId: input.fromEmployeeId,
+    });
+
+    const exact = peers.find((peer) => peer.name.toLowerCase() === nameQuery);
+    if (exact) {
+      return exact;
+    }
+
+    const partialMatches = peers.filter(
+      (peer) =>
+        peer.name.toLowerCase().includes(nameQuery) ||
+        peer.role.toLowerCase().includes(nameQuery),
+    );
+
+    if (partialMatches.length === 1) {
+      return partialMatches[0] ?? null;
+    }
+  }
+
+  const roleQueries = input.roleQueries?.map((query) => query.trim().toLowerCase()).filter(Boolean);
+  if (!roleQueries?.length) {
     return null;
   }
 
@@ -79,19 +103,23 @@ export async function resolveWorkforceHandoffTarget(input: {
     employeeId: input.fromEmployeeId,
   });
 
-  const exact = peers.find((peer) => peer.name.toLowerCase() === nameQuery);
-  if (exact) {
-    return exact;
-  }
+  for (const query of roleQueries) {
+    const matches = peers.filter(
+      (peer) =>
+        peer.name.toLowerCase().includes(query) ||
+        peer.role.toLowerCase().includes(query),
+    );
 
-  const partialMatches = peers.filter(
-    (peer) =>
-      peer.name.toLowerCase().includes(nameQuery) ||
-      peer.role.toLowerCase().includes(nameQuery),
-  );
+    if (matches.length === 1) {
+      return matches[0] ?? null;
+    }
 
-  if (partialMatches.length === 1) {
-    return partialMatches[0] ?? null;
+    if (matches.length > 1) {
+      const roleMatch = matches.find((peer) =>
+        peer.role.toLowerCase().includes(query),
+      );
+      return roleMatch ?? matches[0] ?? null;
+    }
   }
 
   return null;

@@ -4,6 +4,8 @@ const TOOL_TRACE_KEYS: Record<string, string> = {
   list_workspace_connectors: "checkingConnectors",
   list_workforce_peers: "checkingWorkforce",
   list_missions: "checkingMissions",
+  cancel_mission: "updatingMission",
+  restart_mission: "updatingMission",
   create_follow_up_task: "schedulingTask",
   request_handoff: "handingOff",
   draft_email: "draftingEmail",
