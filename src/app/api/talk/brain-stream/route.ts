@@ -58,7 +58,7 @@ export async function POST(request: Request): Promise<Response> {
     );
   }
 
-  const rateLimit = assertBrainStreamRateLimit({
+  const rateLimit = await assertBrainStreamRateLimit({
     userId: authResult.auth.userId,
     employeeId,
   });
