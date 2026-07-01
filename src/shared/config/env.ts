@@ -230,3 +230,40 @@ export function getDataEncryptionKey(): string {
 
   throw new Error("DATA_ENCRYPTION_KEY is not set");
 }
+
+export type DataEncryptionKeyRing = {
+  /** Version used for new encryptions (highest configured). */
+  activeVersion: number;
+  /** base64-encoded 32-byte keys by version. */
+  keys: Map<number, string>;
+};
+
+/**
+ * Versioned key ring for field-level encryption key rotation.
+ *
+ * `DATA_ENCRYPTION_KEYS` holds newer keys as comma/newline-separated
+ * `v<N>:<base64>` entries, e.g. `v2:AAAA...,v3:BBBB...`. The legacy
+ * `DATA_ENCRYPTION_KEY` is always registered as v1 so existing `enc:v1:`
+ * ciphertexts keep decrypting. The highest version encrypts new values.
+ */
+export function getDataEncryptionKeyRing(): DataEncryptionKeyRing {
+  const keys = new Map<number, string>([[1, getDataEncryptionKey()]]);
+
+  const configured = readOptionalEnv("DATA_ENCRYPTION_KEYS");
+  if (configured) {
+    for (const entry of configured.split(/[\n,]/)) {
+      const match = entry.trim().match(/^v(\d+):(.+)$/);
+      if (!match) {
+        continue;
+      }
+
+      const version = Number.parseInt(match[1], 10);
+      const key = match[2].trim();
+      if (version >= 1 && key.length > 0) {
+        keys.set(version, key);
+      }
+    }
+  }
+
+  return { activeVersion: Math.max(...keys.keys()), keys };
+}
