@@ -249,6 +249,13 @@ export async function EmployeeDetailScreen({
                 label={t("personaId")}
                 value={employee.personaId ?? empty}
               />
+              <DetailRow
+                label={t("anamKeySlot")}
+                value={
+                  employee.anamApiKeySlot ??
+                  t("anamKeySlotDefault")
+                }
+              />
             </SectionCard>
           </TabsContent>
 
@@ -259,12 +266,20 @@ export async function EmployeeDetailScreen({
                 value={employee.sessionProvisioningStatus}
               />
               <DetailRow
+                label={t("voiceBinding")}
+                value={employee.voiceBinding ?? empty}
+              />
+              <DetailRow
                 label={t("studioVoice")}
                 value={employee.studioVoiceId ?? empty}
               />
               <DetailRow
                 label={t("voiceId")}
                 value={employee.voiceId ?? empty}
+              />
+              <DetailRow
+                label={t("anamPersonaVoiceId")}
+                value={employee.anamVoiceId ?? empty}
               />
             </SectionCard>
           </TabsContent>

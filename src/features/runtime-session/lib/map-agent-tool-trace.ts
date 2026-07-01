@@ -3,6 +3,7 @@ const TOOL_TRACE_KEYS: Record<string, string> = {
   search_web: "searchingWeb",
   list_workspace_connectors: "checkingConnectors",
   list_workforce_peers: "checkingWorkforce",
+  list_missions: "checkingMissions",
   create_follow_up_task: "schedulingTask",
   request_handoff: "handingOff",
   draft_email: "draftingEmail",

@@ -67,6 +67,25 @@ export async function executeAgentTool(input: {
     };
   }
 
+  if (input.toolName === "list_missions") {
+    const limit =
+      typeof args.limit === "number" && args.limit > 0
+        ? Math.min(Math.floor(args.limit), 10)
+        : 5;
+
+    const { listEmployeeMissionsForAgentTool } = await import(
+      "@/features/missions/queries/list-employee-missions-for-agent-tool"
+    );
+
+    const content = await listEmployeeMissionsForAgentTool({
+      organizationId: input.context.organizationId,
+      employeeId: input.context.employeeId,
+      limit,
+    });
+
+    return { content };
+  }
+
   if (input.toolName === "list_workforce_peers") {
     const roleQuery =
       typeof args.roleQuery === "string" ? args.roleQuery.trim() : undefined;

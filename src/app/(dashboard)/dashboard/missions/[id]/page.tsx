@@ -35,6 +35,7 @@ export default async function MissionDetailPage({
       mission={mission}
       pendingApproval={pendingApproval}
       canManageOrganization={workspace.permissions.canManageOrganization}
+      canOperateEmployees={workspace.permissions.canOperateEmployees}
     />
   );
 }

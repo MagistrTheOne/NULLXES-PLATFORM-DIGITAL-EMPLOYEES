@@ -5,6 +5,7 @@ import { and, eq } from "drizzle-orm";
 import { digitalEmployee } from "@/entities/digital-employee/schema";
 import { recordWorkEvent } from "@/features/work-event";
 import { requireWorkspacePermissionOrThrowMessage } from "@/features/workspace";
+import { parseMissionSkills } from "../lib/parse-mission-skills";
 import {
   createEmployeeMission,
   defaultProspectingBrief,
@@ -17,6 +18,8 @@ export async function createMissionAction(input: {
   employeeId: string;
   type: "prospecting" | "custom";
   title?: string;
+  goal?: string;
+  skills?: string;
   brief?: string;
 }): Promise<{ ok: true; missionId: string } | { ok: false; message: string }> {
   try {
@@ -61,11 +64,16 @@ export async function createMissionAction(input: {
       return { ok: false, message: "Mission brief is required." };
     }
 
+    const goal = input.goal?.trim() || null;
+    const skills = parseMissionSkills(input.skills);
+
     const missionId = await createEmployeeMission({
       organizationId: workspace.organization.id,
       employeeId,
       createdByUserId: workspace.user.id,
       title,
+      goal,
+      skills,
       brief,
       type,
     });

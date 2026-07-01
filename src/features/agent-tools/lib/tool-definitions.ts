@@ -63,6 +63,23 @@ export const TALK_ACTION_TOOLS = [
   {
     type: "function" as const,
     function: {
+      name: "list_missions",
+      description:
+        "List missions assigned to this digital employee with live status, goal, skills, and brief.",
+      parameters: {
+        type: "object",
+        properties: {
+          limit: {
+            type: "number",
+            description: "Maximum missions to return (default 5, max 10).",
+          },
+        },
+      },
+    },
+  },
+  {
+    type: "function" as const,
+    function: {
       name: "list_workforce_peers",
       description:
         "List other digital employees in the organization for routing or handoff.",

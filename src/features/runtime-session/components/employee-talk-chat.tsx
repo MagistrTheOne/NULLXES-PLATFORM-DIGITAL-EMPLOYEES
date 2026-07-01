@@ -50,12 +50,14 @@ function TalkChatFallback({
   connectingLabel,
   unavailableLabel,
   retryLabel,
+  detail,
 }: {
   state: Exclude<TalkChatUiState, "ready">;
   onRetry?: () => void;
   connectingLabel: string;
   unavailableLabel: string;
   retryLabel: string;
+  detail?: string | null;
 }) {
   return (
     <div className="flex h-full min-h-48 flex-col items-center justify-center gap-3 px-4 text-center">
@@ -67,6 +69,9 @@ function TalkChatFallback({
       ) : (
         <>
           <p className="text-sm text-white/50">{unavailableLabel}</p>
+          {detail ? (
+            <p className="max-w-md text-xs leading-5 text-white/35">{detail}</p>
+          ) : null}
           {onRetry ? (
             <Button
               type="button"
@@ -158,6 +163,7 @@ export function EmployeeTalkChat({
   const [client, setClient] = useState<StreamChat | null>(null);
   const [channel, setChannel] = useState<StreamChannel | null>(null);
   const [uiState, setUiState] = useState<TalkChatUiState>("connecting");
+  const [connectError, setConnectError] = useState<string | null>(null);
   const [connectAttempt, setConnectAttempt] = useState(0);
   const [isClearingHistory, setIsClearingHistory] = useState(false);
   const connectGenerationRef = useRef(0);
@@ -199,6 +205,7 @@ export function EmployeeTalkChat({
 
     async function connect(): Promise<void> {
       setUiState("connecting");
+      setConnectError(null);
       setClient(null);
       setChannel(null);
 
@@ -217,13 +224,16 @@ export function EmployeeTalkChat({
         setClient(session.client);
         setChannel(session.channel);
         setUiState("ready");
-      } catch {
+      } catch (error: unknown) {
         if (cancelled || connectGenerationRef.current !== generation) {
           return;
         }
 
         setClient(null);
         setChannel(null);
+        setConnectError(
+          error instanceof Error ? error.message : t("unavailable"),
+        );
         setUiState("unavailable");
       }
     }
@@ -303,6 +313,7 @@ export function EmployeeTalkChat({
         connectingLabel={tTalk("connecting")}
         unavailableLabel={t("unavailable")}
         retryLabel={t("retry")}
+        detail={connectError}
         onRetry={
           uiState === "unavailable"
             ? () => setConnectAttempt((current) => current + 1)

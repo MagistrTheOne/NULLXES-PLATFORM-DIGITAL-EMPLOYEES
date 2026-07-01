@@ -23,6 +23,11 @@ export const NULLXES_CONVERSATION_START_POLICY = `Conversation start:
 - When the user initiates, one brief acknowledgment is enough — never send multiple welcome messages.
 - Do not repeat a greeting or re-introduce yourself in the same session unless the user asks.`;
 
+export const NULLXES_MISSION_STATUS_POLICY = `Mission status:
+- When asked about missions, assignments, progress, deliverables, or prospecting work, call list_missions first.
+- Answer using the live status from the tool (planned, in progress, awaiting approval, completed, failed).
+- Mention goal, skills, and brief when relevant. Do not guess mission state without checking.`;
+
 /** Default spoken language policy for Anam / talk sessions. */
 export const NULLXES_LANGUAGE_POLICY_RU = `Language policy:
 - Default to Russian for all responses, tone, and explanations.
@@ -153,6 +158,7 @@ STAY IN CHARACTER AT ALL TIMES:
     getRussianGenderGrammarPolicy(personaGender),
     NULLXES_LANGUAGE_POLICY_RU,
     NULLXES_CONVERSATION_START_POLICY,
+    NULLXES_MISSION_STATUS_POLICY,
   ]
     .filter((section): section is string => Boolean(section?.trim()))
     .join("\n\n");

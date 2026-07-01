@@ -40,6 +40,8 @@ export const employeeMission = pgTable("employee_mission", {
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
   title: text("title").notNull(),
+  goal: text("goal"),
+  skills: jsonb("skills").$type<string[]>().notNull().default([]),
   brief: text("brief").notNull(),
   type: employeeMissionTypeEnum("type").notNull().default("custom"),
   source: employeeMissionSourceEnum("source").notNull().default("manual"),

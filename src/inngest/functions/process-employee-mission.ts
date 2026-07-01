@@ -10,6 +10,7 @@ import { buildTalkBrainRequest } from "@/features/runtime-session/services/build
 import { collectTalkBrainResponse } from "@/features/runtime-session/services/stream-talk-brain-response";
 import { recordWorkEvent } from "@/features/work-event";
 import { appendMissionTimelineStep } from "@/features/missions/lib/append-mission-timeline-step";
+import { buildMissionExecutionContext } from "@/features/missions/lib/build-mission-execution-context";
 import { parseMissionLeadsFromModelOutput } from "@/features/missions/services/create-employee-mission";
 import { db } from "@/shared/db/client";
 import { inngest } from "@/inngest/client";
@@ -45,7 +46,7 @@ async function generateProspectingLeads(input: {
   employeeId: string;
   employeeName: string;
   employeeRole: string;
-  brief: string;
+  missionContext: string;
   searchResults: string;
 }): Promise<MissionLeadItem[]> {
   const brainRequest = await buildTalkBrainRequest({
@@ -56,7 +57,7 @@ async function generateProspectingLeads(input: {
         role: "user",
         content: [
           `You are ${input.employeeName}, a ${input.employeeRole}.`,
-          `Mission brief: ${input.brief}`,
+          input.missionContext,
           "",
           "Using the research below, return JSON only:",
           `{ "leads": [{ "companyName": "", "domain": "", "whyFit": "", "budgetSignal": "", "contactHypothesis": "", "contactEmail": "", "proposalDraft": "" }] }`,
@@ -93,7 +94,7 @@ async function generateProspectingLeads(input: {
         role: "user",
         content: [
           `You are ${input.employeeName}, a ${input.employeeRole}.`,
-          `Mission brief: ${input.brief}`,
+          input.missionContext,
           "",
           "Use the research below to produce qualified leads for NULLXES Digital Employees.",
           "Include contactEmail when you can infer a plausible business email (e.g. sales@domain.com).",
@@ -161,10 +162,16 @@ async function processMissionById(missionId: string, organizationId: string) {
       metadata: { missionId, type: mission.type },
     });
 
+    const missionContext = buildMissionExecutionContext({
+      brief: mission.brief,
+      goal: mission.goal,
+      skills: mission.skills,
+    });
+
     const searchQuery =
       mission.type === "prospecting"
-        ? `${mission.brief} enterprise B2B companies budget digital workforce automation`
-        : mission.brief;
+        ? `${missionContext} enterprise B2B companies budget digital workforce automation`
+        : missionContext;
 
     const searchResults = await searchWebOpenAi(searchQuery);
     const evidence = buildEvidenceFromSearch(searchResults);
@@ -187,7 +194,7 @@ async function processMissionById(missionId: string, organizationId: string) {
       employeeId: mission.employeeId,
       employeeName: mission.employee.name,
       employeeRole: mission.employee.role,
-      brief: mission.brief,
+      missionContext,
       searchResults,
     });
 

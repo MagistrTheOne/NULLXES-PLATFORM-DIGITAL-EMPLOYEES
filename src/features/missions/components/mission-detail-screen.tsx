@@ -4,6 +4,9 @@ import { Button } from "@/components/ui/button";
 import type { MissionDetail } from "../queries/get-mission-detail";
 import type { MissionPendingApproval } from "../queries/get-pending-mission-approval";
 import { MissionApprovalPanel } from "./mission-approval-panel";
+import { MissionDetailActions } from "./mission-detail-actions";
+
+const EDITABLE_STATUSES = new Set(["planned", "failed", "cancelled"]);
 
 function statusLabel(status: MissionDetail["status"]): string {
   switch (status) {
@@ -28,11 +31,16 @@ export function MissionDetailScreen({
   mission,
   pendingApproval,
   canManageOrganization,
+  canOperateEmployees,
 }: {
   mission: MissionDetail;
   pendingApproval: MissionPendingApproval | null;
   canManageOrganization: boolean;
+  canOperateEmployees: boolean;
 }) {
+  const canEdit =
+    canOperateEmployees && EDITABLE_STATUSES.has(mission.status);
+
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 py-8">
       <div className="flex items-start justify-between gap-4">
@@ -52,6 +60,7 @@ export function MissionDetailScreen({
           </p>
         </div>
         <div className="flex flex-wrap justify-end gap-2">
+          <MissionDetailActions missionId={mission.id} canEdit={canEdit} />
           <Badge
             variant="outline"
             className="border-white/10 bg-transparent text-white/80"
@@ -74,6 +83,22 @@ export function MissionDetailScreen({
           approval={pendingApproval}
           canManage={canManageOrganization}
         />
+      ) : null}
+
+      {mission.goal ? (
+        <section className="rounded-2xl border border-white/8 bg-[#111111] p-5">
+          <h2 className="text-sm font-medium text-white">Goal</h2>
+          <p className="mt-3 text-sm leading-6 text-white/70">{mission.goal}</p>
+        </section>
+      ) : null}
+
+      {mission.skills.length > 0 ? (
+        <section className="rounded-2xl border border-white/8 bg-[#111111] p-5">
+          <h2 className="text-sm font-medium text-white">Skills</h2>
+          <p className="mt-3 text-sm leading-6 text-white/70">
+            {mission.skills.join(" · ")}
+          </p>
+        </section>
       ) : null}
 
       <section className="rounded-2xl border border-white/8 bg-[#111111] p-5">

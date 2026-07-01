@@ -111,7 +111,15 @@ export async function getEmployeeDetailShell(
     canTalk: avatarReady && sessionProvisioningStatus === "ready",
     avatarId: avatarConfig?.avatarId ?? null,
     personaId: avatarConfig?.personaId ?? null,
+    anamApiKeySlot:
+      typeof avatarConfig?.providerMetadata?.anamApiKeySlot === "string"
+        ? avatarConfig.providerMetadata.anamApiKeySlot
+        : null,
     anamVoiceId: resolveAnamPersonaVoiceId(avatarConfig),
+    voiceBinding:
+      typeof avatarConfig?.providerMetadata?.voiceBinding === "string"
+        ? avatarConfig.providerMetadata.voiceBinding
+        : null,
     studioVoiceId: sessionConfig?.studioVoiceId ?? null,
     voiceId: sessionConfig?.voiceId ?? null,
     brainModel: brainConfig?.model ?? null,

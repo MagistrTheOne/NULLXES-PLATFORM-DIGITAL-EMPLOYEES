@@ -61,7 +61,9 @@ export type EmployeeDetailShell = EmployeeListItem & {
   description: string | null;
   avatarId: string | null;
   personaId: string | null;
+  anamApiKeySlot: string | null;
   anamVoiceId: string | null;
+  voiceBinding: string | null;
   studioVoiceId: string | null;
   voiceId: string | null;
   brainModel: string | null;

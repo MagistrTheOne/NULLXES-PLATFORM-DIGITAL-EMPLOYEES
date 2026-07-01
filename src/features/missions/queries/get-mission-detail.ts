@@ -6,6 +6,8 @@ import { db } from "@/shared/db/client";
 export type MissionDetail = {
   id: string;
   title: string;
+  goal: string | null;
+  skills: string[];
   brief: string;
   type: "prospecting" | "custom";
   status:
@@ -39,6 +41,8 @@ export async function getMissionDetail(
     .select({
       id: employeeMission.id,
       title: employeeMission.title,
+      goal: employeeMission.goal,
+      skills: employeeMission.skills,
       brief: employeeMission.brief,
       type: employeeMission.type,
       status: employeeMission.status,
@@ -76,6 +80,8 @@ export async function getMissionDetail(
 
   return {
     ...row,
+    goal: row.goal ?? null,
+    skills: row.skills ?? [],
     evidence: row.evidence ?? [],
     leads: row.leads ?? [],
     handoffs: row.handoffs ?? [],

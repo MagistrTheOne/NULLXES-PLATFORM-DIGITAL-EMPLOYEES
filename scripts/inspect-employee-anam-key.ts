@@ -1,4 +1,6 @@
 import { eq } from "drizzle-orm";
+import { neon } from "@neondatabase/serverless";
+import { drizzle } from "drizzle-orm/neon-http";
 import { digitalEmployee } from "@/entities/digital-employee/schema";
 import { employeeProviderConfig } from "@/entities/provider-config/schema";
 import {
@@ -6,9 +8,16 @@ import {
   getAnamApiKeyPool,
 } from "@/shared/config/anam-api-pool";
 import { loadEnvFiles } from "@/shared/config/load-env-files";
-import { db } from "@/shared/db/client";
 
 loadEnvFiles();
+
+const databaseUrl = process.env.DATABASE_URL?.trim();
+if (!databaseUrl) {
+  console.error("DATABASE_URL is not set.");
+  process.exit(1);
+}
+
+const db = drizzle(neon(databaseUrl));
 
 const employeeId = process.argv[2];
 const repointArg = process.argv.find((arg) => arg.startsWith("--repoint="));
