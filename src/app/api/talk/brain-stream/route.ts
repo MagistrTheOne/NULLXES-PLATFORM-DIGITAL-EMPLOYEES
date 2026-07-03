@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/nextjs";
 import { NextResponse } from "next/server";
 import type { TalkPipelineMessage } from "@/features/runtime-session/actions/talk-voice-pipeline";
 import { assertBrainStreamRateLimit } from "@/features/runtime-session/lib/brain-stream-rate-limit";
@@ -18,7 +19,7 @@ type BrainStreamRequest = {
   messages?: TalkPipelineMessage[];
 };
 
-export async function POST(request: Request): Promise<Response> {
+async function handleBrainStreamPost(request: Request): Promise<Response> {
   let body: BrainStreamRequest;
   try {
     body = (await request.json()) as BrainStreamRequest;
@@ -150,4 +151,17 @@ export async function POST(request: Request): Promise<Response> {
       "Cache-Control": "no-cache, no-transform",
     },
   });
+}
+
+export async function POST(request: Request): Promise<Response> {
+  return Sentry.startSpan(
+    {
+      name: "talk.brain_stream",
+      op: "http.server",
+      attributes: {
+        "talk.route": "/api/talk/brain-stream",
+      },
+    },
+    () => handleBrainStreamPost(request),
+  );
 }
