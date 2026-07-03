@@ -13,6 +13,10 @@ import {
 } from "./talk-pipeline-coordinator";
 import { playTalkVoiceReply } from "./play-talk-voice-reply";
 import { postTalkEmployeeChatReply } from "./talk-reply-bridge";
+import {
+  createTalkTurnTelemetry,
+  type TalkTurnTelemetryInput,
+} from "./talk-turn-telemetry";
 
 const USER_MESSAGE_DEBOUNCE_MS = 100;
 const USER_MESSAGE_DEBOUNCE_SHORT_MS = 50;
@@ -66,6 +70,15 @@ export function attachTalkVoicePipeline(input: {
   let debounceTimer: ReturnType<typeof setTimeout> | null = null;
   let pendingHistory: Message[] | null = null;
   let pendingMessage: Message | null = null;
+  let pendingTelemetry: ReturnType<typeof createTalkTurnTelemetry> | null =
+    null;
+
+  const telemetryInput = (): TalkTurnTelemetryInput => ({
+    employeeId: input.employeeId,
+    sessionId: input.employeeSessionId,
+    voiceMode: input.voiceMode,
+    scenarioSessionId: input.scenarioSessionId,
+  });
 
   const processUserMessage = (
     messageHistory: Message[],
@@ -92,6 +105,11 @@ export function attachTalkVoicePipeline(input: {
 
     processing = true;
     input.setPipelineState("thinking");
+
+    const telemetry =
+      pendingTelemetry ?? createTalkTurnTelemetry(telemetryInput());
+    pendingTelemetry = null;
+    telemetry.markBrainRequestStart();
 
     void (async () => {
       try {
@@ -120,7 +138,9 @@ export function attachTalkVoicePipeline(input: {
             messages: pipelineMessages,
           });
 
+          telemetry.markFirstBrainChunk();
           input.setPipelineState("speaking");
+          telemetry.markSpeaking();
           await playTalkVoiceReply({
             anamClient: input.anamClient,
             employeeId: input.employeeId,
@@ -137,7 +157,9 @@ export function attachTalkVoicePipeline(input: {
             messages: pipelineMessages,
             onChunk: async (chunk) => {
               if (chunk.trim()) {
+                telemetry.markFirstBrainChunk();
                 input.setPipelineState("speaking");
+                telemetry.markSpeaking();
               }
               if (talkStream.isActive()) {
                 await talkStream.streamMessageChunk(chunk, false);
@@ -193,6 +215,9 @@ export function attachTalkVoicePipeline(input: {
     pendingHistory = messageHistory;
     pendingMessage = lastMessage;
 
+    pendingTelemetry = createTalkTurnTelemetry(telemetryInput());
+    pendingTelemetry.markSpeechDetected();
+
     if (debounceTimer) {
       clearTimeout(debounceTimer);
     }
@@ -219,6 +244,7 @@ export function attachTalkVoicePipeline(input: {
 
   const onInterrupted = () => {
     processing = false;
+    pendingTelemetry = null;
     coordinator.failTalkTurn();
     input.setPipelineState("idle");
   };
