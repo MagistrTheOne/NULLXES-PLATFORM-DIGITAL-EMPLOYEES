@@ -2,12 +2,13 @@
  * Fixed-window rate limiter.
  *
  * On serverless every instance has its own memory, so a Map-based limiter
- * multiplies the effective limit by the number of warm instances. When an
- * Upstash-compatible Redis REST endpoint is configured (Upstash direct or
- * Vercel KV / Marketplace aliases), counters are shared across instances.
- * Without it we fall back to the in-memory window, and on Redis errors we
- * fail open: rate limiting must never take the endpoint down.
+ * multiplies the effective limit by the number of warm instances. When Redis
+ * is linked via the Vercel ↔ Upstash integration, counters are shared across
+ * instances. Without it we fall back to the in-memory window, and on Redis
+ * errors we fail open: rate limiting must never take the endpoint down.
  */
+
+import { getRedisRestClient } from "@/shared/config/redis-rest";
 
 type RateLimitInput = {
   /** Logical bucket name, e.g. "brain-stream". */
@@ -20,56 +21,21 @@ type RateLimitInput = {
 
 export type RateLimitResult = { ok: true } | { ok: false };
 
-type RedisRestConfig = {
-  url: string;
-  token: string;
-};
-
-function resolveRedisRestConfig(): RedisRestConfig | null {
-  const url =
-    process.env.UPSTASH_REDIS_REST_URL?.trim() ||
-    process.env.KV_REST_API_URL?.trim();
-  const token =
-    process.env.UPSTASH_REDIS_REST_TOKEN?.trim() ||
-    process.env.KV_REST_API_TOKEN?.trim();
-
-  if (!url || !token) {
-    return null;
-  }
-
-  return { url: url.replace(/\/$/, ""), token };
-}
-
 async function incrementInRedis(
-  config: RedisRestConfig,
   redisKey: string,
   windowMs: number,
 ): Promise<number | null> {
+  const redis = getRedisRestClient();
+  if (!redis) {
+    return null;
+  }
+
   try {
-    const response = await fetch(`${config.url}/pipeline`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${config.token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify([
-        ["INCR", redisKey],
-        ["PEXPIRE", redisKey, windowMs.toString(), "NX"],
-      ]),
-      signal: AbortSignal.timeout(1_500),
-    });
-
-    if (!response.ok) {
-      return null;
+    const count = await redis.incr(redisKey);
+    if (count === 1) {
+      await redis.pexpire(redisKey, windowMs);
     }
-
-    const results = (await response.json()) as Array<{
-      result?: unknown;
-      error?: string;
-    }>;
-    const count = results?.[0]?.result;
-
-    return typeof count === "number" ? count : null;
+    return count;
   } catch {
     return null;
   }
@@ -111,10 +77,8 @@ export async function checkRateLimit(
   const windowStart = Math.floor(Date.now() / input.windowMs);
   const bucketKey = `rl:${input.name}:${input.key}:${windowStart}`;
 
-  const redisConfig = resolveRedisRestConfig();
-
-  if (redisConfig) {
-    const count = await incrementInRedis(redisConfig, bucketKey, input.windowMs);
+  if (getRedisRestClient()) {
+    const count = await incrementInRedis(bucketKey, input.windowMs);
     if (count !== null) {
       return count <= input.limit ? { ok: true } : { ok: false };
     }

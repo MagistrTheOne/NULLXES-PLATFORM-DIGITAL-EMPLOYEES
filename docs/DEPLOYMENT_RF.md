@@ -42,9 +42,9 @@ This document outlines deployment considerations for Russia (RU) data residency 
 | `EMAIL_OTP_STEP_UP_ENABLED` | `true` only in environments where Resend delivery is configured |
 | `NEXT_PUBLIC_EMAIL_OTP_STEP_UP_ENABLED` | Same value as `EMAIL_OTP_STEP_UP_ENABLED` |
 | Inngest | `INNGEST_EVENT_KEY` + `INNGEST_SIGNING_KEY`; register app URL `https://<domain>/api/inngest` in Inngest Cloud |
-| Rate limiting (scale) | `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` (or Vercel `KV_REST_*`) — required before ~100 users |
+| Rate limiting (scale) | Vercel **Storage → Redis (Upstash)** linked to project — env auto-injected; verify `npm run providers:status` |
 | Talk SLA | `TALK_SLA_MODE=observe` (default prod), then `enforce` after calibration — see [SCALING_2026-07-04.md](./SCALING_2026-07-04.md) |
-| Anam pool | `ANAM_API_KEY` … `ANAM_API_KEY_10` — fill 5–10 slots at scale |
+| Anam pool | `ANAM_API_KEY` … `ANAM_API_KEY_10` — already in Vercel; verify with `npm run providers:status` |
 | Public trust page | `/trust` — no authentication required |
 | Public documentation (MinTsifry) | `/docs` — functional, installation, operation guides; no authentication required |
 
