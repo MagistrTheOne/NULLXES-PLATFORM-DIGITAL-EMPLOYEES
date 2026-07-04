@@ -4,7 +4,10 @@
 This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
 <!-- END:nextjs-agent-rules -->
 
-**Technical reference (2026-06-26):** [`docs/AGENT_REFERENCE_2026-06-26.md`](docs/AGENT_REFERENCE_2026-06-26.md) — API routes, features, schema, env vars, recent fixes. Index: [`docs/README.md`](docs/README.md).
+**Technical reference (2026-06-26):** [`docs/AGENT_REFERENCE_2026-06-26.md`](docs/AGENT_REFERENCE_2026-06-26.md) — API routes, features, schema, env vars, recent fixes.  
+**Mobile client brief (2026-07-04):** [`docs/AGENT_MOBILE_CLIENT_2026-07-04.md`](docs/AGENT_MOBILE_CLIENT_2026-07-04.md) — features, style, platform APIs, Talk SLA (stack chosen by implementer).  
+**Scaling guide (2026-07-04):** [`docs/SCALING_2026-07-04.md`](docs/SCALING_2026-07-04.md) — 10 → 100 → 1000+ users, ops checklist, transition triggers.  
+Index: [`docs/README.md`](docs/README.md).
 
 <!-- ====================================================== -->
 
