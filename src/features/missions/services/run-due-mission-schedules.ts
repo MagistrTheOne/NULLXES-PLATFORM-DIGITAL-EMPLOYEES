@@ -2,6 +2,11 @@ import { and, eq, gte } from "drizzle-orm";
 import { employeeMission } from "@/entities/employee-mission";
 import { missionSchedule } from "@/entities/mission-schedule";
 import {
+  composeScheduledMissionRun,
+  getEmployeeName,
+  syncLegacyScheduleIfNeeded,
+} from "./compose-scheduled-mission-run";
+import {
   createEmployeeMission,
   enqueueEmployeeMission,
 } from "./create-employee-mission";
@@ -97,13 +102,22 @@ export async function runDueMissionSchedules(): Promise<{
       continue;
     }
 
+    const employeeName = await getEmployeeName(schedule.employeeId);
+    await syncLegacyScheduleIfNeeded(schedule, employeeName);
+
+    const runPayload = await composeScheduledMissionRun({
+      schedule,
+      employeeName,
+    });
+
     const missionId = await createEmployeeMission({
       organizationId: schedule.organizationId,
       employeeId: schedule.employeeId,
       createdByUserId: schedule.createdByUserId,
-      title: schedule.title,
-      brief: schedule.brief,
-      type: schedule.type,
+      title: runPayload.title,
+      goal: runPayload.goal,
+      brief: runPayload.brief,
+      type: runPayload.type,
       source: "scheduled",
       scheduleId: schedule.id,
     });

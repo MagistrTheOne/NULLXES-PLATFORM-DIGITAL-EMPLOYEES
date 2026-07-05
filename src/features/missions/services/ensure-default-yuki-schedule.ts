@@ -6,6 +6,7 @@ import {
   defaultProspectingBrief,
   defaultProspectingTitle,
 } from "./create-employee-mission";
+import { syncLegacyScheduleIfNeeded } from "./compose-scheduled-mission-run";
 import { getOrganizationOwnerUserId } from "./get-organization-owner-user-id";
 import { db } from "@/shared/db/client";
 
@@ -40,7 +41,7 @@ export async function ensureDefaultYukiSchedule(input: {
   }
 
   const [existing] = await db
-    .select({ id: missionSchedule.id })
+    .select()
     .from(missionSchedule)
     .where(
       and(
@@ -52,6 +53,7 @@ export async function ensureDefaultYukiSchedule(input: {
     .limit(1);
 
   if (existing) {
+    await syncLegacyScheduleIfNeeded(existing, yuki.name);
     return { scheduleId: existing.id, created: false };
   }
 
