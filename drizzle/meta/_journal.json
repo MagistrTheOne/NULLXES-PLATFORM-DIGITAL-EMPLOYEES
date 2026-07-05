@@ -218,6 +218,13 @@
       "when": 1783264445788,
       "tag": "0030_flashy_pestilence",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1783500000000,
+      "tag": "0031_mission_type_en_investor",
+      "breakpoints": true
     }
   ]
 }

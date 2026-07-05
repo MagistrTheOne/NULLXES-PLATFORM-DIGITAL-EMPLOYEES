@@ -7,7 +7,8 @@ import {
 import { digitalEmployee } from "@/entities/digital-employee/schema";
 import { inngest, isInngestEnabledForSend } from "@/inngest/client";
 import { appendMissionTimelineStep } from "../lib/append-mission-timeline-step";
-import { ensureProspectingSkillIds } from "../lib/ensure-prospecting-skill-ids";
+import { ensureMissionSkillIds } from "../lib/ensure-mission-skill-ids";
+import type { MissionType } from "../lib/mission-type";
 import {
   defaultProspectingBrief,
   defaultProspectingTitle,
@@ -25,7 +26,7 @@ export async function createEmployeeMission(input: {
   skills?: string[];
   skillIds?: string[];
   brief: string;
-  type: "prospecting" | "custom";
+  type: MissionType;
   source?: MissionSource;
   scheduleId?: string;
 }): Promise<string> {
@@ -44,7 +45,7 @@ export async function createEmployeeMission(input: {
     throw new Error("Employee not found");
   }
 
-  const skillIds = await ensureProspectingSkillIds({
+  const skillIds = await ensureMissionSkillIds({
     organizationId: input.organizationId,
     type: input.type,
     skillIds: input.skillIds ?? [],
@@ -198,6 +199,9 @@ export function parseMissionLeadsFromModelOutput(raw: string): MissionLeadItem[]
         countryEvidence: lead.countryEvidence
           ? String(lead.countryEvidence).trim()
           : undefined,
+        countryCode: lead.countryCode
+          ? String(lead.countryCode).trim().toUpperCase()
+          : undefined,
         sector: lead.sector ? String(lead.sector).trim() : undefined,
         marketTenureYears,
         foundedYear,
@@ -206,9 +210,29 @@ export function parseMissionLeadsFromModelOutput(raw: string): MissionLeadItem[]
           : lead.revenueRub
             ? String(lead.revenueRub).trim()
             : null,
+        estimatedRevenueUsd: lead.estimatedRevenueUsd
+          ? String(lead.estimatedRevenueUsd).trim()
+          : lead.revenueUsd
+            ? String(lead.revenueUsd).trim()
+            : null,
         revenueSourceUrl: lead.revenueSourceUrl
           ? String(lead.revenueSourceUrl).trim()
           : null,
+        investorType: lead.investorType
+          ? String(lead.investorType).trim()
+          : undefined,
+        stageFocus: lead.stageFocus
+          ? String(lead.stageFocus).trim()
+          : undefined,
+        ticketSizeUsd: lead.ticketSizeUsd
+          ? String(lead.ticketSizeUsd).trim()
+          : null,
+        sectorFocus: lead.sectorFocus
+          ? String(lead.sectorFocus).trim()
+          : undefined,
+        portfolioFit: lead.portfolioFit
+          ? String(lead.portfolioFit).trim()
+          : undefined,
         contactHypothesis: lead.contactHypothesis
           ? String(lead.contactHypothesis).trim()
           : undefined,

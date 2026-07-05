@@ -247,6 +247,68 @@ export const SYSTEM_SKILLS: SystemSkillSeed[] = [
     requiredToolSlugs: ["search_web"],
     category: "sales",
   },
+  {
+    id: "b2000002-0002-4002-8002-00000000000a",
+    slug: "en_market_qualification",
+    name: "EN Market Qualification",
+    description:
+      "Strict US/UK/EU and international B2B prospect qualification for missions.",
+    instructions: `## Qualification (mandatory order)
+
+For each company in leads:
+
+1. **Country** — US/UK/EU/international only. Explicit HQ/country evidence in countryEvidence.
+   - Exclude Russia (.ru, INN/OGRN). No signal → skip.
+
+2. **Sector** — from source (industry, SIC/NAICS description). Do not guess.
+
+3. **Market tenure** — foundedYear and/or marketTenureYears from source, or null.
+
+4. **Revenue** — estimatedRevenueUsd only if verbatim in research + revenueSourceUrl.
+
+5. **Contact** — real decision-maker with email verbatim from research + contactSourceUrl.
+   - **No verified contact → skip company.**
+
+6. **agentPlan** — 3–5 outreach steps from digital employee. proposalDraft — short email.
+
+Rules: EN/international markets only. Never guess email, revenue, or sector.`,
+    triggers: {
+      keywords: ["us", "uk", "eu", "international", "prospecting", "b2b"],
+      intents: ["en_market_qualification"],
+    },
+    requiredToolSlugs: ["search_web"],
+    category: "sales",
+  },
+  {
+    id: "b2000002-0002-4002-8002-00000000000b",
+    slug: "investor_base_qualification",
+    name: "Investor Base Qualification",
+    description:
+      "Build and qualify VC/angel/corporate investor targets with verified partner contacts.",
+    instructions: `## Investor qualification (two research tracks)
+
+Track 1 — Fund research: VC, angel, corporate VC, accelerators matching brief (stage, geo, sector).
+
+Track 2 — Contact research: partner/analyst with published email verbatim from source.
+
+For each lead (fund):
+- companyName = fund name
+- investorType, stageFocus, sectorFocus from research
+- ticketSizeUsd only if verbatim in research
+- portfolioFit: why NULLXES Digital Employees is relevant
+- contactName + contactEmail + contactSourceUrl — required
+- **No verified contact → skip fund**
+- agentPlan: pitch plan (angle, traction hook, ask, next step)
+- proposalDraft: short intro email
+
+Return only qualified investors with verified contacts.`,
+    triggers: {
+      keywords: ["investor", "vc", "fund", "angel", "pitch"],
+      intents: ["investor_base_qualification"],
+    },
+    requiredToolSlugs: ["search_web"],
+    category: "sales",
+  },
 ];
 
 const TOOL_RISK: Record<string, ToolRiskLevel> = {

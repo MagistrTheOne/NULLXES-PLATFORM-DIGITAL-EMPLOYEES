@@ -18,10 +18,16 @@ import { createMissionAction } from "../actions/create-mission";
 import { updateMissionAction } from "../actions/manage-mission";
 import { formatMissionSkills } from "../lib/parse-mission-skills";
 import {
-  defaultProspectingBrief,
-  defaultProspectingGoal,
-  defaultProspectingTitle,
+  defaultMissionBrief,
+  defaultMissionGoal,
+  defaultMissionTitle,
 } from "../lib/prospecting-defaults";
+import type { MissionType } from "../lib/mission-type";
+import { isQualifiedMissionType } from "../lib/mission-type";
+import {
+  qualificationProfileForMissionType,
+  skillSlugForProfile,
+} from "../lib/resolve-mission-qualification-profile";
 import type { MissionDetail } from "../queries/get-mission-detail";
 
 type EmployeeOption = {
@@ -39,12 +45,39 @@ export type MissionSkillOption = {
 
 type MissionFormValues = {
   employeeId: string;
-  type: "prospecting" | "custom";
+  type: MissionType;
   title: string;
   goal: string;
   skillIds: string[];
   brief: string;
 };
+
+function defaultSkillIdsForType(
+  type: MissionType,
+  library: MissionSkillOption[],
+): string[] {
+  const profile = qualificationProfileForMissionType(type);
+  if (profile === "generic") {
+    return [];
+  }
+
+  const slug = skillSlugForProfile(profile);
+  const skill = library.find((item) => item.slug === slug);
+  return skill ? [skill.id] : [];
+}
+
+function qualifiedDefaults(
+  employeeName: string,
+  type: MissionType,
+  library: MissionSkillOption[],
+): Pick<MissionFormValues, "title" | "goal" | "brief" | "skillIds"> {
+  return {
+    title: defaultMissionTitle(employeeName, type),
+    goal: defaultMissionGoal(type),
+    brief: defaultMissionBrief(type),
+    skillIds: defaultSkillIdsForType(type, library),
+  };
+}
 
 function skillLabels(
   skillIds: string[],
@@ -133,26 +166,24 @@ function MissionFields({
     (employee) => employee.id === values.employeeId,
   );
 
-  function handleTypeChange(nextType: "prospecting" | "custom") {
-    if (nextType === "prospecting" && selectedEmployee) {
+  function handleTypeChange(nextType: MissionType) {
+    if (isQualifiedMissionType(nextType) && selectedEmployee) {
       onChange({
         type: nextType,
-        title: defaultProspectingTitle(selectedEmployee.name),
-        goal: defaultProspectingGoal(),
-        brief: defaultProspectingBrief(),
+        ...qualifiedDefaults(selectedEmployee.name, nextType, skillLibrary),
       });
       return;
     }
 
-    onChange({ type: nextType });
+    onChange({ type: nextType, skillIds: [] });
   }
 
   function handleEmployeeChange(nextEmployeeId: string) {
     const employee = employees.find((item) => item.id === nextEmployeeId);
-    if (values.type === "prospecting" && employee) {
+    if (isQualifiedMissionType(values.type) && employee) {
       onChange({
         employeeId: nextEmployeeId,
-        title: defaultProspectingTitle(employee.name),
+        title: defaultMissionTitle(employee.name, values.type),
       });
       return;
     }
@@ -185,9 +216,7 @@ function MissionFields({
         <Label htmlFor={`${idPrefix}-type`}>Mission type</Label>
         <Select
           value={values.type}
-          onValueChange={(value) =>
-            handleTypeChange(value as "prospecting" | "custom")
-          }
+          onValueChange={(value) => handleTypeChange(value as MissionType)}
         >
           <SelectTrigger
             id={`${idPrefix}-type`}
@@ -196,7 +225,9 @@ function MissionFields({
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="prospecting">Prospecting</SelectItem>
+            <SelectItem value="prospecting">Prospecting RU</SelectItem>
+            <SelectItem value="prospecting_en">Prospecting EN</SelectItem>
+            <SelectItem value="investor_base">Investor base</SelectItem>
             <SelectItem value="custom">Custom</SelectItem>
           </SelectContent>
         </Select>
@@ -211,7 +242,7 @@ function MissionFields({
           className="border-white/10 bg-black/40 text-white"
           placeholder={
             selectedEmployee
-              ? defaultProspectingTitle(selectedEmployee.name)
+              ? defaultMissionTitle(selectedEmployee.name, values.type)
               : "Mission title"
           }
         />
@@ -255,9 +286,20 @@ function MissionFields({
   );
 }
 
-function defaultProspectingSkillIds(library: MissionSkillOption[]): string[] {
-  const ruSkill = library.find((skill) => skill.slug === "ru_market_qualification");
-  return ruSkill ? [ruSkill.id] : [];
+function CreateMissionFormInitialValues(
+  employees: EmployeeOption[],
+  skillLibrary: MissionSkillOption[],
+): MissionFormValues {
+  const type: MissionType = "prospecting";
+  const employee = employees[0];
+  return {
+    employeeId: employee?.id ?? "",
+    type,
+    title: employee ? defaultMissionTitle(employee.name, type) : "",
+    goal: defaultMissionGoal(type),
+    skillIds: defaultSkillIdsForType(type, skillLibrary),
+    brief: defaultMissionBrief(type),
+  };
 }
 
 export function CreateMissionForm({
@@ -268,16 +310,9 @@ export function CreateMissionForm({
   skillLibrary: MissionSkillOption[];
 }) {
   const router = useRouter();
-  const [values, setValues] = useState<MissionFormValues>(() => ({
-    employeeId: employees[0]?.id ?? "",
-    type: "prospecting",
-    title: employees[0]
-      ? defaultProspectingTitle(employees[0].name)
-      : "",
-    goal: defaultProspectingGoal(),
-    skillIds: defaultProspectingSkillIds(skillLibrary),
-    brief: defaultProspectingBrief(),
-  }));
+  const [values, setValues] = useState<MissionFormValues>(() =>
+    CreateMissionFormInitialValues(employees, skillLibrary),
+  );
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 

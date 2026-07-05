@@ -12,13 +12,14 @@ import { requireWorkspacePermissionOrThrowMessage } from "@/features/workspace";
 import { db } from "@/shared/db/client";
 
 import { parseMissionSkills } from "../lib/parse-mission-skills";
+import type { MissionType } from "../lib/mission-type";
 
 const EDITABLE_STATUSES = new Set(["planned", "failed", "cancelled"]);
 
 export async function updateMissionAction(input: {
   missionId: string;
   employeeId: string;
-  type: "prospecting" | "custom";
+  type: MissionType;
   title: string;
   goal?: string;
   skills?: string;

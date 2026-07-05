@@ -20,6 +20,8 @@ export const employeeMissionStatusEnum = pgEnum("employee_mission_status", [
 
 export const employeeMissionTypeEnum = pgEnum("employee_mission_type", [
   "prospecting",
+  "prospecting_en",
+  "investor_base",
   "custom",
 ]);
 

@@ -8,15 +8,19 @@ import { requireWorkspacePermissionOrThrowMessage } from "@/features/workspace";
 import { parseMissionSkills } from "../lib/parse-mission-skills";
 import {
   createEmployeeMission,
-  defaultProspectingBrief,
-  defaultProspectingTitle,
   enqueueEmployeeMission,
 } from "@/features/missions/services/create-employee-mission";
+import {
+  defaultMissionBrief,
+  defaultMissionTitle,
+} from "../lib/prospecting-defaults";
+import type { MissionType } from "../lib/mission-type";
+import { isQualifiedMissionType } from "../lib/mission-type";
 import { db } from "@/shared/db/client";
 
 export async function createMissionAction(input: {
   employeeId: string;
-  type: "prospecting" | "custom";
+  type: MissionType;
   title?: string;
   goal?: string;
   skills?: string;
@@ -54,12 +58,14 @@ export async function createMissionAction(input: {
     const type = input.type;
     const title =
       input.title?.trim() ||
-      (type === "prospecting"
-        ? defaultProspectingTitle(employee.name)
-        : "Custom mission");
+      (isQualifiedMissionType(type)
+        ? defaultMissionTitle(employee.name, type)
+        : type === "custom"
+          ? "Custom mission"
+          : "Mission");
     const brief =
       input.brief?.trim() ||
-      (type === "prospecting" ? defaultProspectingBrief() : "");
+      (isQualifiedMissionType(type) ? defaultMissionBrief(type) : "");
 
     if (!brief) {
       return { ok: false, message: "Mission brief is required." };

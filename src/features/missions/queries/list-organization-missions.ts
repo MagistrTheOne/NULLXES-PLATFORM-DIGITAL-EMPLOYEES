@@ -4,12 +4,13 @@ import { digitalEmployee } from "@/entities/digital-employee/schema";
 import type { AvatarProviderConfigPayload } from "@/entities/provider-config";
 import { employeeProviderConfig } from "@/entities/provider-config/schema";
 import { db } from "@/shared/db/client";
+import type { MissionType } from "../lib/mission-type";
 
 export type MissionListItem = {
   id: string;
   title: string;
   brief: string;
-  type: "prospecting" | "custom";
+  type: MissionType;
   status:
     | "planned"
     | "working"

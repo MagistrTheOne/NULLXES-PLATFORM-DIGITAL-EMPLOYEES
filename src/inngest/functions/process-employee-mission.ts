@@ -16,66 +16,29 @@ import {
   missionLanguageLabel,
 } from "@/features/missions/lib/detect-mission-language";
 import { buildEvidenceFromSearch } from "@/features/missions/lib/mission-research-evidence";
-import { filterVerifiedMissionLeads } from "@/features/missions/lib/verify-lead-contact";
-import { filterRuQualifiedMissionLeads } from "@/features/missions/lib/qualify-ru-mission-lead";
 import {
-  missionUsesRuQualification,
-  RU_PROSPECTING_PLAN,
-} from "@/features/missions/lib/mission-qualification-mode";
+  buildLeadExtractionRules,
+  emptyLeadsErrorMessage,
+  filterLeadsForProfile,
+  leadSchemaHintForProfile,
+  requiredLeadFieldsHint,
+} from "@/features/missions/lib/mission-lead-extraction";
+import {
+  prospectingPlanForProfile,
+  resolveMissionQualificationProfile,
+  type MissionQualificationProfile,
+} from "@/features/missions/lib/resolve-mission-qualification-profile";
 import { parseMissionLeadsFromModelOutput } from "@/features/missions/services/create-employee-mission";
 import { researchMissionProspects } from "@/features/missions/services/research-mission-prospects";
 import { sendMissionContactsDigestEmail } from "@/shared/email/send-mission-contacts-digest-email";
 import { db } from "@/shared/db/client";
 import { inngest } from "@/inngest/client";
 
-const PROSPECTING_PLAN = `1. Research target companies using web search.
+const GENERIC_PROSPECTING_PLAN = `1. Research target companies using web search.
 2. Find verified B2B decision-maker contacts (published email + source URL).
 3. Qualify companies with enterprise budget signals.
 4. Draft personalized digital employee proposals in the mission language.
 5. Submit proposals for human approval before any outbound send.`;
-
-const LEAD_SCHEMA_HINT = `{ "leads": [{ "companyName": "string", "domain": "string", "whyFit": "string", "budgetSignal": "string", "contactName": "string", "contactHypothesis": "string", "contactEmail": "string", "contactSourceUrl": "string", "proposalDraft": "string" }] }`;
-
-const RU_LEAD_SCHEMA_HINT = `{ "leads": [{ "companyName": "string", "domain": "string", "isRussianCompany": true, "countryEvidence": "string", "sector": "string", "marketTenureYears": 0, "foundedYear": 0, "estimatedRevenueRub": "string", "revenueSourceUrl": "string", "whyFit": "string", "contactName": "string", "contactEmail": "string", "contactSourceUrl": "string", "agentPlan": "string", "proposalDraft": "string" }] }`;
-
-function buildLeadExtractionRules(
-  language: "ru" | "en",
-  ruQualification: boolean,
-): string[] {
-  if (ruQualification) {
-    return [
-      "Режим RU Market Qualification: только компании из России с подтверждённым evidence.",
-      "isRussianCompany=true только при явном сигнале РФ в research; countryEvidence — цитата/факт из источника.",
-      "sector — сектор/отрасль/ОКВЭД из research, не угадывать.",
-      "marketTenureYears / foundedYear — только из research или null.",
-      "estimatedRevenueRub — только если цифра дословно в research; иначе null. revenueSourceUrl обязателен при указании выручки.",
-      "contactEmail — только дословно из research. Без контакта — не включай lead.",
-      "agentPlan — план захода от digital employee (3–5 шагов). proposalDraft — короткое письмо на основе плана.",
-      "Не включай компании без подтверждённого контакта.",
-      "Верни до 10 qualified leads.",
-    ];
-  }
-
-  if (language === "ru") {
-    return [
-      "Пиши proposalDraft только на русском.",
-      "contactEmail — только если email дословно есть в research. Запрещено угадывать (info@, sales@, digital@ и т.п.).",
-      "contactName — полное имя человека из источника.",
-      "contactSourceUrl — URL страницы, где найден контакт или email.",
-      "Если нет подтверждённого email — не включай lead в массив.",
-      "Верни до 10 leads с подтверждёнными контактами.",
-    ];
-  }
-
-  return [
-    "Write proposalDraft in English only.",
-    "contactEmail only when the email appears verbatim in research. Never guess (info@, sales@, digital@, etc.).",
-    "contactName is the person's full name from the source.",
-    "contactSourceUrl is the page URL where the contact or email was found.",
-    "If there is no verified email, do not include the lead.",
-    "Return up to 10 leads with verified contacts.",
-  ];
-}
 
 async function generateProspectingLeads(input: {
   organizationId: string;
@@ -85,13 +48,10 @@ async function generateProspectingLeads(input: {
   missionContext: string;
   searchResults: string;
   language: "ru" | "en";
-  ruQualification: boolean;
+  profile: MissionQualificationProfile;
 }): Promise<MissionLeadItem[]> {
-  const schemaHint = input.ruQualification ? RU_LEAD_SCHEMA_HINT : LEAD_SCHEMA_HINT;
-  const extractionRules = buildLeadExtractionRules(
-    input.language,
-    input.ruQualification,
-  );
+  const schemaHint = leadSchemaHintForProfile(input.profile);
+  const extractionRules = buildLeadExtractionRules(input.language, input.profile);
 
   const brainRequest = await buildTalkBrainRequest({
     organizationId: input.organizationId,
@@ -126,9 +86,7 @@ async function generateProspectingLeads(input: {
       "You are operating in data-extraction mode.",
       "Output ONLY a single JSON object. No prose, no markdown, no code fences.",
       `The JSON must match this shape: ${schemaHint}`,
-      input.ruQualification
-        ? "Every lead MUST include isRussianCompany=true, countryEvidence, sector, agentPlan, contactName, contactEmail, contactSourceUrl, and proposalDraft."
-        : "Every lead MUST include non-empty companyName, whyFit, proposalDraft, contactName, contactEmail, and contactSourceUrl.",
+      requiredLeadFieldsHint(input.profile),
       ...extractionRules,
       "Do not invent companies or contacts not supported by the research corpus.",
     ].join("\n"),
@@ -152,9 +110,7 @@ async function generateProspectingLeads(input: {
   });
 
   const parsed = parseMissionLeadsFromModelOutput(raw);
-  return input.ruQualification
-    ? filterRuQualifiedMissionLeads(parsed, input.searchResults)
-    : filterVerifiedMissionLeads(parsed, input.searchResults);
+  return filterLeadsForProfile(input.profile, parsed, input.searchResults);
 }
 
 async function processMissionById(missionId: string, organizationId: string) {
@@ -181,8 +137,9 @@ async function processMissionById(missionId: string, organizationId: string) {
   let timeline = mission.timeline ?? [];
   const language = detectMissionLanguage(mission.brief, mission.goal);
 
-  const ruQualification = await missionUsesRuQualification({
+  const profile = await resolveMissionQualificationProfile({
     organizationId,
+    missionType: mission.type,
     skillIds: mission.skillIds ?? [],
   });
 
@@ -190,12 +147,15 @@ async function processMissionById(missionId: string, organizationId: string) {
     mission.skillIds ?? [],
   );
 
+  const missionPlan =
+    prospectingPlanForProfile(profile) ?? GENERIC_PROSPECTING_PLAN;
+
   try {
     await db
       .update(employeeMission)
       .set({
         status: "working",
-        plan: ruQualification ? RU_PROSPECTING_PLAN : PROSPECTING_PLAN,
+        plan: missionPlan,
         timeline: appendMissionTimelineStep(timeline, {
           key: "working",
           label: "Mission started",
@@ -214,7 +174,7 @@ async function processMissionById(missionId: string, organizationId: string) {
       eventType: "task_received",
       title: mission.title,
       summary: mission.brief,
-      metadata: { missionId, type: mission.type },
+      metadata: { missionId, type: mission.type, profile },
     });
 
     const missionContext = buildMissionExecutionContext({
@@ -228,7 +188,7 @@ async function processMissionById(missionId: string, organizationId: string) {
       missionContext,
       brief: mission.brief,
       goal: mission.goal,
-      ruQualification,
+      profile,
     });
 
     const evidence: MissionEvidenceItem[] = buildEvidenceFromSearch(searchResults);
@@ -254,19 +214,11 @@ async function processMissionById(missionId: string, organizationId: string) {
       missionContext,
       searchResults,
       language,
-      ruQualification,
+      profile,
     });
 
     if (leads.length === 0) {
-      throw new Error(
-        language === "ru"
-          ? ruQualification
-            ? "Не найдено российских leads с подтверждёнными контактами, сектором и планом захода."
-            : "Не найдено leads с подтверждёнными B2B контактами из web research."
-          : ruQualification
-            ? "No Russian leads with verified contacts, sector, and agent plan found."
-            : "No leads with verified B2B contacts found in web research.",
-      );
+      throw new Error(emptyLeadsErrorMessage(language, profile));
     }
 
     timeline = appendMissionTimelineStep(timeline, {
@@ -278,6 +230,7 @@ async function processMissionById(missionId: string, organizationId: string) {
       missionTitle: mission.title,
       employeeName: mission.employee.name,
       language,
+      profile,
       leads,
       research: searchResults,
     });

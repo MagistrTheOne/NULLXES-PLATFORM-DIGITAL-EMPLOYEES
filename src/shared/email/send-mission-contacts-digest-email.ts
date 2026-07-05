@@ -1,4 +1,5 @@
 import type { MissionLeadItem } from "@/entities/employee-mission";
+import type { MissionQualificationProfile } from "@/features/missions/lib/resolve-mission-qualification-profile";
 import { isVerifiedLeadContact } from "@/features/missions/lib/verify-lead-contact";
 import { buildMissionContactsDigestHtml } from "./mission-proposal-html";
 import {
@@ -16,6 +17,7 @@ export async function sendMissionContactsDigestEmail(input: {
   missionTitle: string;
   employeeName: string;
   language: "ru" | "en";
+  profile?: MissionQualificationProfile;
   leads: MissionLeadItem[];
   research: string;
 }): Promise<{ sent: boolean; error?: string }> {
@@ -34,6 +36,7 @@ export async function sendMissionContactsDigestEmail(input: {
     missionTitle: input.missionTitle,
     employeeName: input.employeeName,
     language: input.language,
+    profile: input.profile ?? "generic",
     leads: input.leads.map((lead) => ({
       companyName: lead.companyName,
       contactName: lead.contactName,
@@ -45,6 +48,13 @@ export async function sendMissionContactsDigestEmail(input: {
       marketTenureYears: lead.marketTenureYears,
       foundedYear: lead.foundedYear,
       estimatedRevenueRub: lead.estimatedRevenueRub,
+      estimatedRevenueUsd: lead.estimatedRevenueUsd,
+      countryCode: lead.countryCode,
+      investorType: lead.investorType,
+      stageFocus: lead.stageFocus,
+      ticketSizeUsd: lead.ticketSizeUsd,
+      sectorFocus: lead.sectorFocus,
+      portfolioFit: lead.portfolioFit,
       agentPlan: lead.agentPlan,
     })),
   });

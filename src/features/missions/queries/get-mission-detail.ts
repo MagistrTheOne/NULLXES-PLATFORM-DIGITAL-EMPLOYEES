@@ -3,6 +3,8 @@ import { employeeMission } from "@/entities/employee-mission";
 import { digitalEmployee } from "@/entities/digital-employee/schema";
 import { db } from "@/shared/db/client";
 
+import type { MissionType } from "../lib/mission-type";
+
 export type MissionDetail = {
   id: string;
   title: string;
@@ -10,7 +12,7 @@ export type MissionDetail = {
   skills: string[];
   skillIds: string[];
   brief: string;
-  type: "prospecting" | "custom";
+  type: MissionType;
   status:
     | "planned"
     | "working"

@@ -74,10 +74,13 @@ export function buildMissionOutboundEmailHtml(input: {
 </html>`;
 }
 
+import type { MissionQualificationProfile } from "@/features/missions/lib/resolve-mission-qualification-profile";
+
 export function buildMissionContactsDigestHtml(input: {
   missionTitle: string;
   employeeName: string;
   language: "ru" | "en";
+  profile: MissionQualificationProfile;
   leads: Array<{
     companyName: string;
     contactName?: string;
@@ -89,13 +92,24 @@ export function buildMissionContactsDigestHtml(input: {
     marketTenureYears?: number | null;
     foundedYear?: number | null;
     estimatedRevenueRub?: string | null;
+    estimatedRevenueUsd?: string | null;
+    countryCode?: string;
+    investorType?: string;
+    stageFocus?: string;
+    ticketSizeUsd?: string | null;
+    sectorFocus?: string;
+    portfolioFit?: string;
     agentPlan?: string;
   }>;
 }): string {
   const title =
-    input.language === "ru"
-      ? "Контакты миссии · NULLXES"
-      : "Mission contacts · NULLXES";
+    input.profile === "investor"
+      ? input.language === "ru"
+        ? "Инвесторская база · NULLXES"
+        : "Investor base · NULLXES"
+      : input.language === "ru"
+        ? "Контакты миссии · NULLXES"
+        : "Mission contacts · NULLXES";
   const intro =
     input.language === "ru"
       ? `${input.employeeName} подготовил(а) контакты для миссии «${input.missionTitle}».`
@@ -118,19 +132,32 @@ export function buildMissionContactsDigestHtml(input: {
         .filter(Boolean)
         .join(" · ");
 
-      const metaLine = [
-        lead.sector ? `Сектор: ${lead.sector}` : null,
-        lead.marketTenureYears != null
-          ? `Стаж: ${lead.marketTenureYears} лет`
-          : lead.foundedYear != null
-            ? `Осн.: ${lead.foundedYear}`
-            : null,
-        lead.estimatedRevenueRub
-          ? `Выручка: ${lead.estimatedRevenueRub}`
-          : null,
-      ]
-        .filter(Boolean)
-        .join(" · ");
+      const metaLine =
+        input.profile === "investor"
+          ? [
+              lead.investorType ? `Type: ${lead.investorType}` : null,
+              lead.stageFocus ? `Stage: ${lead.stageFocus}` : null,
+              lead.ticketSizeUsd ? `Ticket: ${lead.ticketSizeUsd}` : null,
+              lead.sectorFocus ? `Sector: ${lead.sectorFocus}` : null,
+            ]
+              .filter(Boolean)
+              .join(" · ")
+          : [
+              lead.countryCode ? `Country: ${lead.countryCode}` : null,
+              lead.sector ? `Sector: ${lead.sector}` : null,
+              lead.marketTenureYears != null
+                ? `Tenure: ${lead.marketTenureYears}y`
+                : lead.foundedYear != null
+                  ? `Founded: ${lead.foundedYear}`
+                  : null,
+              lead.estimatedRevenueRub
+                ? `Revenue: ${lead.estimatedRevenueRub}`
+                : lead.estimatedRevenueUsd
+                  ? `Revenue: ${lead.estimatedRevenueUsd}`
+                  : null,
+            ]
+              .filter(Boolean)
+              .join(" · ");
 
       const planBlock = lead.agentPlan
         ? `<p style="margin:8px 0 0;font-size:12px;line-height:18px;color:#333333;"><strong>${input.language === "ru" ? "План:" : "Plan:"}</strong> ${escapeHtml(lead.agentPlan)}</p>`
@@ -141,6 +168,7 @@ export function buildMissionContactsDigestHtml(input: {
           <p style="margin:0;font-size:14px;font-weight:600;color:#000000;">${escapeHtml(lead.companyName)}</p>
           <p style="margin:4px 0 0;font-size:13px;line-height:20px;color:#444444;">${escapeHtml(contactLine || "—")}</p>
           ${metaLine ? `<p style="margin:6px 0 0;font-size:12px;line-height:18px;color:#666666;">${escapeHtml(metaLine)}</p>` : ""}
+          ${lead.portfolioFit ? `<p style="margin:6px 0 0;font-size:12px;line-height:18px;color:#666666;">${escapeHtml(lead.portfolioFit)}</p>` : ""}
           <p style="margin:6px 0 0;font-size:12px;line-height:18px;color:#666666;">${escapeHtml(lead.whyFit)}</p>
           ${planBlock}
         </td>
