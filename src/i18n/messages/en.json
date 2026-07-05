@@ -256,6 +256,14 @@
         "accept": "Accept",
         "reject": "Reject"
       },
+      "overviewPanel": {
+        "activeSkills": "Active skills",
+        "characterPreset": "Character preset",
+        "missionsTitle": "Recent missions",
+        "missionsTotal": "{count} total",
+        "missionsCompleted": "{count} completed",
+        "missionsEmpty": "No missions yet."
+      },
       "actions": {
         "edit": "Edit",
         "delete": "Delete",
@@ -1464,19 +1472,39 @@
     "employeeCharacter": {
       "preset": "Character preset",
       "presetPlaceholder": "Select a preset",
+      "presetHint": "Choose a personality template for this employee.",
+      "noPresets": "No character presets in your workspace yet.",
+      "systemTemplate": "System",
+      "traitsTitle": "Trait profile",
+      "traitsHint": "Effective values after employee overrides.",
+      "traits": {
+        "formality": "Formality",
+        "empathy": "Empathy",
+        "assertiveness": "Assertiveness",
+        "verbosity": "Verbosity"
+      },
+      "principlesTitle": "Operating principles",
+      "opening": "Opening behavior",
+      "closing": "Closing behavior",
+      "catchphrases": "Signature phrases",
+      "boundaries": "Boundaries",
+      "languagePolicy": "Language policy",
       "compiledPrompt": "Compiled character prompt",
       "empty": "No character configured yet.",
       "refresh": "Recompile"
     },
     "employeeSkills": {
       "assigned": "Assigned skills",
+      "assignedHint": "Skills active in missions and Talk runtime.",
       "library": "Available skills",
+      "libraryHint": "Add skills from your organization catalog.",
       "empty": "No skills assigned.",
       "assign": "Assign",
       "remove": "Remove",
       "activate": "Activate",
       "deactivate": "Deactivate",
-      "inactive": "Inactive"
+      "inactive": "Inactive",
+      "priority": "Priority {value}"
     },
     "employeeTools": {
       "requiresApproval": "Requires approval"

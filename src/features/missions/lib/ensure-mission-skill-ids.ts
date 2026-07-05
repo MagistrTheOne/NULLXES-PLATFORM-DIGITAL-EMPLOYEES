@@ -4,7 +4,7 @@ import type { MissionType } from "./mission-type";
 import {
   qualificationProfileForMissionType,
   skillSlugForProfile,
-} from "./resolve-mission-qualification-profile";
+} from "./mission-qualification-profile";
 
 export async function ensureMissionSkillIds(input: {
   organizationId: string;

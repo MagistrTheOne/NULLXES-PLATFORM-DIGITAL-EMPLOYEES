@@ -27,7 +27,7 @@ import { isQualifiedMissionType } from "../lib/mission-type";
 import {
   qualificationProfileForMissionType,
   skillSlugForProfile,
-} from "../lib/resolve-mission-qualification-profile";
+} from "../lib/mission-qualification-profile";
 import type { MissionDetail } from "../queries/get-mission-detail";
 
 type EmployeeOption = {

@@ -256,6 +256,14 @@
         "accept": "Принять",
         "reject": "Отклонить"
       },
+      "overviewPanel": {
+        "activeSkills": "Активные навыки",
+        "characterPreset": "Пресет персонажа",
+        "missionsTitle": "Недавние миссии",
+        "missionsTotal": "{count} всего",
+        "missionsCompleted": "{count} завершено",
+        "missionsEmpty": "Миссий пока нет."
+      },
       "actions": {
         "edit": "Изменить",
         "delete": "Удалить",
@@ -1464,19 +1472,39 @@
     "employeeCharacter": {
       "preset": "Пресет персонажа",
       "presetPlaceholder": "Выберите пресет",
+      "presetHint": "Выберите шаблон личности для этого сотрудника.",
+      "noPresets": "В workspace пока нет пресетов персонажа.",
+      "systemTemplate": "Системный",
+      "traitsTitle": "Профиль черт",
+      "traitsHint": "Итоговые значения с учётом переопределений сотрудника.",
+      "traits": {
+        "formality": "Формальность",
+        "empathy": "Эмпатия",
+        "assertiveness": "Настойчивость",
+        "verbosity": "Многословность"
+      },
+      "principlesTitle": "Принципы работы",
+      "opening": "Начало разговора",
+      "closing": "Завершение разговора",
+      "catchphrases": "Фирменные фразы",
+      "boundaries": "Границы",
+      "languagePolicy": "Языковая политика",
       "compiledPrompt": "Скомпилированный промпт персонажа",
       "empty": "Персонаж ещё не настроен.",
       "refresh": "Пересобрать"
     },
     "employeeSkills": {
       "assigned": "Назначенные навыки",
+      "assignedHint": "Навыки, используемые в миссиях и Talk.",
       "library": "Доступные навыки",
+      "libraryHint": "Добавьте навыки из каталога организации.",
       "empty": "Навыки не назначены.",
       "assign": "Назначить",
       "remove": "Убрать",
       "activate": "Включить",
       "deactivate": "Выключить",
-      "inactive": "Неактивен"
+      "inactive": "Неактивен",
+      "priority": "Приоритет {value}"
     },
     "employeeTools": {
       "requiresApproval": "Требует подтверждения"

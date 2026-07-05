@@ -1,5 +1,5 @@
 import type { MissionLeadItem } from "@/entities/employee-mission";
-import type { MissionQualificationProfile } from "./resolve-mission-qualification-profile";
+import type { MissionQualificationProfile } from "@/features/missions/lib/mission-qualification-profile";
 import { filterEnQualifiedMissionLeads } from "./qualify-en-mission-lead";
 import { filterInvestorQualifiedMissionLeads } from "./qualify-investor-mission-lead";
 import { filterRuQualifiedMissionLeads } from "./qualify-ru-mission-lead";

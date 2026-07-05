@@ -4,6 +4,7 @@ import { useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 import type { InferSelectModel } from "drizzle-orm";
 import { skill } from "@/entities/skill/schema";
 import {
@@ -30,6 +31,12 @@ type Props = {
   canManage: boolean;
 };
 
+const PROFICIENCY_CLASS: Record<Assignment["proficiency"], string> = {
+  basic: "border-white/15 bg-white/4 text-white/65",
+  standard: "border-sky-500/25 bg-sky-500/10 text-sky-100",
+  expert: "border-emerald-500/30 bg-emerald-500/10 text-emerald-100",
+};
+
 export function EmployeeSkillsTab({
   employeeId,
   library,
@@ -42,31 +49,49 @@ export function EmployeeSkillsTab({
   const available = library.filter((skill) => !assignedIds.has(skill.id));
 
   return (
-    <div className="space-y-6 rounded-xl border border-white/10 bg-[#111111] p-5 text-white">
+    <div className="space-y-6 text-white">
       <div className="space-y-3">
-        <h3 className="text-sm font-medium text-white/80">{t("assigned")}</h3>
+        <div>
+          <h3 className="text-sm font-medium text-white/85">{t("assigned")}</h3>
+          <p className="mt-1 text-sm text-white/45">{t("assignedHint")}</p>
+        </div>
         {assignments.length === 0 ? (
-          <p className="text-sm text-white/50">{t("empty")}</p>
+          <p className="rounded-xl border border-dashed border-white/15 bg-[#111111] px-5 py-8 text-center text-sm text-white/50">
+            {t("empty")}
+          </p>
         ) : (
-          <ul className="space-y-3">
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
             {assignments.map((assignment) => (
-              <li
+              <article
                 key={assignment.skillId}
-                className="flex flex-col gap-2 rounded-lg border border-white/10 p-3 sm:flex-row sm:items-center sm:justify-between"
+                className={cn(
+                  "flex flex-col rounded-xl border border-white/10 bg-[#111111] p-4",
+                  !assignment.isActive && "opacity-60",
+                )}
               >
-                <div>
+                <div className="min-h-0 flex-1">
                   <p className="font-medium">{assignment.skillName}</p>
-                  <p className="text-sm text-white/50">{assignment.skillSlug}</p>
-                  <div className="mt-2 flex gap-2">
-                    <Badge variant="outline">{assignment.proficiency}</Badge>
-                    <Badge variant="secondary">#{assignment.priority}</Badge>
+                  <p className="mt-1 text-sm text-white/45">{assignment.skillSlug}</p>
+                  <div className="mt-3 flex flex-wrap gap-1.5">
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        "rounded-md font-normal capitalize",
+                        PROFICIENCY_CLASS[assignment.proficiency],
+                      )}
+                    >
+                      {assignment.proficiency}
+                    </Badge>
+                    <Badge variant="outline" className="border-white/10 text-white/55">
+                      {t("priority", { value: assignment.priority })}
+                    </Badge>
                     {!assignment.isActive ? (
                       <Badge variant="destructive">{t("inactive")}</Badge>
                     ) : null}
                   </div>
                 </div>
                 {canManage ? (
-                  <div className="flex gap-2">
+                  <div className="mt-4 flex flex-wrap gap-2">
                     <Button
                       type="button"
                       size="sm"
@@ -104,28 +129,32 @@ export function EmployeeSkillsTab({
                     </Button>
                   </div>
                 ) : null}
-              </li>
+              </article>
             ))}
-          </ul>
+          </div>
         )}
       </div>
 
       {canManage && available.length > 0 ? (
         <div className="space-y-3">
-          <h3 className="text-sm font-medium text-white/80">{t("library")}</h3>
-          <ul className="space-y-2">
+          <div>
+            <h3 className="text-sm font-medium text-white/85">{t("library")}</h3>
+            <p className="mt-1 text-sm text-white/45">{t("libraryHint")}</p>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
             {available.map((skill) => (
-              <li
+              <article
                 key={skill.id}
-                className="flex items-center justify-between rounded-lg border border-white/10 p-3"
+                className="flex flex-col justify-between rounded-xl border border-white/10 bg-[#111111] p-4"
               >
                 <div>
                   <p className="font-medium">{skill.name}</p>
-                  <p className="text-sm text-white/50">{skill.slug}</p>
+                  <p className="mt-1 text-sm text-white/45">{skill.slug}</p>
                 </div>
                 <Button
                   type="button"
                   size="sm"
+                  className="mt-4 w-full sm:w-auto"
                   disabled={pending}
                   onClick={() =>
                     startTransition(async () => {
@@ -141,9 +170,9 @@ export function EmployeeSkillsTab({
                 >
                   {t("assign")}
                 </Button>
-              </li>
+              </article>
             ))}
-          </ul>
+          </div>
         </div>
       ) : null}
     </div>
