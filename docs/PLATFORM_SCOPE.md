@@ -2,7 +2,7 @@
 
 Legend: **✅** done (backend + frontend where applicable) · **🟡** partial / placeholder · **⬜** not started
 
-Last updated: 2026-06-26 (Conversations + Talk workspace + shadcn preset).
+Last updated: 2026-07-05 (Agent Blueprint + domain agent briefs).
 
 ---
 
@@ -78,6 +78,24 @@ Locale switching: **Settings → General → Language** (persisted to `organizat
 | Create wizard + studio | ✅ | ✅ | Anam avatar, ElevenLabs voice |
 | Knowledge ingest + indexing | ✅ | ✅ | Inngest pipeline |
 | Provider config (brain/voice/avatar) | ✅ | ✅ | `provider-provisioning:verify` |
+
+---
+
+## Agent Blueprint (Character / Skills / Tools)
+
+| Module | Backend | Frontend | Verify |
+|--------|---------|----------|--------|
+| Schema (`character_preset`, `skill`, `tool_definition` + employee join tables) | ✅ | — | migration `0030` |
+| System seed catalog (`system-catalog.ts`) | ✅ | — | `agent-blueprint:verify` |
+| Settings CRUD (Characters / Skills / Tools tabs) | ✅ | ✅ | `/settings?tab=characters\|skills\|tools` |
+| Employee tabs (Character / Skills / Tools) | ✅ | ✅ | employee detail |
+| Runtime composition (Talk prompt layers + tool slugs) | ✅ | — | `build-talk-brain-request.ts` |
+| Mission `skill_ids` linkage | ✅ | 🟡 | `resolve-mission-skill-prompts.ts` |
+| Studio wizard character step | ✅ | ✅ | create wizard step `character` |
+| Default blueprint on employee create + backfill script | ✅ | — | `blueprint:backfill` |
+| Custom webhook tools / MCP / Public API scopes | ⬜ | ⬜ | Phase B |
+
+Brief: [`AGENT_BLUEPRINT_2026-07-05.md`](./AGENT_BLUEPRINT_2026-07-05.md)
 
 ---
 

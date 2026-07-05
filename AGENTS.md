@@ -7,6 +7,10 @@ This version has breaking changes — APIs, conventions, and file structure may 
 **Technical reference (2026-06-26):** [`docs/AGENT_REFERENCE_2026-06-26.md`](docs/AGENT_REFERENCE_2026-06-26.md) — API routes, features, schema, env vars, recent fixes.  
 **Mobile client brief (2026-07-04):** [`docs/AGENT_MOBILE_CLIENT_2026-07-04.md`](docs/AGENT_MOBILE_CLIENT_2026-07-04.md) — features, style, platform APIs, Talk SLA (stack chosen by implementer).  
 **Scaling guide (2026-07-04):** [`docs/SCALING_2026-07-04.md`](docs/SCALING_2026-07-04.md) — 10 → 100 → 1000+ users, ops checklist, transition triggers.  
+**Agent Blueprint (2026-07-05):** [`docs/AGENT_BLUEPRINT_2026-07-05.md`](docs/AGENT_BLUEPRINT_2026-07-05.md) — Character / Skills / Tools schema, CRUD, runtime composition.  
+**Digital Employees (2026-07-05):** [`docs/AGENT_DIGITAL_EMPLOYEES_2026-07-05.md`](docs/AGENT_DIGITAL_EMPLOYEES_2026-07-05.md) — entity model, studio flow, lifecycle.  
+**Talk runtime (2026-07-05):** [`docs/AGENT_TALK_2026-07-05.md`](docs/AGENT_TALK_2026-07-05.md) — brain-stream, prompt layers, tool gating.  
+**Missions (2026-07-05):** [`docs/AGENT_MISSIONS_2026-07-05.md`](docs/AGENT_MISSIONS_2026-07-05.md) — missions, schedules, skill_ids linkage.  
 Index: [`docs/README.md`](docs/README.md).
 
 <!-- ====================================================== -->

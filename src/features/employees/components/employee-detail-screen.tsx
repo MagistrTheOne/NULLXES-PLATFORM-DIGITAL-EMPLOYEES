@@ -17,6 +17,7 @@ import { EmployeeDetailTabs, TabsContent } from "./employee-detail-tabs";
 import { EmployeeDetailKnowledgeTab } from "./employee-detail-knowledge-tab";
 import { EmployeeDetailLifecycleTab } from "./employee-detail-lifecycle-tab";
 import { EmployeeDetailTasksTab } from "./employee-detail-tasks-tab";
+import { EmployeeBlueprintTabs } from "@/features/agent-blueprint/components/employee-blueprint-tabs";
 import { EmployeeProviderBadge } from "./employee-provider-badge";
 import { EmployeeDetailActions } from "./employee-detail-actions";
 import { EmployeeStatusBadge } from "./employee-status-badge";
@@ -346,6 +347,36 @@ export async function EmployeeDetailScreen({
                 organizationId={organizationId}
                 employeeId={employee.id}
                 displayPreferences={displayPreferences}
+              />
+            </Suspense>
+          </TabsContent>
+
+          <TabsContent value="character" className="mt-4">
+            <Suspense fallback={<TabPanelSkeleton />}>
+              <EmployeeBlueprintTabs
+                organizationId={organizationId}
+                employeeId={employee.id}
+                tab="character"
+              />
+            </Suspense>
+          </TabsContent>
+
+          <TabsContent value="skills" className="mt-4">
+            <Suspense fallback={<TabPanelSkeleton />}>
+              <EmployeeBlueprintTabs
+                organizationId={organizationId}
+                employeeId={employee.id}
+                tab="skills"
+              />
+            </Suspense>
+          </TabsContent>
+
+          <TabsContent value="tools" className="mt-4">
+            <Suspense fallback={<TabPanelSkeleton />}>
+              <EmployeeBlueprintTabs
+                organizationId={organizationId}
+                employeeId={employee.id}
+                tab="tools"
               />
             </Suspense>
           </TabsContent>

@@ -42,6 +42,7 @@ export const employeeMission = pgTable("employee_mission", {
   title: text("title").notNull(),
   goal: text("goal"),
   skills: jsonb("skills").$type<string[]>().notNull().default([]),
+  skillIds: uuid("skill_ids").array().notNull().default([]),
   brief: text("brief").notNull(),
   type: employeeMissionTypeEnum("type").notNull().default("custom"),
   source: employeeMissionSourceEnum("source").notNull().default("manual"),

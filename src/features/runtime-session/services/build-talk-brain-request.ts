@@ -1,8 +1,13 @@
+import { getEmployeeBlueprint } from "@/features/agent-blueprint/queries/get-employee-blueprint";
 import { composeShutenTalkSystemPrompt } from "@/features/brain/lib/shuten-system-prompt";
 import { formatBrainModelDisplay } from "@/features/brain/lib/format-brain-model-display";
 import { resolveBrainApiConfig } from "@/features/brain/lib/resolve-brain-api-config";
 import { resolveNullxesBrainMaxTokens } from "@/features/brain/lib/resolve-nullxes-brain-max-tokens";
 import { composeTalkSystemPrompt } from "@/features/employees/lib/build-system-prompt";
+import {
+  appendCharacterBlock,
+  appendSkillsBlock,
+} from "@/features/agent-blueprint/lib/build-blueprint-prompt-blocks";
 import { resolveEmployeePersonaGender } from "@/features/employees/lib/resolve-employee-persona-gender";
 import {
   appendScenarioOverlayToPrompt,
@@ -28,6 +33,7 @@ export type TalkBrainRequestConfig = {
   temperature: number;
   maxTokens: number;
   employeeName: string;
+  enabledToolSlugs: string[];
 };
 
 export async function buildTalkBrainRequest(input: {
@@ -52,7 +58,7 @@ export async function buildTalkBrainRequest(input: {
 
       // RAG, brain config, and scenario lookup are independent — run them in
       // parallel to cut serial DB roundtrips before the LLM call.
-      const [retrieved, apiConfig, scenarioSession] = await Promise.all([
+      const [retrieved, apiConfig, scenarioSession, blueprint] = await Promise.all([
         userQuery
           ? measureTalkPerf(
               "talk.brain.rag",
@@ -84,6 +90,10 @@ export async function buildTalkBrainRequest(input: {
               userId: input.userId,
             })
           : Promise.resolve(null),
+        getEmployeeBlueprint({
+          organizationId: input.organizationId,
+          employeeId: input.employeeId,
+        }),
       ]);
 
       const knowledgeBlock = formatKnowledgeContext(retrieved);
@@ -103,14 +113,20 @@ export async function buildTalkBrainRequest(input: {
           ? composeShutenTalkSystemPrompt({ personaPrompt })
           : personaPrompt;
 
+      let layeredPrompt = appendCharacterBlock(
+        brainPrompt,
+        blueprint.characterPromptBlock,
+      );
+      layeredPrompt = appendSkillsBlock(layeredPrompt, blueprint.activeSkills);
+
       const maxTokens =
         employee.brainProvider === "nullxes"
           ? resolveNullxesBrainMaxTokens(employee.maxTokens)
           : employee.maxTokens;
 
       let systemPrompt = knowledgeBlock
-        ? `${brainPrompt}\n\n${knowledgeBlock}`
-        : brainPrompt;
+        ? `${layeredPrompt}\n\n${knowledgeBlock}`
+        : layeredPrompt;
 
       const template = scenarioSession
         ? getScenarioTemplateById(scenarioSession.templateId)
@@ -139,6 +155,7 @@ export async function buildTalkBrainRequest(input: {
             : employee.temperature,
         maxTokens,
         employeeName: employee.name,
+        enabledToolSlugs: blueprint.enabledToolSlugs,
       };
     },
     { employeeId: input.employeeId },

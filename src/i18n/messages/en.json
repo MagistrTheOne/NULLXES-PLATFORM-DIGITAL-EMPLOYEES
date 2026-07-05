@@ -229,6 +229,9 @@
       "knowledge": "Knowledge",
       "tasks": "Tasks",
       "lifecycle": "Lifecycle",
+      "character": "Character",
+      "skills": "Skills",
+      "tools": "Tools",
       "status": "Status",
       "created": "Created",
       "knowledgeSources": "Knowledge sources",
@@ -280,6 +283,7 @@
         "identity": "Identity",
         "avatar": "Avatar",
         "voice": "Voice",
+        "character": "Character",
         "brain": "Brain",
         "knowledge": "Knowledge",
         "summary": "Summary"
@@ -308,6 +312,11 @@
           "friendly": "warm and approachable expression",
           "studioPortrait": "studio portrait lighting"
         }
+      },
+      "character": {
+        "hint": "Choose how this employee behaves in Talk. Leave empty to auto-match by role.",
+        "preset": "Character preset",
+        "autoByRole": "Auto by role"
       },
       "knowledge": {
         "uploadFiles": "Upload Files",
@@ -735,6 +744,9 @@
       "security": "Security",
       "audit": "Audit",
       "ai": "AI & Voice",
+      "characters": "Characters",
+      "skills": "Skills",
+      "tools": "Tools",
       "notifications": "Notifications",
       "advanced": "Advanced"
     },
@@ -1418,6 +1430,56 @@
       "resolutionRateDetail": "Completed sessions resolved",
       "escalationRate": "Escalation Rate",
       "escalationRateDetail": "Sessions escalated to human"
+    }
+  },
+  "agentBlueprint": {
+    "characters": {
+      "title": "Character presets",
+      "description": "Reusable behavior profiles for digital employees.",
+      "systemTemplate": "System template",
+      "duplicate": "Duplicate",
+      "delete": "Delete",
+      "createTitle": "Create preset",
+      "createDescription": "Add an organization-owned character preset.",
+      "name": "Name",
+      "descriptionLabel": "Description",
+      "create": "Create preset"
+    },
+    "skills": {
+      "title": "Skill library",
+      "description": "Procedural knowledge injected into Talk and missions.",
+      "systemTemplate": "System template",
+      "delete": "Delete",
+      "createTitle": "Create skill",
+      "createDescription": "Add a custom skill for your organization.",
+      "name": "Name",
+      "instructions": "Instructions",
+      "create": "Create skill"
+    },
+    "tools": {
+      "title": "Tool catalog",
+      "description": "Built-in tools available to digital employees.",
+      "requiresApproval": "Requires approval"
+    },
+    "employeeCharacter": {
+      "preset": "Character preset",
+      "presetPlaceholder": "Select a preset",
+      "compiledPrompt": "Compiled character prompt",
+      "empty": "No character configured yet.",
+      "refresh": "Recompile"
+    },
+    "employeeSkills": {
+      "assigned": "Assigned skills",
+      "library": "Available skills",
+      "empty": "No skills assigned.",
+      "assign": "Assign",
+      "remove": "Remove",
+      "activate": "Activate",
+      "deactivate": "Deactivate",
+      "inactive": "Inactive"
+    },
+    "employeeTools": {
+      "requiresApproval": "Requires approval"
     }
   }
 }

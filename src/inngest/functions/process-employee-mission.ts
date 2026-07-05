@@ -10,6 +10,7 @@ import { collectTalkBrainResponse } from "@/features/runtime-session/services/st
 import { recordWorkEvent } from "@/features/work-event";
 import { appendMissionTimelineStep } from "@/features/missions/lib/append-mission-timeline-step";
 import { buildMissionExecutionContext } from "@/features/missions/lib/build-mission-execution-context";
+import { resolveMissionSkillPromptBlocks } from "@/features/missions/lib/resolve-mission-skill-prompts";
 import {
   detectMissionLanguage,
   missionLanguageLabel,
@@ -174,10 +175,15 @@ async function processMissionById(missionId: string, organizationId: string) {
       metadata: { missionId, type: mission.type },
     });
 
+    const skillPromptBlocks = await resolveMissionSkillPromptBlocks(
+      mission.skillIds ?? [],
+    );
+
     const missionContext = buildMissionExecutionContext({
       brief: mission.brief,
       goal: mission.goal,
       skills: mission.skills,
+      skillPromptBlocks,
     });
 
     const searchResults = await researchMissionProspects({

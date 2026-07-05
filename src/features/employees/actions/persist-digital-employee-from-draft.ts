@@ -150,6 +150,15 @@ export async function persistDigitalEmployeeFromDraft(
     await persistKnowledgeDraftItems(employeeId, draft.knowledge);
   }
 
+  const { applyDefaultEmployeeBlueprint } = await import(
+    "@/features/agent-blueprint/services/apply-default-employee-blueprint"
+  );
+  await applyDefaultEmployeeBlueprint({
+    organizationId: workspace.organization.id,
+    employeeId,
+    role: draft.identity.role,
+  });
+
   enqueueEmployeeProvisioning(employeeId);
 
   await inngest.send({

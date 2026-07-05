@@ -13,6 +13,14 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { listCharacterPresetsForStudioAction } from "@/features/agent-blueprint/actions/manage-blueprint";
 import { createEmployeeRecord } from "@/features/employees/actions/create-employee-record";
 import { provisionEmployeeAvatarStudio } from "@/features/employees/actions/provision-employee-avatar-studio";
 import type { CreateEmployeeWizardInput } from "@/features/employees/create/wizard-intake";
@@ -104,6 +112,9 @@ export function CreateEmployeeDialog({
   const [isGeneratingAvatar, setIsGeneratingAvatar] = useState(false);
   const [brainWorkspaceConfig, setBrainWorkspaceConfig] =
     useState<BrainWorkspaceConfig | null>(null);
+  const [characterPresets, setCharacterPresets] = useState<
+    Array<{ id: string; name: string; slug: string; description: string | null }>
+  >([]);
   const localUploadPreviewUrlRef = useRef<string | null>(null);
   const voicePreviewAudioRef = useRef<HTMLAudioElement | null>(null);
   const voicePreviewObjectUrlRef = useRef<string | null>(null);
@@ -182,7 +193,16 @@ export function CreateEmployeeDialog({
       }));
     }
 
-    void loadBrainConfig();
+    void     loadBrainConfig();
+
+    async function loadCharacterPresets() {
+      const presets = await listCharacterPresetsForStudioAction();
+      if (!cancelled) {
+        setCharacterPresets(presets);
+      }
+    }
+
+    void loadCharacterPresets();
 
     return () => {
       cancelled = true;
@@ -395,6 +415,7 @@ export function CreateEmployeeDialog({
         presetAvatarId: form.presetAvatarId,
         hasPhotoFile: Boolean(form.photoFile),
         knowledge: buildKnowledgeItemsFromForm(form),
+        characterPresetId: form.characterPresetId,
       };
 
       const created = await createEmployeeRecord(wizardInput);
@@ -752,6 +773,32 @@ export function CreateEmployeeDialog({
                   {voicePreviewError}
                 </p>
               ) : null}
+            </div>
+          ) : null}
+
+          {step === "character" ? (
+            <div className="flex flex-col gap-4">
+              <p className="text-sm text-white/60">{t("character.hint")}</p>
+              <div className="space-y-2">
+                <Label className="text-white/80">{t("character.preset")}</Label>
+                <Select
+                  value={form.characterPresetId ?? ""}
+                  onValueChange={(value) =>
+                    updateForm({ characterPresetId: value || null })
+                  }
+                >
+                  <SelectTrigger className="border-white/10 bg-black/40 text-white">
+                    <SelectValue placeholder={t("character.autoByRole")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {characterPresets.map((preset) => (
+                      <SelectItem key={preset.id} value={preset.id}>
+                        {preset.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           ) : null}
 

@@ -229,6 +229,9 @@
       "knowledge": "Знания",
       "tasks": "Задачи",
       "lifecycle": "Жизненный цикл",
+      "character": "Персонаж",
+      "skills": "Навыки",
+      "tools": "Инструменты",
       "status": "Статус",
       "created": "Создан",
       "knowledgeSources": "Источники знаний",
@@ -280,6 +283,7 @@
         "identity": "Идентичность",
         "avatar": "Аватар",
         "voice": "Голос",
+        "character": "Персонаж",
         "brain": "Интеллект",
         "knowledge": "Знания",
         "summary": "Итог"
@@ -308,6 +312,11 @@
           "friendly": "дружелюбное и открытое выражение лица",
           "studioPortrait": "студийный портретный свет"
         }
+      },
+      "character": {
+        "hint": "Выберите поведение сотрудника в Talk. Оставьте пустым — подберём по роли автоматически.",
+        "preset": "Пресет персонажа",
+        "autoByRole": "Авто по роли"
       },
       "knowledge": {
         "uploadFiles": "Загрузить файлы",
@@ -735,6 +744,9 @@
       "security": "Безопасность",
       "audit": "Аудит",
       "ai": "ИИ и голос",
+      "characters": "Персонажи",
+      "skills": "Навыки",
+      "tools": "Инструменты",
       "notifications": "Уведомления",
       "advanced": "Дополнительно"
     },
@@ -1418,6 +1430,56 @@
       "resolutionRateDetail": "Завершённые сессии с решением",
       "escalationRate": "Доля эскалаций",
       "escalationRateDetail": "Сессии переданы человеку"
+    }
+  },
+  "agentBlueprint": {
+    "characters": {
+      "title": "Пресеты персонажа",
+      "description": "Переиспользуемые профили поведения цифровых сотрудников.",
+      "systemTemplate": "Системный шаблон",
+      "duplicate": "Дублировать",
+      "delete": "Удалить",
+      "createTitle": "Создать пресет",
+      "createDescription": "Пресет организации для персонажа.",
+      "name": "Название",
+      "descriptionLabel": "Описание",
+      "create": "Создать пресет"
+    },
+    "skills": {
+      "title": "Библиотека навыков",
+      "description": "Процедурные знания для Talk и миссий.",
+      "systemTemplate": "Системный шаблон",
+      "delete": "Удалить",
+      "createTitle": "Создать навык",
+      "createDescription": "Пользовательский навык организации.",
+      "name": "Название",
+      "instructions": "Инструкции",
+      "create": "Создать навык"
+    },
+    "tools": {
+      "title": "Каталог инструментов",
+      "description": "Встроенные tools для цифровых сотрудников.",
+      "requiresApproval": "Требует подтверждения"
+    },
+    "employeeCharacter": {
+      "preset": "Пресет персонажа",
+      "presetPlaceholder": "Выберите пресет",
+      "compiledPrompt": "Скомпилированный промпт персонажа",
+      "empty": "Персонаж ещё не настроен.",
+      "refresh": "Пересобрать"
+    },
+    "employeeSkills": {
+      "assigned": "Назначенные навыки",
+      "library": "Доступные навыки",
+      "empty": "Навыки не назначены.",
+      "assign": "Назначить",
+      "remove": "Убрать",
+      "activate": "Включить",
+      "deactivate": "Выключить",
+      "inactive": "Неактивен"
+    },
+    "employeeTools": {
+      "requiresApproval": "Требует подтверждения"
     }
   }
 }

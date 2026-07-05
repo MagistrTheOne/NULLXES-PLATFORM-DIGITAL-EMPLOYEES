@@ -22,6 +22,7 @@ export async function updateMissionAction(input: {
   title: string;
   goal?: string;
   skills?: string;
+  skillIds?: string[];
   brief: string;
 }): Promise<{ ok: true } | { ok: false; message: string }> {
   try {
@@ -33,7 +34,10 @@ export async function updateMissionAction(input: {
     const title = input.title.trim();
     const brief = input.brief.trim();
     const goal = input.goal?.trim() || null;
-    const skills = parseMissionSkills(input.skills);
+    const skills =
+      input.skills !== undefined
+        ? parseMissionSkills(input.skills)
+        : undefined;
 
     if (!missionId || !title || !brief) {
       return { ok: false, message: "Title and brief are required." };
@@ -71,7 +75,8 @@ export async function updateMissionAction(input: {
         type: input.type,
         title,
         goal,
-        skills,
+        ...(skills !== undefined ? { skills } : {}),
+        ...(input.skillIds !== undefined ? { skillIds: input.skillIds } : {}),
         brief,
         status: mission.status === "failed" ? "planned" : mission.status,
         errorMessage: mission.status === "failed" ? null : undefined,

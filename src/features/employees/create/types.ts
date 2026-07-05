@@ -5,6 +5,7 @@ export type CreateEmployeeStep =
   | "identity"
   | "avatar"
   | "voice"
+  | "character"
   | "brain"
   | "knowledge"
   | "summary";
@@ -51,6 +52,7 @@ export type CreateEmployeeFormState = {
   orgDefaultBrainProvider: BrainProvider;
   orgDefaultBrainModel: string;
   customElevenLabsVoiceId: string;
+  characterPresetId: string | null;
   knowledgeUrl: string;
   knowledgeText: string;
   knowledgeFiles: Array<{ name: string; size: number; content: string }>;

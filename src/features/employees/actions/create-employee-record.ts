@@ -180,6 +180,27 @@ export async function createEmployeeRecord(
       await persistKnowledgeDraftItems(employeeId, input.knowledge);
     }
 
+    const { applyDefaultEmployeeBlueprint } = await import(
+      "@/features/agent-blueprint/services/apply-default-employee-blueprint"
+    );
+    const { upsertEmployeeCharacter } = await import(
+      "@/features/agent-blueprint/services/upsert-employee-character"
+    );
+
+    if (input.characterPresetId) {
+      await upsertEmployeeCharacter({
+        organizationId: workspace.organization.id,
+        employeeId,
+        presetId: input.characterPresetId,
+      });
+    } else {
+      await applyDefaultEmployeeBlueprint({
+        organizationId: workspace.organization.id,
+        employeeId,
+        role,
+      });
+    }
+
     recordAuditEvent({
       organizationId: workspace.organization.id,
       actorUserId: workspace.user.id,

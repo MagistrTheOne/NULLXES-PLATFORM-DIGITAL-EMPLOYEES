@@ -14,6 +14,7 @@ import {
   isAnamAvatarTalkReady,
   resolveAnamPersonaVoiceId,
 } from "@/features/employees/lib/resolve-anam-avatar-talk-readiness";
+import { getEmployeeBlueprint } from "@/features/agent-blueprint/queries/get-employee-blueprint";
 import type { EmployeeTalkContext } from "../types/employee-talk-context";
 
 function readProvisioningStatus(
@@ -54,7 +55,7 @@ async function queryEmployeeTalkContext(
     return null;
   }
 
-  const [runtime, configs] = await Promise.all([
+  const [runtime, configs, blueprint] = await Promise.all([
     db
       .select()
       .from(employeeRuntime)
@@ -65,6 +66,7 @@ async function queryEmployeeTalkContext(
       .select()
       .from(employeeProviderConfig)
       .where(eq(employeeProviderConfig.employeeId, employeeId)),
+    getEmployeeBlueprint({ organizationId, employeeId }),
   ]);
 
   const avatarConfig = configs.find((row) => row.providerType === "avatar")
@@ -113,6 +115,9 @@ async function queryEmployeeTalkContext(
     maxTokens: runtime?.maxTokens ?? 1024,
     sessionLimitSeconds: runtime?.sessionLimitSeconds ?? 3600,
     department: employee.department,
+    characterPromptBlock: blueprint.characterPromptBlock,
+    activeSkills: blueprint.activeSkills,
+    enabledToolSlugs: blueprint.enabledToolSlugs,
   };
 }
 

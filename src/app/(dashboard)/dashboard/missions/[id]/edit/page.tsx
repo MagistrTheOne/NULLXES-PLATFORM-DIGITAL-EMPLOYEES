@@ -6,6 +6,7 @@ import { listOrganizationEmployees } from "@/features/employees";
 import { Button } from "@/components/ui/button";
 import { EditMissionForm } from "@/features/missions/components/create-mission-form";
 import { getMissionDetail } from "@/features/missions/queries/get-mission-detail";
+import { listOrganizationSkills } from "@/features/agent-blueprint/queries/list-organization-skills";
 
 const EDITABLE_STATUSES = new Set(["planned", "failed", "cancelled"]);
 
@@ -22,9 +23,10 @@ export default async function EditMissionPage({
     redirect(`/dashboard/missions/${id}`);
   }
 
-  const [mission, employeesPage] = await Promise.all([
+  const [mission, employeesPage, skillLibrary] = await Promise.all([
     getMissionDetail(workspace.organization.id, id),
     listOrganizationEmployees(workspace.organization.id, { limit: 200 }),
+    listOrganizationSkills(workspace.organization.id),
   ]);
 
   if (!mission) {
@@ -59,6 +61,12 @@ export default async function EditMissionPage({
           id: employee.id,
           name: employee.name,
           role: employee.role,
+        }))}
+        skillLibrary={skillLibrary.map((skill) => ({
+          id: skill.id,
+          name: skill.name,
+          category: skill.category,
+          slug: skill.slug,
         }))}
       />
     </div>

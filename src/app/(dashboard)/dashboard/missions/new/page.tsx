@@ -5,7 +5,7 @@ import { ensureWorkspace } from "@/features/auth/services/ensure-workspace";
 import { requireAuth } from "@/features/auth/services/require-auth";
 import { listOrganizationEmployees } from "@/features/employees";
 import { CreateMissionForm } from "@/features/missions/components/create-mission-form";
-import { hasWorkspaceAccess } from "@/features/workspace";
+import { listOrganizationSkills } from "@/features/agent-blueprint/queries/list-organization-skills";
 
 export default async function NewMissionPage() {
   const session = await requireAuth();
@@ -15,10 +15,10 @@ export default async function NewMissionPage() {
     redirect("/dashboard/missions");
   }
 
-  const employeesPage = await listOrganizationEmployees(
-    workspace.organization.id,
-    { limit: 50 },
-  );
+  const [employeesPage, skillLibrary] = await Promise.all([
+    listOrganizationEmployees(workspace.organization.id, { limit: 50 }),
+    listOrganizationSkills(workspace.organization.id),
+  ]);
 
   if (employeesPage.items.length === 0) {
     return (
@@ -62,6 +62,12 @@ export default async function NewMissionPage() {
           id: employee.id,
           name: employee.name,
           role: employee.role,
+        }))}
+        skillLibrary={skillLibrary.map((skill) => ({
+          id: skill.id,
+          name: skill.name,
+          category: skill.category,
+          slug: skill.slug,
         }))}
       />
     </div>

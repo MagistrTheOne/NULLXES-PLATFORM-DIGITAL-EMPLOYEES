@@ -99,7 +99,10 @@ async function handleBrainStreamPost(request: Request): Promise<Response> {
 
   const encoder = new TextEncoder();
 
-  const talkTools = resolveTalkBrainTools(lastMessage.content);
+  const talkTools = resolveTalkBrainTools(
+    lastMessage.content,
+    config.enabledToolSlugs,
+  );
   const toolContext = talkTools
     ? {
         organizationId: authResult.auth.organizationId,

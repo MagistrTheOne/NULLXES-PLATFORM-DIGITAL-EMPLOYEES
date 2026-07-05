@@ -439,6 +439,12 @@ From [`AGENTS.md`](../AGENTS.md):
 - [DEPLOYMENT_RF.md](./DEPLOYMENT_RF.md) — Russia deployment
 - [AGENTS.md](../AGENTS.md) — always-on agent rules
 - [PUBLIC_API.md](./PUBLIC_API.md) — public API testing
+- [AGENT_BLUEPRINT_2026-07-05.md](./AGENT_BLUEPRINT_2026-07-05.md) — Character / Skills / Tools blueprint
+- [AGENT_DIGITAL_EMPLOYEES_2026-07-05.md](./AGENT_DIGITAL_EMPLOYEES_2026-07-05.md) — employee entity, studio, lifecycle
+- [AGENT_TALK_2026-07-05.md](./AGENT_TALK_2026-07-05.md) — Talk brain-stream and tool gating
+- [AGENT_MISSIONS_2026-07-05.md](./AGENT_MISSIONS_2026-07-05.md) — missions, schedules, skill_ids
+- [AGENT_MOBILE_CLIENT_2026-07-04.md](./AGENT_MOBILE_CLIENT_2026-07-04.md) — mobile client brief
+- [SCALING_2026-07-04.md](./SCALING_2026-07-04.md) — scaling guide
 
 ---
 

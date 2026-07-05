@@ -58,6 +58,24 @@ export function EmployeeDetailTabs({
         >
           {t("lifecycle")}
         </TabsTrigger>
+        <TabsTrigger
+          value="character"
+          className="rounded-none border-0 px-3 py-2 text-white/50 data-active:bg-transparent data-active:text-white"
+        >
+          {t("character")}
+        </TabsTrigger>
+        <TabsTrigger
+          value="skills"
+          className="rounded-none border-0 px-3 py-2 text-white/50 data-active:bg-transparent data-active:text-white"
+        >
+          {t("skills")}
+        </TabsTrigger>
+        <TabsTrigger
+          value="tools"
+          className="rounded-none border-0 px-3 py-2 text-white/50 data-active:bg-transparent data-active:text-white"
+        >
+          {t("tools")}
+        </TabsTrigger>
       </TabsList>
       {children}
     </Tabs>

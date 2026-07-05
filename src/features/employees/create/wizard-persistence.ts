@@ -14,6 +14,7 @@ function isStep(value: unknown): value is CreateEmployeeStep {
     value === "identity" ||
     value === "avatar" ||
     value === "voice" ||
+    value === "character" ||
     value === "brain" ||
     value === "knowledge" ||
     value === "summary"

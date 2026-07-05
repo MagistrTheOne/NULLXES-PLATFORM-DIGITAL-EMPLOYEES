@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { SettingsPageData } from "../types";
@@ -26,6 +26,9 @@ const TAB_IDS = [
   "security",
   "audit",
   "ai",
+  "characters",
+  "skills",
+  "tools",
   "notifications",
   "advanced",
 ] as const;
@@ -39,8 +42,15 @@ function resolveSettingsTab(tab: string | null): SettingsTabId {
   return "general";
 }
 
-export function SettingsScreen({ data }: { data: SettingsPageData }) {
+export function SettingsScreen({
+  data,
+  blueprintTab,
+}: {
+  data: SettingsPageData;
+  blueprintTab?: React.ReactNode;
+}) {
   const t = useTranslations("settings");
+  const router = useRouter();
   const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<SettingsTabId>(() =>
     resolveSettingsTab(searchParams.get("tab")),
@@ -65,7 +75,11 @@ export function SettingsScreen({ data }: { data: SettingsPageData }) {
         <div className="min-w-0 xl:col-span-8">
           <Tabs
             value={activeTab}
-            onValueChange={(value) => setActiveTab(value as SettingsTabId)}
+            onValueChange={(value) => {
+              const nextTab = value as SettingsTabId;
+              setActiveTab(nextTab);
+              router.push(`/settings?tab=${nextTab}`);
+            }}
             className="gap-6"
           >
             <TabsList
@@ -150,6 +164,16 @@ export function SettingsScreen({ data }: { data: SettingsPageData }) {
                 providerReadiness={data.brainProviderReadiness}
                 providerKeyStatuses={data.providerKeyStatuses}
               />
+            </TabsContent>
+
+            <TabsContent value="characters">
+              {activeTab === "characters" ? blueprintTab : null}
+            </TabsContent>
+            <TabsContent value="skills">
+              {activeTab === "skills" ? blueprintTab : null}
+            </TabsContent>
+            <TabsContent value="tools">
+              {activeTab === "tools" ? blueprintTab : null}
             </TabsContent>
 
             <TabsContent value="notifications">

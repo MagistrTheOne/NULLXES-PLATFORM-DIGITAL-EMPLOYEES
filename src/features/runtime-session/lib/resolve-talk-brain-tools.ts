@@ -11,15 +11,21 @@ import {
 /** Talk mode: only enable tools when the user message needs them — keeps latency low. */
 export function resolveTalkBrainTools(
   lastUserMessage: string,
+  enabledToolSlugs: string[] = [],
 ): AgentToolDefinition[] | undefined {
+  const enabled = new Set(enabledToolSlugs);
   const tools: AgentToolDefinition[] = [];
 
-  if (shouldRunTalkWebSearch(lastUserMessage)) {
+  if (enabled.has("search_web") && shouldRunTalkWebSearch(lastUserMessage)) {
     tools.push(SEARCH_WEB_TOOL);
   }
 
   if (shouldRunTalkToolLoop(lastUserMessage)) {
-    tools.push(...TALK_ACTION_TOOLS);
+    for (const tool of TALK_ACTION_TOOLS) {
+      if (enabled.has(tool.function.name)) {
+        tools.push(tool);
+      }
+    }
   }
 
   return tools.length > 0 ? tools : undefined;

@@ -2,6 +2,18 @@ import * as employeeMissionRelations from "@/entities/employee-mission/relations
 import * as employeeMissionSchema from "@/entities/employee-mission/schema";
 import * as employeeScenarioSessionRelations from "@/entities/employee-scenario-session/relations";
 import * as employeeScenarioSessionSchema from "@/entities/employee-scenario-session/schema";
+import * as characterPresetRelations from "@/entities/character-preset/relations";
+import * as characterPresetSchema from "@/entities/character-preset/schema";
+import * as employeeCharacterRelations from "@/entities/employee-character/relations";
+import * as employeeCharacterSchema from "@/entities/employee-character/schema";
+import * as skillRelations from "@/entities/skill/relations";
+import * as skillSchema from "@/entities/skill/schema";
+import * as employeeSkillRelations from "@/entities/employee-skill/relations";
+import * as employeeSkillSchema from "@/entities/employee-skill/schema";
+import * as toolDefinitionRelations from "@/entities/tool-definition/relations";
+import * as toolDefinitionSchema from "@/entities/tool-definition/schema";
+import * as employeeToolRelations from "@/entities/employee-tool/relations";
+import * as employeeToolSchema from "@/entities/employee-tool/schema";
 import * as missionScheduleRelations from "@/entities/mission-schedule/relations";
 import * as missionScheduleSchema from "@/entities/mission-schedule/schema";
 import * as organizationProviderCredentialRelations from "@/entities/organization-provider-credential/relations";
@@ -110,4 +122,16 @@ export const drizzleSchema = {
   ...employeeLifecycleRelations,
   ...providerConfigSchema,
   ...providerConfigRelations,
+  ...characterPresetSchema,
+  ...characterPresetRelations,
+  ...employeeCharacterSchema,
+  ...employeeCharacterRelations,
+  ...skillSchema,
+  ...skillRelations,
+  ...employeeSkillSchema,
+  ...employeeSkillRelations,
+  ...toolDefinitionSchema,
+  ...toolDefinitionRelations,
+  ...employeeToolSchema,
+  ...employeeToolRelations,
 };

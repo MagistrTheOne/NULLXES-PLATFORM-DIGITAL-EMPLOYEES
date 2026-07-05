@@ -1,5 +1,6 @@
 import type { BrainProvider } from "@/entities/digital-employee";
 import type { ProviderProvisioningStatus } from "@/entities/provider-config";
+import type { SkillProficiency } from "@/entities/skill/types";
 
 export type EmployeeTalkContext = {
   id: string;
@@ -25,4 +26,11 @@ export type EmployeeTalkContext = {
   maxTokens: number;
   sessionLimitSeconds: number;
   department: string | null;
+  characterPromptBlock: string | null;
+  activeSkills: Array<{
+    slug: string;
+    promptBlock: string;
+    proficiency: SkillProficiency;
+  }>;
+  enabledToolSlugs: string[];
 };

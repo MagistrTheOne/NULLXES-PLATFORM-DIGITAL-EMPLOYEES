@@ -16,4 +16,5 @@ export type CreateEmployeeWizardInput = {
   presetAvatarId?: string | null;
   hasPhotoFile?: boolean;
   knowledge: KnowledgeDraftItem[];
+  characterPresetId?: string | null;
 };

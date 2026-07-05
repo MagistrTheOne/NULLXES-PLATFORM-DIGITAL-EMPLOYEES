@@ -20,6 +20,7 @@ export async function createMissionAction(input: {
   title?: string;
   goal?: string;
   skills?: string;
+  skillIds?: string[];
   brief?: string;
 }): Promise<{ ok: true; missionId: string } | { ok: false; message: string }> {
   try {
@@ -74,6 +75,7 @@ export async function createMissionAction(input: {
       title,
       goal,
       skills,
+      skillIds: input.skillIds ?? [],
       brief,
       type,
     });

@@ -8,6 +8,7 @@ export type MissionDetail = {
   title: string;
   goal: string | null;
   skills: string[];
+  skillIds: string[];
   brief: string;
   type: "prospecting" | "custom";
   status:
@@ -43,6 +44,7 @@ export async function getMissionDetail(
       title: employeeMission.title,
       goal: employeeMission.goal,
       skills: employeeMission.skills,
+      skillIds: employeeMission.skillIds,
       brief: employeeMission.brief,
       type: employeeMission.type,
       status: employeeMission.status,
@@ -82,6 +84,7 @@ export async function getMissionDetail(
     ...row,
     goal: row.goal ?? null,
     skills: row.skills ?? [],
+    skillIds: row.skillIds ?? [],
     evidence: row.evidence ?? [],
     leads: row.leads ?? [],
     handoffs: row.handoffs ?? [],

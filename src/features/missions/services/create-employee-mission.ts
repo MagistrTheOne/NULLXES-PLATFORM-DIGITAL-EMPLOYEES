@@ -22,6 +22,7 @@ export async function createEmployeeMission(input: {
   title: string;
   goal?: string | null;
   skills?: string[];
+  skillIds?: string[];
   brief: string;
   type: "prospecting" | "custom";
   source?: MissionSource;
@@ -51,6 +52,7 @@ export async function createEmployeeMission(input: {
       title: input.title,
       goal: input.goal ?? null,
       skills: input.skills ?? [],
+      skillIds: input.skillIds ?? [],
       brief: input.brief,
       type: input.type,
       source: input.source ?? "manual",
