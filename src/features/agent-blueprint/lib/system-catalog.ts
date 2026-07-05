@@ -209,6 +209,44 @@ export const SYSTEM_SKILLS: SystemSkillSeed[] = [
     requiredToolSlugs: [],
     category: "custom",
   },
+  {
+    id: "b2000002-0002-4002-8002-000000000009",
+    slug: "ru_market_qualification",
+    name: "RU Market Qualification",
+    description:
+      "Strict Russian B2B prospect qualification for mission prospecting.",
+    instructions: `## Квалификация (обязательный порядок)
+
+Для каждой компании в leads:
+
+1. **Страна = РФ** — только при явном сигнале в research:
+   - юр. адрес, ИНН/ОГРН, домен .ru, «Россия» в About, ЕГРЮЛ, СПАРК/Контур.
+   - Запиши цитату в countryEvidence. Нет сигнала → не включай компанию.
+
+2. **Сектор** — из источника (ОКВЭД, описание деятельности, отрасль). Не угадывать.
+
+3. **Стаж на рынке** — foundedYear и/или marketTenureYears из источника.
+   - Нет данных → null, но компанию можно включить если остальное подтверждено.
+
+4. **Потенциальная выручка** — estimatedRevenueRub только если цифра дословно в research.
+   - Обязательно revenueSourceUrl. Нет цифры → null, не выдумывать.
+
+5. **Контакт** — реальный decision-maker:
+   - contactName + contactEmail дословно из research + contactSourceUrl.
+   - **Нет подтверждённого контакта → компанию не включать (skip site).**
+
+6. **agentPlan** — план захода от имени digital employee (3–5 шагов):
+   - угол, гипотеза боли, предложение NULLXES Digital Employees, следующий шаг.
+   - proposalDraft — короткое outbound-письмо на основе agentPlan.
+
+Правила: не включай компании не из РФ. Не угадывай email, выручку, сектор.`,
+    triggers: {
+      keywords: ["россия", "russia", "prospecting", "квалификация", "b2b"],
+      intents: ["ru_market_qualification"],
+    },
+    requiredToolSlugs: ["search_web"],
+    category: "sales",
+  },
 ];
 
 const TOOL_RISK: Record<string, ToolRiskLevel> = {
@@ -289,7 +327,7 @@ export function resolveDefaultSkillSlugs(role: string): string[] {
   const slugs = ["knowledge_first_answer", "mission_status_brief"];
 
   if (/sales|enterprise|account|revenue|business development/.test(normalized)) {
-    slugs.push("b2b_discovery", "objection_handling");
+    slugs.push("b2b_discovery", "objection_handling", "ru_market_qualification");
   }
   if (/support|customer|success|service|helpdesk/.test(normalized)) {
     slugs.push("support_escalation");

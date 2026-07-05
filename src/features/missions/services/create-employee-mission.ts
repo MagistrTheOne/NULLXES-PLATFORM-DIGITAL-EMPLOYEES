@@ -7,6 +7,7 @@ import {
 import { digitalEmployee } from "@/entities/digital-employee/schema";
 import { inngest, isInngestEnabledForSend } from "@/inngest/client";
 import { appendMissionTimelineStep } from "../lib/append-mission-timeline-step";
+import { ensureProspectingSkillIds } from "../lib/ensure-prospecting-skill-ids";
 import {
   defaultProspectingBrief,
   defaultProspectingTitle,
@@ -43,6 +44,12 @@ export async function createEmployeeMission(input: {
     throw new Error("Employee not found");
   }
 
+  const skillIds = await ensureProspectingSkillIds({
+    organizationId: input.organizationId,
+    type: input.type,
+    skillIds: input.skillIds ?? [],
+  });
+
   const [mission] = await db
     .insert(employeeMission)
     .values({
@@ -52,7 +59,7 @@ export async function createEmployeeMission(input: {
       title: input.title,
       goal: input.goal ?? null,
       skills: input.skills ?? [],
-      skillIds: input.skillIds ?? [],
+      skillIds,
       brief: input.brief,
       type: input.type,
       source: input.source ?? "manual",
@@ -97,6 +104,15 @@ function stripCodeFences(raw: string): string {
     .replace(/^\s*```(?:json)?\s*/i, "")
     .replace(/\s*```\s*$/i, "")
     .trim();
+}
+
+function parseOptionalNumber(value: unknown): number | null {
+  if (value === null || value === undefined || value === "") {
+    return null;
+  }
+
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
 }
 
 function extractJsonCandidate(raw: string): string | null {
@@ -159,6 +175,12 @@ export function parseMissionLeadsFromModelOutput(raw: string): MissionLeadItem[]
       const proposalDraft = String(
         lead.proposalDraft ?? lead.proposal ?? lead.pitch ?? "",
       ).trim();
+      const agentPlan = String(lead.agentPlan ?? lead.plan ?? "").trim();
+
+      const marketTenureYears = parseOptionalNumber(
+        lead.marketTenureYears ?? lead.yearsOnMarket,
+      );
+      const foundedYear = parseOptionalNumber(lead.foundedYear ?? lead.founded);
 
       return {
         companyName,
@@ -167,6 +189,26 @@ export function parseMissionLeadsFromModelOutput(raw: string): MissionLeadItem[]
         budgetSignal: lead.budgetSignal
           ? String(lead.budgetSignal).trim()
           : undefined,
+        isRussianCompany:
+          lead.isRussianCompany === true || lead.isRussianCompany === "true"
+            ? true
+            : lead.isRussianCompany === false || lead.isRussianCompany === "false"
+              ? false
+              : undefined,
+        countryEvidence: lead.countryEvidence
+          ? String(lead.countryEvidence).trim()
+          : undefined,
+        sector: lead.sector ? String(lead.sector).trim() : undefined,
+        marketTenureYears,
+        foundedYear,
+        estimatedRevenueRub: lead.estimatedRevenueRub
+          ? String(lead.estimatedRevenueRub).trim()
+          : lead.revenueRub
+            ? String(lead.revenueRub).trim()
+            : null,
+        revenueSourceUrl: lead.revenueSourceUrl
+          ? String(lead.revenueSourceUrl).trim()
+          : null,
         contactHypothesis: lead.contactHypothesis
           ? String(lead.contactHypothesis).trim()
           : undefined,
@@ -181,8 +223,10 @@ export function parseMissionLeadsFromModelOutput(raw: string): MissionLeadItem[]
           : lead.sourceUrl
             ? String(lead.sourceUrl).trim()
             : undefined,
+        agentPlan: agentPlan || undefined,
         proposalDraft:
           proposalDraft ||
+          agentPlan ||
           (companyName
             ? `Proposal: deploy NULLXES Digital Employees to support ${companyName}.`
             : ""),

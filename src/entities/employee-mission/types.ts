@@ -9,10 +9,18 @@ export type MissionLeadItem = {
   domain?: string;
   whyFit: string;
   budgetSignal?: string;
+  isRussianCompany?: boolean;
+  countryEvidence?: string;
+  sector?: string;
+  marketTenureYears?: number | null;
+  foundedYear?: number | null;
+  estimatedRevenueRub?: string | null;
+  revenueSourceUrl?: string | null;
   contactName?: string;
   contactHypothesis?: string;
   contactEmail?: string;
   contactSourceUrl?: string;
+  agentPlan?: string;
   proposalDraft: string;
   sentAt?: string;
   sendError?: string;

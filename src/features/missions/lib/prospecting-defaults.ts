@@ -1,11 +1,11 @@
 export function defaultProspectingBrief(): string {
-  return "Find 10 B2B companies that could benefit from NULLXES Digital Employees. Focus on companies with enterprise budgets and operational teams that could delegate work to digital employees.";
+  return "Найти российские B2B компании для NULLXES Digital Employees. Для каждой: подтвердить РФ, сектор, стаж на рынке, выручку (только из источников), реальный контакт decision-maker. Без подтверждённого контакта — компанию не включать. Подготовить план захода от digital employee.";
 }
 
 export function defaultProspectingGoal(): string {
-  return "Identify 10 qualified enterprise prospects and draft personalized outreach proposals.";
+  return "Квалифицировать российские enterprise-проспекты с подтверждёнными контактами и планом захода.";
 }
 
 export function defaultProspectingTitle(employeeName: string): string {
-  return `${employeeName} · B2B prospecting mission`;
+  return `${employeeName} · RU B2B prospecting`;
 }

@@ -255,6 +255,11 @@ function MissionFields({
   );
 }
 
+function defaultProspectingSkillIds(library: MissionSkillOption[]): string[] {
+  const ruSkill = library.find((skill) => skill.slug === "ru_market_qualification");
+  return ruSkill ? [ruSkill.id] : [];
+}
+
 export function CreateMissionForm({
   employees,
   skillLibrary,
@@ -270,7 +275,7 @@ export function CreateMissionForm({
       ? defaultProspectingTitle(employees[0].name)
       : "",
     goal: defaultProspectingGoal(),
-    skillIds: [],
+    skillIds: defaultProspectingSkillIds(skillLibrary),
     brief: defaultProspectingBrief(),
   }));
   const [error, setError] = useState<string | null>(null);

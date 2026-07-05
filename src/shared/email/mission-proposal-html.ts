@@ -85,6 +85,11 @@ export function buildMissionContactsDigestHtml(input: {
     contactSourceUrl?: string;
     verified: boolean;
     whyFit: string;
+    sector?: string;
+    marketTenureYears?: number | null;
+    foundedYear?: number | null;
+    estimatedRevenueRub?: string | null;
+    agentPlan?: string;
   }>;
 }): string {
   const title =
@@ -113,11 +118,31 @@ export function buildMissionContactsDigestHtml(input: {
         .filter(Boolean)
         .join(" · ");
 
+      const metaLine = [
+        lead.sector ? `Сектор: ${lead.sector}` : null,
+        lead.marketTenureYears != null
+          ? `Стаж: ${lead.marketTenureYears} лет`
+          : lead.foundedYear != null
+            ? `Осн.: ${lead.foundedYear}`
+            : null,
+        lead.estimatedRevenueRub
+          ? `Выручка: ${lead.estimatedRevenueRub}`
+          : null,
+      ]
+        .filter(Boolean)
+        .join(" · ");
+
+      const planBlock = lead.agentPlan
+        ? `<p style="margin:8px 0 0;font-size:12px;line-height:18px;color:#333333;"><strong>${input.language === "ru" ? "План:" : "Plan:"}</strong> ${escapeHtml(lead.agentPlan)}</p>`
+        : "";
+
       return `<tr>
         <td style="padding:12px 0;border-bottom:1px solid #eeeeee;vertical-align:top;">
           <p style="margin:0;font-size:14px;font-weight:600;color:#000000;">${escapeHtml(lead.companyName)}</p>
           <p style="margin:4px 0 0;font-size:13px;line-height:20px;color:#444444;">${escapeHtml(contactLine || "—")}</p>
+          ${metaLine ? `<p style="margin:6px 0 0;font-size:12px;line-height:18px;color:#666666;">${escapeHtml(metaLine)}</p>` : ""}
           <p style="margin:6px 0 0;font-size:12px;line-height:18px;color:#666666;">${escapeHtml(lead.whyFit)}</p>
+          ${planBlock}
         </td>
         <td style="padding:12px 0 12px 16px;border-bottom:1px solid #eeeeee;vertical-align:top;white-space:nowrap;font-size:12px;color:#666666;">${status}</td>
       </tr>`;

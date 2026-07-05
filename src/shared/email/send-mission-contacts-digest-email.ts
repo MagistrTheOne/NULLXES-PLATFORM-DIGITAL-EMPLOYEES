@@ -41,6 +41,11 @@ export async function sendMissionContactsDigestEmail(input: {
       contactSourceUrl: lead.contactSourceUrl,
       verified: isVerifiedLeadContact(lead, input.research),
       whyFit: lead.whyFit,
+      sector: lead.sector,
+      marketTenureYears: lead.marketTenureYears,
+      foundedYear: lead.foundedYear,
+      estimatedRevenueRub: lead.estimatedRevenueRub,
+      agentPlan: lead.agentPlan,
     })),
   });
 
