@@ -9,6 +9,8 @@ import {
   linkScenarioTalkSession,
 } from "@/features/scenarios/services/scenario-session";
 import { createAnamTalkSessionTokenForEmployee } from "../services/create-anam-talk-session";
+import type { TalkApiErrorCode } from "../lib/talk-api-errors";
+import { EmployeeSessionLimitError } from "../lib/employee-session-limit";
 import { resolveTalkVoiceMode } from "../services/resolve-talk-voice-mode";
 import { getEmployeeTalkContext } from "../services/get-employee-talk-context";
 import { measureTalkPerf } from "../lib/talk-perf-log";
@@ -161,7 +163,7 @@ export type StartTalkSessionResult =
       sessionToken: string;
       voiceMode: "elevenlabs" | "anam";
     }
-  | { ok: false; message: string };
+  | { ok: false; message: string; code?: TalkApiErrorCode };
 
 export async function startTalkSessionAction(
   employeeId: string,
@@ -200,7 +202,11 @@ export async function startTalkSessionAction(
         );
 
         if (!anamToken.ok) {
-          return { ok: false, message: anamToken.message };
+          return {
+            ok: false,
+            message: anamToken.message,
+            code: anamToken.code ?? "PROVIDER_UNAVAILABLE",
+          };
         }
 
         return {
@@ -213,6 +219,10 @@ export async function startTalkSessionAction(
       { employeeId },
     );
   } catch (error: unknown) {
+    if (error instanceof EmployeeSessionLimitError) {
+      return { ok: false, message: error.message, code: error.code };
+    }
+
     return {
       ok: false,
       message: error instanceof Error ? error.message : "Access denied",

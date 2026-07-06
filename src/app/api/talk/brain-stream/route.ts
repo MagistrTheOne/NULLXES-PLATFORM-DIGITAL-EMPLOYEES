@@ -2,6 +2,7 @@ import * as Sentry from "@sentry/nextjs";
 import { NextResponse } from "next/server";
 import type { TalkPipelineMessage } from "@/features/runtime-session/actions/talk-voice-pipeline";
 import { assertBrainStreamRateLimit } from "@/features/runtime-session/lib/brain-stream-rate-limit";
+import { talkApiJsonResponse } from "@/features/runtime-session/lib/talk-api-errors";
 import { shouldDegradeTalkBrainTurn } from "@/features/runtime-session/lib/talk-sla";
 import { resolveTalkBrainTools } from "@/features/runtime-session/lib/resolve-talk-brain-tools";
 import { trimTalkHistory } from "@/features/runtime-session/lib/trim-talk-history";
@@ -68,7 +69,7 @@ async function handleBrainStreamPost(request: Request): Promise<Response> {
   });
 
   if (!rateLimit.ok) {
-    return NextResponse.json({ error: rateLimit.error }, { status: 429 });
+    return talkApiJsonResponse(rateLimit.code, rateLimit.error, 429);
   }
 
   const recentMessages = trimTalkHistory(messages);
@@ -92,7 +93,7 @@ async function handleBrainStreamPost(request: Request): Promise<Response> {
   ]);
 
   if (!regionCheck.allowed) {
-    return NextResponse.json({ error: regionCheck.message }, { status: 403 });
+    return talkApiJsonResponse("REGION_BLOCKED", regionCheck.message, 403);
   }
 
   const config = buildResult.config;
@@ -163,6 +164,7 @@ async function handleBrainStreamPost(request: Request): Promise<Response> {
         controller.enqueue(
           encoder.encode(
             `${JSON.stringify({
+              code: "PROVIDER_UNAVAILABLE",
               error: "Unable to generate a response. Please try again.",
             })}\n`,
           ),

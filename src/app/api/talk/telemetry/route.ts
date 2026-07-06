@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { assertBrainStreamRateLimit } from "@/features/runtime-session/lib/brain-stream-rate-limit";
+import { talkApiJsonResponse } from "@/features/runtime-session/lib/talk-api-errors";
 import {
   recordTalkSla,
   type TalkSlaSpan,
@@ -77,7 +78,7 @@ export async function POST(request: Request): Promise<Response> {
   });
 
   if (!rateLimit.ok) {
-    return NextResponse.json({ error: rateLimit.error }, { status: 429 });
+    return talkApiJsonResponse(rateLimit.code, rateLimit.error, 429);
   }
 
   const tags = {
