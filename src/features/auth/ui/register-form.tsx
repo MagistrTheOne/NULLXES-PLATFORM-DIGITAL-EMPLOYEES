@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,6 +23,7 @@ import { authClient } from "../client";
 import { provisionDefaultWorkspace } from "../services/provision-default-workspace";
 import { InviteAuthBanner } from "./invite-auth-banner";
 import { OAuthSignInButtons } from "./oauth-sign-in-buttons";
+import { AUTH_CARD_CLASS, AUTH_INPUT_CLASS } from "./auth-styles";
 
 export function RegisterForm({
   inviteToken,
@@ -32,6 +34,8 @@ export function RegisterForm({
   invite: OrganizationInvitePreview | null;
   oauthProviders: OAuthProviderId[];
 }) {
+  const t = useTranslations("auth.register");
+  const tFields = useTranslations("auth.fields");
   const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState(invite?.email ?? "");
@@ -39,16 +43,16 @@ export function RegisterForm({
   const [acceptedPersonalDataPolicy, setAcceptedPersonalDataPolicy] =
     useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [info, setInfo] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
+    setInfo(null);
 
     if (!acceptedPersonalDataPolicy) {
-      setError(
-        "Please confirm consent to personal data processing before creating an account.",
-      );
+      setError(t("consentRequired"));
       return;
     }
 
@@ -62,14 +66,14 @@ export function RegisterForm({
 
     if (signUpError) {
       setIsSubmitting(false);
-      setError(signUpError.message ?? "Unable to create account");
+      setError(signUpError.message ?? t("signUpFailed"));
       return;
     }
 
     const userId = data?.user?.id;
     if (!userId) {
       setIsSubmitting(false);
-      setError("Account was created without a user identifier");
+      setError(t("noUserId"));
       return;
     }
 
@@ -103,8 +107,16 @@ export function RegisterForm({
       const message =
         provisionError instanceof Error
           ? provisionError.message
-          : "Unable to provision workspace";
+          : t("provisionFailed");
       setError(message);
+      return;
+    }
+
+    setIsSubmitting(false);
+
+    if (!data.user.emailVerified) {
+      setInfo(t("checkEmail"));
+      router.push(`/login/verify-email?email=${encodeURIComponent(email.trim())}`);
       return;
     }
 
@@ -114,13 +126,8 @@ export function RegisterForm({
       rememberMe: true,
     });
 
-    setIsSubmitting(false);
-
     if (signInError) {
-      setError(
-        signInError.message ??
-          "Account created. Sign in with your credentials.",
-      );
+      setError(signInError.message ?? t("signUpFailed"));
       router.push(inviteToken ? `/login?invite=${inviteToken}` : "/login");
       return;
     }
@@ -130,15 +137,13 @@ export function RegisterForm({
   }
 
   return (
-    <Card className="w-full max-w-md border-white/10 bg-[#111111] text-white ring-white/10">
+    <Card className={AUTH_CARD_CLASS}>
       <CardHeader>
         <CardTitle className="text-xl font-medium tracking-tight">
-          Create account
+          {t("title")}
         </CardTitle>
         <CardDescription className="text-white/60">
-          {invite
-            ? "Accept your workspace invite."
-            : "Start operating digital employees at enterprise scale."}
+          {invite ? t("inviteDescription") : t("description")}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -151,7 +156,7 @@ export function RegisterForm({
         ) : null}
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
-            <Label htmlFor="name">Name</Label>
+            <Label htmlFor="name">{tFields("name")}</Label>
             <Input
               id="name"
               type="text"
@@ -159,11 +164,11 @@ export function RegisterForm({
               required
               value={name}
               onChange={(event) => setName(event.target.value)}
-              className="border-white/10 bg-black/40 text-white"
+              className={AUTH_INPUT_CLASS}
             />
           </div>
           <div className="flex flex-col gap-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">{tFields("email")}</Label>
             <Input
               id="email"
               type="email"
@@ -172,11 +177,11 @@ export function RegisterForm({
               readOnly={Boolean(invite)}
               value={email}
               onChange={(event) => setEmail(event.target.value)}
-              className="border-white/10 bg-black/40 text-white"
+              className={AUTH_INPUT_CLASS}
             />
           </div>
           <div className="flex flex-col gap-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">{tFields("password")}</Label>
             <Input
               id="password"
               type="password"
@@ -185,7 +190,7 @@ export function RegisterForm({
               minLength={8}
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              className="border-white/10 bg-black/40 text-white"
+              className={AUTH_INPUT_CLASS}
             />
           </div>
           <div className="flex items-start gap-3 rounded-lg border border-white/10 bg-black/30 p-3">
@@ -201,18 +206,24 @@ export function RegisterForm({
               htmlFor="personal-data-consent"
               className="text-sm leading-relaxed font-normal text-white/70"
             >
-              I agree to the processing of my personal data in accordance with
-              the{" "}
-              <Link
-                href="/docs/personal-data"
-                target="_blank"
-                className="text-white underline underline-offset-4"
-              >
-                NULLXES personal data policy (152-FZ)
-              </Link>
-              .
+              {t.rich("consent", {
+                policy: () => (
+                  <Link
+                    href="/docs/personal-data"
+                    target="_blank"
+                    className="text-white underline underline-offset-4"
+                  >
+                    {t("policyLink")}
+                  </Link>
+                ),
+              })}
             </Label>
           </div>
+          {info ? (
+            <p className="text-sm text-white/60" role="status">
+              {info}
+            </p>
+          ) : null}
           {error ? (
             <p className="text-sm text-white/80" role="alert">
               {error}
@@ -223,17 +234,17 @@ export function RegisterForm({
             disabled={isSubmitting || !acceptedPersonalDataPolicy}
             className="bg-white text-black hover:bg-white/90"
           >
-            {isSubmitting ? "Creating account..." : "Create account"}
+            {isSubmitting ? t("submitting") : t("submit")}
           </Button>
         </form>
         <OAuthSignInButtons providers={oauthProviders} inviteToken={inviteToken} />
         <p className="mt-6 text-sm text-white/60">
-          Already have an account?{" "}
+          {t("hasAccount")}{" "}
           <Link
             href={inviteToken ? `/login?invite=${inviteToken}` : "/login"}
             className="text-white hover:underline"
           >
-            Sign in
+            {t("signIn")}
           </Link>
         </p>
       </CardContent>

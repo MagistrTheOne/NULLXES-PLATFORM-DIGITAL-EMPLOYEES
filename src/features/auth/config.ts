@@ -1,6 +1,5 @@
 import type { BetterAuthOptions } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { emailOTP } from "better-auth/plugins";
 import { twoFactor } from "better-auth/plugins/two-factor";
 import { user } from "@/entities/user/schema";
 import {
@@ -8,11 +7,15 @@ import {
   getBetterAuthUrl,
   getVercelDeploymentUrl,
 } from "@/shared/config/env";
-import { sendVerificationOtpEmail } from "@/shared/email/send-verification-otp-email";
-import { sendPasswordResetEmail } from "@/shared/email/send-password-reset-email";
+import {
+  sendEmailVerificationEmail,
+  sendExistingUserSignUpEmail,
+  sendPasswordResetEmail,
+} from "@/shared/email/auth-transactional-email";
+import { resolveAuthEmailLocale } from "@/shared/email/resolve-auth-email-locale";
+import { isEmailDeliveryConfigured } from "@/shared/email/resend-client";
 import { db } from "@/shared/db/client";
 import { account, session, twoFactor as twoFactorTable, verification } from "./schema";
-import { isEmailOtpStepUpEnabled } from "./lib/email-otp-feature";
 import { buildOAuthSocialProviders } from "./lib/oauth-providers";
 
 export function createAuthConfig(): BetterAuthOptions {
@@ -22,7 +25,7 @@ export function createAuthConfig(): BetterAuthOptions {
     new Set([baseURL, deploymentUrl].filter(Boolean) as string[]),
   );
   const socialProviders = buildOAuthSocialProviders();
-  const emailOtpEnabled = isEmailOtpStepUpEnabled();
+  const requireEmailVerification = isEmailDeliveryConfigured();
 
   return {
     secret: getBetterAuthSecret(),
@@ -44,28 +47,31 @@ export function createAuthConfig(): BetterAuthOptions {
         twoFactor: twoFactorTable,
       },
     }),
-    emailAndPassword: {
-      enabled: true,
-      async sendResetPassword({ user, url }) {
-        void sendPasswordResetEmail({ email: user.email, url });
+    emailVerification: {
+      sendVerificationEmail: async ({ user, url }, request) => {
+        const locale = resolveAuthEmailLocale(request);
+        sendEmailVerificationEmail({ email: user.email, url, locale });
       },
     },
-    plugins: [
-      twoFactor(),
-      // Better Auth emailOTP — https://better-auth.com/docs/plugins/email-otp
-      // Environment-gated by EMAIL_OTP_STEP_UP_ENABLED.
-      ...(emailOtpEnabled
-        ? [
-            emailOTP({
-              expiresIn: 600,
-              storeOTP: "hashed",
-              async sendVerificationOTP({ email, otp, type }) {
-                sendVerificationOtpEmail({ email, otp, type });
-              },
-            }),
-          ]
-        : []),
-    ],
+    emailAndPassword: {
+      enabled: true,
+      requireEmailVerification,
+      revokeSessionsOnPasswordReset: true,
+      customSyntheticUser: ({ coreFields, additionalFields, id }) => ({
+        ...coreFields,
+        ...additionalFields,
+        id,
+      }),
+      async onExistingUserSignUp({ user }, request) {
+        const locale = resolveAuthEmailLocale(request);
+        sendExistingUserSignUpEmail({ email: user.email, locale });
+      },
+      async sendResetPassword({ user, url }, request) {
+        const locale = resolveAuthEmailLocale(request);
+        sendPasswordResetEmail({ email: user.email, url, locale });
+      },
+    },
+    plugins: [twoFactor()],
     user: {
       additionalFields: {
         status: {

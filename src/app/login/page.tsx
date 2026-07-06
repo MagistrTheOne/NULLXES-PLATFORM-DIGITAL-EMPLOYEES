@@ -2,14 +2,15 @@ import { redirect } from "next/navigation";
 import { getCurrentSession } from "@/features/auth/services/get-current-session";
 import { getEnabledOAuthProviders } from "@/features/auth/lib/oauth-providers";
 import { LoginForm } from "@/features/auth/ui/login-form";
+import { AuthPageShell } from "@/features/auth/ui/auth-page-shell";
 import { lookupOrganizationInviteByToken } from "@/features/team/services/lookup-organization-invite";
 
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ invite?: string }>;
+  searchParams: Promise<{ invite?: string; verified?: string; reset?: string }>;
 }) {
-  const { invite: inviteToken } = await searchParams;
+  const { invite: inviteToken, verified, reset } = await searchParams;
   const session = await getCurrentSession();
 
   if (session && inviteToken) {
@@ -25,17 +26,14 @@ export default async function LoginPage({
     : null;
 
   return (
-    <main className="flex min-h-full flex-1 items-center justify-center bg-black px-6 py-16">
-      <div className="w-full max-w-md">
-        <p className="mb-8 text-center text-xs tracking-[0.3em] text-white/50 uppercase">
-          NULLXES Digital Employees
-        </p>
-        <LoginForm
-          inviteToken={inviteToken ?? null}
-          invite={invite}
-          oauthProviders={getEnabledOAuthProviders()}
-        />
-      </div>
-    </main>
+    <AuthPageShell>
+      <LoginForm
+        inviteToken={inviteToken ?? null}
+        invite={invite}
+        oauthProviders={getEnabledOAuthProviders()}
+        verified={verified === "1"}
+        reset={reset === "1"}
+      />
+    </AuthPageShell>
   );
 }

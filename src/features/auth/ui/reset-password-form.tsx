@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,8 +15,17 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { authClient } from "../client";
+import { AUTH_CARD_CLASS, AUTH_INPUT_CLASS } from "./auth-styles";
 
-export function ResetPasswordForm({ token }: { token: string | null }) {
+export function ResetPasswordForm({
+  token,
+  invalidToken,
+}: {
+  token: string | null;
+  invalidToken?: boolean;
+}) {
+  const t = useTranslations("auth.resetPassword");
+  const tFields = useTranslations("auth.fields");
   const router = useRouter();
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -27,17 +37,17 @@ export function ResetPasswordForm({ token }: { token: string | null }) {
     setError(null);
 
     if (!token) {
-      setError("Reset link is invalid or expired. Request a new one.");
+      setError(t("invalidToken"));
       return;
     }
 
     if (password.length < 8) {
-      setError("Password must be at least 8 characters.");
+      setError(t("tooShort"));
       return;
     }
 
     if (password !== confirmPassword) {
-      setError("Passwords do not match.");
+      setError(t("mismatch"));
       return;
     }
 
@@ -50,32 +60,30 @@ export function ResetPasswordForm({ token }: { token: string | null }) {
       });
 
       if (resetError) {
-        setError(resetError.message ?? "Unable to reset password.");
+        setError(resetError.message ?? t("failed"));
         return;
       }
 
-      router.push("/login");
+      router.push("/login?reset=1");
       router.refresh();
     } catch (submitError: unknown) {
       const message =
-        submitError instanceof Error
-          ? submitError.message
-          : "Unable to reset password.";
+        submitError instanceof Error ? submitError.message : t("failed");
       setError(message);
     } finally {
       setIsSubmitting(false);
     }
   }
 
-  if (!token) {
+  if (!token || invalidToken) {
     return (
-      <Card className="w-full max-w-md border-white/10 bg-[#111111] text-white ring-white/10">
+      <Card className={AUTH_CARD_CLASS}>
         <CardHeader className="text-center">
           <CardTitle className="text-center text-xl font-medium tracking-tight">
-            Reset link invalid
+            {t("invalidTitle")}
           </CardTitle>
           <CardDescription className="text-center text-white/60">
-            This password reset link is missing or expired.
+            {t("invalidDescription")}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -83,7 +91,7 @@ export function ResetPasswordForm({ token }: { token: string | null }) {
             href="/login/forgot-password"
             className="inline-flex h-10 w-full items-center justify-center rounded-md bg-white text-sm font-medium text-black hover:bg-white/90"
           >
-            Request a new link
+            {t("requestNew")}
           </Link>
         </CardContent>
       </Card>
@@ -91,19 +99,19 @@ export function ResetPasswordForm({ token }: { token: string | null }) {
   }
 
   return (
-    <Card className="w-full max-w-md border-white/10 bg-[#111111] text-white ring-white/10">
+    <Card className={AUTH_CARD_CLASS}>
       <CardHeader className="text-center">
         <CardTitle className="text-center text-xl font-medium tracking-tight">
-          Choose a new password
+          {t("title")}
         </CardTitle>
         <CardDescription className="text-center text-white/60">
-          Set a new password for your NULLXES account.
+          {t("description")}
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
-            <Label htmlFor="new-password">New password</Label>
+            <Label htmlFor="new-password">{tFields("newPassword")}</Label>
             <Input
               id="new-password"
               type="password"
@@ -112,11 +120,11 @@ export function ResetPasswordForm({ token }: { token: string | null }) {
               minLength={8}
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              className="border-white/10 bg-black/40 text-white"
+              className={AUTH_INPUT_CLASS}
             />
           </div>
           <div className="flex flex-col gap-2">
-            <Label htmlFor="confirm-password">Confirm password</Label>
+            <Label htmlFor="confirm-password">{tFields("confirmPassword")}</Label>
             <Input
               id="confirm-password"
               type="password"
@@ -125,7 +133,7 @@ export function ResetPasswordForm({ token }: { token: string | null }) {
               minLength={8}
               value={confirmPassword}
               onChange={(event) => setConfirmPassword(event.target.value)}
-              className="border-white/10 bg-black/40 text-white"
+              className={AUTH_INPUT_CLASS}
             />
           </div>
           {error ? (
@@ -138,12 +146,12 @@ export function ResetPasswordForm({ token }: { token: string | null }) {
             disabled={isSubmitting}
             className="bg-white text-black hover:bg-white/90"
           >
-            {isSubmitting ? "Saving..." : "Update password"}
+            {isSubmitting ? t("submitting") : t("submit")}
           </Button>
         </form>
         <p className="mt-6 text-sm text-white/60">
           <Link href="/login" className="text-white hover:underline">
-            Back to sign in
+            {t("backToSignIn")}
           </Link>
         </p>
       </CardContent>

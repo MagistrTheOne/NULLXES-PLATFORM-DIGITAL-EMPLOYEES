@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { authClient } from "../client";
 import { ensureWorkspace } from "../services/ensure-workspace";
+import { AUTH_CARD_CLASS, AUTH_INPUT_CLASS } from "./auth-styles";
 
 type VerifyMode = "totp" | "backup";
 
@@ -72,7 +73,7 @@ export function Verify2faForm() {
   }
 
   return (
-    <Card className="w-full max-w-md border-white/10 bg-[#111111] text-white ring-white/10">
+    <Card className={AUTH_CARD_CLASS}>
       <CardHeader className="text-center">
         <CardTitle className="text-center text-xl font-medium tracking-tight">
           Two-factor verification
@@ -132,7 +133,7 @@ export function Verify2faForm() {
               maxLength={mode === "totp" ? 8 : 32}
               value={code}
               onChange={(event) => setCode(event.target.value)}
-              className="border-white/10 bg-black/40 text-white"
+              className={AUTH_INPUT_CLASS}
             />
           </div>
           {error ? (

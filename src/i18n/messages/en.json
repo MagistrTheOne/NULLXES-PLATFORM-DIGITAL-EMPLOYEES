@@ -44,6 +44,102 @@
       "workforce": "Manage and operate your digital workforce."
     }
   },
+  "auth": {
+    "brand": "NULLXES Digital Employees",
+    "fields": {
+      "email": "Email",
+      "password": "Password",
+      "name": "Name",
+      "newPassword": "New password",
+      "confirmPassword": "Confirm password",
+      "currentPassword": "Current password"
+    },
+    "login": {
+      "title": "Sign in",
+      "description": "Access your NULLXES digital workforce workspace.",
+      "inviteDescription": "Accept your workspace invite.",
+      "forgotPassword": "Forgot password?",
+      "submit": "Sign in",
+      "submitting": "Signing in...",
+      "noAccount": "No account?",
+      "createOne": "Create one",
+      "verifiedBanner": "Email verified. You can sign in now.",
+      "resetBanner": "Password updated. Sign in with your new password.",
+      "verifyRequired": "Verify your email before signing in. We sent you a new link.",
+      "signInFailed": "Unable to sign in"
+    },
+    "register": {
+      "title": "Create account",
+      "description": "Start operating digital employees at enterprise scale.",
+      "inviteDescription": "Accept your workspace invite.",
+      "consent": "I agree to the processing of my personal data in accordance with the <policy></policy>.",
+      "policyLink": "NULLXES personal data policy (152-FZ)",
+      "consentRequired": "Please confirm consent to personal data processing before creating an account.",
+      "submit": "Create account",
+      "submitting": "Creating account...",
+      "hasAccount": "Already have an account?",
+      "signIn": "Sign in",
+      "signUpFailed": "Unable to create account",
+      "noUserId": "Account was created without a user identifier",
+      "provisionFailed": "Unable to provision workspace",
+      "checkEmail": "Account created. Check your email to verify before signing in."
+    },
+    "forgotPassword": {
+      "title": "Reset password",
+      "description": "Enter your email and we will send a reset link.",
+      "submit": "Send reset link",
+      "submitting": "Sending...",
+      "sent": "If an account exists for this email, we sent a password reset link.",
+      "failed": "Unable to send reset email.",
+      "remembered": "Remembered your password?",
+      "backToSignIn": "Back to sign in"
+    },
+    "resetPassword": {
+      "title": "Choose a new password",
+      "description": "Set a new password for your NULLXES account.",
+      "invalidTitle": "Reset link invalid",
+      "invalidDescription": "This password reset link is missing or expired.",
+      "requestNew": "Request a new link",
+      "submit": "Update password",
+      "submitting": "Saving...",
+      "failed": "Unable to reset password.",
+      "tooShort": "Password must be at least 8 characters.",
+      "mismatch": "Passwords do not match.",
+      "invalidToken": "Reset link is invalid or expired. Request a new one.",
+      "backToSignIn": "Back to sign in"
+    },
+    "verifyEmail": {
+      "title": "Verify your email",
+      "description": "We sent a verification link to {email}. Open it to continue.",
+      "emailLabel": "Email",
+      "resend": "Resend verification email",
+      "resending": "Sending...",
+      "resent": "Verification email sent.",
+      "resendFailed": "Unable to send verification email.",
+      "backToSignIn": "Already verified?",
+      "signInLink": "Sign in"
+    },
+    "verify2fa": {
+      "title": "Two-factor authentication",
+      "description": "Enter the code from your authenticator app.",
+      "codeLabel": "Authentication code",
+      "submit": "Verify",
+      "submitting": "Verifying...",
+      "failed": "Invalid authentication code.",
+      "backToSignIn": "Back to sign in"
+    },
+    "verifyEmailOtp": {
+      "title": "Confirm your sign-in",
+      "description": "Enter the verification code sent to {email}.",
+      "codeLabel": "Verification code",
+      "submit": "Verify",
+      "submitting": "Verifying...",
+      "resend": "Resend code",
+      "resending": "Sending...",
+      "failed": "Invalid verification code.",
+      "resendFailed": "Unable to send code."
+    }
+  },
   "dashboard": {
     "title": "Dashboard",
     "kpi": {
@@ -976,6 +1072,17 @@
       "allowlistSaved": "IP allowlist saved.",
       "revokeKey": "Revoke",
       "keyRevoked": "API key revoked.",
+      "changePassword": "Change password",
+      "changePasswordDesc": "Update your account password. Other sessions can be signed out.",
+      "newPassword": "New password",
+      "confirmPassword": "Confirm password",
+      "changePasswordSubmit": "Update password",
+      "passwordChanged": "Password updated.",
+      "changePasswordFailed": "Unable to change password.",
+      "passwordMismatch": "New passwords do not match.",
+      "passwordTooShort": "Password must be at least 8 characters.",
+      "oauthOnlyAccount": "Password is managed by your social sign-in provider.",
+      "revokeOtherSessions": "Sign out other devices after password change",
       "scopeBundle": "Scope bundle",
       "apiDocsTitle": "Remote integration",
       "apiBaseUrl": "Base URL",

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,16 +20,23 @@ import type { OAuthProviderId } from "../lib/oauth-providers";
 import { authClient } from "../client";
 import { InviteAuthBanner } from "./invite-auth-banner";
 import { OAuthSignInButtons } from "./oauth-sign-in-buttons";
+import { AUTH_CARD_CLASS, AUTH_INPUT_CLASS } from "./auth-styles";
 
 export function LoginForm({
   inviteToken,
   invite,
   oauthProviders,
+  verified,
+  reset,
 }: {
   inviteToken: string | null;
   invite: OrganizationInvitePreview | null;
   oauthProviders: OAuthProviderId[];
+  verified?: boolean;
+  reset?: boolean;
 }) {
+  const t = useTranslations("auth.login");
+  const tFields = useTranslations("auth.fields");
   const router = useRouter();
   const [email, setEmail] = useState(invite?.email ?? "");
   const [password, setPassword] = useState("");
@@ -48,7 +56,11 @@ export function LoginForm({
       });
 
       if (signInError) {
-        setError(signInError.message ?? "Unable to sign in");
+        if (signInError.status === 403) {
+          router.push(`/login/verify-email?email=${encodeURIComponent(email.trim())}`);
+          return;
+        }
+        setError(signInError.message ?? t("signInFailed"));
         return;
       }
 
@@ -70,9 +82,7 @@ export function LoginForm({
       router.refresh();
     } catch (submitError: unknown) {
       const message =
-        submitError instanceof Error
-          ? submitError.message
-          : "Unable to sign in";
+        submitError instanceof Error ? submitError.message : t("signInFailed");
       setError(message);
     } finally {
       setIsSubmitting(false);
@@ -80,18 +90,26 @@ export function LoginForm({
   }
 
   return (
-    <Card className="w-full max-w-md border-white/10 bg-[#111111] text-white ring-white/10">
+    <Card className={AUTH_CARD_CLASS}>
       <CardHeader className="text-center">
         <CardTitle className="text-center text-xl font-medium tracking-tight">
-          Sign in
+          {t("title")}
         </CardTitle>
         <CardDescription className="text-center text-white/60">
-          {invite
-            ? "Accept your workspace invite."
-            : "Access your NULLXES digital workforce workspace."}
+          {invite ? t("inviteDescription") : t("description")}
         </CardDescription>
       </CardHeader>
       <CardContent>
+        {verified ? (
+          <p className="mb-4 text-sm text-white/70" role="status">
+            {t("verifiedBanner")}
+          </p>
+        ) : null}
+        {reset ? (
+          <p className="mb-4 text-sm text-white/70" role="status">
+            {t("resetBanner")}
+          </p>
+        ) : null}
         {invite ? (
           <InviteAuthBanner
             organizationName={invite.organizationName}
@@ -101,7 +119,7 @@ export function LoginForm({
         ) : null}
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">{tFields("email")}</Label>
             <Input
               id="email"
               type="email"
@@ -110,17 +128,17 @@ export function LoginForm({
               readOnly={Boolean(invite)}
               value={email}
               onChange={(event) => setEmail(event.target.value)}
-              className="border-white/10 bg-black/40 text-white"
+              className={AUTH_INPUT_CLASS}
             />
           </div>
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between gap-3">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">{tFields("password")}</Label>
               <Link
                 href="/login/forgot-password"
                 className="text-xs text-white/60 hover:text-white hover:underline"
               >
-                Forgot password?
+                {t("forgotPassword")}
               </Link>
             </div>
             <Input
@@ -130,7 +148,7 @@ export function LoginForm({
               required
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              className="border-white/10 bg-black/40 text-white"
+              className={AUTH_INPUT_CLASS}
             />
           </div>
           {error ? (
@@ -143,17 +161,17 @@ export function LoginForm({
             disabled={isSubmitting}
             className="bg-white text-black hover:bg-white/90"
           >
-            {isSubmitting ? "Signing in..." : "Sign in"}
+            {isSubmitting ? t("submitting") : t("submit")}
           </Button>
         </form>
         <OAuthSignInButtons providers={oauthProviders} inviteToken={inviteToken} />
         <p className="mt-6 text-sm text-white/60">
-          No account?{" "}
+          {t("noAccount")}{" "}
           <Link
             href={inviteToken ? `/register?invite=${inviteToken}` : "/register"}
             className="text-white hover:underline"
           >
-            Create one
+            {t("createOne")}
           </Link>
         </p>
       </CardContent>

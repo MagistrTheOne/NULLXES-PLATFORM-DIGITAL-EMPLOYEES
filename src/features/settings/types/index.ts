@@ -57,6 +57,7 @@ export type SecuritySnapshot = {
   authSessions: AuthSessionListItem[];
   apiKeysConfigured: boolean;
   twoFactorEnabled: boolean;
+  hasPasswordCredential: boolean;
   requireTwoFactorForAdmins: boolean;
   outboundWebhookUrl: string | null;
   outboundWebhookConfigured: boolean;

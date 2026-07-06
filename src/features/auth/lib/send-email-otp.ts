@@ -1,14 +1,16 @@
 import { isDevelopmentRuntime } from "@/shared/config/env";
-import { sendVerificationOtpEmailAwaited } from "@/shared/email/send-verification-otp-email";
+import { sendPostLoginOtpEmail } from "@/shared/email/auth-transactional-email";
+import { DEFAULT_LOCALE } from "@/i18n/config";
 
 export async function sendEmailOtpMessage(input: {
   email: string;
   code: string;
+  locale?: "en" | "ru";
 }): Promise<{ sent: boolean; error?: string }> {
-  const delivery = await sendVerificationOtpEmailAwaited({
+  const delivery = await sendPostLoginOtpEmail({
     email: input.email,
     otp: input.code,
-    type: "email-verification",
+    locale: input.locale ?? DEFAULT_LOCALE,
   });
 
   if (delivery.sent) {

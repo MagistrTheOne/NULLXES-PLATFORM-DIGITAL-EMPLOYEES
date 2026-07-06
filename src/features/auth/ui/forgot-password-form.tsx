@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,8 +14,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { authClient } from "../client";
+import { AUTH_CARD_CLASS, AUTH_INPUT_CLASS } from "./auth-styles";
 
 export function ForgotPasswordForm() {
+  const t = useTranslations("auth.forgotPassword");
+  const tFields = useTranslations("auth.fields");
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
@@ -34,18 +38,14 @@ export function ForgotPasswordForm() {
       });
 
       if (resetError) {
-        setError(resetError.message ?? "Unable to send reset email.");
+        setError(resetError.message ?? t("failed"));
         return;
       }
 
-      setInfo(
-        "If an account exists for this email, we sent a password reset link.",
-      );
+      setInfo(t("sent"));
     } catch (submitError: unknown) {
       const message =
-        submitError instanceof Error
-          ? submitError.message
-          : "Unable to send reset email.";
+        submitError instanceof Error ? submitError.message : t("failed");
       setError(message);
     } finally {
       setIsSubmitting(false);
@@ -53,19 +53,19 @@ export function ForgotPasswordForm() {
   }
 
   return (
-    <Card className="w-full max-w-md border-white/10 bg-[#111111] text-white ring-white/10">
+    <Card className={AUTH_CARD_CLASS}>
       <CardHeader className="text-center">
         <CardTitle className="text-center text-xl font-medium tracking-tight">
-          Reset password
+          {t("title")}
         </CardTitle>
         <CardDescription className="text-center text-white/60">
-          Enter your email and we will send a reset link.
+          {t("description")}
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
-            <Label htmlFor="forgot-email">Email</Label>
+            <Label htmlFor="forgot-email">{tFields("email")}</Label>
             <Input
               id="forgot-email"
               type="email"
@@ -73,7 +73,7 @@ export function ForgotPasswordForm() {
               required
               value={email}
               onChange={(event) => setEmail(event.target.value)}
-              className="border-white/10 bg-black/40 text-white"
+              className={AUTH_INPUT_CLASS}
             />
           </div>
           {info ? (
@@ -91,13 +91,13 @@ export function ForgotPasswordForm() {
             disabled={isSubmitting}
             className="bg-white text-black hover:bg-white/90"
           >
-            {isSubmitting ? "Sending..." : "Send reset link"}
+            {isSubmitting ? t("submitting") : t("submit")}
           </Button>
         </form>
         <p className="mt-6 text-sm text-white/60">
-          Remembered your password?{" "}
+          {t("remembered")}{" "}
           <Link href="/login" className="text-white hover:underline">
-            Back to sign in
+            {t("backToSignIn")}
           </Link>
         </p>
       </CardContent>

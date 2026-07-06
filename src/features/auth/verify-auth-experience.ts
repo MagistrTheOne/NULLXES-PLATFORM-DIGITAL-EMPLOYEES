@@ -4,11 +4,12 @@ import { user } from "@/entities/user/schema";
 import { resolveWorkspace } from "@/features/workspace";
 import { getBetterAuthUrl } from "@/shared/config/env";
 import { db } from "@/shared/db/client";
-import { account, session } from "./schema";
+import { account, session, verification } from "./schema";
 import { auth } from "./server";
 import { provisionDefaultWorkspace } from "./services/provision-default-workspace";
 
 const VERIFY_PASSWORD = "NullxesAuthExperience123!";
+const RESET_PASSWORD = "NullxesAuthReset456!";
 
 function extractCookieHeader(response: Response): string {
   const setCookies =
@@ -55,6 +56,33 @@ async function callAuthEndpoint(
       headers,
     }),
   );
+}
+
+async function ensureEmailVerified(email: string): Promise<void> {
+  await db
+    .update(user)
+    .set({ emailVerified: true })
+    .where(eq(user.email, email));
+}
+
+async function extractPasswordResetToken(userId: string): Promise<string> {
+  const rows = await db
+    .select({
+      identifier: verification.identifier,
+      value: verification.value,
+    })
+    .from(verification);
+
+  const resetRow = rows.find(
+    (row) =>
+      row.identifier.startsWith("reset-password:") && row.value === userId,
+  );
+
+  if (!resetRow) {
+    throw new Error("Password reset token not found in verification table");
+  }
+
+  return resetRow.identifier.replace("reset-password:", "");
 }
 
 async function verifyAuthExperience(): Promise<void> {
@@ -109,6 +137,9 @@ async function verifyAuthExperience(): Promise<void> {
   }
   console.log("Register: workspace provisioned");
 
+  await ensureEmailVerified(email);
+  console.log("Email verification: satisfied for integration test");
+
   const signInResponse = await callAuthEndpoint("/api/auth/sign-in/email", {
     method: "POST",
     body: JSON.stringify({
@@ -159,21 +190,77 @@ async function verifyAuthExperience(): Promise<void> {
   }
   console.log("Workspace: resolved after login");
 
-  const protectedRouteResponse = await callAuthEndpoint(
-    "/api/auth/get-session",
-    { method: "GET" },
-    sessionCookie,
+  const resetRequestResponse = await callAuthEndpoint(
+    "/api/auth/request-password-reset",
+    {
+      method: "POST",
+      body: JSON.stringify({
+        email,
+        redirectTo: `${getBetterAuthUrl()}/login/reset-password`,
+      }),
+    },
   );
 
-  if (!protectedRouteResponse.ok) {
-    throw new Error("Protected route session check failed");
+  if (!resetRequestResponse.ok) {
+    const body = await resetRequestResponse.text();
+    throw new Error(`Password reset request failed (${resetRequestResponse.status}): ${body}`);
   }
-  console.log("Protected route: session access verified");
+  console.log("Password reset: link requested");
+
+  const resetToken = await extractPasswordResetToken(createdUser.id);
+
+  const resetResponse = await callAuthEndpoint("/api/auth/reset-password", {
+    method: "POST",
+    body: JSON.stringify({
+      newPassword: RESET_PASSWORD,
+      token: resetToken,
+    }),
+  });
+
+  if (!resetResponse.ok) {
+    const body = await resetResponse.text();
+    throw new Error(`Password reset failed (${resetResponse.status}): ${body}`);
+  }
+  console.log("Password reset: password updated");
+
+  const signInAfterReset = await callAuthEndpoint("/api/auth/sign-in/email", {
+    method: "POST",
+    body: JSON.stringify({
+      email,
+      password: RESET_PASSWORD,
+      rememberMe: true,
+    }),
+  });
+
+  if (!signInAfterReset.ok) {
+    const body = await signInAfterReset.text();
+    throw new Error(`Login after reset failed (${signInAfterReset.status}): ${body}`);
+  }
+  console.log("Password reset: login with new password verified");
+
+  const changePasswordResponse = await callAuthEndpoint(
+    "/api/auth/change-password",
+    {
+      method: "POST",
+      body: JSON.stringify({
+        currentPassword: RESET_PASSWORD,
+        newPassword: VERIFY_PASSWORD,
+        revokeOtherSessions: false,
+      }),
+    },
+    extractCookieHeader(signInAfterReset),
+  );
+
+  if (!changePasswordResponse.ok) {
+    const body = await changePasswordResponse.text();
+    throw new Error(`Change password failed (${changePasswordResponse.status}): ${body}`);
+  }
+  console.log("Change password: verified");
 
   const signOutResponse = await callAuthEndpoint(
     "/api/auth/sign-out",
     { method: "POST" },
-    sessionCookie,
+    extractCookieHeader(signInAfterReset),
   );
 
   if (!signOutResponse.ok) {
@@ -185,7 +272,7 @@ async function verifyAuthExperience(): Promise<void> {
   const sessionAfterResponse = await callAuthEndpoint(
     "/api/auth/get-session",
     { method: "GET" },
-    sessionCookie,
+    extractCookieHeader(signInAfterReset),
   );
 
   const sessionAfterPayload = (await sessionAfterResponse.json()) as {

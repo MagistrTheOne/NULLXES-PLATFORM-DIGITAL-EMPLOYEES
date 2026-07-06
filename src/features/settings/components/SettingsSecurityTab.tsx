@@ -67,6 +67,40 @@ export function SettingsSecurityTab({
   const [apiIpAllowlist, setApiIpAllowlist] = useState(
     security.apiIpAllowlist ?? "",
   );
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [revokeOtherSessions, setRevokeOtherSessions] = useState(true);
+
+  function handleChangePassword(): void {
+    if (newPassword.length < 8) {
+      setMessage(t("passwordTooShort"));
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setMessage(t("passwordMismatch"));
+      return;
+    }
+
+    startTransition(async () => {
+      const result = await authClient.changePassword({
+        currentPassword,
+        newPassword,
+        revokeOtherSessions,
+      });
+
+      if (result.error) {
+        setMessage(result.error.message ?? t("changePasswordFailed"));
+        return;
+      }
+
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      setMessage(t("passwordChanged"));
+    });
+  }
 
   function handleCreateKey(): void {
     startTransition(async () => {
@@ -217,6 +251,73 @@ export function SettingsSecurityTab({
             sessions={security.authSessions}
             currentSessionId={security.currentSessionId}
           />
+
+          {security.hasPasswordCredential ? (
+            <div className="grid gap-3 rounded-xl border border-border bg-background/40 p-4">
+              <div>
+                <p className="text-sm font-medium text-foreground">
+                  {t("changePassword")}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {t("changePasswordDesc")}
+                </p>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="current-password">{t("passwordLabel")}</Label>
+                <Input
+                  id="current-password"
+                  type="password"
+                  autoComplete="current-password"
+                  value={currentPassword}
+                  onChange={(event) => setCurrentPassword(event.target.value)}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="new-password">{t("newPassword")}</Label>
+                <Input
+                  id="new-password"
+                  type="password"
+                  autoComplete="new-password"
+                  value={newPassword}
+                  onChange={(event) => setNewPassword(event.target.value)}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="confirm-new-password">{t("confirmPassword")}</Label>
+                <Input
+                  id="confirm-new-password"
+                  type="password"
+                  autoComplete="new-password"
+                  value={confirmPassword}
+                  onChange={(event) => setConfirmPassword(event.target.value)}
+                />
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <Label htmlFor="revoke-other-sessions" className="text-sm font-normal">
+                  {t("revokeOtherSessions")}
+                </Label>
+                <Switch
+                  id="revoke-other-sessions"
+                  checked={revokeOtherSessions}
+                  onCheckedChange={setRevokeOtherSessions}
+                />
+              </div>
+              <Button
+                type="button"
+                disabled={
+                  isPending ||
+                  !currentPassword.trim() ||
+                  !newPassword.trim() ||
+                  !confirmPassword.trim()
+                }
+                onClick={handleChangePassword}
+              >
+                {t("changePasswordSubmit")}
+              </Button>
+            </div>
+          ) : (
+            <p className="text-xs text-muted-foreground">{t("oauthOnlyAccount")}</p>
+          )}
 
           {!security.twoFactorEnabled && !twoFactorSetup ? (
             <Button
