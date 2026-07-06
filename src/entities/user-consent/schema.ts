@@ -4,6 +4,7 @@ import { user } from "@/entities/user/schema";
 
 export const userConsentTypeEnum = pgEnum("user_consent_type", [
   "personal_data_processing",
+  "terms_of_service",
 ]);
 
 /** Immutable consent journal (152-FZ). Inserts only — no updates. */

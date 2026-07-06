@@ -1,7 +1,8 @@
-import { and, count, desc, eq, inArray } from "drizzle-orm";
+import { and, count, desc, eq, inArray, sql } from "drizzle-orm";
 import { digitalEmployee } from "@/entities/digital-employee/schema";
 import { employeeSession } from "@/entities/session/schema";
 import { db } from "@/shared/db/client";
+import { dbWithTransactions } from "@/shared/db/pool-client";
 import { applySessionDurationLimit } from "./enforce-session-limit";
 import { getEmployeeSessionLimitSeconds } from "./get-employee-session-limit";
 import {
@@ -86,53 +87,78 @@ export async function startEmployeeSession(input: {
     return open?.id ?? null;
   };
 
+  const findOpenSessionInTx = async (
+    tx: Parameters<Parameters<typeof dbWithTransactions.transaction>[0]>[0],
+  ): Promise<string | null> => {
+    const [open] = await tx
+      .select({ id: employeeSession.id })
+      .from(employeeSession)
+      .where(
+        and(
+          eq(employeeSession.employeeId, input.employeeId),
+          eq(employeeSession.userId, input.userId),
+          inArray(employeeSession.status, ["created", "active"]),
+        ),
+      )
+      .orderBy(desc(employeeSession.createdAt))
+      .limit(1);
+    return open?.id ?? null;
+  };
+
   // Fast path: reuse an already-open session.
   const existingOpenId = await findOpenSession();
   if (existingOpenId) {
     return existingOpenId;
   }
 
-  const [openCountRow] = await db
-    .select({ total: count() })
-    .from(employeeSession)
-    .where(
-      and(
-        eq(employeeSession.userId, input.userId),
-        inArray(employeeSession.status, ["created", "active"]),
-      ),
+  return dbWithTransactions.transaction(async (tx) => {
+    await tx.execute(
+      sql`SELECT pg_advisory_xact_lock(hashtext(${input.userId}))`,
     );
 
-  if (Number(openCountRow?.total ?? 0) >= MAX_OPEN_SESSIONS_PER_USER) {
-    throw new EmployeeSessionLimitError();
-  }
+    const openForEmployee = await findOpenSessionInTx(tx);
+    if (openForEmployee) {
+      return openForEmployee;
+    }
 
-  // Atomic create.
-  // reuse check above is a check-then-act race: two concurrent starts can both
-  // see no open session. The partial unique index
-  // (employee_session_open_unique on employee_id+user_id where status in
-  // created/active) makes only one INSERT win; the loser gets no row back and
-  // reuses the winner's session below.
-  const [created] = await db
-    .insert(employeeSession)
-    .values({
-      employeeId: input.employeeId,
-      userId: input.userId,
-      status: "created",
-    })
-    .onConflictDoNothing()
-    .returning({ id: employeeSession.id });
+    const [openCountRow] = await tx
+      .select({ total: count() })
+      .from(employeeSession)
+      .where(
+        and(
+          eq(employeeSession.userId, input.userId),
+          inArray(employeeSession.status, ["created", "active"]),
+        ),
+      );
 
-  if (created) {
-    return created.id;
-  }
+    if (Number(openCountRow?.total ?? 0) >= MAX_OPEN_SESSIONS_PER_USER) {
+      throw new EmployeeSessionLimitError();
+    }
 
-  // Lost the race: a concurrent request created the open session first.
-  const raceWinnerId = await findOpenSession();
-  if (raceWinnerId) {
-    return raceWinnerId;
-  }
+    // Partial unique index (employee_id+user_id where open) makes same-employee
+    // races safe via ON CONFLICT DO NOTHING; the advisory lock above serializes
+    // the cross-employee open-session cap per user.
+    const [created] = await tx
+      .insert(employeeSession)
+      .values({
+        employeeId: input.employeeId,
+        userId: input.userId,
+        status: "created",
+      })
+      .onConflictDoNothing()
+      .returning({ id: employeeSession.id });
 
-  throw new Error("Failed to create employee session");
+    if (created) {
+      return created.id;
+    }
+
+    const raceWinnerId = await findOpenSessionInTx(tx);
+    if (raceWinnerId) {
+      return raceWinnerId;
+    }
+
+    throw new Error("Failed to create employee session");
+  });
 }
 
 export async function activateEmployeeSession(input: {

@@ -14,16 +14,20 @@ import {
   PERSONAL_DATA_POLICY_URL,
   PERSONAL_DATA_POLICY_VERSION,
 } from "../lib/personal-data-policy";
-import { recordUserConsent } from "../services/record-user-consent";
+import { recordUserConsents } from "../services/record-user-consent";
 
 export async function recordPersonalDataConsentAction(input: {
   userId: string;
   organizationId?: string | null;
+  acceptedTermsOfService?: boolean;
 }): Promise<{ ok: true } | { ok: false; message: string }> {
   try {
-    await recordUserConsent({
+    await recordUserConsents({
       userId: input.userId,
       organizationId: input.organizationId,
+      consentTypes: input.acceptedTermsOfService
+        ? ["personal_data_processing", "terms_of_service"]
+        : ["personal_data_processing"],
     });
     return { ok: true };
   } catch (error: unknown) {

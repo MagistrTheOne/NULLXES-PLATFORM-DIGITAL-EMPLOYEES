@@ -42,6 +42,7 @@ export function RegisterForm({
   const [password, setPassword] = useState("");
   const [acceptedPersonalDataPolicy, setAcceptedPersonalDataPolicy] =
     useState(false);
+  const [acceptedTermsOfService, setAcceptedTermsOfService] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -53,6 +54,11 @@ export function RegisterForm({
 
     if (!acceptedPersonalDataPolicy) {
       setError(t("consentRequired"));
+      return;
+    }
+
+    if (!acceptedTermsOfService) {
+      setError(t("termsRequired"));
       return;
     }
 
@@ -96,6 +102,7 @@ export function RegisterForm({
       const consent = await recordPersonalDataConsentAction({
         userId,
         organizationId,
+        acceptedTermsOfService: true,
       });
       if (!consent.ok) {
         throw new Error(consent.message);
@@ -217,6 +224,32 @@ export function RegisterForm({
               })}
             </Label>
           </div>
+          <div className="flex items-start gap-3 rounded-lg border border-white/10 bg-black/30 p-3">
+            <Checkbox
+              id="terms-of-service"
+              checked={acceptedTermsOfService}
+              onCheckedChange={(checked) =>
+                setAcceptedTermsOfService(checked === true)
+              }
+              className="mt-0.5 border-white/20 data-[state=checked]:border-white data-[state=checked]:bg-white data-[state=checked]:text-black"
+            />
+            <Label
+              htmlFor="terms-of-service"
+              className="text-sm leading-relaxed font-normal text-white/70"
+            >
+              {t.rich("termsConsent", {
+                terms: () => (
+                  <Link
+                    href="/docs/terms"
+                    target="_blank"
+                    className="text-white underline underline-offset-4"
+                  >
+                    {t("termsLink")}
+                  </Link>
+                ),
+              })}
+            </Label>
+          </div>
           {info ? (
             <p className="text-sm text-white/60" role="status">
               {info}
@@ -229,7 +262,11 @@ export function RegisterForm({
           ) : null}
           <Button
             type="submit"
-            disabled={isSubmitting || !acceptedPersonalDataPolicy}
+            disabled={
+              isSubmitting ||
+              !acceptedPersonalDataPolicy ||
+              !acceptedTermsOfService
+            }
             className="bg-white text-black hover:bg-white/90"
           >
             {isSubmitting ? t("submitting") : t("submit")}

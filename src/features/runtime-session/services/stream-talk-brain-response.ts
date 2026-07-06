@@ -467,36 +467,40 @@ async function collectStructuredTalkBrainResponse(input: {
   if (!response.ok) {
     const detail = await readBrainError(response);
     const fallback = getBrainFailoverProvider(api.provider);
-    if (fallback) {
-      logServerEvent("talk.brain.failover", {
-        from: api.provider,
-        to: fallback,
-        phase: "structured",
-        status: response.status,
-      });
-      api = await resolveBrainApiConfig({
-        provider: fallback,
-        configuredModel: input.model,
-      });
-      response = await callBrainChat({
-        api,
-        messages: conversation,
-        temperature: input.temperature,
-        maxTokens: input.maxTokens,
-        stream: false,
-        responseFormat:
-          input.responseFormat && api.provider !== "nullxes"
-            ? input.responseFormat
-            : undefined,
-      });
+    if (!fallback) {
+      throw new Error(
+        `Brain request failed with status ${response.status}: ${detail}`,
+      );
     }
-  }
 
-  if (!response.ok) {
-    const detail = await readBrainError(response);
-    throw new Error(
-      `Brain request failed with status ${response.status}: ${detail}`,
-    );
+    logServerEvent("talk.brain.failover", {
+      from: api.provider,
+      to: fallback,
+      phase: "structured",
+      status: response.status,
+    });
+    api = await resolveBrainApiConfig({
+      provider: fallback,
+      configuredModel: input.model,
+    });
+    response = await callBrainChat({
+      api,
+      messages: conversation,
+      temperature: input.temperature,
+      maxTokens: input.maxTokens,
+      stream: false,
+      responseFormat:
+        input.responseFormat && api.provider !== "nullxes"
+          ? input.responseFormat
+          : undefined,
+    });
+
+    if (!response.ok) {
+      const fallbackDetail = await readBrainError(response);
+      throw new Error(
+        `Brain request failed with status ${response.status}: ${fallbackDetail}`,
+      );
+    }
   }
 
   const payload = (await response.json()) as {

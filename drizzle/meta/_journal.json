@@ -232,6 +232,13 @@
       "when": 1783600000000,
       "tag": "0032_talk_session_turn_metrics",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1783700000000,
+      "tag": "0033_terms_of_service_consent",
+      "breakpoints": true
     }
   ]
 }

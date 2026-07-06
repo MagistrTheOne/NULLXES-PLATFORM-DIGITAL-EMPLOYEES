@@ -4,8 +4,9 @@
  * On serverless every instance has its own memory, so a Map-based limiter
  * multiplies the effective limit by the number of warm instances. When Redis
  * is linked via the Vercel ↔ Upstash integration, counters are shared across
- * instances. Without it we fall back to the in-memory window, and on Redis
- * errors we fail open: rate limiting must never take the endpoint down.
+ * instances. Without Redis we fall back to the in-memory window (dev / solo).
+ * In production with linked Redis, a missing client or failed increment
+ * fails closed so limits are not silently bypassed via per-instance memory.
  */
 
 import { getRedisRestClient, isRedisRestLinked } from "@/shared/config/redis-rest";
@@ -71,7 +72,7 @@ function incrementInMemory(bucketKey: string, windowMs: number): number {
   return existing.count;
 }
 
-function shouldFailClosedWithoutRedis(): boolean {
+function mustDenyWhenRedisUnavailable(): boolean {
   return process.env.NODE_ENV === "production" && isRedisRestLinked();
 }
 
@@ -80,17 +81,17 @@ export async function checkRateLimit(
 ): Promise<RateLimitResult> {
   const windowStart = Math.floor(Date.now() / input.windowMs);
   const bucketKey = `rl:${input.name}:${input.key}:${windowStart}`;
+  const denyWithoutWorkingRedis = mustDenyWhenRedisUnavailable();
 
-  if (getRedisRestClient()) {
+  const redis = getRedisRestClient();
+  if (redis) {
     const count = await incrementInRedis(bucketKey, input.windowMs);
     if (count !== null) {
       return count <= input.limit ? { ok: true } : { ok: false };
     }
+  }
 
-    if (shouldFailClosedWithoutRedis()) {
-      return { ok: false };
-    }
-  } else if (shouldFailClosedWithoutRedis()) {
+  if (denyWithoutWorkingRedis) {
     return { ok: false };
   }
 

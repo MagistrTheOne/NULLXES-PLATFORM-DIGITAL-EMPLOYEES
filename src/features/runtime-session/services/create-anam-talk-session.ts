@@ -102,7 +102,7 @@ export async function createAnamTalkSessionTokenForEmployee(
   });
 
   let lastMessage = "Anam session token failed";
-  let sawQuotaError = false;
+  let lastFailureWasQuota = false;
 
   for (const entry of keyPool) {
     const response = await fetch(`${getAnamApiBaseUrl()}/auth/session-token`, {
@@ -137,7 +137,7 @@ export async function createAnamTalkSessionTokenForEmployee(
     lastMessage = `Anam session token failed (${response.status}): ${detail}`;
 
     if (isAnamAvatarQuotaError(response.status, detail)) {
-      sawQuotaError = true;
+      lastFailureWasQuota = true;
       continue;
     }
 
@@ -146,7 +146,7 @@ export async function createAnamTalkSessionTokenForEmployee(
 
   return {
     ok: false,
-    code: sawQuotaError ? "PROVIDER_QUOTA" : undefined,
+    code: lastFailureWasQuota ? "PROVIDER_QUOTA" : undefined,
     message: lastMessage,
   };
 }

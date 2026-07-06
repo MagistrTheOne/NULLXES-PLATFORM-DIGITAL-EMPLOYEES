@@ -89,6 +89,17 @@ export const DOCS_NAV: DocsNavGroup[] = [
           { id: "rights", label: "Права субъектов" },
         ],
       },
+      {
+        href: "/docs/terms",
+        label: "Пользовательское соглашение",
+        breadcrumb: "Пользовательское соглашение",
+        toc: [
+          { id: "operator", label: "Правообладатель" },
+          { id: "scope", label: "Предмет и доступ" },
+          { id: "obligations", label: "Обязанности" },
+          { id: "liability", label: "Ответственность" },
+        ],
+      },
     ],
   },
   {
