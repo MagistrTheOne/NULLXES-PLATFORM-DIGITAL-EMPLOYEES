@@ -40,6 +40,7 @@ export function proxy(request: NextRequest) {
   const nonce = generateNonce();
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-nonce", nonce);
+  requestHeaders.set("x-pathname", pathname);
   requestHeaders.set(
     "Content-Security-Policy",
     buildContentSecurityPolicy(nonce),

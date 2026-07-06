@@ -78,6 +78,24 @@ const COPY = {
       `.trim(),
     }),
   },
+  twoFactorOtp: {
+    en: (otp: string): EmailCopy => ({
+      subject: "Your NULLXES two-factor code",
+      html: `
+        <p>Your two-factor verification code is:</p>
+        <p style="font-size:24px;font-weight:600;letter-spacing:0.2em;">${otp}</p>
+        <p>This code expires in a few minutes. If you did not request it, ignore this email.</p>
+      `.trim(),
+    }),
+    ru: (otp: string): EmailCopy => ({
+      subject: "Код двухфакторной аутентификации NULLXES",
+      html: `
+        <p>Ваш код двухфакторной аутентификации:</p>
+        <p style="font-size:24px;font-weight:600;letter-spacing:0.2em;">${otp}</p>
+        <p>Код действует несколько минут. Если вы не запрашивали его, проигнорируйте письмо.</p>
+      `.trim(),
+    }),
+  },
 } as const;
 
 type SendResult = { sent: boolean; error?: string };
@@ -118,13 +136,13 @@ async function sendAuthEmail(input: {
   }
 }
 
-export function sendEmailVerificationEmail(input: {
+export async function sendEmailVerificationEmail(input: {
   email: string;
   url: string;
   locale: AppLocale;
-}): void {
+}): Promise<SendResult> {
   const copy = COPY.verifyEmail[input.locale](input.url);
-  void sendAuthEmail({
+  return sendAuthEmail({
     email: input.email,
     copy,
     logTag: "email-verification",
@@ -166,5 +184,18 @@ export async function sendPostLoginOtpEmail(input: {
     email: input.email,
     copy,
     logTag: "post-login-otp",
+  });
+}
+
+export async function sendTwoFactorOtpEmail(input: {
+  email: string;
+  otp: string;
+  locale: AppLocale;
+}): Promise<SendResult> {
+  const copy = COPY.twoFactorOtp[input.locale](input.otp);
+  return sendAuthEmail({
+    email: input.email,
+    copy,
+    logTag: "two-factor-otp",
   });
 }

@@ -29,10 +29,12 @@ export function RegisterForm({
   inviteToken,
   invite,
   oauthProviders,
+  requireEmailVerification,
 }: {
   inviteToken: string | null;
   invite: OrganizationInvitePreview | null;
   oauthProviders: OAuthProviderId[];
+  requireEmailVerification: boolean;
 }) {
   const t = useTranslations("auth.register");
   const tFields = useTranslations("auth.fields");
@@ -108,7 +110,7 @@ export function RegisterForm({
         throw new Error(consent.message);
       }
 
-      if (!data.user.emailVerified) {
+      if (requireEmailVerification && !data.user.emailVerified) {
         setInfo(t("checkEmail"));
         router.push(
           `/login/verify-email?email=${encodeURIComponent(email.trim())}`,

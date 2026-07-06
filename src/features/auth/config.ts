@@ -11,11 +11,13 @@ import {
   sendEmailVerificationEmail,
   sendExistingUserSignUpEmail,
   sendPasswordResetEmail,
+  sendTwoFactorOtpEmail,
 } from "@/shared/email/auth-transactional-email";
 import { resolveAuthEmailLocale } from "@/shared/email/resolve-auth-email-locale";
 import { db } from "@/shared/db/client";
 import { account, session, twoFactor as twoFactorTable, verification } from "./schema";
 import { buildOAuthSocialProviders } from "./lib/oauth-providers";
+import { isRequireEmailVerificationEnabled } from "./lib/require-email-verification";
 
 export function createAuthConfig(): BetterAuthOptions {
   const baseURL = getBetterAuthUrl();
@@ -24,12 +26,12 @@ export function createAuthConfig(): BetterAuthOptions {
     new Set([baseURL, deploymentUrl].filter(Boolean) as string[]),
   );
   const socialProviders = buildOAuthSocialProviders();
-  const requireEmailVerification =
-    process.env.REQUIRE_EMAIL_VERIFICATION?.trim().toLowerCase() === "true";
+  const requireEmailVerification = isRequireEmailVerificationEnabled();
 
   return {
     secret: getBetterAuthSecret(),
     baseURL,
+    appName: "NULLXES",
     trustedOrigins,
     advanced: {
       ipAddress: {
@@ -50,7 +52,7 @@ export function createAuthConfig(): BetterAuthOptions {
     emailVerification: {
       sendVerificationEmail: async ({ user, url }, request) => {
         const locale = resolveAuthEmailLocale(request);
-        sendEmailVerificationEmail({ email: user.email, url, locale });
+        await sendEmailVerificationEmail({ email: user.email, url, locale });
       },
     },
     emailAndPassword: {
@@ -71,7 +73,21 @@ export function createAuthConfig(): BetterAuthOptions {
         sendPasswordResetEmail({ email: user.email, url, locale });
       },
     },
-    plugins: [twoFactor()],
+    plugins: [
+      twoFactor({
+        issuer: "NULLXES",
+        otpOptions: {
+          async sendOTP({ user, otp }, ctx) {
+            const locale = resolveAuthEmailLocale(ctx?.request);
+            await sendTwoFactorOtpEmail({
+              email: user.email,
+              otp,
+              locale,
+            });
+          },
+        },
+      }),
+    ],
     user: {
       additionalFields: {
         status: {

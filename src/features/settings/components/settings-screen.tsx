@@ -52,13 +52,28 @@ export function SettingsScreen({
   const t = useTranslations("settings");
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [activeTab, setActiveTab] = useState<SettingsTabId>(() =>
-    resolveSettingsTab(searchParams.get("tab")),
-  );
+  const require2faAdmin = searchParams.get("require2fa") === "1";
+  const [activeTab, setActiveTab] = useState<SettingsTabId>(() => {
+    const tab = searchParams.get("tab");
+    if (require2faAdmin) {
+      return "security";
+    }
+    return resolveSettingsTab(tab);
+  });
 
   useEffect(() => {
+    if (require2faAdmin) {
+      if (activeTab !== "security") {
+        setActiveTab("security");
+      }
+      if (searchParams.get("tab") !== "security") {
+        router.replace("/settings?tab=security&require2fa=1");
+      }
+      return;
+    }
+
     setActiveTab(resolveSettingsTab(searchParams.get("tab")));
-  }, [searchParams]);
+  }, [searchParams, require2faAdmin, activeTab, router]);
 
   return (
     <div className="flex w-full flex-col gap-6">
@@ -147,6 +162,7 @@ export function SettingsScreen({
                 security={data.security}
                 pendingApprovals={data.pendingApprovals}
                 canManageOrganization={data.canManageOrganization}
+                require2faAdmin={require2faAdmin}
               />
             </TabsContent>
 

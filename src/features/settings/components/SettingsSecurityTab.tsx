@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { authClient } from "@/features/auth/client";
+import { TotpQrCode } from "@/features/auth/ui/totp-qr-code";
 import { createApiKeyAction } from "@/features/security/actions/create-api-key";
 import type { ApiScopeBundleId } from "@/features/public-api/lib/api-scopes";
 import { API_SCOPE_BUNDLES } from "@/features/public-api/lib/api-scopes";
@@ -38,10 +39,12 @@ export function SettingsSecurityTab({
   security,
   pendingApprovals,
   canManageOrganization,
+  require2faAdmin = false,
 }: {
   security: SecuritySnapshot;
   pendingApprovals: PendingApprovalRow[];
   canManageOrganization: boolean;
+  require2faAdmin?: boolean;
 }) {
   const t = useTranslations("settings.security");
   const [keyName, setKeyName] = useState("Production API");
@@ -237,6 +240,14 @@ export function SettingsSecurityTab({
   return (
     <div className="grid gap-6">
       <SettingsCard title={t("authentication")} description={t("authenticationDesc")}>
+        {require2faAdmin && !security.twoFactorEnabled ? (
+          <div
+            className="mb-3 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-foreground"
+            role="status"
+          >
+            {t("require2faAdminBanner")}
+          </div>
+        ) : null}
         <div className="grid gap-3">
           <StatusRow
             label={t("twoFactor")}
@@ -378,6 +389,8 @@ export function SettingsSecurityTab({
 
           {twoFactorSetup ? (
             <div className="grid gap-3 rounded-xl border border-border bg-background/40 p-4">
+              <p className="text-xs text-muted-foreground">{t("scanTotp")}</p>
+              <TotpQrCode uri={twoFactorSetup.totpURI} />
               <p className="text-xs text-muted-foreground">{t("totpUriLabel")}</p>
               <p className="break-all font-mono text-xs text-foreground">
                 {twoFactorSetup.totpURI}

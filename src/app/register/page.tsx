@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getCurrentSession } from "@/features/auth/services/get-current-session";
 import { getEnabledOAuthProviders } from "@/features/auth/lib/oauth-providers";
+import { isRequireEmailVerificationEnabled } from "@/features/auth/lib/require-email-verification";
 import { RegisterForm } from "@/features/auth/ui/register-form";
 import { AuthPageShell } from "@/features/auth/ui/auth-page-shell";
 import { lookupOrganizationInviteByToken } from "@/features/team/services/lookup-organization-invite";
@@ -31,6 +32,7 @@ export default async function RegisterPage({
         inviteToken={inviteToken ?? null}
         invite={invite}
         oauthProviders={getEnabledOAuthProviders()}
+        requireEmailVerification={isRequireEmailVerificationEnabled()}
       />
     </AuthPageShell>
   );
