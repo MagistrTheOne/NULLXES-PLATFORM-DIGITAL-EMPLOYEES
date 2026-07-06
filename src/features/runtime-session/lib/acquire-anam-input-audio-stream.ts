@@ -1,5 +1,7 @@
 /**
- * Pre-acquire microphone for Anam Talk using SDK-recommended custom input stream.
+ * Single browser mic capture for the whole Talk session.
+ * Passed into Anam `streamToVideoElement(id, stream)` so the SDK does not
+ * call getUserMedia again (avoids duplicate tracks / permission races).
  * @see https://anam.ai/docs/javascript-sdk/reference/audio-control
  */
 export async function acquireAnamInputAudioStream(): Promise<MediaStream> {

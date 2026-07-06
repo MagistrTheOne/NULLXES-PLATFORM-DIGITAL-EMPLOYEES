@@ -72,6 +72,7 @@ export function attachTalkVoicePipeline(input: {
   let pendingMessage: Message | null = null;
   let pendingTelemetry: ReturnType<typeof createTalkTurnTelemetry> | null =
     null;
+  let activeBrainAbort: AbortController | null = null;
 
   const telemetryInput = (): TalkTurnTelemetryInput => ({
     employeeId: input.employeeId,
@@ -111,6 +112,8 @@ export function attachTalkVoicePipeline(input: {
     pendingTelemetry = null;
     telemetry.markBrainRequestStart();
     const turnId = telemetry.turnId;
+    const brainAbort = new AbortController();
+    activeBrainAbort = brainAbort;
 
     void (async () => {
       try {
@@ -138,6 +141,7 @@ export function attachTalkVoicePipeline(input: {
             turnId,
             scenarioSessionId: input.scenarioSessionId,
             messages: pipelineMessages,
+            signal: brainAbort.signal,
             onServerPerf: (payload) => {
               telemetry.mergeServerPerf(payload);
               if (payload.spans?.tool_loop) {
@@ -158,7 +162,10 @@ export function attachTalkVoicePipeline(input: {
             voiceMode: input.voiceMode,
           });
         } else {
-          const talkStream = input.anamClient.createTalkMessageStream();
+          // Custom LLM output → Anam TTS/face via TalkMessageStream (one stream per turn).
+          // Mic stays on the pre-acquired input MediaStream; talk only drives persona output.
+          // @see https://anam.ai/docs/javascript-sdk/reference/talk-commands
+          const talkStream = input.anamClient.createTalkMessageStream(turnId);
 
           replyText = await streamTalkBrainReply({
             employeeId: input.employeeId,
@@ -166,6 +173,7 @@ export function attachTalkVoicePipeline(input: {
             turnId,
             scenarioSessionId: input.scenarioSessionId,
             messages: pipelineMessages,
+            signal: brainAbort.signal,
             onServerPerf: (payload) => {
               telemetry.mergeServerPerf(payload);
               if (payload.spans?.tool_loop) {
@@ -201,7 +209,11 @@ export function attachTalkVoicePipeline(input: {
         }
         pipelineCoordinator.completeTalkTurn(turnKey, replyText);
         input.setPipelineState("idle");
-      } catch {
+      } catch (error: unknown) {
+        if (brainAbort.signal.aborted) {
+          coordinator.failTalkTurn();
+          return;
+        }
         pipelineCoordinator.failTalkTurn();
         const fallback =
           "Something went wrong while generating a response. Please try again.";
@@ -216,6 +228,9 @@ export function attachTalkVoicePipeline(input: {
         pipelineCoordinator.completeTalkTurn(turnKey, fallback);
         input.setPipelineState("idle");
       } finally {
+        if (activeBrainAbort === brainAbort) {
+          activeBrainAbort = null;
+        }
         processing = false;
       }
     })();
@@ -261,7 +276,9 @@ export function attachTalkVoicePipeline(input: {
     }, resolveUserMessageDebounceMs(pendingMessage.content ?? ""));
   };
 
-  const onInterrupted = () => {
+  const onInterrupted = (_correlationId?: string) => {
+    activeBrainAbort?.abort();
+    activeBrainAbort = null;
     processing = false;
     pendingTelemetry = null;
     coordinator.failTalkTurn();

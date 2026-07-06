@@ -16,8 +16,9 @@ function base64ToUint8Array(pcmBase64: string): Uint8Array {
 async function streamReplyWithAnamVoice(
   anamClient: AnamClient,
   replyText: string,
+  correlationId?: string,
 ): Promise<void> {
-  const talkStream = anamClient.createTalkMessageStream();
+  const talkStream = anamClient.createTalkMessageStream(correlationId);
   const words = replyText.split(/(\s+)/).filter((part) => part.length > 0);
 
   for (const part of words) {
