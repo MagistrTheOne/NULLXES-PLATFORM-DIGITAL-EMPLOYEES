@@ -7,8 +7,10 @@ import {
 } from "@/features/agent-tools";
 import type { BrainApiConfig } from "@/features/brain/lib/resolve-brain-api-config";
 import { resolveBrainApiConfig } from "@/features/brain/lib/resolve-brain-api-config";
+import { getBrainFailoverProvider } from "@/features/brain/lib/get-brain-failover-provider";
 import { formatBrainModelDisplay } from "@/features/brain/lib/format-brain-model-display";
 import { logTalkPerf } from "@/features/runtime-session/lib/talk-perf-log";
+import { logServerEvent } from "@/shared/lib/server-log";
 import type { BrainProvider } from "@/entities/digital-employee";
 import type { TalkBrainMessage } from "./generate-talk-brain-response";
 
@@ -197,21 +199,13 @@ export async function* streamTalkBrainResponse(input: {
   mode?: "talk" | "default";
   responseFormat?: { type: "json_object" };
 }): AsyncGenerator<TalkBrainStreamEvent> {
-  const api = await resolveBrainApiConfig({
-    provider: input.brainProvider,
-    configuredModel: input.model,
+  let api = await resolveTalkBrainApi({
+    brainProvider: input.brainProvider,
+    model: input.model,
     organizationId: input.toolContext?.organizationId,
   });
 
-  yield {
-    type: "meta",
-    brainProvider: api.provider,
-    model: api.model,
-    modelLabel: formatBrainModelDisplay({
-      provider: api.provider,
-      modelId: api.model,
-    }),
-  };
+  yield brainMetaEvent(api);
 
   const toolLoop = runToolLoopStream({ ...input, api });
   let toolStep = await toolLoop.next();
@@ -226,23 +220,25 @@ export async function* streamTalkBrainResponse(input: {
   let firstTokenLogged = false;
   let streamedContent = "";
 
-  const response = await callBrainChat({
+  const streamResult = await openBrainChatStream({
     api,
+    brainProvider: input.brainProvider,
+    model: input.model,
+    organizationId: input.toolContext?.organizationId,
     messages: conversation,
     temperature: input.temperature,
     maxTokens: input.maxTokens,
-    stream: true,
     responseFormat: input.responseFormat,
   });
 
-  if (!response.ok || !response.body) {
-    const detail = await readBrainError(response);
-    throw new Error(
-      `Brain stream failed with status ${response.status}: ${detail}`,
-    );
+  if (streamResult.api.provider !== api.provider) {
+    api = streamResult.api;
+    yield brainMetaEvent(api);
   }
 
-  const reader = response.body.getReader();
+  const response = streamResult.response;
+
+  const reader = response.body!.getReader();
   const decoder = new TextDecoder();
   let buffer = "";
 
@@ -313,6 +309,113 @@ export async function* streamTalkBrainResponse(input: {
   }
 }
 
+async function resolveTalkBrainApi(input: {
+  brainProvider: BrainProvider;
+  model: string;
+  organizationId?: string;
+}): Promise<BrainApiConfig> {
+  try {
+    return await resolveBrainApiConfig({
+      provider: input.brainProvider,
+      configuredModel: input.model,
+      organizationId: input.organizationId,
+    });
+  } catch (primaryError: unknown) {
+    const fallback = getBrainFailoverProvider(input.brainProvider);
+    if (!fallback) {
+      throw primaryError;
+    }
+
+    logServerEvent("talk.brain.failover", {
+      from: input.brainProvider,
+      to: fallback,
+      phase: "resolve",
+    });
+
+    return resolveBrainApiConfig({
+      provider: fallback,
+      configuredModel: input.model,
+      organizationId: input.organizationId,
+    });
+  }
+}
+
+function brainMetaEvent(api: BrainApiConfig): TalkBrainStreamEvent {
+  return {
+    type: "meta",
+    brainProvider: api.provider,
+    model: api.model,
+    modelLabel: formatBrainModelDisplay({
+      provider: api.provider,
+      modelId: api.model,
+    }),
+  };
+}
+
+async function openBrainChatStream(input: {
+  api: BrainApiConfig;
+  brainProvider: BrainProvider;
+  model: string;
+  organizationId?: string;
+  messages: OpenAiChatMessage[];
+  temperature?: number;
+  maxTokens?: number;
+  responseFormat?: { type: "json_object" };
+}): Promise<{ api: BrainApiConfig; response: Response }> {
+  let api = input.api;
+  let response = await callBrainChat({
+    api,
+    messages: input.messages,
+    temperature: input.temperature,
+    maxTokens: input.maxTokens,
+    stream: true,
+    responseFormat: input.responseFormat,
+  });
+
+  if (response.ok && response.body) {
+    return { api, response };
+  }
+
+  const detail = await readBrainError(response);
+  const fallback = getBrainFailoverProvider(api.provider);
+  if (!fallback) {
+    throw new Error(
+      `Brain stream failed with status ${response.status}: ${detail}`,
+    );
+  }
+
+  logServerEvent("talk.brain.failover", {
+    from: api.provider,
+    to: fallback,
+    phase: "stream",
+    status: response.status,
+  });
+
+  api = await resolveBrainApiConfig({
+    provider: fallback,
+    configuredModel: input.model,
+    organizationId: input.organizationId,
+  });
+
+  response = await callBrainChat({
+    api,
+    messages: input.messages,
+    temperature: input.temperature,
+    maxTokens: input.maxTokens,
+    stream: true,
+    responseFormat: input.responseFormat,
+  });
+
+  if (!response.ok || !response.body) {
+    const fallbackDetail = await readBrainError(response);
+    throw new Error(
+      `Brain stream failed with status ${response.status}: ${fallbackDetail}`,
+    );
+  }
+
+  return { api, response };
+}
+
 async function readBrainError(response: Response): Promise<string> {
   try {
     const text = await response.text();
@@ -331,9 +434,9 @@ async function collectStructuredTalkBrainResponse(input: {
   maxTokens?: number;
   responseFormat?: { type: "json_object" };
 }): Promise<string> {
-  const api = await resolveBrainApiConfig({
-    provider: input.brainProvider,
-    configuredModel: input.model,
+  let api = await resolveTalkBrainApi({
+    brainProvider: input.brainProvider,
+    model: input.model,
   });
 
   const conversation: OpenAiChatMessage[] = [
@@ -352,7 +455,7 @@ async function collectStructuredTalkBrainResponse(input: {
       ? input.responseFormat
       : undefined;
 
-  const response = await callBrainChat({
+  let response = await callBrainChat({
     api,
     messages: conversation,
     temperature: input.temperature,
@@ -360,6 +463,34 @@ async function collectStructuredTalkBrainResponse(input: {
     stream: false,
     responseFormat,
   });
+
+  if (!response.ok) {
+    const detail = await readBrainError(response);
+    const fallback = getBrainFailoverProvider(api.provider);
+    if (fallback) {
+      logServerEvent("talk.brain.failover", {
+        from: api.provider,
+        to: fallback,
+        phase: "structured",
+        status: response.status,
+      });
+      api = await resolveBrainApiConfig({
+        provider: fallback,
+        configuredModel: input.model,
+      });
+      response = await callBrainChat({
+        api,
+        messages: conversation,
+        temperature: input.temperature,
+        maxTokens: input.maxTokens,
+        stream: false,
+        responseFormat:
+          input.responseFormat && api.provider !== "nullxes"
+            ? input.responseFormat
+            : undefined,
+      });
+    }
+  }
 
   if (!response.ok) {
     const detail = await readBrainError(response);
