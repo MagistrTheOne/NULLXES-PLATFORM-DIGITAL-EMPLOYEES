@@ -1,9 +1,13 @@
-import { and, desc, eq, inArray } from "drizzle-orm";
+import { and, count, desc, eq, inArray } from "drizzle-orm";
 import { digitalEmployee } from "@/entities/digital-employee/schema";
 import { employeeSession } from "@/entities/session/schema";
 import { db } from "@/shared/db/client";
 import { applySessionDurationLimit } from "./enforce-session-limit";
 import { getEmployeeSessionLimitSeconds } from "./get-employee-session-limit";
+import {
+  EmployeeSessionLimitError,
+  MAX_OPEN_SESSIONS_PER_USER,
+} from "../lib/employee-session-limit";
 
 function assertValidSatisfactionRating(rating: number): void {
   if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
@@ -88,7 +92,21 @@ export async function startEmployeeSession(input: {
     return existingOpenId;
   }
 
-  // Atomic create. The neon-http driver has no interactive transactions, so the
+  const [openCountRow] = await db
+    .select({ total: count() })
+    .from(employeeSession)
+    .where(
+      and(
+        eq(employeeSession.userId, input.userId),
+        inArray(employeeSession.status, ["created", "active"]),
+      ),
+    );
+
+  if (Number(openCountRow?.total ?? 0) >= MAX_OPEN_SESSIONS_PER_USER) {
+    throw new EmployeeSessionLimitError();
+  }
+
+  // Atomic create.
   // reuse check above is a check-then-act race: two concurrent starts can both
   // see no open session. The partial unique index
   // (employee_session_open_unique on employee_id+user_id where status in
