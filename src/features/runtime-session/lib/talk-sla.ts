@@ -39,6 +39,29 @@ export function getTalkSlaMode(): TalkSlaMode {
   return process.env.NODE_ENV === "production" ? "observe" : "off";
 }
 
+/** In enforce mode, skip tools when build or RAG already breached SLA on this turn. */
+export function shouldDegradeTalkBrainTurn(perf: {
+  buildMs: number;
+  ragMs: number | null;
+}): boolean {
+  if (getTalkSlaMode() !== "enforce") {
+    return false;
+  }
+
+  if (perf.buildMs >= TALK_SLA_THRESHOLDS["talk.brain.build"].breachMs) {
+    return true;
+  }
+
+  if (
+    perf.ragMs !== null &&
+    perf.ragMs >= TALK_SLA_THRESHOLDS["talk.brain.rag"].breachMs
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
 export type TalkSlaSeverity = "ok" | "warn" | "breach";
 
 export function classifyTalkSla(

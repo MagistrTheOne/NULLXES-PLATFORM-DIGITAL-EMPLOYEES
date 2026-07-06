@@ -13,6 +13,7 @@ export type TalkTurnFlags = {
   cacheHit?: boolean;
   ragUsed?: boolean;
   toolsUsed?: boolean;
+  slaDegrade?: boolean;
 };
 
 export type TalkSessionMetricsSnapshot = {

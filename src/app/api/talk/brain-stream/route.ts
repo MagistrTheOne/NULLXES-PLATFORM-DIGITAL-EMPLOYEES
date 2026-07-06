@@ -2,6 +2,7 @@ import * as Sentry from "@sentry/nextjs";
 import { NextResponse } from "next/server";
 import type { TalkPipelineMessage } from "@/features/runtime-session/actions/talk-voice-pipeline";
 import { assertBrainStreamRateLimit } from "@/features/runtime-session/lib/brain-stream-rate-limit";
+import { shouldDegradeTalkBrainTurn } from "@/features/runtime-session/lib/talk-sla";
 import { resolveTalkBrainTools } from "@/features/runtime-session/lib/resolve-talk-brain-tools";
 import { trimTalkHistory } from "@/features/runtime-session/lib/trim-talk-history";
 import { buildTalkBrainRequest } from "@/features/runtime-session/services/build-talk-brain-request";
@@ -101,10 +102,15 @@ async function handleBrainStreamPost(request: Request): Promise<Response> {
 
   const encoder = new TextEncoder();
 
-  const talkTools = resolveTalkBrainTools(
-    lastMessage.content,
-    config.enabledToolSlugs,
-  );
+  const slaDegrade = shouldDegradeTalkBrainTurn(buildResult.perf);
+
+  const talkTools =
+    slaDegrade
+      ? null
+      : resolveTalkBrainTools(
+          lastMessage.content,
+          config.enabledToolSlugs,
+        );
   const toolContext = talkTools
     ? {
         organizationId: authResult.auth.organizationId,
@@ -127,7 +133,7 @@ async function handleBrainStreamPost(request: Request): Promise<Response> {
                   ? { rag: buildResult.perf.ragMs }
                   : {}),
               },
-              flags: buildResult.flags,
+              flags: { ...buildResult.flags, slaDegrade },
             })}\n`,
           ),
         );
