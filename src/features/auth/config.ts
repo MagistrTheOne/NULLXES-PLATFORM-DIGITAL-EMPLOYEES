@@ -13,7 +13,6 @@ import {
   sendPasswordResetEmail,
 } from "@/shared/email/auth-transactional-email";
 import { resolveAuthEmailLocale } from "@/shared/email/resolve-auth-email-locale";
-import { isEmailDeliveryConfigured } from "@/shared/email/resend-client";
 import { db } from "@/shared/db/client";
 import { account, session, twoFactor as twoFactorTable, verification } from "./schema";
 import { buildOAuthSocialProviders } from "./lib/oauth-providers";
@@ -25,7 +24,8 @@ export function createAuthConfig(): BetterAuthOptions {
     new Set([baseURL, deploymentUrl].filter(Boolean) as string[]),
   );
   const socialProviders = buildOAuthSocialProviders();
-  const requireEmailVerification = isEmailDeliveryConfigured();
+  const requireEmailVerification =
+    process.env.REQUIRE_EMAIL_VERIFICATION?.trim().toLowerCase() === "true";
 
   return {
     secret: getBetterAuthSecret(),
