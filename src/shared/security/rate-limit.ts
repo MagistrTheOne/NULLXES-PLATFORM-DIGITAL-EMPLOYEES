@@ -8,7 +8,7 @@
  * errors we fail open: rate limiting must never take the endpoint down.
  */
 
-import { getRedisRestClient } from "@/shared/config/redis-rest";
+import { getRedisRestClient, isRedisRestLinked } from "@/shared/config/redis-rest";
 
 type RateLimitInput = {
   /** Logical bucket name, e.g. "brain-stream". */
@@ -71,6 +71,10 @@ function incrementInMemory(bucketKey: string, windowMs: number): number {
   return existing.count;
 }
 
+function shouldFailClosedWithoutRedis(): boolean {
+  return process.env.NODE_ENV === "production" && isRedisRestLinked();
+}
+
 export async function checkRateLimit(
   input: RateLimitInput,
 ): Promise<RateLimitResult> {
@@ -82,7 +86,12 @@ export async function checkRateLimit(
     if (count !== null) {
       return count <= input.limit ? { ok: true } : { ok: false };
     }
-    // Redis unreachable: fall through to the local window (fail open-ish).
+
+    if (shouldFailClosedWithoutRedis()) {
+      return { ok: false };
+    }
+  } else if (shouldFailClosedWithoutRedis()) {
+    return { ok: false };
   }
 
   const count = incrementInMemory(bucketKey, input.windowMs);
