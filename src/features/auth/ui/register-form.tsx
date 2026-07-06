@@ -58,28 +58,26 @@ export function RegisterForm({
 
     setIsSubmitting(true);
 
-    const { data, error: signUpError } = await authClient.signUp.email({
-      name,
-      email,
-      password,
-    });
-
-    if (signUpError) {
-      setIsSubmitting(false);
-      setError(signUpError.message ?? t("signUpFailed"));
-      return;
-    }
-
-    const userId = data?.user?.id;
-    if (!userId) {
-      setIsSubmitting(false);
-      setError(t("noUserId"));
-      return;
-    }
-
-    let organizationId: string | null = null;
-
     try {
+      const { data, error: signUpError } = await authClient.signUp.email({
+        name,
+        email,
+        password,
+      });
+
+      if (signUpError) {
+        setError(signUpError.message ?? t("signUpFailed"));
+        return;
+      }
+
+      const userId = data?.user?.id;
+      if (!userId) {
+        setError(t("noUserId"));
+        return;
+      }
+
+      let organizationId: string | null = null;
+
       if (inviteToken) {
         const accepted = await acceptInviteForNewUserAction({
           token: inviteToken,
@@ -102,38 +100,38 @@ export function RegisterForm({
       if (!consent.ok) {
         throw new Error(consent.message);
       }
+
+      if (!data.user.emailVerified) {
+        setInfo(t("checkEmail"));
+        router.push(
+          `/login/verify-email?email=${encodeURIComponent(email.trim())}`,
+        );
+        return;
+      }
+
+      const { error: signInError } = await authClient.signIn.email({
+        email,
+        password,
+        rememberMe: true,
+      });
+
+      if (signInError) {
+        setError(signInError.message ?? t("signUpFailed"));
+        router.push(inviteToken ? `/login?invite=${inviteToken}` : "/login");
+        return;
+      }
+
+      router.push("/dashboard");
+      router.refresh();
     } catch (provisionError: unknown) {
-      setIsSubmitting(false);
       const message =
         provisionError instanceof Error
           ? provisionError.message
           : t("provisionFailed");
       setError(message);
-      return;
+    } finally {
+      setIsSubmitting(false);
     }
-
-    setIsSubmitting(false);
-
-    if (!data.user.emailVerified) {
-      setInfo(t("checkEmail"));
-      router.push(`/login/verify-email?email=${encodeURIComponent(email.trim())}`);
-      return;
-    }
-
-    const { error: signInError } = await authClient.signIn.email({
-      email,
-      password,
-      rememberMe: true,
-    });
-
-    if (signInError) {
-      setError(signInError.message ?? t("signUpFailed"));
-      router.push(inviteToken ? `/login?invite=${inviteToken}` : "/login");
-      return;
-    }
-
-    router.push("/dashboard");
-    router.refresh();
   }
 
   return (
