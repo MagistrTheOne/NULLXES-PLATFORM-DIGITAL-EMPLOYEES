@@ -165,7 +165,7 @@ export async function EmployeeOverviewTab({
               <ol className="relative border-s border-white/10 ps-6">
                 {snapshot.recentLifecycle.map((item, index) => (
                   <li key={item.id} className={index > 0 ? "mt-5" : ""}>
-                    <span className="absolute -start-1.5 mt-1.5 size-3 rounded-full border border-white/20 bg-[#111111]" />
+                    <span className="absolute -inset-s-1.5 mt-1.5 size-3 rounded-full border border-white/20 bg-[#111111]" />
                     <p className="text-sm font-medium capitalize text-white">
                       {tLifecycle(`events.${item.eventType}`)}
                     </p>

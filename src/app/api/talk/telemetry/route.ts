@@ -4,17 +4,25 @@ import {
   recordTalkSla,
   type TalkSlaSpan,
 } from "@/features/runtime-session/lib/talk-sla";
+import { recordTalkSessionTurn } from "@/features/runtime-session/services/record-talk-session-turn";
 import { resolveTalkBrainAuth } from "@/features/runtime-session/services/resolve-talk-brain-auth";
+import type {
+  TalkTurnFlags,
+  TalkTurnSpanKey,
+  TalkTurnSpans,
+} from "@/features/runtime-session/types/talk-turn-metrics";
 import { getDeploymentRegion } from "@/shared/config/deployment-profile";
 
 export const runtime = "nodejs";
 
-type TalkTurnSpanName = "debounce" | "brain_rtt" | "e2e";
-
-const CLIENT_SPAN_MAP: Record<TalkTurnSpanName, TalkSlaSpan> = {
+const SPAN_SLA_MAP: Partial<Record<TalkTurnSpanKey, TalkSlaSpan>> = {
   debounce: "talk.turn.debounce",
   brain_rtt: "talk.turn.brain_rtt",
   e2e: "talk.turn.e2e",
+  build: "talk.brain.build",
+  rag: "talk.brain.rag",
+  ttfb: "talk.brain.ttfb",
+  tool_loop: "talk.brain.tool_loop",
 };
 
 type TalkTelemetryRequest = {
@@ -23,7 +31,8 @@ type TalkTelemetryRequest = {
   sessionId?: string;
   voiceMode?: string;
   scenarioSessionId?: string;
-  spans?: Partial<Record<TalkTurnSpanName, number>>;
+  spans?: Partial<Record<TalkTurnSpanKey, number>>;
+  flags?: TalkTurnFlags;
 };
 
 function isValidSpanDuration(value: unknown): value is number {
@@ -40,6 +49,7 @@ export async function POST(request: Request): Promise<Response> {
 
   const employeeId = body.employeeId?.trim();
   const sessionId = body.sessionId?.trim();
+  const turnId = body.turnId?.trim();
   const spans = body.spans;
 
   if (!employeeId || !spans || typeof spans !== "object") {
@@ -72,24 +82,40 @@ export async function POST(request: Request): Promise<Response> {
 
   const tags = {
     employeeId,
-    turnId: body.turnId,
+    turnId,
     voiceMode: body.voiceMode,
     hasScenario: Boolean(body.scenarioSessionId),
     deploymentRegion: getDeploymentRegion(),
   };
 
+  const normalizedSpans: TalkTurnSpans = {};
   for (const [name, durationMs] of Object.entries(spans) as Array<
-    [TalkTurnSpanName, unknown]
+    [TalkTurnSpanKey, unknown]
   >) {
-    const slaSpan = CLIENT_SPAN_MAP[name];
-    if (!slaSpan || !isValidSpanDuration(durationMs)) {
+    if (!isValidSpanDuration(durationMs)) {
       continue;
     }
 
-    recordTalkSla({
-      span: slaSpan,
-      durationMs,
-      tags,
+    normalizedSpans[name] = Math.round(durationMs);
+
+    const slaSpan = SPAN_SLA_MAP[name];
+    if (slaSpan) {
+      recordTalkSla({
+        span: slaSpan,
+        durationMs: normalizedSpans[name]!,
+        tags,
+      });
+    }
+  }
+
+  if (sessionId && turnId && Object.keys(normalizedSpans).length > 0) {
+    await recordTalkSessionTurn({
+      sessionId,
+      employeeId,
+      turnId,
+      voiceMode: body.voiceMode,
+      spans: normalizedSpans,
+      flags: body.flags,
     });
   }
 

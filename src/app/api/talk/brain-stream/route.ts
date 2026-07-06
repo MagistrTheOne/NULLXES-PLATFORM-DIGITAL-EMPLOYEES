@@ -15,6 +15,7 @@ export const runtime = "nodejs";
 type BrainStreamRequest = {
   employeeId?: string;
   sessionId?: string;
+  turnId?: string;
   scenarioSessionId?: string;
   messages?: TalkPipelineMessage[];
 };
@@ -29,6 +30,7 @@ async function handleBrainStreamPost(request: Request): Promise<Response> {
 
   const employeeId = body.employeeId?.trim();
   const sessionId = body.sessionId?.trim();
+  const turnId = body.turnId?.trim();
   const scenarioSessionId = body.scenarioSessionId?.trim();
   const messages = body.messages;
 
@@ -68,7 +70,6 @@ async function handleBrainStreamPost(request: Request): Promise<Response> {
     return NextResponse.json({ error: rateLimit.error }, { status: 429 });
   }
 
-  // Old turns add prompt tokens without helping a live voice conversation.
   const recentMessages = trimTalkHistory(messages);
   const openAiMessages = recentMessages.map((message) => ({
     role: (message.role === "user" ? "user" : "assistant") as
@@ -77,13 +78,13 @@ async function handleBrainStreamPost(request: Request): Promise<Response> {
     content: message.content,
   }));
 
-  // Region check and brain request build are independent — run in parallel.
-  const [regionCheck, config] = await Promise.all([
+  const [regionCheck, buildResult] = await Promise.all([
     checkForeignDataProcessingAllowed(authResult.auth.organizationId, "openai"),
     buildTalkBrainRequest({
       organizationId: authResult.auth.organizationId,
       employeeId,
       userId: authResult.auth.userId,
+      sessionId: sessionId || undefined,
       scenarioSessionId: scenarioSessionId || undefined,
       messages: openAiMessages,
     }),
@@ -93,6 +94,7 @@ async function handleBrainStreamPost(request: Request): Promise<Response> {
     return NextResponse.json({ error: regionCheck.message }, { status: 403 });
   }
 
+  const config = buildResult.config;
   if (!config) {
     return NextResponse.json({ error: "Employee not found" }, { status: 404 });
   }
@@ -114,6 +116,22 @@ async function handleBrainStreamPost(request: Request): Promise<Response> {
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
       try {
+        controller.enqueue(
+          encoder.encode(
+            `${JSON.stringify({
+              type: "perf",
+              turnId: turnId ?? null,
+              spans: {
+                build: buildResult.perf.buildMs,
+                ...(buildResult.perf.ragMs !== null
+                  ? { rag: buildResult.perf.ragMs }
+                  : {}),
+              },
+              flags: buildResult.flags,
+            })}\n`,
+          ),
+        );
+
         for await (const event of streamTalkBrainResponse({
           brainProvider: config.brainProvider,
           model: config.model,

@@ -9,6 +9,7 @@ import { AvatarIdlePreview } from "@/features/employees/components/avatar-idle-p
 import { formatDurationSeconds } from "@/features/analytics/lib/format-duration";
 import { cn } from "@/lib/utils";
 import { useTalkAnam } from "../context/talk-anam-context";
+import { useTalkSessionMetrics } from "../lib/use-talk-session-metrics";
 import type { TalkAgentDetails } from "./talk-agent-details";
 import { TalkSessionControls } from "./talk-session-controls";
 
@@ -57,10 +58,14 @@ function CurrentActivityBlock({
   pipelineLabel,
   elapsed,
   isLive,
+  lastE2eMs,
+  turnCount,
 }: {
   pipelineLabel: string;
   elapsed: number;
   isLive: boolean;
+  lastE2eMs: number | null;
+  turnCount: number;
 }) {
   const t = useTranslations("employees.talk.agentPanel");
   const progress = isLive ? Math.min(100, (elapsed % 120) / 1.2) : 0;
@@ -87,6 +92,11 @@ function CurrentActivityBlock({
             </span>
           ) : null}
         </div>
+        {isLive && lastE2eMs !== null ? (
+          <p className="mt-2 text-[10px] text-white/45">
+            {t("lastTurnLatency", { ms: lastE2eMs, count: turnCount })}
+          </p>
+        ) : null}
         {isLive ? (
           <div className="mt-2.5 h-1 overflow-hidden rounded-full bg-white/8">
             <div
@@ -103,6 +113,7 @@ function CurrentActivityBlock({
 export function TalkInspectorPanel({
   details,
   departmentLabel,
+  sessionId,
   onEndSession,
   onFocusMode,
   focusMode,
@@ -110,6 +121,7 @@ export function TalkInspectorPanel({
 }: {
   details: TalkAgentDetails;
   departmentLabel: string | null;
+  sessionId?: string | null;
   onEndSession: () => void;
   onFocusMode: () => void;
   focusMode: boolean;
@@ -118,6 +130,7 @@ export function TalkInspectorPanel({
   const t = useTranslations("employees.talk");
   const tPanel = useTranslations("employees.talk.agentPanel");
   const { isLive, pipelineState } = useTalkAnam();
+  const sessionMetrics = useTalkSessionMetrics(sessionId ?? null, isLive);
   const [elapsed, setElapsed] = useState(0);
   const [activeTab, setActiveTab] = useState("details");
   const [timezoneLabel, setTimezoneLabel] = useState("UTC");
@@ -230,6 +243,8 @@ export function TalkInspectorPanel({
               pipelineLabel={pipelineLabel}
               elapsed={elapsed}
               isLive={isLive}
+              lastE2eMs={sessionMetrics?.lastTurn?.e2eMs ?? null}
+              turnCount={sessionMetrics?.turnCount ?? 0}
             />
 
             <div className="flex flex-col gap-2">

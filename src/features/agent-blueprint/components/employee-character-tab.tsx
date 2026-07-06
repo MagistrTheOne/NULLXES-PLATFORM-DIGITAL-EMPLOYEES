@@ -92,7 +92,7 @@ export function EmployeeCharacterTab({
                   )}
                 >
                   {selected ? (
-                    <span className="absolute end-3 top-3 inline-flex size-6 items-center justify-center rounded-full bg-white text-black">
+                    <span className="absolute inset-e-3 top-3 inline-flex size-6 items-center justify-center rounded-full bg-white text-black">
                       <Check className="size-3.5" />
                     </span>
                   ) : null}

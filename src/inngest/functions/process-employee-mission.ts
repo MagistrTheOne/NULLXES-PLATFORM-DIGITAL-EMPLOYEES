@@ -53,7 +53,7 @@ async function generateProspectingLeads(input: {
   const schemaHint = leadSchemaHintForProfile(input.profile);
   const extractionRules = buildLeadExtractionRules(input.language, input.profile);
 
-  const brainRequest = await buildTalkBrainRequest({
+  const brainBuild = await buildTalkBrainRequest({
     organizationId: input.organizationId,
     employeeId: input.employeeId,
     messages: [
@@ -73,9 +73,11 @@ async function generateProspectingLeads(input: {
     ],
   });
 
-  if (!brainRequest) {
+  if (!brainBuild.config) {
     throw new Error("Employee runtime not configured for mission processing");
   }
+
+  const brainRequest = brainBuild.config;
 
   const raw = await collectTalkBrainResponse({
     brainProvider: brainRequest.brainProvider,

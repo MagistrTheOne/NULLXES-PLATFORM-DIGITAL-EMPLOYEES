@@ -24,6 +24,8 @@ import * as employeeHandoffRelations from "@/entities/employee-handoff/relations
 import * as employeeHandoffSchema from "@/entities/employee-handoff/schema";
 import * as sessionMessageRelations from "@/entities/session-message/relations";
 import * as sessionMessageSchema from "@/entities/session-message/schema";
+import * as sessionTurnRelations from "@/entities/session-turn/relations";
+import * as sessionTurnSchema from "@/entities/session-turn/schema";
 import * as taskRelations from "@/entities/task/relations";
 import * as taskSchema from "@/entities/task/schema";
 import * as hqTaskRelations from "@/entities/hq-task/relations";
@@ -100,6 +102,8 @@ export const drizzleSchema = {
   ...employeeSessionRelations,
   ...sessionMessageSchema,
   ...sessionMessageRelations,
+  ...sessionTurnSchema,
+  ...sessionTurnRelations,
   ...taskSchema,
   ...taskRelations,
   ...employeeMissionSchema,

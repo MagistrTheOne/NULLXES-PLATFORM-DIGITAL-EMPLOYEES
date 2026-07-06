@@ -45,6 +45,10 @@ type OpenAiChatMessage =
 
 export type TalkBrainStreamEvent =
   | { type: "meta"; brainProvider: BrainProvider; model: string; modelLabel: string }
+  | {
+      type: "perf";
+      spans: Partial<Record<"ttfb" | "tool_loop", number>>;
+    }
   | { type: "content"; content: string }
   | { type: "tool"; tool: string; phase: "start" | "done" };
 
@@ -173,6 +177,11 @@ async function* runToolLoopStream(input: {
     duration_ms: Math.round(performance.now() - toolLoopStartedAt),
   });
 
+  const toolLoopMs = Math.round(performance.now() - toolLoopStartedAt);
+  if (toolLoopMs > 0 && input.mode === "talk") {
+    yield { type: "perf", spans: { tool_loop: toolLoopMs } };
+  }
+
   return conversation;
 }
 
@@ -264,11 +273,15 @@ export async function* streamTalkBrainResponse(input: {
         streamedContent += content;
         if (!firstTokenLogged) {
           firstTokenLogged = true;
+          const ttfbMs = Math.round(performance.now() - streamStartedAt);
           logTalkPerf("talk.brain.ttfb", {
             mode: input.mode ?? "default",
             provider: api.provider,
-            duration_ms: Math.round(performance.now() - streamStartedAt),
+            duration_ms: ttfbMs,
           });
+          if (input.mode === "talk") {
+            yield { type: "perf", spans: { ttfb: ttfbMs } };
+          }
         }
         yield { type: "content", content };
       }

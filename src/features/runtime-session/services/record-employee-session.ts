@@ -121,8 +121,8 @@ export async function activateEmployeeSession(input: {
   sessionId: string;
   organizationId: string;
   userId: string;
-}): Promise<void> {
-  await assertSessionOwnership(
+}): Promise<{ employeeId: string } | null> {
+  const row = await assertSessionOwnership(
     input.sessionId,
     input.organizationId,
     input.userId,
@@ -132,6 +132,8 @@ export async function activateEmployeeSession(input: {
     .update(employeeSession)
     .set({ status: "active" })
     .where(eq(employeeSession.id, input.sessionId));
+
+  return { employeeId: row.employeeId };
 }
 
 export type CompleteEmployeeSessionResult = {

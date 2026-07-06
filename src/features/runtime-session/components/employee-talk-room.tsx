@@ -408,6 +408,7 @@ export function EmployeeTalkRoom({
             <TalkInspectorPanel
               details={agentDetails}
               departmentLabel={departmentLabel}
+              sessionId={activeSession?.sessionId}
               onEndSession={() => {
                 void onLeaveSession();
               }}
@@ -447,6 +448,7 @@ export function EmployeeTalkRoom({
             <TalkInspectorPanel
               details={agentDetails}
               departmentLabel={departmentLabel}
+              sessionId={activeSession?.sessionId}
               onEndSession={() => {
                 void onLeaveSession();
               }}

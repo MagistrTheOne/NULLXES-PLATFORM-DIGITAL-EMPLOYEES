@@ -66,12 +66,13 @@ async function verifyTalkContext(): Promise<void> {
     throw new Error("Employee row missing after talk context load");
   }
 
-  const brainRequest = await buildTalkBrainRequest({
+  const brainBuild = await buildTalkBrainRequest({
     organizationId,
     employeeId,
     messages: [{ role: "user", content: "Talk context verification ping" }],
   });
 
+  const brainRequest = brainBuild.config;
   if (!brainRequest) {
     throw new Error("buildTalkBrainRequest returned null");
   }

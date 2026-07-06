@@ -96,15 +96,17 @@ export async function processTalkTurnAction(
       content: message.content,
     }));
 
-    const brainRequest = await buildTalkBrainRequest({
+    const brainBuild = await buildTalkBrainRequest({
       organizationId: workspace.organization.id,
       employeeId,
       messages: openAiMessages,
     });
 
-    if (!brainRequest) {
+    if (!brainBuild.config) {
       return { ok: false, message: "Employee brain is not configured" };
     }
+
+    const brainRequest = brainBuild.config;
 
     const replyText = await collectTalkBrainResponse({
       brainProvider: brainRequest.brainProvider,

@@ -110,6 +110,7 @@ export function attachTalkVoicePipeline(input: {
       pendingTelemetry ?? createTalkTurnTelemetry(telemetryInput());
     pendingTelemetry = null;
     telemetry.markBrainRequestStart();
+    const turnId = telemetry.turnId;
 
     void (async () => {
       try {
@@ -134,8 +135,17 @@ export function attachTalkVoicePipeline(input: {
           replyText = await streamTalkBrainReply({
             employeeId: input.employeeId,
             sessionId: input.employeeSessionId,
+            turnId,
             scenarioSessionId: input.scenarioSessionId,
             messages: pipelineMessages,
+            onServerPerf: (payload) => {
+              telemetry.mergeServerPerf(payload);
+              if (payload.spans?.tool_loop) {
+                telemetry.mergeServerPerf({
+                  flags: { toolsUsed: true },
+                });
+              }
+            },
           });
 
           telemetry.markFirstBrainChunk();
@@ -153,8 +163,17 @@ export function attachTalkVoicePipeline(input: {
           replyText = await streamTalkBrainReply({
             employeeId: input.employeeId,
             sessionId: input.employeeSessionId,
+            turnId,
             scenarioSessionId: input.scenarioSessionId,
             messages: pipelineMessages,
+            onServerPerf: (payload) => {
+              telemetry.mergeServerPerf(payload);
+              if (payload.spans?.tool_loop) {
+                telemetry.mergeServerPerf({
+                  flags: { toolsUsed: true },
+                });
+              }
+            },
             onChunk: async (chunk) => {
               if (chunk.trim()) {
                 telemetry.markFirstBrainChunk();

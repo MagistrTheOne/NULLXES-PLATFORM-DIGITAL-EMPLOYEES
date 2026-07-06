@@ -119,15 +119,17 @@ async function processTaskById(taskId: string, organizationId: string) {
     .set({ status: "in_progress" })
     .where(eq(employeeTask.id, taskId));
 
-  const brainRequest = await buildTalkBrainRequest({
+  const brainBuild = await buildTalkBrainRequest({
     organizationId,
     employeeId: task.employeeId,
     messages: [{ role: "user", content: task.description }],
   });
 
-  if (!brainRequest) {
+  if (!brainBuild.config) {
     throw new Error("Employee runtime not found for task processing");
   }
+
+  const brainRequest = brainBuild.config;
 
   const workflowHint =
     intent.intent === "research"

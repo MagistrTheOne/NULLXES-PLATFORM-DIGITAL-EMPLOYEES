@@ -503,6 +503,7 @@
         "currentTask": "Current Task",
         "currentTaskHint": "Handling user requests",
         "currentTaskNone": "Standing by",
+        "lastTurnLatency": "Last turn {ms}ms · {count} turns",
         "statistics": "Statistics",
         "conversationsToday": "Conversations Today",
         "talkTime": "Talk Time",

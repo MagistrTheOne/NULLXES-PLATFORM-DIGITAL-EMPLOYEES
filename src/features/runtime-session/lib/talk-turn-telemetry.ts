@@ -1,6 +1,5 @@
 import type { TalkVoiceMode } from "../services/resolve-talk-voice-mode";
-
-export type TalkTurnSpanName = "debounce" | "brain_rtt" | "e2e";
+import type { TalkTurnFlags, TalkTurnSpanKey, TalkTurnSpans } from "../types/talk-turn-metrics";
 
 export type TalkTurnTelemetryInput = {
   employeeId: string;
@@ -19,15 +18,39 @@ export function createTalkTurnTelemetry(
   return new TalkTurnTelemetry(input);
 }
 
-class TalkTurnTelemetry {
-  private readonly turnId = crypto.randomUUID();
+export class TalkTurnTelemetry {
+  readonly turnId = crypto.randomUUID();
+  private readonly input: TalkTurnTelemetryInput;
   private speechDetectedAt: number | null = null;
   private brainRequestAt: number | null = null;
   private firstChunkAt: number | null = null;
   private speakingAt: number | null = null;
   private flushed = false;
+  private serverSpans: TalkTurnSpans = {};
+  private flags: TalkTurnFlags = {};
 
-  constructor(private readonly input: TalkTurnTelemetryInput) {}
+  constructor(input: TalkTurnTelemetryInput) {
+    this.input = input;
+  }
+
+  mergeServerPerf(input: {
+    spans?: Partial<Record<TalkTurnSpanKey, number>>;
+    flags?: TalkTurnFlags;
+  }): void {
+    if (input.spans) {
+      for (const [key, value] of Object.entries(input.spans) as Array<
+        [TalkTurnSpanKey, number]
+      >) {
+        if (typeof value === "number" && Number.isFinite(value)) {
+          this.serverSpans[key] = Math.round(value);
+        }
+      }
+    }
+
+    if (input.flags) {
+      this.flags = { ...this.flags, ...input.flags };
+    }
+  }
 
   markSpeechDetected(): void {
     if (this.speechDetectedAt === null) {
@@ -53,8 +76,8 @@ class TalkTurnTelemetry {
     void this.flush();
   }
 
-  private buildSpans(): Partial<Record<TalkTurnSpanName, number>> {
-    const spans: Partial<Record<TalkTurnSpanName, number>> = {};
+  private buildClientSpans(): TalkTurnSpans {
+    const spans: TalkTurnSpans = { ...this.serverSpans };
 
     if (this.speechDetectedAt !== null && this.brainRequestAt !== null) {
       spans.debounce = Math.round(this.brainRequestAt - this.speechDetectedAt);
@@ -77,7 +100,7 @@ class TalkTurnTelemetry {
     }
     this.flushed = true;
 
-    const spans = this.buildSpans();
+    const spans = this.buildClientSpans();
     if (Object.keys(spans).length === 0) {
       return;
     }
@@ -93,6 +116,7 @@ class TalkTurnTelemetry {
           voiceMode: this.input.voiceMode,
           scenarioSessionId: this.input.scenarioSessionId,
           spans,
+          flags: this.flags,
         }),
         keepalive: true,
       });

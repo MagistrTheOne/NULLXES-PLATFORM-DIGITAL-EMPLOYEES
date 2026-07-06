@@ -31,7 +31,18 @@ async function resolveWorkspaceContext() {
 
 export async function activateTalkSessionAction(sessionId: string): Promise<void> {
   const { organizationId, userId } = await resolveWorkspaceContext();
-  await activateEmployeeSession({ sessionId, organizationId, userId });
+  const row = await activateEmployeeSession({ sessionId, organizationId, userId });
+
+  if (row) {
+    const { warmTalkSessionBrainCache } = await import(
+      "../services/talk-session-brain-cache"
+    );
+    await warmTalkSessionBrainCache({
+      sessionId,
+      organizationId,
+      employeeId: row.employeeId,
+    }).catch(() => undefined);
+  }
 }
 
 export async function completeTalkSessionAction(

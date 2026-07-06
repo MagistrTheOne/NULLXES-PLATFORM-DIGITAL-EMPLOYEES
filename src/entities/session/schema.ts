@@ -2,6 +2,7 @@ import { sql } from "drizzle-orm";
 import {
   boolean,
   integer,
+  jsonb,
   numeric,
   pgEnum,
   pgTable,
@@ -10,6 +11,7 @@ import {
   uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
+import type { TalkSessionBrainCache } from "@/features/runtime-session/types/talk-turn-metrics";
 import { digitalEmployee } from "@/entities/digital-employee/schema";
 import { knowledgeSource } from "@/entities/knowledge/schema";
 import { user } from "@/entities/user/schema";
@@ -47,6 +49,7 @@ export const employeeSession = pgTable("employee_session", {
     () => knowledgeSource.id,
     { onDelete: "set null" },
   ),
+  talkBrainCache: jsonb("talk_brain_cache").$type<TalkSessionBrainCache | null>(),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),

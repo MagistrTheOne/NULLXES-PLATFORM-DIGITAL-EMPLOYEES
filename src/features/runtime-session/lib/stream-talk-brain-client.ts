@@ -1,14 +1,20 @@
 import type { TalkPipelineMessage } from "../actions/talk-voice-pipeline";
+import type { TalkTurnFlags, TalkTurnSpanKey } from "../types/talk-turn-metrics";
 import { resolveAgentToolTraceKey } from "./map-agent-tool-trace";
 
 export async function streamTalkBrainReply(input: {
   employeeId: string;
   sessionId?: string;
+  turnId?: string;
   scenarioSessionId?: string;
   messages: TalkPipelineMessage[];
   onChunk?: (chunk: string) => void | Promise<void>;
   onToolTrace?: (traceKey: string | null) => void | Promise<void>;
   onBrainMeta?: (meta: { modelLabel: string }) => void | Promise<void>;
+  onServerPerf?: (payload: {
+    spans?: Partial<Record<TalkTurnSpanKey, number>>;
+    flags?: TalkTurnFlags;
+  }) => void | Promise<void>;
   signal?: AbortSignal;
 }): Promise<string> {
   const response = await fetch("/api/talk/brain-stream", {
@@ -17,6 +23,7 @@ export async function streamTalkBrainReply(input: {
     body: JSON.stringify({
       employeeId: input.employeeId,
       sessionId: input.sessionId,
+      turnId: input.turnId,
       scenarioSessionId: input.scenarioSessionId,
       messages: input.messages,
     }),
@@ -66,10 +73,20 @@ export async function streamTalkBrainReply(input: {
         tool?: string;
         phase?: "start" | "done";
         modelLabel?: string;
+        spans?: Partial<Record<TalkTurnSpanKey, number>>;
+        flags?: TalkTurnFlags;
       };
 
       if (payload.error) {
         throw new Error(payload.error);
+      }
+
+      if (payload.type === "perf") {
+        await input.onServerPerf?.({
+          spans: payload.spans,
+          flags: payload.flags,
+        });
+        continue;
       }
 
       if (payload.type === "meta" && payload.modelLabel) {

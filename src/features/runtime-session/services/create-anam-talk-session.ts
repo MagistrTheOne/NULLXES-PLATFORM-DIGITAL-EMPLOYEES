@@ -4,7 +4,7 @@ import {
 import { ANAM_EXTERNAL_LLM_ID } from "@/features/provider-provisioning/types";
 import { syncAnamPersonaExternalBrain } from "@/features/provider-provisioning/services/sync-anam-persona-external-brain";
 import { buildAnamTalkEphemeralPersonaConfig } from "@/features/runtime-session/lib/build-anam-talk-persona-config";
-import { resolveTalkSpeechLanguageCode } from "@/features/runtime-session/services/resolve-talk-speech-language";
+import { resolveTalkAnamLanguageCode } from "@/features/runtime-session/services/resolve-talk-anam-language";
 import { getAnamApiBaseUrl, getAnamApiKeyBySlot } from "@/shared/config/provider-env";
 import type { EmployeeTalkContext } from "../types/employee-talk-context";
 import { getEmployeeTalkContext } from "./get-employee-talk-context";
@@ -71,7 +71,10 @@ export async function createAnamTalkSessionTokenForEmployee(
     }
   }
 
-  const languageCode = await resolveTalkSpeechLanguageCode(organizationId);
+  const languageCode = await resolveTalkAnamLanguageCode({
+    organizationId,
+    employeeId,
+  });
   const personaConfig = buildAnamTalkEphemeralPersonaConfig({
     name: employee.name,
     avatarId: employee.avatarId,

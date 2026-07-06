@@ -503,6 +503,7 @@
         "currentTask": "Текущая задача",
         "currentTaskHint": "Обработка запросов пользователей",
         "currentTaskNone": "Свободен",
+        "lastTurnLatency": "Последний turn {ms}мс · {count} turns",
         "statistics": "Статистика",
         "conversationsToday": "Бесед сегодня",
         "talkTime": "Время в разговоре",

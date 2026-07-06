@@ -2,6 +2,7 @@ import { relations } from "drizzle-orm";
 import { digitalEmployee } from "@/entities/digital-employee/schema";
 import { knowledgeSource } from "@/entities/knowledge/schema";
 import { employeeSessionMessage } from "@/entities/session-message/schema";
+import { employeeSessionTurn } from "@/entities/session-turn/schema";
 import { user } from "@/entities/user/schema";
 import { employeeSession } from "./schema";
 
@@ -21,5 +22,6 @@ export const employeeSessionRelations = relations(
       references: [knowledgeSource.id],
     }),
     messages: many(employeeSessionMessage),
+    turns: many(employeeSessionTurn),
   }),
 );
