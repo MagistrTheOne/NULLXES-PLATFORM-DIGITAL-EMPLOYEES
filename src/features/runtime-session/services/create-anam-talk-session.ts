@@ -5,7 +5,11 @@ import { ANAM_EXTERNAL_LLM_ID } from "@/features/provider-provisioning/types";
 import { syncAnamPersonaExternalBrain } from "@/features/provider-provisioning/services/sync-anam-persona-external-brain";
 import { buildAnamTalkEphemeralPersonaConfig } from "@/features/runtime-session/lib/build-anam-talk-persona-config";
 import { resolveTalkAnamLanguageCode } from "@/features/runtime-session/services/resolve-talk-anam-language";
-import { getAnamApiBaseUrl, getAnamApiKeysInOrder, isAnamAvatarQuotaError } from "@/shared/config/provider-env";
+import { getAnamApiBaseUrl } from "@/shared/config/provider-env";
+import {
+  getAnamApiKeysInOrder,
+  isAnamAvatarQuotaError,
+} from "@/shared/config/anam-api-pool";
 import type { EmployeeTalkContext } from "../types/employee-talk-context";
 import { getEmployeeTalkContext } from "./get-employee-talk-context";
 

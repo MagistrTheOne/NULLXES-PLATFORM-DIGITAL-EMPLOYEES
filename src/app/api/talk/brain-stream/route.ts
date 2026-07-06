@@ -105,13 +105,9 @@ async function handleBrainStreamPost(request: Request): Promise<Response> {
 
   const slaDegrade = shouldDegradeTalkBrainTurn(buildResult.perf);
 
-  const talkTools =
-    slaDegrade
-      ? null
-      : resolveTalkBrainTools(
-          lastMessage.content,
-          config.enabledToolSlugs,
-        );
+  const talkTools = slaDegrade
+    ? undefined
+    : resolveTalkBrainTools(lastMessage.content, config.enabledToolSlugs);
   const toolContext = talkTools
     ? {
         organizationId: authResult.auth.organizationId,
