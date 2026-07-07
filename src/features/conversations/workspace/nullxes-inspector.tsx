@@ -258,6 +258,7 @@ export function NullxesInspector({
         onOpenChange={setVoiceSheetOpen}
         employeeId={details.employeeId}
         employeeName={details.name}
+        avatarPreviewUrl={details.avatarPreviewUrl}
       />
     ) : null}
     </>

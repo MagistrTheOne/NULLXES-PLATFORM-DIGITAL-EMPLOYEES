@@ -87,6 +87,24 @@
   --sidebar-ring: oklch(0.556 0 0);
 }
 
+@keyframes xai-voice-bar {
+  0%,
+  100% {
+    transform: scaleY(0.35);
+    opacity: 0.45;
+  }
+
+  50% {
+    transform: scaleY(1);
+    opacity: 0.95;
+  }
+}
+
+.animate-xai-voice-bar {
+  animation: xai-voice-bar 0.9s ease-in-out infinite;
+  transform-origin: center bottom;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

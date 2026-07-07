@@ -539,6 +539,7 @@ export function EmployeeTalkRoom({
           onOpenChange={setVoiceSheetOpen}
           employeeId={employeeId}
           employeeName={employeeName}
+          avatarPreviewUrl={avatarPreviewUrl}
           sessionId={activeSession?.sessionId}
           translationNamespace="employees.talk.xaiVoice"
         />

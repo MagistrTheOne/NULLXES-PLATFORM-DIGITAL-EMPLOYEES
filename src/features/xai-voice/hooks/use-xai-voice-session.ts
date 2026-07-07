@@ -33,12 +33,20 @@ export function useXaiVoiceSession(input: {
   const [state, setState] = useState<XaiVoiceSessionState>("idle");
   const [error, setError] = useState<string | null>(null);
   const [transcript, setTranscript] = useState<string[]>([]);
+  const [callDurationSec, setCallDurationSec] = useState(0);
+  const [isAssistantThinking, setIsAssistantThinking] = useState(false);
+  const [isAssistantSpeaking, setIsAssistantSpeaking] = useState(false);
+  const [isRunningTool, setIsRunningTool] = useState(false);
+  const [activeToolName, setActiveToolName] = useState<string | null>(null);
+  const [micMuted, setMicMuted] = useState(false);
+  const [speakerMuted, setSpeakerMuted] = useState(false);
 
   const wsRef = useRef<WebSocket | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const processorRef = useRef<ScriptProcessorNode | null>(null);
   const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
+  const speakerGainRef = useRef<GainNode | null>(null);
   const playbackQueueRef = useRef<Float32Array[]>([]);
   const isPlayingRef = useRef(false);
   const currentPlaybackRef = useRef<AudioBufferSourceNode | null>(null);
@@ -46,6 +54,8 @@ export function useXaiVoiceSession(input: {
   const sessionPayloadRef = useRef<XaiVoiceSessionPayload | null>(null);
   const isSessionConfiguredRef = useRef(false);
   const isConfiguringSessionRef = useRef(false);
+  const callStartedAtRef = useRef<number | null>(null);
+  const micMutedRef = useRef(false);
 
   const stopPlayback = useCallback(() => {
     if (currentPlaybackRef.current) {
@@ -61,33 +71,44 @@ export function useXaiVoiceSession(input: {
     isPlayingRef.current = false;
   }, []);
 
-  const playNextChunk = useCallback((audioContext: AudioContext) => {
-    if (playbackQueueRef.current.length === 0) {
-      isPlayingRef.current = false;
-      currentPlaybackRef.current = null;
-      return;
+  const markAssistantSpeakingIdle = useCallback(() => {
+    if (playbackQueueRef.current.length === 0 && !isPlayingRef.current) {
+      setIsAssistantSpeaking(false);
     }
-
-    const chunk = playbackQueueRef.current.shift()!;
-    const audioBuffer = audioContext.createBuffer(
-      1,
-      chunk.length,
-      audioContext.sampleRate,
-    );
-    audioBuffer.getChannelData(0).set(chunk);
-
-    const source = audioContext.createBufferSource();
-    source.buffer = audioBuffer;
-    source.connect(audioContext.destination);
-    currentPlaybackRef.current = source;
-    source.onended = () => {
-      if (currentPlaybackRef.current === source) {
-        currentPlaybackRef.current = null;
-      }
-      playNextChunk(audioContext);
-    };
-    source.start();
   }, []);
+
+  const playNextChunk = useCallback(
+    (audioContext: AudioContext) => {
+      if (playbackQueueRef.current.length === 0) {
+        isPlayingRef.current = false;
+        currentPlaybackRef.current = null;
+        markAssistantSpeakingIdle();
+        return;
+      }
+
+      const chunk = playbackQueueRef.current.shift()!;
+      const audioBuffer = audioContext.createBuffer(
+        1,
+        chunk.length,
+        audioContext.sampleRate,
+      );
+      audioBuffer.getChannelData(0).set(chunk);
+
+      const source = audioContext.createBufferSource();
+      source.buffer = audioBuffer;
+      const output = speakerGainRef.current ?? audioContext.destination;
+      source.connect(output);
+      currentPlaybackRef.current = source;
+      source.onended = () => {
+        if (currentPlaybackRef.current === source) {
+          currentPlaybackRef.current = null;
+        }
+        playNextChunk(audioContext);
+      };
+      source.start();
+    },
+    [markAssistantSpeakingIdle],
+  );
 
   const playAudio = useCallback(
     (base64Audio: string) => {
@@ -148,6 +169,16 @@ export function useXaiVoiceSession(input: {
     sessionPayloadRef.current = null;
     isSessionConfiguredRef.current = false;
     isConfiguringSessionRef.current = false;
+    speakerGainRef.current = null;
+    callStartedAtRef.current = null;
+    micMutedRef.current = false;
+    setMicMuted(false);
+    setSpeakerMuted(false);
+    setCallDurationSec(0);
+    setIsAssistantThinking(false);
+    setIsAssistantSpeaking(false);
+    setIsRunningTool(false);
+    setActiveToolName(null);
     if (audioContextRef.current) {
       void audioContextRef.current.close();
       audioContextRef.current = null;
@@ -195,7 +226,14 @@ export function useXaiVoiceSession(input: {
         isConfiguringSessionRef.current = false;
       }
 
+      if (type === "response.created") {
+        setIsAssistantThinking(true);
+        setIsAssistantSpeaking(false);
+      }
+
       if (type === "response.output_audio.delta" && typeof event.delta === "string") {
+        setIsAssistantThinking(false);
+        setIsAssistantSpeaking(true);
         playAudio(event.delta);
       }
 
@@ -217,6 +255,8 @@ export function useXaiVoiceSession(input: {
 
       if (type === "response.done") {
         assistantLineRef.current = "";
+        setIsAssistantThinking(false);
+        markAssistantSpeakingIdle();
       }
 
       if (type === "input_audio_buffer.speech_started") {
@@ -233,11 +273,18 @@ export function useXaiVoiceSession(input: {
           return;
         }
 
+        setIsRunningTool(true);
+        setActiveToolName(toolName);
+        setIsAssistantThinking(true);
+
         void executeToolCall(toolName, args)
           .then((output) => {
             if (ws.readyState !== WebSocket.OPEN) {
               return;
             }
+
+            setIsRunningTool(false);
+            setActiveToolName(null);
 
             ws.send(
               JSON.stringify({
@@ -255,6 +302,9 @@ export function useXaiVoiceSession(input: {
             if (ws.readyState !== WebSocket.OPEN) {
               return;
             }
+
+            setIsRunningTool(false);
+            setActiveToolName(null);
 
             const message =
               toolError instanceof Error
@@ -290,12 +340,23 @@ export function useXaiVoiceSession(input: {
         }
       }
     },
-    [configureSession, executeToolCall, playAudio, stopPlayback],
+    [
+      configureSession,
+      executeToolCall,
+      markAssistantSpeakingIdle,
+      playAudio,
+      stopPlayback,
+    ],
   );
 
   const startCapture = useCallback(async (ws: WebSocket) => {
     const audioContext = new AudioContext({ sampleRate: TARGET_SAMPLE_RATE });
     audioContextRef.current = audioContext;
+
+    const speakerGain = audioContext.createGain();
+    speakerGain.gain.value = speakerMuted ? 0 : 1;
+    speakerGain.connect(audioContext.destination);
+    speakerGainRef.current = speakerGain;
 
     const stream = await navigator.mediaDevices.getUserMedia({
       audio: {
@@ -325,7 +386,8 @@ export function useXaiVoiceSession(input: {
     processor.onaudioprocess = (processEvent) => {
       if (
         ws.readyState !== WebSocket.OPEN ||
-        !isSessionConfiguredRef.current
+        !isSessionConfiguredRef.current ||
+        micMutedRef.current
       ) {
         return;
       }
@@ -463,6 +525,8 @@ export function useXaiVoiceSession(input: {
       configureSession(ws);
       await waitForSessionConfigured(ws);
       await startCapture(ws);
+      callStartedAtRef.current = Date.now();
+      setCallDurationSec(0);
       setState("live");
     } catch (startError: unknown) {
       disconnect();
@@ -495,6 +559,46 @@ export function useXaiVoiceSession(input: {
     };
   }, [disconnect]);
 
+  useEffect(() => {
+    if (state !== "live" || callStartedAtRef.current === null) {
+      return;
+    }
+
+    const interval = window.setInterval(() => {
+      if (callStartedAtRef.current === null) {
+        return;
+      }
+      setCallDurationSec(
+        Math.floor((Date.now() - callStartedAtRef.current) / 1000),
+      );
+    }, 1000);
+
+    return () => window.clearInterval(interval);
+  }, [state]);
+
+  const toggleMicMute = useCallback(() => {
+    setMicMuted((current) => {
+      const next = !current;
+      micMutedRef.current = next;
+      mediaStreamRef.current
+        ?.getAudioTracks()
+        .forEach((track) => {
+          track.enabled = !next;
+        });
+      return next;
+    });
+  }, []);
+
+  const toggleSpeakerMute = useCallback(() => {
+    setSpeakerMuted((current) => {
+      const next = !current;
+      if (speakerGainRef.current) {
+        speakerGainRef.current.gain.value = next ? 0 : 1;
+      }
+      return next;
+    });
+  }, []);
+
   return {
     state,
     error,
@@ -502,5 +606,14 @@ export function useXaiVoiceSession(input: {
     start,
     stop,
     isLive: state === "live",
+    isAssistantThinking,
+    isAssistantSpeaking,
+    isRunningTool,
+    activeToolName,
+    callDurationSec,
+    micMuted,
+    speakerMuted,
+    toggleMicMute,
+    toggleSpeakerMute,
   };
 }
