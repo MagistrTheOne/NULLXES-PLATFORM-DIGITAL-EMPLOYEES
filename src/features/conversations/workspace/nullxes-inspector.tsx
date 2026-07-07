@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, MessageSquare, UserRound, Video } from "lucide-react";
+import { useState } from "react";
+import { ArrowRight, AudioLines, MessageSquare, UserRound, Video } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -13,6 +14,7 @@ import {
 } from "@/components/ui/tooltip";
 import { formatDurationSeconds } from "@/features/analytics/lib/format-duration";
 import type { TalkAgentDetails } from "@/features/runtime-session/components/talk-agent-details";
+import { XaiVoiceCallSheet } from "@/features/xai-voice/components/xai-voice-call-sheet";
 import { cn } from "@/lib/utils";
 import { ConversationAvatar } from "../components/conversation-avatar";
 import {
@@ -38,11 +40,13 @@ function QuickAction({
   label,
   href,
   active,
+  onClick,
 }: {
   icon: React.ReactNode;
   label: string;
   href?: string;
   active?: boolean;
+  onClick?: () => void;
 }) {
   const className = cn(
     "flex h-10 flex-1 items-center justify-center rounded-lg border transition-colors",
@@ -58,6 +62,10 @@ function QuickAction({
           <Link href={href} aria-label={label} className={className}>
             {icon}
           </Link>
+        ) : onClick ? (
+          <button type="button" aria-label={label} className={className} onClick={onClick}>
+            {icon}
+          </button>
         ) : (
           <span aria-current="true" aria-label={label} className={className}>
             {icon}
@@ -91,8 +99,10 @@ export function NullxesInspector({
   const tPanel = useTranslations("employees.talk.agentPanel");
   const t = useTranslations("conversations");
   const tActions = useTranslations("conversations.actions");
+  const [voiceSheetOpen, setVoiceSheetOpen] = useState(false);
 
   return (
+    <>
     <aside
       className={cn(
         "flex h-full min-h-0 flex-col bg-transparent",
@@ -134,12 +144,35 @@ export function NullxesInspector({
             </div>
           </div>
 
+          {!details.avatarReady ? (
+            <div className="rounded-xl border border-amber-400/20 bg-amber-400/5 px-3 py-3 text-xs leading-5 text-amber-100/85">
+              <p>{t("avatarSetup.message")}</p>
+              <Button
+                asChild
+                variant="outline"
+                size="sm"
+                className="mt-3 border-amber-200/20 text-amber-50 hover:bg-amber-400/10"
+              >
+                <Link href={`/dashboard/employees/${details.employeeId}`}>
+                  {t("avatarSetup.action")}
+                </Link>
+              </Button>
+            </div>
+          ) : null}
+
           <div className="flex items-center gap-2">
             <QuickAction
               icon={<MessageSquare className="size-4 stroke-[1.5]" />}
               label={tActions("chat")}
               active
             />
+            {details.xaiVoiceAvailable ? (
+              <QuickAction
+                icon={<AudioLines className="size-4 stroke-[1.5]" />}
+                label={tActions("voice")}
+                onClick={() => setVoiceSheetOpen(true)}
+              />
+            ) : null}
             <QuickAction
               icon={<Video className="size-4 stroke-[1.5]" />}
               label={tActions("talk")}
@@ -224,5 +257,15 @@ export function NullxesInspector({
         </Button>
       </div>
     </aside>
+
+    {details.xaiVoiceAvailable ? (
+      <XaiVoiceCallSheet
+        open={voiceSheetOpen}
+        onOpenChange={setVoiceSheetOpen}
+        employeeId={details.employeeId}
+        employeeName={details.name}
+      />
+    ) : null}
+    </>
   );
 }

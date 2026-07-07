@@ -19,6 +19,7 @@ export type TalkAgentDetails = {
   modelLabel: string | null;
   language: string;
   currentTaskTitle: string | null;
+  xaiVoiceAvailable?: boolean;
   stats: TalkAgentPanelStats;
   activity?: TalkActivityItem[];
 };

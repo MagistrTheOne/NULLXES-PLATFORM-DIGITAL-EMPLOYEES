@@ -1318,8 +1318,24 @@
     "openProfile": "Открыть профиль",
     "actions": {
       "chat": "Чат",
+      "voice": "Голос (xAI)",
       "talk": "Разговор",
       "profile": "Профиль"
+    },
+    "avatarSetup": {
+      "message": "Портрет ещё не готов. Загрузите фото в профиле сотрудника, чтобы включить видео-разговор Anam.",
+      "action": "Загрузить портрет"
+    },
+    "xaiVoice": {
+      "title": "Голосовой звонок · {name}",
+      "description": "Grok voice в реальном времени через xAI. Нужен микрофон.",
+      "startCall": "Начать звонок",
+      "endCall": "Завершить",
+      "connecting": "Подключение…",
+      "statusIdle": "Готово",
+      "statusConnecting": "Подключение к xAI…",
+      "statusLive": "В эфире",
+      "statusError": "Ошибка"
     },
     "mainThread": "Основной",
     "roster": "Команда",

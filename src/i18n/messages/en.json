@@ -1318,8 +1318,24 @@
     "openProfile": "Open profile",
     "actions": {
       "chat": "Chat",
+      "voice": "Voice (xAI)",
       "talk": "Talk",
       "profile": "Profile"
+    },
+    "avatarSetup": {
+      "message": "Portrait is not ready yet. Upload a photo on the employee profile to unlock Anam video talk.",
+      "action": "Upload portrait"
+    },
+    "xaiVoice": {
+      "title": "Voice call · {name}",
+      "description": "Real-time Grok voice via xAI. Microphone required.",
+      "startCall": "Start voice call",
+      "endCall": "End call",
+      "connecting": "Connecting…",
+      "statusIdle": "Ready",
+      "statusConnecting": "Connecting to xAI…",
+      "statusLive": "Live",
+      "statusError": "Error"
     },
     "mainThread": "Main",
     "roster": "Workforce",
