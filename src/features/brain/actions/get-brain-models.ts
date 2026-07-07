@@ -58,6 +58,23 @@ export async function getBrainModelsAction(
     };
   }
 
+  if (provider === "nullxes") {
+    const { getNullxesSdkClient } = await import("@/shared/nullxes-sdk");
+    const client = getNullxesSdkClient();
+
+    if (client) {
+      const models = await client.listModels();
+      return {
+        ok: true,
+        models: models.map((model) => ({
+          id: model.id,
+          label: model.label ?? model.id,
+          groupKey: "managed",
+        })),
+      };
+    }
+  }
+
   return {
     ok: true,
     models: getCuratedBrainModels(provider),

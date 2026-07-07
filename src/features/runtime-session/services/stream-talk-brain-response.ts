@@ -6,7 +6,12 @@ import {
   type AgentToolExecutionContext,
 } from "@/features/agent-tools";
 import type { BrainApiConfig } from "@/features/brain/lib/resolve-brain-api-config";
-import { buildBrainChatTokenLimit } from "@/features/brain/lib/build-brain-chat-token-limit";
+import { callBrainChat } from "@/features/brain/lib/brain-chat-transport";
+import type {
+  BrainChatMessage,
+  OpenAiCompletionPayload,
+  OpenAiToolCall,
+} from "@/features/brain/lib/brain-chat-types";
 import { resolveBrainApiConfig } from "@/features/brain/lib/resolve-brain-api-config";
 import { getBrainFailoverProvider } from "@/features/brain/lib/get-brain-failover-provider";
 import { formatBrainModelDisplay } from "@/features/brain/lib/format-brain-model-display";
@@ -25,15 +30,6 @@ type OpenAiStreamChunk = {
   }>;
 };
 
-type OpenAiToolCall = {
-  id: string;
-  type: "function";
-  function: {
-    name: string;
-    arguments: string;
-  };
-};
-
 type OpenAiCompletionMessage = {
   role: "assistant";
   content: string | null;
@@ -41,10 +37,7 @@ type OpenAiCompletionMessage = {
   tool_calls?: OpenAiToolCall[];
 };
 
-type OpenAiChatMessage =
-  | { role: "system" | "user" | "assistant"; content: string }
-  | { role: "assistant"; content: string | null; tool_calls?: OpenAiToolCall[] }
-  | { role: "tool"; tool_call_id: string; content: string };
+type OpenAiChatMessage = BrainChatMessage;
 
 export type TalkBrainStreamEvent =
   | { type: "meta"; brainProvider: BrainProvider; model: string; modelLabel: string }
@@ -57,33 +50,6 @@ export type TalkBrainStreamEvent =
 
 const MAX_TOOL_ITERATIONS = 8;
 const MAX_TOOL_ITERATIONS_TALK = 5;
-
-async function callBrainChat(input: {
-  api: BrainApiConfig;
-  messages: OpenAiChatMessage[];
-  temperature?: number;
-  maxTokens?: number;
-  tools?: typeof AGENT_TOOL_DEFINITIONS;
-  stream?: boolean;
-  responseFormat?: { type: "json_object" };
-}): Promise<Response> {
-  return fetch(`${input.api.baseUrl}/chat/completions`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${input.api.apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: input.api.model,
-      temperature: input.temperature ?? 0.7,
-      ...buildBrainChatTokenLimit(input.api.model, input.maxTokens ?? 1024),
-      stream: input.stream ?? false,
-      messages: input.messages,
-      ...(input.tools ? { tools: input.tools } : {}),
-      ...(input.responseFormat ? { response_format: input.responseFormat } : {}),
-    }),
-  });
-}
 
 async function* runToolLoopStream(input: {
   api: BrainApiConfig;
@@ -135,9 +101,7 @@ async function* runToolLoopStream(input: {
       );
     }
 
-    const payload = (await response.json()) as {
-      choices?: Array<{ message?: OpenAiCompletionMessage; finish_reason?: string }>;
-    };
+    const payload = (await response.json()) as OpenAiCompletionPayload;
 
     const message = payload.choices?.[0]?.message;
     if (!message) {
@@ -150,7 +114,7 @@ async function* runToolLoopStream(input: {
 
     conversation.push({
       role: "assistant",
-      content: message.content,
+      content: message.content ?? null,
       tool_calls: message.tool_calls,
     });
 

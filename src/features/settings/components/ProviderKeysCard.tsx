@@ -9,7 +9,6 @@ import {
 } from "@/features/provider-credentials/actions/manage-provider-credential";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { SettingsCard } from "./settings-card";
 
 const PROVIDER_LABELS: Record<OrganizationProvider, string> = {
@@ -131,9 +130,7 @@ export function ProviderKeysCard({
       description="Use your own provider keys instead of the platform defaults. Keys are encrypted at rest and never shown again after saving."
     >
       <div className="grid gap-3">
-        {statuses
-          .filter((status) => status.provider === "openai")
-          .map((status) => (
+        {statuses.map((status) => (
           <ProviderRow
             key={status.provider}
             status={status}
@@ -141,8 +138,9 @@ export function ProviderKeysCard({
           />
         ))}
         <p className="text-xs text-muted-foreground">
-          Anthropic and Google routing is not enabled in this release. Only OpenAI
-          keys are consumed by the brain runtime today.
+          NULLXES brain is platform-managed via NULLXES_API_* deployment env.
+          OpenAI, Anthropic, and Google keys route through the unified brain
+          transport when selected as default provider.
         </p>
       </div>
     </SettingsCard>

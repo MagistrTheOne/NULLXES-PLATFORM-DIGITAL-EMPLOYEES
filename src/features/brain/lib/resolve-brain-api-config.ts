@@ -3,19 +3,30 @@ import { resolveBrainModelForProvider } from "@/features/settings/lib/brain-mode
 import { resolveOrganizationProviderKey } from "@/features/provider-credentials";
 import {
   getOpenAiApiBaseUrl,
-  getNullxesBrainApiBaseUrl,
-  getNullxesBrainApiKey,
-  nullxesBrainSupportsTools,
   resolveNullxesBrainModel,
 } from "@/shared/config/provider-env";
+import {
+  getNullxesApiDefaultModel,
+  resolveNullxesSdkConfig,
+} from "@/shared/nullxes-sdk";
+
+export type BrainTransportKind =
+  | "openai-compatible"
+  | "anthropic"
+  | "google";
 
 export type BrainApiConfig = {
   provider: BrainProvider;
+  transport: BrainTransportKind;
   baseUrl: string;
   apiKey: string;
   model: string;
   supportsTools: boolean;
 };
+
+function nullxesSupportsTools(): boolean {
+  return process.env.NULLXES_BRAIN_SUPPORTS_TOOLS?.trim() === "true";
+}
 
 export async function resolveBrainApiConfig(input: {
   provider: BrainProvider;
@@ -28,21 +39,63 @@ export async function resolveBrainApiConfig(input: {
   );
 
   if (input.provider === "nullxes") {
-    const baseUrl = getNullxesBrainApiBaseUrl();
-    const apiKey = getNullxesBrainApiKey();
-
-    if (!baseUrl || !apiKey) {
+    const sdkConfig = resolveNullxesSdkConfig();
+    if (!sdkConfig) {
       throw new Error(
-        "NULLXES_BRAIN_API_BASE_URL is not configured (RunPod vLLM endpoint)",
+        "NULLXES API is not configured. Set NULLXES_API_BASE_URL and NULLXES_API_KEY.",
       );
     }
 
+    const model =
+      curatedModel === "nullxes-brain-v1"
+        ? sdkConfig.defaultModel || getNullxesApiDefaultModel()
+        : resolveNullxesBrainModel(curatedModel);
+
     return {
       provider: "nullxes",
-      baseUrl: baseUrl.replace(/\/$/, ""),
+      transport: "openai-compatible",
+      baseUrl: sdkConfig.baseUrl,
+      apiKey: sdkConfig.apiKey,
+      model,
+      supportsTools: nullxesSupportsTools(),
+    };
+  }
+
+  if (input.provider === "anthropic") {
+    const apiKey = await resolveOrganizationProviderKey(
+      input.organizationId,
+      "anthropic",
+    );
+    if (!apiKey) {
+      throw new Error("ANTHROPIC_API_KEY is not configured");
+    }
+
+    return {
+      provider: "anthropic",
+      transport: "anthropic",
+      baseUrl: "https://api.anthropic.com",
       apiKey,
-      model: resolveNullxesBrainModel(curatedModel),
-      supportsTools: nullxesBrainSupportsTools(),
+      model: curatedModel,
+      supportsTools: true,
+    };
+  }
+
+  if (input.provider === "google") {
+    const apiKey = await resolveOrganizationProviderKey(
+      input.organizationId,
+      "google",
+    );
+    if (!apiKey) {
+      throw new Error("GOOGLE_API_KEY is not configured");
+    }
+
+    return {
+      provider: "google",
+      transport: "google",
+      baseUrl: "https://generativelanguage.googleapis.com",
+      apiKey,
+      model: curatedModel,
+      supportsTools: false,
     };
   }
 
@@ -55,7 +108,8 @@ export async function resolveBrainApiConfig(input: {
   }
 
   return {
-    provider: input.provider,
+    provider: "openai",
+    transport: "openai-compatible",
     baseUrl: getOpenAiApiBaseUrl().replace(/\/$/, ""),
     apiKey,
     model: curatedModel,

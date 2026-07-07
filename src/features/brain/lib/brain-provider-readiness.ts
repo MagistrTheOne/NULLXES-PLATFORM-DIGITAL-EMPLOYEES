@@ -2,9 +2,9 @@ import type { BrainProvider } from "@/entities/digital-employee";
 import {
   hasAnthropicCredentials,
   hasGoogleCredentials,
-  hasNullxesBrainCredentials,
   hasOpenAiCredentials,
 } from "@/shared/config/provider-env";
+import { hasNullxesApiCredentials } from "@/shared/nullxes-sdk";
 import type {
   BrainProviderReadiness,
   BrainProviderReadinessMap,
@@ -24,7 +24,7 @@ function resolveProviderReadiness(
     case "google":
       return hasGoogleCredentials() ? "ready" : "configure";
     case "nullxes":
-      return hasNullxesBrainCredentials() ? "managed" : "configure";
+      return hasNullxesApiCredentials() ? "managed" : "configure";
   }
 }
 

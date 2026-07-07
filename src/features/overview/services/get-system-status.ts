@@ -4,6 +4,11 @@ import {
   getStreamApiKey,
   getStreamSecretKey,
 } from "@/shared/config/env";
+import {
+  getAnthropicApiKey,
+  getGoogleApiKey,
+} from "@/shared/config/provider-env";
+import { hasNullxesApiCredentials } from "@/shared/nullxes-sdk";
 import type { SystemStatusItem } from "../types";
 
 function configured(label: string, isConfigured: boolean): SystemStatusItem {
@@ -17,7 +22,12 @@ function configured(label: string, isConfigured: boolean): SystemStatusItem {
 export function getSystemStatus(): SystemStatusItem[] {
   const streamReady = Boolean(getStreamApiKey() && getStreamSecretKey());
   const openAiReady = Boolean(getOpenAiApiKey());
+  const anthropicReady = Boolean(getAnthropicApiKey());
+  const googleReady = Boolean(getGoogleApiKey());
+  const nullxesReady = hasNullxesApiCredentials();
   const anamReady = Boolean(getAnamApiKey());
+  const anyBrainReady =
+    openAiReady || anthropicReady || googleReady || nullxesReady;
 
   return [
     {
@@ -25,13 +35,16 @@ export function getSystemStatus(): SystemStatusItem[] {
       status: "operational",
       detail: "Connected",
     },
-    configured("AI Services", openAiReady),
+    configured("OpenAI", openAiReady),
+    configured("Anthropic", anthropicReady),
+    configured("Google Gemini", googleReady),
+    configured("NULLXES Brain API", nullxesReady),
     configured("Voice Services", streamReady),
     configured("Avatar Services", anamReady),
     {
       label: "Knowledge Services",
-      status: openAiReady ? "operational" : "degraded",
-      detail: openAiReady ? "Ready for indexing" : "Requires AI provider",
+      status: anyBrainReady ? "operational" : "degraded",
+      detail: anyBrainReady ? "Ready for indexing" : "Requires AI provider",
     },
     {
       label: "Storage",
