@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { ArrowRight, TrendingUp, UserRound } from "lucide-react";
+import { ArrowRight, AudioLines, TrendingUp, UserRound } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
 import { AvatarIdlePreview } from "@/features/employees/components/avatar-idle-preview";
 import { formatDurationSeconds } from "@/features/analytics/lib/format-duration";
 import { cn } from "@/lib/utils";
@@ -116,6 +117,7 @@ export function TalkInspectorPanel({
   sessionId,
   onEndSession,
   onFocusMode,
+  onOpenGrokVoice,
   focusMode,
   sessionBusy,
 }: {
@@ -124,6 +126,7 @@ export function TalkInspectorPanel({
   sessionId?: string | null;
   onEndSession: () => void;
   onFocusMode: () => void;
+  onOpenGrokVoice?: () => void;
   focusMode: boolean;
   sessionBusy: boolean;
 }) {
@@ -280,6 +283,24 @@ export function TalkInspectorPanel({
                 </div>
               </div>
             </div>
+
+            {details.xaiVoiceAvailable && onOpenGrokVoice ? (
+              <div className="flex flex-col gap-2">
+                <span className="text-[10px] font-medium tracking-[0.16em] text-white/35 uppercase">
+                  {t("sessionControls.grokVoiceTitle")}
+                </span>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-10 justify-start gap-2 rounded-xl border-white/12 bg-white/3 text-white hover:bg-white/8"
+                  onClick={onOpenGrokVoice}
+                >
+                  <AudioLines className="size-4 stroke-[1.5]" />
+                  {t("sessionControls.grokVoice")}
+                </Button>
+              </div>
+            ) : null}
 
             <TalkSessionControls
               onNotes={() => setActiveTab("notes")}

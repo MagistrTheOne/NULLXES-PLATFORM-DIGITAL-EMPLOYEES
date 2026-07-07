@@ -684,6 +684,8 @@
       },
       "sessionControls": {
         "title": "Session Controls",
+        "grokVoiceTitle": "Grok voice",
+        "grokVoice": "Voice call (xAI)",
         "transfer": "Transfer",
         "invite": "Invite",
         "notes": "Notes",
@@ -691,6 +693,17 @@
         "focusMode": "Focus mode",
         "exitFocus": "Exit focus",
         "endSession": "End session"
+      },
+      "xaiVoice": {
+        "title": "Voice call · {name}",
+        "description": "Real-time Grok voice via xAI. Microphone required. Works alongside or without the video session.",
+        "startCall": "Start voice call",
+        "endCall": "End call",
+        "connecting": "Connecting…",
+        "statusIdle": "Ready",
+        "statusConnecting": "Connecting to xAI…",
+        "statusLive": "Live",
+        "statusError": "Error"
       },
       "stage": {
         "goodConnection": "Good connection",

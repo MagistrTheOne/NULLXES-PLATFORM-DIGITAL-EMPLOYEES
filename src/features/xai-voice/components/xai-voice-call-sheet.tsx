@@ -18,14 +18,16 @@ export function XaiVoiceCallSheet({
   employeeId,
   employeeName,
   sessionId,
+  translationNamespace = "conversations.xaiVoice",
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   employeeId: string;
   employeeName: string;
   sessionId?: string;
+  translationNamespace?: string;
 }) {
-  const t = useTranslations("conversations.xaiVoice");
+  const t = useTranslations(translationNamespace);
   const { state, error, transcript, start, stop, isLive } = useXaiVoiceSession({
     employeeId,
     sessionId,

@@ -13,6 +13,7 @@ import {
   Video,
   VideoOff,
   MessageSquare,
+  AudioLines,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -34,6 +35,7 @@ import { startTalkSessionAction } from "../actions/employee-session";
 import type { TalkVoiceMode } from "../services/resolve-talk-voice-mode";
 import { cn } from "@/lib/utils";
 import { TalkLocalCameraPip } from "./talk-local-camera-pip";
+import { XaiVoiceCallSheet } from "@/features/xai-voice/components/xai-voice-call-sheet";
 import "./employee-talk-theme.css";
 import "@/features/conversations/components/conversations-theme.css";
 
@@ -80,6 +82,8 @@ function TalkStageControls({
   onCameraToggle,
   onToggleChat,
   onShare,
+  xaiVoiceAvailable,
+  onOpenGrokVoice,
 }: {
   employeeId: string;
   scenarioSessionId?: string;
@@ -91,6 +95,8 @@ function TalkStageControls({
   onCameraToggle: () => void;
   onToggleChat?: () => void;
   onShare?: () => void;
+  xaiVoiceAvailable?: boolean;
+  onOpenGrokVoice?: () => void;
 }) {
   const t = useTranslations("employees.talk");
   const { micMuted, micPermission, toggleMic, isLive, pipelineState } =
@@ -149,17 +155,31 @@ function TalkStageControls({
       <div className="pointer-events-none absolute inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-30 flex justify-center sm:bottom-16 lg:bottom-14">
         <div className="pointer-events-auto flex items-center gap-2 rounded-2xl border border-white/12 bg-black/70 px-2 py-1.5 backdrop-blur-md">
           {!activeSession ? (
-            <Button
-              type="button"
-              disabled={disabled}
-              onClick={() => {
-                void handleStart();
-              }}
-              className="h-9 rounded-full bg-white px-5 text-xs font-medium text-black hover:bg-white/90"
-            >
-              <Play className="size-3.5" />
-              {isStarting ? t("starting") : t("startSession")}
-            </Button>
+            <>
+              <Button
+                type="button"
+                disabled={disabled}
+                onClick={() => {
+                  void handleStart();
+                }}
+                className="h-9 rounded-full bg-white px-5 text-xs font-medium text-black hover:bg-white/90"
+              >
+                <Play className="size-3.5" />
+                {isStarting ? t("starting") : t("startSession")}
+              </Button>
+              {xaiVoiceAvailable && onOpenGrokVoice ? (
+                <button
+                  type="button"
+                  aria-label={t("sessionControls.grokVoice")}
+                  title={t("sessionControls.grokVoice")}
+                  disabled={disabled}
+                  onClick={onOpenGrokVoice}
+                  className="flex size-9 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-white transition hover:bg-white/10 disabled:opacity-40"
+                >
+                  <AudioLines className="size-4 stroke-[1.75]" />
+                </button>
+              ) : null}
+            </>
           ) : (
             <>
               {/* Mic — status dot: green = persona can hear you, red = it can't */}
@@ -243,6 +263,19 @@ function TalkStageControls({
                 </button>
               ) : null}
 
+              {xaiVoiceAvailable && onOpenGrokVoice ? (
+                <button
+                  type="button"
+                  aria-label={t("sessionControls.grokVoice")}
+                  title={t("sessionControls.grokVoice")}
+                  disabled={disabled}
+                  onClick={onOpenGrokVoice}
+                  className="flex size-9 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-white transition hover:bg-white/10 disabled:opacity-40"
+                >
+                  <AudioLines className="size-4 stroke-[1.75]" />
+                </button>
+              ) : null}
+
               {/* End session — prominent */}
               <Button
                 type="button"
@@ -320,6 +353,7 @@ export function EmployeeTalkRoom({
   const [showChat, setShowChat] = useState(false);
   const [showInspector, setShowInspector] = useState(false);
   const [focusMode, setFocusMode] = useState(false);
+  const [voiceSheetOpen, setVoiceSheetOpen] = useState(false);
   const t = useTranslations("employees.talk");
 
   const handleShare = async () => {
@@ -382,6 +416,8 @@ export function EmployeeTalkRoom({
               onShare={() => {
                 void handleShare();
               }}
+              xaiVoiceAvailable={agentDetails.xaiVoiceAvailable}
+              onOpenGrokVoice={() => setVoiceSheetOpen(true)}
             />
             {focusMode ? (
               <div className="absolute top-4 right-4 z-30">
@@ -413,6 +449,7 @@ export function EmployeeTalkRoom({
                 void onLeaveSession();
               }}
               onFocusMode={() => setFocusMode(true)}
+              onOpenGrokVoice={() => setVoiceSheetOpen(true)}
               focusMode={focusMode}
               sessionBusy={sessionBusy}
             />
@@ -456,6 +493,7 @@ export function EmployeeTalkRoom({
                 setShowInspector(false);
                 setFocusMode(true);
               }}
+              onOpenGrokVoice={() => setVoiceSheetOpen(true)}
               focusMode={focusMode}
               sessionBusy={sessionBusy}
             />
@@ -494,6 +532,17 @@ export function EmployeeTalkRoom({
           </div>
         </SheetContent>
       </Sheet>
+
+      {agentDetails.xaiVoiceAvailable ? (
+        <XaiVoiceCallSheet
+          open={voiceSheetOpen}
+          onOpenChange={setVoiceSheetOpen}
+          employeeId={employeeId}
+          employeeName={employeeName}
+          sessionId={activeSession?.sessionId}
+          translationNamespace="employees.talk.xaiVoice"
+        />
+      ) : null}
     </div>
   );
 }
