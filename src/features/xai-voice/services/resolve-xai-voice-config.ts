@@ -8,10 +8,21 @@ import {
   readXaiVoiceAgentFromEnv,
 } from "@/shared/config/xai-voice-env";
 
-export type XaiVoiceEmployeeConfig = {
+export type XaiVoiceConsoleConfig = {
+  mode: "console";
+  bindConsoleAgent: true;
   agentId: string;
-  bindConsoleAgent: boolean;
+  voice: string;
 };
+
+export type XaiVoicePlatformConfig = {
+  mode: "platform";
+  bindConsoleAgent: false;
+  instructions: string | null;
+  voice: string;
+};
+
+export type XaiVoiceEmployeeConfig = XaiVoiceConsoleConfig | XaiVoicePlatformConfig;
 
 function readSessionXaiConfig(
   config: SessionProviderConfigPayload | undefined,
@@ -20,14 +31,27 @@ function readSessionXaiConfig(
     return null;
   }
 
-  const agentId = config.xaiVoiceAgentId?.trim();
-  if (!agentId) {
-    return null;
+  const voice = config.xaiVoiceVoice?.trim() || "eve";
+
+  if (config.xaiVoiceBindConsoleAgent !== false) {
+    const agentId = config.xaiVoiceAgentId?.trim();
+    if (!agentId) {
+      return null;
+    }
+
+    return {
+      mode: "console",
+      bindConsoleAgent: true,
+      agentId,
+      voice,
+    };
   }
 
   return {
-    agentId,
-    bindConsoleAgent: config.xaiVoiceBindConsoleAgent !== false,
+    mode: "platform",
+    bindConsoleAgent: false,
+    instructions: config.xaiVoiceInstructions?.trim() || null,
+    voice,
   };
 }
 
@@ -59,7 +83,12 @@ export async function resolveXaiVoiceConfigForEmployee(
   if (employeeId === ADELINE_KALEN_EMPLOYEE_ID) {
     const agentId = readXaiVoiceAgentFromEnv();
     if (agentId) {
-      return { agentId, bindConsoleAgent: true };
+      return {
+        mode: "console",
+        bindConsoleAgent: true,
+        agentId,
+        voice: "eve",
+      };
     }
   }
 

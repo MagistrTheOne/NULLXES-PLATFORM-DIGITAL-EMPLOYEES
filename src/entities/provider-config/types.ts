@@ -55,4 +55,8 @@ export type SessionProviderConfigPayload = {
   xaiVoiceEnabled?: boolean;
   /** When true, WebSocket uses agent_id and does not override console instructions. */
   xaiVoiceBindConsoleAgent?: boolean;
+  /** NULLXES-managed Grok voice system prompt when bindConsoleAgent is false. */
+  xaiVoiceInstructions?: string;
+  /** Built-in Grok voice id (eve, ara, rex, sal, leo). */
+  xaiVoiceVoice?: string;
 };

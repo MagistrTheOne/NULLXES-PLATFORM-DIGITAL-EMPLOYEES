@@ -1,4 +1,5 @@
 import { sanitizeEnvValue } from "@/shared/config/env";
+import type { XaiVoiceEmployeeConfig } from "@/features/xai-voice/services/resolve-xai-voice-config";
 
 /** Adeline Kalen — sandbox xAI Voice Agent pilot. */
 export const ADELINE_KALEN_EMPLOYEE_ID =
@@ -23,10 +24,18 @@ export function readXaiVoiceAgentFromEnv(): string | null {
   return readEnv("XAI_VOICE_AGENT_ADELINE") || DEFAULT_ADELINE_AGENT_ID;
 }
 
-export function buildXaiRealtimeWebSocketUrl(agentId: string): string {
+export function buildXaiRealtimeWebSocketUrl(
+  config: XaiVoiceEmployeeConfig,
+): string {
   const params = new URLSearchParams({
-    agent_id: agentId,
     "reasoning.effort": "none",
   });
+
+  if (config.mode === "console") {
+    params.set("agent_id", config.agentId);
+  } else {
+    params.set("model", "grok-voice-latest");
+  }
+
   return `wss://api.x.ai/v1/realtime?${params.toString()}`;
 }

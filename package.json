@@ -34,6 +34,7 @@
     "employees-crud:verify": "node --env-file=.env --import tsx src/features/employees/verify-employee-crud.ts",
     "agent-blueprint:verify": "node --env-file=.env -r ./scripts/mock-server-only.cjs --import tsx src/features/agent-blueprint/verify-agent-blueprint.ts",
     "blueprint:backfill": "node --env-file=.env -r ./scripts/mock-server-only.cjs --import tsx scripts/backfill-employee-blueprint-defaults.ts",
+    "xai-voice:backfill": "node --env-file=.env -r ./scripts/mock-server-only.cjs --import tsx scripts/backfill-xai-voice-agents.ts",
     "blueprint:migrate-repair": "node --env-file=.env -r ./scripts/mock-server-only.cjs --import tsx scripts/repair-blueprint-migration.ts",
     "analytics:verify": "node --env-file=.env --import tsx src/features/analytics/verify-analytics.ts",
     "overview:verify": "node --env-file=.env --import tsx src/features/overview/verify-overview.ts",

@@ -17,6 +17,7 @@ import {
   resolveAnamPersonaVoiceId,
 } from "../lib/resolve-anam-avatar-talk-readiness";
 import { readProviderFailureReason } from "../lib/resolve-talk-readiness";
+import { isXaiVoiceConfigured } from "@/shared/config/xai-voice-env";
 import type {
   EmployeeDetail,
   EmployeeDetailShell,
@@ -130,6 +131,11 @@ export async function getEmployeeDetailShell(
       brainConfig as Record<string, unknown> | undefined,
     ),
     systemPrompt: runtime?.systemPrompt ?? "",
+    xaiVoiceConfigured: isXaiVoiceConfigured(),
+    xaiVoiceEnabled: sessionConfig?.xaiVoiceEnabled ?? false,
+    xaiVoiceInstructions: sessionConfig?.xaiVoiceInstructions?.trim() || null,
+    xaiVoiceBindConsoleAgent: sessionConfig?.xaiVoiceBindConsoleAgent ?? false,
+    xaiVoiceAgentId: sessionConfig?.xaiVoiceAgentId?.trim() || null,
   };
 }
 

@@ -201,6 +201,19 @@ export async function createEmployeeRecord(
       });
     }
 
+    const { provisionXaiVoiceForEmployee } = await import(
+      "@/features/xai-voice/services/provision-xai-voice-for-employee"
+    );
+    await provisionXaiVoiceForEmployee({
+      employeeId,
+      organizationId: workspace.organization.id,
+      name,
+      role,
+      systemPrompt: buildEmployeeSystemPrompt(name, role),
+      enabled: true,
+      bindConsoleAgent: false,
+    });
+
     recordAuditEvent({
       organizationId: workspace.organization.id,
       actorUserId: workspace.user.id,

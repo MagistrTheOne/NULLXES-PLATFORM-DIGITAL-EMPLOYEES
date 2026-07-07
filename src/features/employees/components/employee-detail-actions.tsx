@@ -44,6 +44,7 @@ import { useWorkspacePermissions } from "@/features/workspace/components/workspa
 import { deleteEmployeeAction } from "../actions/delete-employee";
 import { provisionEmployeeAvatarStudio } from "../actions/provision-employee-avatar-studio";
 import { updateEmployeeAction } from "../actions/update-employee";
+import { getDefaultXaiVoiceInstructionsAction } from "@/features/xai-voice/actions/get-default-xai-voice-instructions";
 import { MAX_AVATAR_UPLOAD_BYTES } from "../create/constants";
 import { getInitialBrainModelForEdit } from "../lib/get-initial-brain-model-for-edit";
 import { AvatarUpload } from "../studio/avatar/avatar-upload";
@@ -86,6 +87,16 @@ export function EmployeeDetailActions({
   const [description, setDescription] = useState(employee.description ?? "");
   const [status, setStatus] = useState<EmployeeStatus>(employee.status);
   const [systemPrompt, setSystemPrompt] = useState(employee.systemPrompt);
+  const [xaiVoiceEnabled, setXaiVoiceEnabled] = useState(employee.xaiVoiceEnabled);
+  const [xaiVoiceInstructions, setXaiVoiceInstructions] = useState(
+    employee.xaiVoiceInstructions ?? "",
+  );
+  const [xaiVoiceBindConsoleAgent, setXaiVoiceBindConsoleAgent] = useState(
+    employee.xaiVoiceBindConsoleAgent,
+  );
+  const [xaiVoiceAgentId, setXaiVoiceAgentId] = useState(
+    employee.xaiVoiceAgentId ?? "",
+  );
   const [brainProvider, setBrainProvider] = useState<BrainProvider>(
     employee.brainProvider,
   );
@@ -145,6 +156,10 @@ export function EmployeeDetailActions({
     setDescription(employee.description ?? "");
     setStatus(employee.status);
     setSystemPrompt(employee.systemPrompt);
+    setXaiVoiceEnabled(employee.xaiVoiceEnabled);
+    setXaiVoiceInstructions(employee.xaiVoiceInstructions ?? "");
+    setXaiVoiceBindConsoleAgent(employee.xaiVoiceBindConsoleAgent);
+    setXaiVoiceAgentId(employee.xaiVoiceAgentId ?? "");
     setBrainProvider(employee.brainProvider);
     setBrainModel(
       getInitialBrainModelForEdit(employee.brainProvider, employee.brainModel),
@@ -172,6 +187,16 @@ export function EmployeeDetailActions({
         systemPrompt,
         brainProvider,
         brainModel,
+        xaiVoiceEnabled: employee.xaiVoiceConfigured ? xaiVoiceEnabled : undefined,
+        xaiVoiceInstructions: employee.xaiVoiceConfigured
+          ? xaiVoiceInstructions
+          : undefined,
+        xaiVoiceBindConsoleAgent: employee.xaiVoiceConfigured
+          ? xaiVoiceBindConsoleAgent
+          : undefined,
+        xaiVoiceAgentId: employee.xaiVoiceConfigured
+          ? xaiVoiceAgentId.trim() || null
+          : undefined,
       });
 
       if (!result.ok) {
@@ -321,6 +346,89 @@ export function EmployeeDetailActions({
                 className="border-white/12 bg-[#111111] text-white"
               />
             </div>
+            {employee.xaiVoiceConfigured ? (
+              <div className="space-y-3 rounded-xl border border-white/10 bg-white/2 p-4">
+                <div className="space-y-1">
+                  <Label className="text-white/85">{t("xaiVoiceTitle")}</Label>
+                  <p className="text-xs text-white/45">{t("xaiVoiceHint")}</p>
+                </div>
+                <label className="flex items-center gap-2 text-sm text-white/80">
+                  <input
+                    type="checkbox"
+                    checked={xaiVoiceEnabled}
+                    onChange={(event) => setXaiVoiceEnabled(event.target.checked)}
+                    disabled={isPending}
+                    className="size-4 rounded border-white/20"
+                  />
+                  {t("xaiVoiceEnabled")}
+                </label>
+                <label className="flex items-center gap-2 text-sm text-white/80">
+                  <input
+                    type="checkbox"
+                    checked={xaiVoiceBindConsoleAgent}
+                    onChange={(event) =>
+                      setXaiVoiceBindConsoleAgent(event.target.checked)
+                    }
+                    disabled={isPending || !xaiVoiceEnabled}
+                    className="size-4 rounded border-white/20"
+                  />
+                  {t("xaiVoiceBindConsole")}
+                </label>
+                {xaiVoiceBindConsoleAgent ? (
+                  <div className="space-y-2">
+                    <Label htmlFor="xai-voice-agent-id">{t("xaiVoiceAgentId")}</Label>
+                    <Input
+                      id="xai-voice-agent-id"
+                      value={xaiVoiceAgentId}
+                      onChange={(event) => setXaiVoiceAgentId(event.target.value)}
+                      placeholder="agent_..."
+                      disabled={isPending || !xaiVoiceEnabled}
+                      className="border-white/12 bg-[#111111] text-white"
+                    />
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between gap-3">
+                      <Label htmlFor="xai-voice-instructions">
+                        {t("xaiVoiceInstructions")}
+                      </Label>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="border-white/12 text-white"
+                        disabled={isPending || !xaiVoiceEnabled}
+                        onClick={() => {
+                          startTransition(async () => {
+                            const result = await getDefaultXaiVoiceInstructionsAction(
+                              employee.id,
+                            );
+                            if (result.ok) {
+                              setXaiVoiceInstructions(result.instructions);
+                              setErrorMessage(null);
+                            } else {
+                              setErrorMessage(result.message);
+                            }
+                          });
+                        }}
+                      >
+                        {t("xaiVoiceResetPrompt")}
+                      </Button>
+                    </div>
+                    <Textarea
+                      id="xai-voice-instructions"
+                      value={xaiVoiceInstructions}
+                      onChange={(event) =>
+                        setXaiVoiceInstructions(event.target.value)
+                      }
+                      rows={8}
+                      disabled={isPending || !xaiVoiceEnabled}
+                      className="border-white/12 bg-[#111111] text-white"
+                    />
+                  </div>
+                )}
+              </div>
+            ) : null}
             <div className="space-y-2">
               <Label className="text-white/80">{t("brainProvider")}</Label>
               <BrainProviderCards

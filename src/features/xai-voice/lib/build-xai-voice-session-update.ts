@@ -4,6 +4,7 @@ import { toXaiVoiceTools } from "@/features/xai-voice/lib/to-xai-voice-tools";
 
 export type XaiVoiceSessionUpdate = {
   instructions?: string;
+  voice?: string;
   reasoning?: { effort: "none" };
   tools?: XaiVoiceTool[];
   turn_detection: {
@@ -25,6 +26,7 @@ export function buildXaiVoiceSessionUpdate(input: {
   enabledToolSlugs: string[];
   bindConsoleAgent: boolean;
   instructions?: string | null;
+  voice?: string;
   sampleRate?: number;
 }): XaiVoiceSessionUpdate {
   const enabled = new Set(input.enabledToolSlugs);
@@ -36,6 +38,7 @@ export function buildXaiVoiceSessionUpdate(input: {
 
   const sampleRate = input.sampleRate ?? 24000;
   const session: XaiVoiceSessionUpdate = {
+    voice: input.voice?.trim() || "eve",
     reasoning: { effort: "none" },
     turn_detection: {
       type: "server_vad",

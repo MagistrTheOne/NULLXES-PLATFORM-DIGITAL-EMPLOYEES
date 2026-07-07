@@ -4,7 +4,10 @@ import type {
   EmployeeStatus,
 } from "@/entities/digital-employee";
 import { digitalEmployee } from "@/entities/digital-employee/schema";
-import type { BrainProviderConfigPayload } from "@/entities/provider-config";
+import type {
+  BrainProviderConfigPayload,
+  SessionProviderConfigPayload,
+} from "@/entities/provider-config";
 import { employeeProviderConfig } from "@/entities/provider-config/schema";
 import type { EmployeeLifecycleEventType } from "@/entities/employee-lifecycle";
 import { employeeRuntime } from "@/entities/runtime/schema";
@@ -17,6 +20,8 @@ import { getBrainProviderReadinessMap } from "@/features/brain/lib/brain-provide
 import { dbWithTransactions } from "@/shared/db/pool-client";
 import { getEmployeeForOrganization } from "./get-employee-for-organization";
 import { getProviderConfigRow } from "@/features/provider-provisioning/services/update-provider-config";
+import { provisionXaiVoiceForEmployee } from "@/features/xai-voice/services/provision-xai-voice-for-employee";
+import { isXaiVoiceConfigured } from "@/shared/config/xai-voice-env";
 
 export type UpdateEmployeeInput = {
   organizationId: string;
@@ -29,6 +34,10 @@ export type UpdateEmployeeInput = {
   systemPrompt: string;
   brainProvider: BrainProvider;
   brainModel: string;
+  xaiVoiceEnabled?: boolean;
+  xaiVoiceInstructions?: string;
+  xaiVoiceBindConsoleAgent?: boolean;
+  xaiVoiceAgentId?: string | null;
 };
 
 export type UpdateEmployeeResult =
@@ -99,12 +108,21 @@ export async function updateEmployee(
   }
 
   const brainRow = await getProviderConfigRow(input.employeeId, "brain");
+  const sessionRow = await getProviderConfigRow(input.employeeId, "session");
   const currentBrainConfig = (brainRow?.config ??
     {}) as BrainProviderConfigPayload;
   const currentBrainModel = currentBrainConfig.model ?? "";
   const brainChanged =
     existing.brainProvider !== input.brainProvider ||
     currentBrainModel !== brainModel;
+
+  const currentSessionConfig = (sessionRow?.config ??
+    {}) as SessionProviderConfigPayload;
+  const voiceFieldsProvided =
+    input.xaiVoiceEnabled !== undefined ||
+    input.xaiVoiceInstructions !== undefined ||
+    input.xaiVoiceBindConsoleAgent !== undefined ||
+    input.xaiVoiceAgentId !== undefined;
 
   try {
     await dbWithTransactions.transaction(async (tx) => {
@@ -159,6 +177,41 @@ export async function updateEmployee(
           );
       }
 
+      if (sessionRow && voiceFieldsProvided && isXaiVoiceConfigured()) {
+        const bindConsoleAgent =
+          input.xaiVoiceBindConsoleAgent ??
+          currentSessionConfig.xaiVoiceBindConsoleAgent ??
+          false;
+        const enabled =
+          input.xaiVoiceEnabled ?? currentSessionConfig.xaiVoiceEnabled ?? false;
+
+        const nextSessionConfig: SessionProviderConfigPayload = {
+          ...currentSessionConfig,
+          xaiVoiceEnabled: enabled,
+          xaiVoiceBindConsoleAgent: bindConsoleAgent,
+        };
+
+        if (input.xaiVoiceInstructions !== undefined) {
+          nextSessionConfig.xaiVoiceInstructions =
+            input.xaiVoiceInstructions.trim() || undefined;
+        }
+
+        if (input.xaiVoiceAgentId !== undefined) {
+          nextSessionConfig.xaiVoiceAgentId =
+            input.xaiVoiceAgentId?.trim() || undefined;
+        }
+
+        await tx
+          .update(employeeProviderConfig)
+          .set({ config: nextSessionConfig })
+          .where(
+            and(
+              eq(employeeProviderConfig.employeeId, input.employeeId),
+              eq(employeeProviderConfig.providerType, "session"),
+            ),
+          );
+      }
+
       const statusEvent = lifecycleEventForStatusChange(
         existing.status,
         input.status,
@@ -199,6 +252,37 @@ export async function updateEmployee(
         });
       }
     });
+
+    if (
+      isXaiVoiceConfigured() &&
+      (input.xaiVoiceEnabled === true ||
+        (voiceFieldsProvided &&
+          (input.xaiVoiceEnabled ??
+            currentSessionConfig.xaiVoiceEnabled ??
+            false)))
+    ) {
+      await provisionXaiVoiceForEmployee({
+        employeeId: input.employeeId,
+        organizationId: input.organizationId,
+        name,
+        role,
+        systemPrompt,
+        enabled:
+          input.xaiVoiceEnabled ?? currentSessionConfig.xaiVoiceEnabled ?? true,
+        voiceInstructions:
+          input.xaiVoiceInstructions ??
+          currentSessionConfig.xaiVoiceInstructions ??
+          null,
+        bindConsoleAgent:
+          input.xaiVoiceBindConsoleAgent ??
+          currentSessionConfig.xaiVoiceBindConsoleAgent ??
+          false,
+        consoleAgentId:
+          input.xaiVoiceAgentId ??
+          currentSessionConfig.xaiVoiceAgentId ??
+          null,
+      });
+    }
 
     return { ok: true, reprovisionProviders: brainChanged };
   } catch (error: unknown) {

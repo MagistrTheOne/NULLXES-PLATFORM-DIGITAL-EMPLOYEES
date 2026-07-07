@@ -16,6 +16,10 @@ export type UpdateEmployeeActionInput = {
   systemPrompt: string;
   brainProvider: BrainProvider;
   brainModel: string;
+  xaiVoiceEnabled?: boolean;
+  xaiVoiceInstructions?: string;
+  xaiVoiceBindConsoleAgent?: boolean;
+  xaiVoiceAgentId?: string | null;
 };
 
 export type UpdateEmployeeActionResult =
@@ -41,6 +45,10 @@ export async function updateEmployeeAction(
       systemPrompt: input.systemPrompt,
       brainProvider: input.brainProvider,
       brainModel: input.brainModel,
+      xaiVoiceEnabled: input.xaiVoiceEnabled,
+      xaiVoiceInstructions: input.xaiVoiceInstructions,
+      xaiVoiceBindConsoleAgent: input.xaiVoiceBindConsoleAgent,
+      xaiVoiceAgentId: input.xaiVoiceAgentId,
     });
 
     if (result.ok) {

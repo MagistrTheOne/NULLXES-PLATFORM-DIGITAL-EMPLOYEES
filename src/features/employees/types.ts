@@ -70,6 +70,11 @@ export type EmployeeDetailShell = EmployeeListItem & {
   brainProvisioningStatus: ProviderProvisioningStatus;
   brainProvisioningFailureReason: string | null;
   systemPrompt: string;
+  xaiVoiceConfigured: boolean;
+  xaiVoiceEnabled: boolean;
+  xaiVoiceInstructions: string | null;
+  xaiVoiceBindConsoleAgent: boolean;
+  xaiVoiceAgentId: string | null;
 };
 
 export type EmployeeDetail = EmployeeDetailShell & {

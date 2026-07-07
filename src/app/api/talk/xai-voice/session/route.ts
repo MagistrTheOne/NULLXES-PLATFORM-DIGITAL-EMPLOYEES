@@ -47,12 +47,13 @@ export async function POST(request: Request): Promise<Response> {
     );
   }
 
-  const needsInstructions = !voiceConfig.bindConsoleAgent;
+  const needsBrainCache =
+    voiceConfig.mode === "platform" && !voiceConfig.instructions;
 
   const [clientSecret, employeeContext, brainCache] = await Promise.all([
     createXaiVoiceClientSecret(),
     getEmployeeTalkContext(authResult.auth.organizationId, employeeId),
-    needsInstructions
+    needsBrainCache
       ? buildTalkSessionBrainCache({
           organizationId: authResult.auth.organizationId,
           employeeId,
@@ -72,20 +73,25 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   const instructions =
-    brainCache?.systemPromptBase ??
-    "You are a NULLXES digital employee. Respond concisely in Russian unless asked otherwise.";
+    voiceConfig.mode === "platform"
+      ? (voiceConfig.instructions ??
+        brainCache?.systemPromptBase ??
+        "You are a NULLXES digital employee. Respond concisely in Russian unless asked otherwise.")
+      : undefined;
 
   const session = buildXaiVoiceSessionUpdate({
     enabledToolSlugs: employeeContext.enabledToolSlugs,
     bindConsoleAgent: voiceConfig.bindConsoleAgent,
     instructions,
+    voice: voiceConfig.voice,
   });
 
   return NextResponse.json({
     clientSecret: clientSecret.value,
     expiresAt: clientSecret.expiresAt ?? null,
-    websocketUrl: buildXaiRealtimeWebSocketUrl(voiceConfig.agentId),
-    agentId: voiceConfig.agentId,
+    websocketUrl: buildXaiRealtimeWebSocketUrl(voiceConfig),
+    agentId:
+      voiceConfig.mode === "console" ? voiceConfig.agentId : null,
     bindConsoleAgent: voiceConfig.bindConsoleAgent,
     session,
   });

@@ -253,6 +253,13 @@
       "when": 1783900000000,
       "tag": "0035_xai_voice_session_metadata",
       "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1784000000000,
+      "tag": "0036_xai_voice_platform_agents",
+      "breakpoints": true
     }
   ]
 }
