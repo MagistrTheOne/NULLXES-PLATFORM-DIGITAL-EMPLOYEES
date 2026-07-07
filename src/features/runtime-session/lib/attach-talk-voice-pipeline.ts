@@ -12,7 +12,7 @@ import {
   type TalkPipelineCoordinator,
 } from "./talk-pipeline-coordinator";
 import { playTalkVoiceReply } from "./play-talk-voice-reply";
-import { postTalkEmployeeChatReply } from "./talk-reply-bridge";
+import { mirrorTalkReplyToChat } from "./talk-reply-mirror";
 import {
   createTalkTurnTelemetry,
   type TalkTurnTelemetryInput,
@@ -199,14 +199,10 @@ export function attachTalkVoicePipeline(input: {
           }
         }
 
-        await postTalkEmployeeChatReply(replyText);
-        if (input.employeeSessionId) {
-          await appendSessionMessageAction({
-            sessionId: input.employeeSessionId,
-            role: "assistant",
-            content: replyText,
-          });
-        }
+        mirrorTalkReplyToChat({
+          text: replyText,
+          sessionId: input.employeeSessionId,
+        });
         pipelineCoordinator.completeTalkTurn(turnKey, replyText);
         input.setPipelineState("idle");
       } catch (error: unknown) {
@@ -224,7 +220,10 @@ export function attachTalkVoicePipeline(input: {
           replyText: fallback,
           voiceMode: input.voiceMode,
         });
-        await postTalkEmployeeChatReply(fallback);
+        mirrorTalkReplyToChat({
+          text: fallback,
+          sessionId: input.employeeSessionId,
+        });
         pipelineCoordinator.completeTalkTurn(turnKey, fallback);
         input.setPipelineState("idle");
       } finally {

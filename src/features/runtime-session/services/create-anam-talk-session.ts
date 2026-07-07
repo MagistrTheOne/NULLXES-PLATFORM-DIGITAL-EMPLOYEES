@@ -4,6 +4,7 @@ import {
 import { ANAM_EXTERNAL_LLM_ID } from "@/features/provider-provisioning/types";
 import { syncAnamPersonaExternalBrain } from "@/features/provider-provisioning/services/sync-anam-persona-external-brain";
 import { buildAnamTalkEphemeralPersonaConfig } from "@/features/runtime-session/lib/build-anam-talk-persona-config";
+import { buildAnamTalkSessionVideoOptions } from "@/features/runtime-session/lib/anam-session-tuning";
 import { resolveTalkAnamLanguageCode } from "@/features/runtime-session/services/resolve-talk-anam-language";
 import { getAnamApiBaseUrl } from "@/shared/config/provider-env";
 import {
@@ -91,6 +92,7 @@ export async function createAnamTalkSessionTokenForEmployee(
     languageCode,
   });
 
+  const videoOptions = buildAnamTalkSessionVideoOptions();
   const requestBody = JSON.stringify({
     clientLabel: "nullxes-digital-employees",
     personaConfig,
@@ -98,6 +100,13 @@ export async function createAnamTalkSessionTokenForEmployee(
       sessionReplay: {
         enableSessionReplay: false,
       },
+      ...(videoOptions.videoQuality ? { videoQuality: videoOptions.videoQuality } : {}),
+      ...(videoOptions.videoWidth && videoOptions.videoHeight
+        ? {
+            videoWidth: videoOptions.videoWidth,
+            videoHeight: videoOptions.videoHeight,
+          }
+        : {}),
     },
   });
 

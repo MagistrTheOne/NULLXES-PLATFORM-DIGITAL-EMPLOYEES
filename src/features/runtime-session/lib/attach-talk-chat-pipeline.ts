@@ -3,12 +3,12 @@ import type { Channel as StreamChannel, Event } from "stream-chat";
 import { dispatchHqTaskFromChatAction } from "@/features/hq/actions/dispatch-hq-task-from-chat";
 import { appendSessionMessageAction } from "../actions/employee-session";
 import { playTalkVoiceReply } from "./play-talk-voice-reply";
+import { mirrorTalkReplyToChat } from "./talk-reply-mirror";
 import { streamTalkBrainReply } from "./stream-talk-brain-client";
 import {
   buildTalkTurnKey,
   getTalkPipelineCoordinator,
 } from "./talk-pipeline-coordinator";
-import { postTalkEmployeeChatReply } from "./talk-reply-bridge";
 import { registerTalkRegenerateHandler } from "./talk-regenerate-bridge";
 import type { TalkVoiceMode } from "../services/resolve-talk-voice-mode";
 
@@ -86,17 +86,6 @@ export function attachTalkChatPipeline(input: {
         messages: pipelineMessages,
       });
 
-      const streamMessageId = await postTalkEmployeeChatReply(replyText);
-
-      if (input.employeeSessionId) {
-        await appendSessionMessageAction({
-          sessionId: input.employeeSessionId,
-          role: "assistant",
-          content: replyText,
-          streamMessageId: streamMessageId ?? undefined,
-        });
-      }
-
       const anamClient = input.getAnamClient();
       if (input.isSessionLive && anamClient) {
         await playTalkVoiceReply({
@@ -107,20 +96,29 @@ export function attachTalkChatPipeline(input: {
         });
       }
 
+      mirrorTalkReplyToChat({
+        text: replyText,
+        sessionId: input.employeeSessionId,
+      });
+
       coordinator.completeTalkTurn(turnKey, replyText);
     } catch {
       coordinator.failTalkTurn();
       const fallback =
         "I could not process that message right now. Please try again.";
-      const streamMessageId = await postTalkEmployeeChatReply(fallback);
-      if (input.employeeSessionId) {
-        await appendSessionMessageAction({
-          sessionId: input.employeeSessionId,
-          role: "assistant",
-          content: fallback,
-          streamMessageId: streamMessageId ?? undefined,
+      const anamClient = input.getAnamClient();
+      if (input.isSessionLive && anamClient) {
+        await playTalkVoiceReply({
+          anamClient,
+          employeeId: input.employeeId,
+          replyText: fallback,
+          voiceMode: input.voiceMode,
         }).catch(() => undefined);
       }
+      mirrorTalkReplyToChat({
+        text: fallback,
+        sessionId: input.employeeSessionId,
+      });
       coordinator.completeTalkTurn(turnKey, fallback);
     }
   };

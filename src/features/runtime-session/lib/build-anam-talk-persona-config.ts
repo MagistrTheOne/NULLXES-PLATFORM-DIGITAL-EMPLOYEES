@@ -1,4 +1,5 @@
 import { ANAM_EXTERNAL_LLM_ID } from "@/features/provider-provisioning/types";
+import { buildAnamVoiceDetectionOptions } from "./anam-session-tuning";
 
  
 export const ANAM_AVATAR_ONLY_SYSTEM_PROMPT =
@@ -20,6 +21,7 @@ export function buildAnamTalkEphemeralPersonaConfig(input: {
     skipGreeting: true,
     systemPrompt: ANAM_AVATAR_ONLY_SYSTEM_PROMPT,
     languageCode: input.languageCode ?? "en",
+    voiceDetectionOptions: buildAnamVoiceDetectionOptions(),
     ...(input.enableAudioPassthrough ? { enableAudioPassthrough: true } : {}),
   };
 }
@@ -29,6 +31,7 @@ export function buildAnamPersonaExternalBrainPayload(): Record<string, unknown> 
     llmId: ANAM_EXTERNAL_LLM_ID,
     skipGreeting: true,
     systemPrompt: ANAM_AVATAR_ONLY_SYSTEM_PROMPT,
+    voiceDetectionOptions: buildAnamVoiceDetectionOptions(),
   };
 }
 
