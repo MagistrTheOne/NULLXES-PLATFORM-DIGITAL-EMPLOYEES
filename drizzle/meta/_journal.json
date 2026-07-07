@@ -239,6 +239,13 @@
       "when": 1783700000000,
       "tag": "0033_terms_of_service_consent",
       "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1783800000000,
+      "tag": "0034_disable_session_completed_notifications",
+      "breakpoints": true
     }
   ]
 }

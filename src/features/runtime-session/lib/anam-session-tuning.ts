@@ -37,13 +37,18 @@ function resolveBoundedFloat(
   return Math.min(max, Math.max(min, parsed));
 }
 
-function resolvePositiveInt(raw: string | undefined, fallback: number): number {
+function resolveBoundedInt(
+  raw: string | undefined,
+  fallback: number,
+  min: number,
+  max: number,
+): number {
   const parsed = raw ? Number(raw) : Number.NaN;
-  if (!Number.isFinite(parsed) || parsed < 0) {
+  if (!Number.isFinite(parsed)) {
     return fallback;
   }
 
-  return Math.floor(parsed);
+  return Math.min(max, Math.max(min, Math.floor(parsed)));
 }
 
 /** Shared end-of-speech sensitivity for browser client + persona config. */
@@ -64,13 +69,17 @@ export function resolveAnamEndOfSpeechSensitivity(): number {
 export function buildAnamVoiceDetectionOptions(): AnamVoiceDetectionOptions {
   return {
     endOfSpeechSensitivity: resolveAnamEndOfSpeechSensitivity(),
-    silenceBeforeSkipTurnSeconds: resolvePositiveInt(
+    silenceBeforeSkipTurnSeconds: resolveBoundedInt(
       readEnv("ANAM_SILENCE_BEFORE_SKIP_TURN_SECONDS"),
       15,
+      0,
+      900,
     ),
-    silenceBeforeSessionEndSeconds: resolvePositiveInt(
+    silenceBeforeSessionEndSeconds: resolveBoundedInt(
       readEnv("ANAM_SILENCE_BEFORE_SESSION_END_SECONDS"),
       60,
+      0,
+      7200,
     ),
     silenceBeforeAutoEndTurnSeconds: resolveBoundedFloat(
       readEnv("ANAM_SILENCE_BEFORE_AUTO_END_TURN_SECONDS"),

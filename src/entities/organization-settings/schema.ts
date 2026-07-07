@@ -24,7 +24,7 @@ export const organizationSettings = pgTable("organization_settings", {
   knowledgeProcessing: text("knowledge_processing").notNull().default("auto"),
   sessionRetentionDays: integer("session_retention_days").notNull().default(90),
   retentionPolicyDays: integer("retention_policy_days").notNull().default(90),
-  notifySessionCompleted: boolean("notify_session_completed").notNull().default(true),
+  notifySessionCompleted: boolean("notify_session_completed").notNull().default(false),
   notifyEmployeeCreated: boolean("notify_employee_created").notNull().default(true),
   notifyKnowledgeFailed: boolean("notify_knowledge_failed").notNull().default(true),
   notifyWeeklyDigest: boolean("notify_weekly_digest").notNull().default(false),
