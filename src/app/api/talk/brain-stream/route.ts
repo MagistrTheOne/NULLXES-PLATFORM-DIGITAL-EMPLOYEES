@@ -4,7 +4,10 @@ import type { TalkPipelineMessage } from "@/features/runtime-session/actions/tal
 import { assertBrainStreamRateLimit } from "@/features/runtime-session/lib/brain-stream-rate-limit";
 import { talkApiJsonResponse } from "@/features/runtime-session/lib/talk-api-errors";
 import { shouldDegradeTalkBrainTurn } from "@/features/runtime-session/lib/talk-sla";
-import { resolveTalkBrainTools } from "@/features/runtime-session/lib/resolve-talk-brain-tools";
+import {
+  resolveBrainToolsForChannel,
+  type TalkBrainChannel,
+} from "@/features/runtime-session/lib/resolve-talk-brain-tools";
 import { trimTalkHistory } from "@/features/runtime-session/lib/trim-talk-history";
 import { buildTalkBrainRequest } from "@/features/runtime-session/services/build-talk-brain-request";
 import { checkForeignDataProcessingAllowed } from "@/features/privacy/services/assert-foreign-data-processing";
@@ -19,8 +22,13 @@ type BrainStreamRequest = {
   sessionId?: string;
   turnId?: string;
   scenarioSessionId?: string;
+  channel?: TalkBrainChannel;
   messages?: TalkPipelineMessage[];
 };
+
+function resolveBrainStreamChannel(value: unknown): TalkBrainChannel {
+  return value === "chat" ? "chat" : "voice";
+}
 
 async function handleBrainStreamPost(request: Request): Promise<Response> {
   let body: BrainStreamRequest;
@@ -105,9 +113,14 @@ async function handleBrainStreamPost(request: Request): Promise<Response> {
 
   const slaDegrade = shouldDegradeTalkBrainTurn(buildResult.perf);
 
+  const brainChannel = resolveBrainStreamChannel(body.channel);
   const talkTools = slaDegrade
     ? undefined
-    : resolveTalkBrainTools(lastMessage.content, config.enabledToolSlugs);
+    : resolveBrainToolsForChannel(
+        brainChannel,
+        lastMessage.content,
+        config.enabledToolSlugs,
+      );
   const toolContext = talkTools
     ? {
         organizationId: authResult.auth.organizationId,

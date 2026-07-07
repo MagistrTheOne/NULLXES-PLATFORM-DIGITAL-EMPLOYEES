@@ -83,6 +83,7 @@ export function attachTalkChatPipeline(input: {
         employeeId: input.employeeId,
         sessionId: input.employeeSessionId,
         scenarioSessionId: input.scenarioSessionId,
+        channel: "chat",
         messages: pipelineMessages,
       });
 

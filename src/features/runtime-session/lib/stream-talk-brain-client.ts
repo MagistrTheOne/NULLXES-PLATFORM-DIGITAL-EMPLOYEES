@@ -1,12 +1,14 @@
 import type { TalkPipelineMessage } from "../actions/talk-voice-pipeline";
 import type { TalkTurnFlags, TalkTurnSpanKey } from "../types/talk-turn-metrics";
 import { resolveAgentToolTraceKey } from "./map-agent-tool-trace";
+import type { TalkBrainChannel } from "./resolve-talk-brain-tools";
 
 export async function streamTalkBrainReply(input: {
   employeeId: string;
   sessionId?: string;
   turnId?: string;
   scenarioSessionId?: string;
+  channel?: TalkBrainChannel;
   messages: TalkPipelineMessage[];
   onChunk?: (chunk: string) => void | Promise<void>;
   onToolTrace?: (traceKey: string | null) => void | Promise<void>;
@@ -25,6 +27,7 @@ export async function streamTalkBrainReply(input: {
       sessionId: input.sessionId,
       turnId: input.turnId,
       scenarioSessionId: input.scenarioSessionId,
+      channel: input.channel ?? "voice",
       messages: input.messages,
     }),
     signal: input.signal,

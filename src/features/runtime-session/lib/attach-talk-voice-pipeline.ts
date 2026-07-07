@@ -140,6 +140,7 @@ export function attachTalkVoicePipeline(input: {
             sessionId: input.employeeSessionId,
             turnId,
             scenarioSessionId: input.scenarioSessionId,
+            channel: "voice",
             messages: pipelineMessages,
             signal: brainAbort.signal,
             onServerPerf: (payload) => {
@@ -172,6 +173,7 @@ export function attachTalkVoicePipeline(input: {
             sessionId: input.employeeSessionId,
             turnId,
             scenarioSessionId: input.scenarioSessionId,
+            channel: "voice",
             messages: pipelineMessages,
             signal: brainAbort.signal,
             onServerPerf: (payload) => {
