@@ -15,6 +15,7 @@ import {
 import { formatDurationSeconds } from "@/features/analytics/lib/format-duration";
 import type { TalkAgentDetails } from "@/features/runtime-session/components/talk-agent-details";
 import { XaiVoiceCallSheet } from "@/features/xai-voice/components/xai-voice-call-sheet";
+import { InspectorAvatarSetup } from "./inspector-avatar-setup";
 import { cn } from "@/lib/utils";
 import { ConversationAvatar } from "../components/conversation-avatar";
 import {
@@ -145,19 +146,12 @@ export function NullxesInspector({
           </div>
 
           {!details.avatarReady ? (
-            <div className="rounded-xl border border-amber-400/20 bg-amber-400/5 px-3 py-3 text-xs leading-5 text-amber-100/85">
-              <p>{t("avatarSetup.message")}</p>
-              <Button
-                asChild
-                variant="outline"
-                size="sm"
-                className="mt-3 border-amber-200/20 text-amber-50 hover:bg-amber-400/10"
-              >
-                <Link href={`/dashboard/employees/${details.employeeId}`}>
-                  {t("avatarSetup.action")}
-                </Link>
-              </Button>
-            </div>
+            <InspectorAvatarSetup
+              employeeId={details.employeeId}
+              name={details.name}
+              role={details.role}
+              studioVoiceId={details.studioVoiceId}
+            />
           ) : null}
 
           <div className="flex items-center gap-2">

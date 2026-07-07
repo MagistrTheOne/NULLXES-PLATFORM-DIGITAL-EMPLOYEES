@@ -19,26 +19,14 @@ export function isXaiVoiceConfigured(): boolean {
   return Boolean(getXaiApiKey());
 }
 
-export function resolveXaiVoiceAgentId(employeeId: string): string | null {
-  if (employeeId !== ADELINE_KALEN_EMPLOYEE_ID) {
-    return null;
-  }
-
-  if (!isXaiVoiceConfigured()) {
-    return null;
-  }
-
-  return (
-    readEnv("XAI_VOICE_AGENT_ADELINE") || DEFAULT_ADELINE_AGENT_ID
-  );
+export function readXaiVoiceAgentFromEnv(): string | null {
+  return readEnv("XAI_VOICE_AGENT_ADELINE") || DEFAULT_ADELINE_AGENT_ID;
 }
 
-export function isXaiVoiceAvailableForEmployee(employeeId: string): boolean {
-  return Boolean(resolveXaiVoiceAgentId(employeeId));
-}
-
-export const XAI_REALTIME_MODEL = "grok-voice-latest";
-
-export function buildXaiRealtimeWebSocketUrl(): string {
-  return `wss://api.x.ai/v1/realtime?model=${XAI_REALTIME_MODEL}`;
+export function buildXaiRealtimeWebSocketUrl(agentId: string): string {
+  const params = new URLSearchParams({
+    agent_id: agentId,
+    "reasoning.effort": "none",
+  });
+  return `wss://api.x.ai/v1/realtime?${params.toString()}`;
 }

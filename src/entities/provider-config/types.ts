@@ -50,4 +50,9 @@ export type SessionProviderConfigPayload = {
   providerResourceId?: string;
   provisioningStatus?: ProviderProvisioningStatus;
   providerMetadata?: Record<string, unknown>;
+  /** xAI Grok Voice Agent console id (e.g. agent_yLXnJLDucVtucCck). */
+  xaiVoiceAgentId?: string;
+  xaiVoiceEnabled?: boolean;
+  /** When true, WebSocket uses agent_id and does not override console instructions. */
+  xaiVoiceBindConsoleAgent?: boolean;
 };

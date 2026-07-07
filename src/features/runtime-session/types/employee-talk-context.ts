@@ -22,6 +22,7 @@ export type EmployeeTalkContext = {
   studioVoiceId: string | null;
   sessionProvisioningStatus: ProviderProvisioningStatus;
   sessionProviderMetadata: Record<string, unknown> | null;
+  xaiVoiceAvailable: boolean;
   temperature: number;
   maxTokens: number;
   sessionLimitSeconds: number;

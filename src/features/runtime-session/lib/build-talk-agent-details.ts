@@ -2,7 +2,6 @@ import type { EmployeeTalkContext } from "../types/employee-talk-context";
 import type { TalkAgentPanel } from "../queries/get-talk-agent-panel";
 import type { TalkActivityItem } from "../queries/get-talk-agent-activity";
 import type { TalkAgentDetails } from "../components/talk-agent-details";
-import { isXaiVoiceAvailableForEmployee } from "@/shared/config/xai-voice-env";
 
 export function buildTalkAgentDetails(input: {
   employee: Pick<
@@ -12,6 +11,8 @@ export function buildTalkAgentDetails(input: {
     | "role"
     | "avatarPreviewUrl"
     | "avatarProvisioningStatus"
+    | "studioVoiceId"
+    | "xaiVoiceAvailable"
   >;
   panel: TalkAgentPanel;
   locale: string;
@@ -29,7 +30,8 @@ export function buildTalkAgentDetails(input: {
     modelLabel: input.modelLabel ?? null,
     language: input.locale.toUpperCase(),
     currentTaskTitle: input.panel.currentTaskTitle,
-    xaiVoiceAvailable: isXaiVoiceAvailableForEmployee(input.employee.id),
+    xaiVoiceAvailable: input.employee.xaiVoiceAvailable,
+    studioVoiceId: input.employee.studioVoiceId,
     stats: input.panel.stats,
     activity: input.activity,
   };

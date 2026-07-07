@@ -20,6 +20,7 @@ export type TalkAgentDetails = {
   language: string;
   currentTaskTitle: string | null;
   xaiVoiceAvailable?: boolean;
+  studioVoiceId?: string | null;
   stats: TalkAgentPanelStats;
   activity?: TalkActivityItem[];
 };

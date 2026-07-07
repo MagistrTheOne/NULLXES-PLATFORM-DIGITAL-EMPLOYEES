@@ -1324,7 +1324,10 @@
     },
     "avatarSetup": {
       "message": "Portrait is not ready yet. Upload a photo on the employee profile to unlock Anam video talk.",
-      "action": "Upload portrait"
+      "messageInline": "Portrait is not ready yet. Upload a photo here to unlock Anam video talk.",
+      "action": "Upload portrait",
+      "pickPhoto": "Choose a portrait photo first.",
+      "uploading": "Uploading…"
     },
     "xaiVoice": {
       "title": "Voice call · {name}",

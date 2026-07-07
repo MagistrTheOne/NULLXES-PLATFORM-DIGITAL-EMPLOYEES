@@ -15,6 +15,7 @@ import {
   resolveAnamPersonaVoiceId,
 } from "@/features/employees/lib/resolve-anam-avatar-talk-readiness";
 import { getEmployeeBlueprint } from "@/features/agent-blueprint/queries/get-employee-blueprint";
+import { resolveXaiVoiceConfigForEmployee } from "@/features/xai-voice/services/resolve-xai-voice-config";
 import type { EmployeeTalkContext } from "../types/employee-talk-context";
 
 function readProvisioningStatus(
@@ -55,7 +56,7 @@ async function queryEmployeeTalkContext(
     return null;
   }
 
-  const [runtime, configs, blueprint] = await Promise.all([
+  const [runtime, configs, blueprint, xaiVoiceConfig] = await Promise.all([
     db
       .select()
       .from(employeeRuntime)
@@ -67,6 +68,7 @@ async function queryEmployeeTalkContext(
       .from(employeeProviderConfig)
       .where(eq(employeeProviderConfig.employeeId, employeeId)),
     getEmployeeBlueprint({ organizationId, employeeId }),
+    resolveXaiVoiceConfigForEmployee(employeeId),
   ]);
 
   const avatarConfig = configs.find((row) => row.providerType === "avatar")
@@ -111,6 +113,7 @@ async function queryEmployeeTalkContext(
       typeof sessionConfig.providerMetadata === "object"
         ? (sessionConfig.providerMetadata as Record<string, unknown>)
         : null,
+    xaiVoiceAvailable: Boolean(xaiVoiceConfig),
     temperature: runtime?.temperature ?? 0.7,
     maxTokens: runtime?.maxTokens ?? 1024,
     sessionLimitSeconds: runtime?.sessionLimitSeconds ?? 3600,

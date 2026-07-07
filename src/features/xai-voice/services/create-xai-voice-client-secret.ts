@@ -19,6 +19,9 @@ export async function createXaiVoiceClientSecret(): Promise<XaiVoiceClientSecret
     },
     body: JSON.stringify({
       expires_after: { seconds: 300 },
+      session: {
+        reasoning: { effort: "none" },
+      },
     }),
   });
 
