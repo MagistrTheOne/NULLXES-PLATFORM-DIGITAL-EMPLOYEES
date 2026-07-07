@@ -641,7 +641,6 @@
           "viewer": "Наблюдатель"
         }
       },
-      "live": "В эфире",
       "offlineState": "Не в сети",
       "chat": {
         "title": "Чат сессии",
@@ -696,7 +695,8 @@
       },
       "xaiVoice": {
         "title": "Голосовой звонок · {name}",
-        "description": "Grok voice в реальном времени через xAI. Нужен микрофон. Работает параллельно с видео-сессией или без неё.",
+        "subtitle": "NULLXES Realtime Voice Agent",
+        "description": "NULLXES Realtime Voice Agent",
         "startCall": "Начать звонок",
         "endCall": "Завершить",
         "connecting": "Подключение…",
@@ -710,6 +710,7 @@
         "unmuteSpeaker": "Включить динамик",
         "autoTranscript": "Авто-транскрипт",
         "providerLabel": "Grok xAI",
+        "close": "Закрыть",
         "transcriptEmpty": "Транскрипт появится здесь во время звонка.",
         "statusIdle": "Готово",
         "statusConnecting": "Подключение к xAI…",
@@ -1363,7 +1364,8 @@
     },
     "xaiVoice": {
       "title": "Голосовой звонок · {name}",
-      "description": "Grok voice в реальном времени через xAI. Нужен микрофон.",
+      "subtitle": "NULLXES Realtime Voice Agent",
+      "description": "NULLXES Realtime Voice Agent",
       "startCall": "Начать звонок",
       "endCall": "Завершить",
       "connecting": "Подключение…",
@@ -1377,6 +1379,7 @@
       "unmuteSpeaker": "Включить динамик",
       "autoTranscript": "Авто-транскрипт",
       "providerLabel": "Grok xAI",
+      "close": "Закрыть",
       "transcriptEmpty": "Транскрипт появится здесь во время звонка.",
       "statusIdle": "Готово",
       "statusConnecting": "Подключение к xAI…",

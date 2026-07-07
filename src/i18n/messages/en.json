@@ -641,7 +641,6 @@
           "viewer": "Viewer"
         }
       },
-      "live": "Live",
       "offlineState": "Offline",
       "chat": {
         "title": "Session chat",
@@ -696,7 +695,8 @@
       },
       "xaiVoice": {
         "title": "Voice call · {name}",
-        "description": "Real-time Grok voice via xAI. Microphone required. Works alongside or without the video session.",
+        "subtitle": "NULLXES Realtime Voice Agent",
+        "description": "NULLXES Realtime Voice Agent",
         "startCall": "Start voice call",
         "endCall": "End call",
         "connecting": "Connecting…",
@@ -710,6 +710,7 @@
         "unmuteSpeaker": "Unmute speaker",
         "autoTranscript": "Auto transcript",
         "providerLabel": "Grok xAI",
+        "close": "Close",
         "transcriptEmpty": "Transcript will appear here during the call.",
         "statusIdle": "Ready",
         "statusConnecting": "Connecting to xAI…",
@@ -1363,7 +1364,8 @@
     },
     "xaiVoice": {
       "title": "Voice call · {name}",
-      "description": "Real-time Grok voice via xAI. Microphone required.",
+      "subtitle": "NULLXES Realtime Voice Agent",
+      "description": "NULLXES Realtime Voice Agent",
       "startCall": "Start voice call",
       "endCall": "End call",
       "connecting": "Connecting…",
@@ -1377,6 +1379,7 @@
       "unmuteSpeaker": "Unmute speaker",
       "autoTranscript": "Auto transcript",
       "providerLabel": "Grok xAI",
+      "close": "Close",
       "transcriptEmpty": "Transcript will appear here during the call.",
       "statusIdle": "Ready",
       "statusConnecting": "Connecting to xAI…",

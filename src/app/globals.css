@@ -90,19 +90,36 @@
 @keyframes xai-voice-bar {
   0%,
   100% {
-    transform: scaleY(0.35);
-    opacity: 0.45;
+    transform: scaleY(0.28);
+    opacity: 0.35;
   }
 
   50% {
     transform: scaleY(1);
-    opacity: 0.95;
+    opacity: 0.85;
   }
 }
 
 .animate-xai-voice-bar {
-  animation: xai-voice-bar 0.9s ease-in-out infinite;
+  animation-name: xai-voice-bar;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
   transform-origin: center bottom;
+}
+
+@keyframes xai-voice-shadow-breathe {
+  0%,
+  100% {
+    box-shadow: 0 0 50px rgba(255, 255, 255, 0.04);
+  }
+
+  50% {
+    box-shadow: 0 0 70px rgba(255, 255, 255, 0.055);
+  }
+}
+
+.animate-xai-voice-shadow-breathe {
+  animation: xai-voice-shadow-breathe 4.5s ease-in-out infinite;
 }
 
 @layer base {
