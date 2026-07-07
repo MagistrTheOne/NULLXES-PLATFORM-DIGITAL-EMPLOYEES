@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Loader2, Pencil, Trash2 } from "lucide-react";
@@ -42,9 +42,18 @@ import type { BrainProviderReadinessMap } from "@/features/brain/lib/brain-provi
 import { getDefaultBrainModelForProvider } from "@/features/settings/lib/brain-model-defaults";
 import { useWorkspacePermissions } from "@/features/workspace/components/workspace-permissions-provider";
 import { deleteEmployeeAction } from "../actions/delete-employee";
+import { provisionEmployeeAvatarStudio } from "../actions/provision-employee-avatar-studio";
 import { updateEmployeeAction } from "../actions/update-employee";
+import { MAX_AVATAR_UPLOAD_BYTES } from "../create/constants";
 import { getInitialBrainModelForEdit } from "../lib/get-initial-brain-model-for-edit";
+import { AvatarUpload } from "../studio/avatar/avatar-upload";
 import type { EmployeeDetailShell } from "../types";
+
+const DEFAULT_EDIT_STUDIO_VOICE_ID = "anam-lucy";
+
+function resolveEditStudioVoiceId(employee: EmployeeDetailShell): string {
+  return employee.studioVoiceId ?? DEFAULT_EDIT_STUDIO_VOICE_ID;
+}
 
 export function EmployeeDetailActions({
   employee,
@@ -55,6 +64,7 @@ export function EmployeeDetailActions({
 }) {
   const router = useRouter();
   const t = useTranslations("employees.detail.actions");
+  const tCreate = useTranslations("employees.create");
   const tCommon = useTranslations("common.actions");
   const tStatus = useTranslations("employees.status");
   const permissions = useWorkspacePermissions();
@@ -82,6 +92,52 @@ export function EmployeeDetailActions({
   const [brainModel, setBrainModel] = useState(() =>
     getInitialBrainModelForEdit(employee.brainProvider, employee.brainModel),
   );
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoFileName, setPhotoFileName] = useState<string | null>(null);
+  const [localPreviewUrl, setLocalPreviewUrl] = useState<string | null>(null);
+  const localPreviewUrlRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (localPreviewUrlRef.current) {
+        URL.revokeObjectURL(localPreviewUrlRef.current);
+      }
+    };
+  }, []);
+
+  function clearLocalPhotoPreview(): void {
+    if (localPreviewUrlRef.current) {
+      URL.revokeObjectURL(localPreviewUrlRef.current);
+      localPreviewUrlRef.current = null;
+    }
+    setLocalPreviewUrl(null);
+  }
+
+  function resetPhotoSelection(): void {
+    clearLocalPhotoPreview();
+    setPhotoFile(null);
+    setPhotoFileName(null);
+  }
+
+  function handlePhotoSelected(file: File): void {
+    if (!file.type.startsWith("image/")) {
+      setErrorMessage(tCreate("errors.invalidImage"));
+      return;
+    }
+
+    if (file.size > MAX_AVATAR_UPLOAD_BYTES) {
+      setErrorMessage(tCreate("errors.imageTooLarge"));
+      return;
+    }
+
+    clearLocalPhotoPreview();
+    const previewUrl = URL.createObjectURL(file);
+    localPreviewUrlRef.current = previewUrl;
+    setLocalPreviewUrl(previewUrl);
+    setPhotoFile(file);
+    setPhotoFileName(file.name);
+    setErrorMessage(null);
+  }
 
   function resetForm(): void {
     setName(employee.name);
@@ -93,6 +149,7 @@ export function EmployeeDetailActions({
     setBrainModel(
       getInitialBrainModelForEdit(employee.brainProvider, employee.brainModel),
     );
+    resetPhotoSelection();
     setErrorMessage(null);
   }
 
@@ -120,6 +177,28 @@ export function EmployeeDetailActions({
       if (!result.ok) {
         setErrorMessage(result.message);
         return;
+      }
+
+      if (photoFile && employee.avatarProvider === "anam") {
+        const avatarPayload = new FormData();
+        avatarPayload.append("file", photoFile);
+        avatarPayload.append("name", name.trim());
+        avatarPayload.append("role", role.trim());
+        avatarPayload.append("studioVoiceId", resolveEditStudioVoiceId(employee));
+        if (photoFileName) {
+          avatarPayload.append("photoFileName", photoFileName);
+        }
+        avatarPayload.append("photoFileSize", String(photoFile.size));
+
+        const provisioned = await provisionEmployeeAvatarStudio(
+          employee.id,
+          avatarPayload,
+        );
+
+        if (!provisioned.ok) {
+          setErrorMessage(provisioned.message);
+          return;
+        }
       }
 
       setEditOpen(false);
@@ -266,6 +345,23 @@ export function EmployeeDetailActions({
               />
               <p className="text-xs text-white/45">{t("reprovisionHint")}</p>
             </div>
+            {employee.avatarProvider === "anam" ? (
+              <div className="space-y-2">
+                <Label className="text-white/80">{t("avatarPhoto")}</Label>
+                <p className="text-xs text-white/45">{t("avatarPhotoHint")}</p>
+                {employee.anamApiKeySlot ? (
+                  <p className="text-xs text-white/45">
+                    {t("avatarPinnedSlot", { slot: employee.anamApiKeySlot })}
+                  </p>
+                ) : null}
+                <AvatarUpload
+                  photoFileName={photoFileName}
+                  localPreviewUrl={localPreviewUrl ?? employee.avatarPreviewUrl}
+                  disabled={isPending}
+                  onFileSelected={handlePhotoSelected}
+                />
+              </div>
+            ) : null}
             {errorMessage ? (
               <p className="text-sm text-white/65" role="alert">
                 {errorMessage}
