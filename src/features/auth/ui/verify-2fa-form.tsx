@@ -263,7 +263,9 @@ export function Verify2faForm() {
             disabled={
               isSubmitting ||
               (mode === "email" && !emailOtpSent) ||
-              (mode === "totp" ? code.trim().length < 6 : code.trim().length < 4)
+              (mode === "backup"
+                ? code.trim().length < 4
+                : code.trim().length < 6)
             }
             className="bg-white text-black hover:bg-white/90"
           >

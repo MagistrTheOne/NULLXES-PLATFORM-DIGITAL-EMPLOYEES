@@ -4,15 +4,16 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import type { AnamApiKeySlot } from "@/shared/config/anam-api-pool";
 import { repointEmployeeAnamSlotAction } from "@/features/admin/actions/repoint-employee-anam-slot";
 import type { AnamAdminEmployeeRow } from "@/features/admin/services/get-anam-pool-status";
 
 export function AnamAdminRepointButton({
   employee,
-  slot = "ANAM_API_KEY_9",
+  slot = "ANAM_API_KEY_11",
 }: {
   employee: AnamAdminEmployeeRow;
-  slot?: "ANAM_API_KEY_9";
+  slot?: AnamApiKeySlot;
 }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
@@ -47,7 +48,7 @@ export function AnamAdminRepointButton({
         {isPending ? (
           <Loader2 className="size-3 animate-spin" />
         ) : (
-          `Pin to ${slot.replace("ANAM_API_KEY_", "lab-")} & reset pending`
+          `Pin to ${slot === "ANAM_API_KEY" ? "lab-1" : slot.replace("ANAM_API_KEY_", "lab-")} & reset pending`
         )}
       </Button>
       {error ? (

@@ -4,6 +4,7 @@ import { employeeProviderConfig } from "@/entities/provider-config/schema";
 import {
   ANAM_API_KEY_SLOTS,
   getAnamApiKeyPool,
+  probeAnamApiKeyHealth,
   type AnamApiKeySlot,
 } from "@/shared/config/anam-api-pool";
 import { db } from "@/shared/db/client";
@@ -39,6 +40,8 @@ export type AnamAdminSlotStatus = {
   slot: AnamApiKeySlot;
   label: string;
   configured: boolean;
+  credentialHealthy: boolean | null;
+  credentialDetail: string | null;
   personaCount: number;
   atCapacity: boolean;
   employees: AnamAdminEmployeeRow[];
@@ -133,20 +136,33 @@ export async function getAnamPoolStatus(): Promise<AnamPoolStatus> {
     slotEmployees.set(effectiveSlot, bucket);
   }
 
-  const slots: AnamAdminSlotStatus[] = ANAM_API_KEY_SLOTS.map((slot, index) => {
-    const poolEntry = pool.find((entry) => entry.slot === slot);
-    const employeesOnSlot = slotEmployees.get(slot) ?? [];
-    const personaCount = employeesOnSlot.filter((row) => row.personaId).length;
+  const slots: AnamAdminSlotStatus[] = await Promise.all(
+    ANAM_API_KEY_SLOTS.map(async (slot, index) => {
+      const poolEntry = pool.find((entry) => entry.slot === slot);
+      const employeesOnSlot = slotEmployees.get(slot) ?? [];
+      const personaCount = employeesOnSlot.filter((row) => row.personaId).length;
+      const configured = configuredSlots.has(slot);
+      let credentialHealthy: boolean | null = null;
+      let credentialDetail: string | null = null;
 
-    return {
-      slot,
-      label: poolEntry?.label ?? `lab-${index + 1}`,
-      configured: configuredSlots.has(slot),
-      personaCount,
-      atCapacity: configuredSlots.has(slot) && personaCount >= maxPersonasPerKey,
-      employees: employeesOnSlot,
-    };
-  });
+      if (poolEntry) {
+        const probe = await probeAnamApiKeyHealth(poolEntry.key);
+        credentialHealthy = probe.healthy;
+        credentialDetail = probe.detail;
+      }
+
+      return {
+        slot,
+        label: poolEntry?.label ?? `lab-${index + 1}`,
+        configured,
+        credentialHealthy,
+        credentialDetail,
+        personaCount,
+        atCapacity: configured && personaCount >= maxPersonasPerKey,
+        employees: employeesOnSlot,
+      };
+    }),
+  );
 
   return {
     configuredSlotCount: pool.length,

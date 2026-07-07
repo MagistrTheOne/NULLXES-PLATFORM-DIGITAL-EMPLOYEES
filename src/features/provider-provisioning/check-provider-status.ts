@@ -45,40 +45,31 @@ async function checkOpenAi(): Promise<ProviderCheck> {
   }
 }
 
-async function checkAnam(): Promise<ProviderCheck> {
-  const { getAnamApiKey, getAnamApiBaseUrl } = await import(
+async function checkAnam(): Promise<ProviderCheck[]> {
+  const { getAnamApiBaseUrl, probeAnamApiKeyPoolHealth } = await import(
     "@/shared/config/provider-env"
   );
-  const apiKey = getAnamApiKey();
-  if (!apiKey) {
-    return {
-      name: "Anam",
-      configured: false,
-      healthy: false,
-      detail: "ANAM_API_KEY missing",
-    };
+  const probes = await probeAnamApiKeyPoolHealth();
+
+  if (probes.length === 0) {
+    return [
+      {
+        name: "Anam",
+        configured: false,
+        healthy: false,
+        detail: "No ANAM_API_KEY* slots configured",
+      },
+    ];
   }
 
-  try {
-    const response = await fetch(`${getAnamApiBaseUrl()}/personas?perPage=1`, {
-      headers: { Authorization: `Bearer ${apiKey}` },
-    });
-    return {
-      name: "Anam",
-      configured: true,
-      healthy: response.ok,
-      detail: response.ok
-        ? "API key valid (personas list OK)"
-        : `HTTP ${response.status} ${response.statusText}`,
-    };
-  } catch (error) {
-    return {
-      name: "Anam",
-      configured: true,
-      healthy: false,
-      detail: error instanceof Error ? error.message : "Request failed",
-    };
-  }
+  return probes.map((probe) => ({
+    name: `Anam ${probe.label} (${probe.slot})`,
+    configured: true,
+    healthy: probe.healthy,
+    detail: probe.healthy
+      ? `${probe.detail} (${getAnamApiBaseUrl()})`
+      : probe.detail,
+  }));
 }
 
 async function checkElevenLabs(): Promise<ProviderCheck> {
@@ -167,12 +158,14 @@ async function checkRedisRateLimit(): Promise<ProviderCheck> {
 }
 
 async function main(): Promise<void> {
-  const checks = await Promise.all([
+  const [openAi, anamChecks, elevenLabs, redis] = await Promise.all([
     checkOpenAi(),
     checkAnam(),
     checkElevenLabs(),
     checkRedisRateLimit(),
   ]);
+
+  const checks = [openAi, ...anamChecks, elevenLabs, redis];
 
   console.log("Provider status (live API check):\n");
   for (const check of checks) {

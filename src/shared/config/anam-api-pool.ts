@@ -11,6 +11,7 @@ export const ANAM_API_KEY_SLOTS = [
   "ANAM_API_KEY_8",
   "ANAM_API_KEY_9",
   "ANAM_API_KEY_10",
+  "ANAM_API_KEY_11",
 ] as const;
 
 export type AnamApiKeySlot = (typeof ANAM_API_KEY_SLOTS)[number];
@@ -187,4 +188,52 @@ export async function anamFetchWithKeyPool(
   }
 
   throw new Error(lastError);
+}
+
+/** Live Anam API probe — valid key returns 200 on personas list. */
+export async function probeAnamApiKeyHealth(apiKey: string): Promise<{
+  healthy: boolean;
+  detail: string;
+}> {
+  try {
+    const response = await anamFetch("/personas?perPage=1", { method: "GET" }, apiKey);
+
+    if (response.ok) {
+      return { healthy: true, detail: "API key valid" };
+    }
+
+    const message = await readAnamErrorMessage(response);
+    return {
+      healthy: false,
+      detail: `HTTP ${response.status}: ${message}`,
+    };
+  } catch (error: unknown) {
+    return {
+      healthy: false,
+      detail: error instanceof Error ? error.message : "Request failed",
+    };
+  }
+}
+
+export async function probeAnamApiKeyPoolHealth(): Promise<
+  Array<{
+    slot: AnamApiKeySlot;
+    label: string;
+    healthy: boolean;
+    detail: string;
+  }>
+> {
+  const pool = getAnamApiKeyPool();
+
+  return Promise.all(
+    pool.map(async (entry) => {
+      const probe = await probeAnamApiKeyHealth(entry.key);
+      return {
+        slot: entry.slot,
+        label: entry.label,
+        healthy: probe.healthy,
+        detail: probe.detail,
+      };
+    }),
+  );
 }

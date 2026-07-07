@@ -10,6 +10,8 @@ export {
   getAnamApiKeyBySlot,
   getAnamApiKeyPool,
   isAnamAvatarQuotaError,
+  probeAnamApiKeyHealth,
+  probeAnamApiKeyPoolHealth,
   readAnamErrorMessage,
 } from "./anam-api-pool";
 export type { AnamApiKeyPoolEntry, AnamApiKeySlot } from "./anam-api-pool";

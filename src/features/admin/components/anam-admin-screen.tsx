@@ -101,6 +101,16 @@ export function AnamAdminScreen({ status }: { status: AnamPoolStatus }) {
                 >
                   {slot.configured ? "configured" : "missing on server"}
                 </span>
+                {slot.configured && slot.credentialHealthy === false ? (
+                  <span className="rounded-full border border-red-400/30 px-2 py-0.5 text-red-200/90">
+                    invalid key
+                  </span>
+                ) : null}
+                {slot.configured && slot.credentialHealthy === true ? (
+                  <span className="rounded-full border border-emerald-400/20 px-2 py-0.5 text-emerald-200/80">
+                    key ok
+                  </span>
+                ) : null}
                 {slot.atCapacity ? (
                   <span className="rounded-full border border-white/20 px-2 py-0.5 text-white/80">
                     at capacity
