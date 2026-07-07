@@ -6,6 +6,7 @@ import {
   type AgentToolExecutionContext,
 } from "@/features/agent-tools";
 import type { BrainApiConfig } from "@/features/brain/lib/resolve-brain-api-config";
+import { buildBrainChatTokenLimit } from "@/features/brain/lib/build-brain-chat-token-limit";
 import { resolveBrainApiConfig } from "@/features/brain/lib/resolve-brain-api-config";
 import { getBrainFailoverProvider } from "@/features/brain/lib/get-brain-failover-provider";
 import { formatBrainModelDisplay } from "@/features/brain/lib/format-brain-model-display";
@@ -75,7 +76,7 @@ async function callBrainChat(input: {
     body: JSON.stringify({
       model: input.api.model,
       temperature: input.temperature ?? 0.7,
-      max_tokens: input.maxTokens ?? 1024,
+      ...buildBrainChatTokenLimit(input.api.model, input.maxTokens ?? 1024),
       stream: input.stream ?? false,
       messages: input.messages,
       ...(input.tools ? { tools: input.tools } : {}),
