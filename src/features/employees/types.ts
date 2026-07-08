@@ -58,6 +58,7 @@ export type EmployeeListItem = {
 };
 
 export type EmployeeDetailShell = EmployeeListItem & {
+  xaiVoiceAvailable: boolean;
   description: string | null;
   avatarId: string | null;
   personaId: string | null;

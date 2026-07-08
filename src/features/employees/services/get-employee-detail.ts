@@ -18,6 +18,7 @@ import {
 } from "../lib/resolve-anam-avatar-talk-readiness";
 import { readProviderFailureReason } from "../lib/resolve-talk-readiness";
 import { isXaiVoiceConfigured } from "@/shared/config/xai-voice-env";
+import { resolveXaiVoiceConfigForEmployee } from "@/features/xai-voice/services/resolve-xai-voice-config";
 import type {
   EmployeeDetail,
   EmployeeDetailShell,
@@ -55,7 +56,7 @@ export async function getEmployeeDetailShell(
     return null;
   }
 
-  const [runtime, configs, knowledgeRow] = await Promise.all([
+  const [runtime, configs, knowledgeRow, xaiVoiceConfig] = await Promise.all([
     db
       .select()
       .from(employeeRuntime)
@@ -71,6 +72,7 @@ export async function getEmployeeDetailShell(
       .from(knowledgeSource)
       .where(eq(knowledgeSource.employeeId, employeeId))
       .then((rows) => rows[0] ?? null),
+    resolveXaiVoiceConfigForEmployee(employeeId),
   ]);
 
   const avatarConfig = configs.find((row) => row.providerType === "avatar")
@@ -110,6 +112,7 @@ export async function getEmployeeDetailShell(
     ),
     sessionVoiceProvider: sessionConfig?.voiceProvider ?? null,
     canTalk: avatarReady && sessionProvisioningStatus === "ready",
+    xaiVoiceAvailable: Boolean(xaiVoiceConfig),
     avatarId: avatarConfig?.avatarId ?? null,
     personaId: avatarConfig?.personaId ?? null,
     anamApiKeySlot:

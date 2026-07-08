@@ -11,6 +11,7 @@ import {
 } from "@/shared/i18n/format-organization-date";
 import type { OrganizationDisplayPreferences } from "@/features/workspace/types/display-preferences";
 import type { EmployeeDetailShell } from "../types";
+import { EmployeeGrokVoiceButton } from "./employee-grok-voice-button";
 import { AvatarIdlePreview } from "./avatar-idle-preview";
 import { EmployeeProviderBadge } from "./employee-provider-badge";
 import { EmployeeStatusBadge } from "./employee-status-badge";
@@ -142,6 +143,13 @@ export async function EmployeePreviewRail({
             <span>{tCommon("talk")}</span>
           )}
         </Button>
+        {employee.xaiVoiceAvailable ? (
+          <EmployeeGrokVoiceButton
+            employeeId={employee.id}
+            employeeName={employee.name}
+            avatarPreviewUrl={employee.avatarPreviewUrl}
+          />
+        ) : null}
         <Button
           type="button"
           disabled={!employee.canTalk}
