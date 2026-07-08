@@ -108,7 +108,7 @@ export async function resolveBrainApiConfig(input: {
   }
 
   return {
-    provider: "openai",
+    provider: input.provider,
     transport: "openai-compatible",
     baseUrl: getOpenAiApiBaseUrl().replace(/\/$/, ""),
     apiKey,

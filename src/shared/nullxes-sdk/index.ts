@@ -13,6 +13,7 @@ export type {
   NullxesHealthStatus,
   NullxesModelInfo,
   NullxesSdkConfig,
+  NullxesToolCall,
 } from "./types";
 
 import { resolveNullxesSdkConfig } from "./config";

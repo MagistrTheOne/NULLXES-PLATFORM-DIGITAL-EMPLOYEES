@@ -137,6 +137,34 @@ function toAnthropicTools(
   }));
 }
 
+function toNullxesMessages(messages: BrainChatMessage[]) {
+  return messages.map((message) => {
+    if (message.role === "tool") {
+      return {
+        role: "tool" as const,
+        content: message.content,
+        tool_call_id: message.tool_call_id,
+      };
+    }
+
+    if (message.role === "assistant") {
+      const toolCalls =
+        "tool_calls" in message ? message.tool_calls : undefined;
+
+      return {
+        role: "assistant" as const,
+        content: message.content,
+        ...(toolCalls?.length ? { tool_calls: toolCalls } : {}),
+      };
+    }
+
+    return {
+      role: message.role,
+      content: message.content,
+    };
+  });
+}
+
 async function callOpenAiCompatibleChat(
   api: BrainApiConfig,
   request: BrainChatRequest,
@@ -161,18 +189,7 @@ async function callOpenAiCompatibleChat(
 
     return client.chatCompletions({
       model: request.model,
-      messages: request.messages.map((message) => ({
-        role: message.role,
-        content:
-          message.role === "tool"
-            ? message.content
-            : "content" in message
-              ? (message.content ?? "")
-              : "",
-        ...(message.role === "tool"
-          ? { tool_call_id: message.tool_call_id }
-          : {}),
-      })),
+      messages: toNullxesMessages(request.messages),
       temperature: request.temperature,
       max_tokens: request.maxTokens,
       stream: request.stream,

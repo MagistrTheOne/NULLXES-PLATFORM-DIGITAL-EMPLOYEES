@@ -6,10 +6,20 @@ export type NullxesSdkConfig = {
 
 export type NullxesChatRole = "system" | "user" | "assistant" | "tool";
 
+export type NullxesToolCall = {
+  id: string;
+  type: "function";
+  function: {
+    name: string;
+    arguments: string;
+  };
+};
+
 export type NullxesChatMessage = {
   role: NullxesChatRole;
-  content: string;
+  content?: string | null;
   tool_call_id?: string;
+  tool_calls?: NullxesToolCall[];
 };
 
 export type NullxesChatCompletionRequest = {
