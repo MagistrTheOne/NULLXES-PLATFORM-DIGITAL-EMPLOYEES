@@ -28,6 +28,20 @@ export function SettingsApprovalsSection({
     });
   }
 
+  function actionLabel(actionType: string): string {
+    const known = [
+      "cancel_mission",
+      "restart_mission",
+      "draft_email",
+      "mission_proposals",
+      "destructive_action",
+    ] as const;
+    if ((known as readonly string[]).includes(actionType)) {
+      return t(`actionTypes.${actionType as (typeof known)[number]}`);
+    }
+    return actionType;
+  }
+
   return (
     <SettingsCard title={t("title")} description={t("description")}>
       {approvals.length === 0 ? (
@@ -41,7 +55,9 @@ export function SettingsApprovalsSection({
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0">
-                  <p className="text-sm text-foreground">{approval.actionType}</p>
+                  <p className="text-sm text-foreground">
+                    {actionLabel(approval.actionType)}
+                  </p>
                   <p className="mt-1 text-xs text-muted-foreground">
                     {approval.employeeName}
                     {" · "}

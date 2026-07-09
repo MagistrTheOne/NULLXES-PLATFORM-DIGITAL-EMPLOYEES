@@ -19,11 +19,11 @@ const TRUST_SECTIONS = [
   },
   {
     title: "Personal data (152-FZ)",
-    body: "Personal data processing documentation is maintained in accordance with Russian Federal Law No. 152-FZ, GOST R ISO/IEC 27001-2021 and GOST R 7.0.8-2013. See the documentation portal for operator details, document kit, storage conditions and subject rights.",
+    body: "Personal data processing follows Russian Federal Law No. 152-FZ, GOST R ISO/IEC 27001-2021 and GOST R 7.0.8-2013. Documentation covers the operator, data categories, storage conditions, encryption, retention/destruction, access audit, and subject rights. See /docs/personal-data.",
   },
   {
     title: "Transparency",
-    body: "Workspace owners can export organization data, review audit events, and request asynchronous export jobs for compliance workflows.",
+    body: "Workspace owners can export organization data, review audit events in Settings → Audit, and request asynchronous export jobs for compliance workflows.",
   },
 ] as const;
 
@@ -38,6 +38,9 @@ export default function TrustPage() {
         <p className="mt-4 text-sm leading-relaxed text-white/60">
           Security, privacy, and operational transparency for enterprise digital
           workforce deployments.
+        </p>
+        <p className="mt-3 text-xs leading-relaxed text-white/40">
+          This page is static documentation. It is not a live status monitor.
         </p>
 
         <div className="mt-12 grid gap-6">

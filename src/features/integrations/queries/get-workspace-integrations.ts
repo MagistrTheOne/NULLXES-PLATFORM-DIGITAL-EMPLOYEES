@@ -60,26 +60,26 @@ export async function getWorkspaceIntegrations(
       label: "Slack",
       status:
         slack?.status === "connected"
-          ? "operational"
+          ? "degraded"
           : slack?.status === "error"
             ? "degraded"
             : "unavailable",
       detail:
         slack?.status === "connected"
-          ? "OAuth connected"
+          ? "OAuth connected · messaging soon"
           : "Not connected",
     },
     {
       label: "Microsoft Teams",
       status:
         teams?.status === "connected"
-          ? "operational"
+          ? "degraded"
           : teams?.status === "error"
             ? "degraded"
             : "unavailable",
       detail:
         teams?.status === "connected"
-          ? "OAuth connected"
+          ? "Preview · authorization only"
           : "Not connected",
     },
   ];

@@ -147,6 +147,93 @@ export async function resolveApprovalAction(input: {
       revalidatePath(`/dashboard/missions/${missionId}`);
     }
 
+    if (input.decision === "approved" && approval.actionType === "cancel_mission") {
+      if (!missionId) {
+        return { ok: false, message: "Cancel mission approval is missing missionId." };
+      }
+
+      const { cancelMissionAction } = await import(
+        "@/features/missions/actions/manage-mission"
+      );
+      const reason =
+        typeof approval.payload.reason === "string"
+          ? approval.payload.reason
+          : undefined;
+      const result = await cancelMissionAction({ missionId, reason });
+      if (!result.ok) {
+        return result;
+      }
+    }
+
+    if (input.decision === "approved" && approval.actionType === "restart_mission") {
+      if (!missionId) {
+        return { ok: false, message: "Restart mission approval is missing missionId." };
+      }
+
+      const { restartMissionAction } = await import(
+        "@/features/missions/actions/manage-mission"
+      );
+      const result = await restartMissionAction({
+        missionId,
+        brief:
+          typeof approval.payload.brief === "string"
+            ? approval.payload.brief
+            : undefined,
+        goal:
+          typeof approval.payload.goal === "string"
+            ? approval.payload.goal
+            : undefined,
+        skills:
+          typeof approval.payload.skills === "string"
+            ? approval.payload.skills
+            : undefined,
+        reason:
+          typeof approval.payload.reason === "string"
+            ? approval.payload.reason
+            : undefined,
+      });
+      if (!result.ok) {
+        return result;
+      }
+    }
+
+    if (input.decision === "approved" && approval.actionType === "draft_email") {
+      const to =
+        typeof approval.payload.to === "string" ? approval.payload.to : "";
+      const subject =
+        typeof approval.payload.subject === "string"
+          ? approval.payload.subject
+          : "";
+      const body =
+        typeof approval.payload.body === "string" ? approval.payload.body : "";
+      const draft =
+        typeof approval.payload.draft === "string"
+          ? approval.payload.draft
+          : `To: ${to}\nSubject: ${subject}\n\n${body}`;
+
+      await recordWorkEvent({
+        organizationId: workspace.organization.id,
+        employeeId: approval.employeeId,
+        sessionId:
+          typeof approval.payload.sessionId === "string"
+            ? approval.payload.sessionId
+            : undefined,
+        eventType: "task_received",
+        title: `Approved email draft · ${subject || "untitled"}`,
+        summary: to ? `To: ${to} · review only, not sent` : "Review only, not sent",
+        metadata: {
+          tool: "draft_email",
+          approvalId: approval.id,
+          to,
+          subject,
+          body,
+          draft,
+          sent: false,
+        },
+      });
+    }
+
+    revalidatePath("/settings");
     return { ok: true };
   } catch (error: unknown) {
     return {

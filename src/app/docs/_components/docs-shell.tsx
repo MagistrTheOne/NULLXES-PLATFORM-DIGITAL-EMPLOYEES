@@ -182,7 +182,7 @@ export function DocsShell({ children }: { children: ReactNode }) {
                   Нужна помощь?
                 </p>
                 <p className="mt-1 text-xs leading-relaxed text-white/50">
-                  Спросите Yuki Nakora в чате FAQ или обратитесь к
+                  Спросите Yuki Nakora (LLM по /docs) или обратитесь к
                   правообладателю напрямую.
                 </p>
                 <div className="mt-3 flex flex-col gap-2 text-xs">
@@ -190,7 +190,7 @@ export function DocsShell({ children }: { children: ReactNode }) {
                     href="/docs/assistant"
                     className="text-white underline underline-offset-4"
                   >
-                    Чат с ассистентом
+                    Ассистент документации
                   </Link>
                   <Link
                     href="/docs/personal-data"

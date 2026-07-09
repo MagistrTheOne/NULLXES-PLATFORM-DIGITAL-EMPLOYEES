@@ -14,6 +14,7 @@ import type {
   AgentToolExecutionContext,
   AgentToolExecutionResult,
 } from "../lib/tool-definitions";
+import { requestToolApproval } from "./request-tool-approval";
 
 function parseJsonArguments(raw: string): Record<string, unknown> {
   try {
@@ -95,19 +96,17 @@ export async function executeAgentTool(input: {
     const reason = typeof args.reason === "string" ? args.reason.trim() : "";
 
     if (!missionId) {
-      return { content: "cancel_mission requires missionId. Call list_missions first." };
+      return {
+        content: "cancel_mission requires missionId. Call list_missions first.",
+      };
     }
 
-    const { cancelMissionAction } = await import(
-      "@/features/missions/actions/manage-mission"
-    );
-
-    const result = await cancelMissionAction({ missionId, reason });
-    return {
-      content: result.ok
-        ? `Mission ${missionId} cancelled.`
-        : result.message,
-    };
+    return requestToolApproval({
+      toolName: "cancel_mission",
+      context: input.context,
+      payload: { missionId, reason },
+      summary: reason || `Cancel mission ${missionId}`,
+    });
   }
 
   if (input.toolName === "restart_mission") {
@@ -115,30 +114,23 @@ export async function executeAgentTool(input: {
       typeof args.missionId === "string" ? args.missionId.trim() : "";
     const brief = typeof args.brief === "string" ? args.brief.trim() : undefined;
     const goal = typeof args.goal === "string" ? args.goal.trim() : undefined;
-    const skills = typeof args.skills === "string" ? args.skills.trim() : undefined;
-    const reason = typeof args.reason === "string" ? args.reason.trim() : undefined;
+    const skills =
+      typeof args.skills === "string" ? args.skills.trim() : undefined;
+    const reason =
+      typeof args.reason === "string" ? args.reason.trim() : undefined;
 
     if (!missionId) {
-      return { content: "restart_mission requires missionId. Call list_missions first." };
+      return {
+        content: "restart_mission requires missionId. Call list_missions first.",
+      };
     }
 
-    const { restartMissionAction } = await import(
-      "@/features/missions/actions/manage-mission"
-    );
-
-    const result = await restartMissionAction({
-      missionId,
-      brief,
-      goal,
-      skills,
-      reason,
+    return requestToolApproval({
+      toolName: "restart_mission",
+      context: input.context,
+      payload: { missionId, brief, goal, skills, reason },
+      summary: reason || `Restart mission ${missionId}`,
     });
-
-    return {
-      content: result.ok
-        ? `Mission ${missionId} restarted with updated inputs.`
-        : result.message,
-    };
   }
 
   if (input.toolName === "list_workforce_peers") {
@@ -287,24 +279,12 @@ export async function executeAgentTool(input: {
 
     const draft = `To: ${to}\nSubject: ${subject}\n\n${body}`;
 
-    await recordWorkEvent({
-      organizationId: input.context.organizationId,
-      employeeId: input.context.employeeId,
-      sessionId: input.context.sessionId,
-      eventType: "task_received",
-      title: `Email draft · ${subject}`,
-      summary: `To: ${to}`,
-      metadata: {
-        tool: "draft_email",
-        to,
-        subject,
-        body,
-      },
+    return requestToolApproval({
+      toolName: "draft_email",
+      context: input.context,
+      payload: { to, subject, body, draft },
+      summary: `Draft email to ${to} · ${subject}`,
     });
-
-    return {
-      content: `Email draft prepared for review:\n\n${draft}`,
-    };
   }
 
   return { content: `Unknown tool: ${input.toolName}` };

@@ -37,6 +37,8 @@ const DETAIL_KEYS: Record<string, string> = {
   "Requires AI provider": "requiresAiProvider",
   "Neon PostgreSQL": "neonPostgresql",
   "OAuth connected": "oauthConnected",
+  "OAuth connected · messaging soon": "oauthConnected",
+  "Preview · authorization only": "oauthTeamsPreview",
   "Not connected": "notConnected",
   "No employee avatar configs yet": "noAvatarConfigs",
   "No employee voice/session configs yet": "noVoiceConfigs",
@@ -138,7 +140,9 @@ export function SettingsIntegrationsTab({
                   {!provider.state.oauthConfigured
                     ? t("oauthNotConfigured")
                     : provider.state.connected
-                      ? t("oauthConnectedStatus")
+                      ? provider.id === "teams"
+                        ? t("oauthTeamsConnectedStatus")
+                        : t("oauthConnectedStatus")
                       : t("oauthNotConnectedStatus")}
                 </p>
               </div>

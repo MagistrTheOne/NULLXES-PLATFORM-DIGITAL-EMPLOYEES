@@ -139,7 +139,10 @@ export function ProviderKeysCard({
           />
         ))}
         <p className="text-xs text-muted-foreground">
-        NULLXES PROVIDER KEY PLACE HERE.
+          Organization keys override platform defaults when set. NULLXES uses
+          the platform-managed brain endpoint; your NULLXES key is used when
+          that provider is selected. OpenAI, Anthropic, and Google keys route
+          through the unified brain transport for their providers.
         </p>
       </div>
     </SettingsCard>

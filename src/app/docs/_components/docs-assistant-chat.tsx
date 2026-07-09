@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { Send } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { DOCS_FAQ, findFaqAnswer } from "../_lib/docs-faq";
+import { answerDocsQuestionAction } from "../_lib/answer-docs-question";
+import { DOCS_FAQ } from "../_lib/docs-faq";
 import type { DocsAssistantProfile } from "../_lib/get-docs-assistant";
 
 type ChatMessage = {
@@ -15,7 +16,7 @@ type ChatMessage = {
 };
 
 const WELCOME =
-  "Привет! Я Yuki Nakora, ассистент документации NULLXES Digital Employees. Задайте вопрос по установке, эксплуатации, исходному коду или персональным данным — или выберите тему ниже.";
+  "Привет! Я Yuki Nakora — документационный ассистент NULLXES Digital Employees. Отвечаю через LLM по материалам /docs (установка, эксплуатация, миссии, 152-ФЗ). Выберите тему ниже или задайте свой вопрос.";
 
 function createMessage(role: ChatMessage["role"], content: string): ChatMessage {
   return { id: `${role}-${Date.now()}-${Math.random()}`, role, content };
@@ -32,24 +33,24 @@ export function DocsAssistantChat({
     createMessage("assistant", WELCOME),
   ]);
   const [input, setInput] = useState("");
+  const [isPending, startTransition] = useTransition();
 
   function ask(question: string) {
     const trimmed = question.trim();
-    if (!trimmed) {
+    if (!trimmed || isPending) {
       return;
     }
 
-    const entry = findFaqAnswer(trimmed);
-    const reply =
-      entry?.answer ??
-      "Я могу помочь по документации, установке, исходному коду, миссиям и ПДн. Попробуйте переформулировать вопрос или выберите тему из списка ниже. Контакт: ceo@nullxes.com · Telegram @MagistrTheOne";
-
-    setMessages((current) => [
-      ...current,
-      createMessage("user", trimmed),
-      createMessage("assistant", reply),
-    ]);
+    setMessages((current) => [...current, createMessage("user", trimmed)]);
     setInput("");
+
+    startTransition(async () => {
+      const result = await answerDocsQuestionAction({ question: trimmed });
+      setMessages((current) => [
+        ...current,
+        createMessage("assistant", result.answer),
+      ]);
+    });
   }
 
   return (
@@ -69,7 +70,7 @@ export function DocsAssistantChat({
         </Avatar>
         <div>
           <p className="text-sm font-medium text-white">{assistant.name}</p>
-          <p className="text-xs text-white/45">{assistant.role}</p>
+          <p className="text-xs text-white/45">Документация · LLM</p>
         </div>
       </div>
 
@@ -90,6 +91,11 @@ export function DocsAssistantChat({
             {message.content}
           </div>
         ))}
+        {isPending ? (
+          <div className="self-start rounded-xl bg-white/5 px-3 py-2 text-sm text-white/45">
+            Готовлю ответ…
+          </div>
+        ) : null}
       </div>
 
       <div className="mt-4 flex flex-wrap gap-2">
@@ -97,8 +103,9 @@ export function DocsAssistantChat({
           <button
             key={entry.id}
             type="button"
+            disabled={isPending}
             onClick={() => ask(entry.question)}
-            className="rounded-full border border-white/10 px-3 py-1 text-xs text-white/60 transition-colors hover:border-white/20 hover:text-white"
+            className="rounded-full border border-white/10 px-3 py-1 text-xs text-white/60 transition-colors hover:border-white/20 hover:text-white disabled:opacity-45"
           >
             {entry.question}
           </button>
@@ -115,12 +122,14 @@ export function DocsAssistantChat({
         <Input
           value={input}
           onChange={(event) => setInput(event.target.value)}
-          placeholder="Спросите про документацию..."
+          placeholder="Вопрос по документации…"
+          disabled={isPending}
           className="border-white/10 bg-black text-white placeholder:text-white/35"
         />
         <Button
           type="submit"
           size="icon"
+          disabled={isPending || input.trim().length === 0}
           className="shrink-0 bg-white text-black hover:bg-white/90"
         >
           <Send className="size-4" />

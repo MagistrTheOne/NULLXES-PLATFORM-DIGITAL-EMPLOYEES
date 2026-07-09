@@ -167,7 +167,7 @@ export const TALK_ACTION_TOOLS = [
     function: {
       name: "draft_email",
       description:
-        "Draft a professional email for human review. Does not send email.",
+        "Draft a professional email for human review only. Does not send email. Requires operator approval before the draft is marked reviewed.",
       parameters: {
         type: "object",
         properties: {
@@ -191,6 +191,21 @@ export const TALK_AGENT_TOOL_DEFINITIONS = [
   SEARCH_WEB_TOOL,
   ...TALK_ACTION_TOOLS,
 ];
+
+export const APPROVAL_REQUIRED_TOOL_NAMES = [
+  "cancel_mission",
+  "restart_mission",
+  "draft_email",
+] as const;
+
+export type ApprovalRequiredToolName =
+  (typeof APPROVAL_REQUIRED_TOOL_NAMES)[number];
+
+export function isApprovalRequiredToolName(
+  toolName: string,
+): toolName is ApprovalRequiredToolName {
+  return (APPROVAL_REQUIRED_TOOL_NAMES as readonly string[]).includes(toolName);
+}
 
 export type AgentToolDefinition = (typeof AGENT_TOOL_DEFINITIONS)[number];
 

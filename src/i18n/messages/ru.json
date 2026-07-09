@@ -1135,7 +1135,14 @@
       "description": "Проверка опасных действий, запрошенных цифровыми сотрудниками",
       "empty": "Нет ожидающих запросов на одобрение.",
       "approve": "Одобрить",
-      "reject": "Отклонить"
+      "reject": "Отклонить",
+      "actionTypes": {
+        "cancel_mission": "Отмена миссии",
+        "restart_mission": "Перезапуск миссии",
+        "draft_email": "Черновик письма (только просмотр)",
+        "mission_proposals": "Исходящие предложения миссии",
+        "destructive_action": "Опасное действие"
+      }
     },
     "audit": {
       "title": "Журнал аудита",
@@ -1155,9 +1162,10 @@
       "title": "Подключённые сервисы",
       "description": "Доступность провайдеров в этом развёртывании",
       "oauthTitle": "Интеграции workspace",
-      "oauthDescription": "Подключите Slack или Microsoft Teams для организации",
+      "oauthDescription": "Авторизуйте Slack или Microsoft Teams для организации. Доставка сообщений пока не включена.",
       "oauthNotConfigured": "OAuth-приложение не настроено на этом deployment",
-      "oauthConnectedStatus": "Подключено",
+      "oauthConnectedStatus": "OAuth подключён · сообщения скоро",
+      "oauthTeamsConnectedStatus": "Превью · только авторизация",
       "oauthNotConnectedStatus": "Не подключено",
       "connect": "Подключить",
       "disconnect": "Отключить",
@@ -1191,7 +1199,8 @@
         "readyForIndexing": "Готово к индексации",
         "requiresAiProvider": "Требуется AI-провайдер",
         "neonPostgresql": "Neon PostgreSQL",
-        "oauthConnected": "OAuth подключён",
+        "oauthConnected": "OAuth подключён · сообщения скоро",
+        "oauthTeamsPreview": "Превью · только авторизация",
         "notConnected": "Не подключено",
         "noAvatarConfigs": "Нет конфигов аватаров сотрудников",
         "noVoiceConfigs": "Нет конфигов голоса/сессий сотрудников",

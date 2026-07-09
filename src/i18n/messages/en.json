@@ -1135,7 +1135,14 @@
       "description": "Review destructive actions requested by digital employees",
       "empty": "No pending approval requests.",
       "approve": "Approve",
-      "reject": "Reject"
+      "reject": "Reject",
+      "actionTypes": {
+        "cancel_mission": "Cancel mission",
+        "restart_mission": "Restart mission",
+        "draft_email": "Email draft (review only)",
+        "mission_proposals": "Mission outbound proposals",
+        "destructive_action": "Destructive action"
+      }
     },
     "audit": {
       "title": "Audit log",
@@ -1155,9 +1162,10 @@
       "title": "Connected Services",
       "description": "Provider availability for this deployment",
       "oauthTitle": "Workspace integrations",
-      "oauthDescription": "Connect Slack or Microsoft Teams for this organization",
+      "oauthDescription": "Authorize Slack or Microsoft Teams for this organization. Messaging delivery is not enabled yet.",
       "oauthNotConfigured": "OAuth app credentials not configured on this deployment",
-      "oauthConnectedStatus": "Connected",
+      "oauthConnectedStatus": "OAuth connected · messaging soon",
+      "oauthTeamsConnectedStatus": "Preview · authorization only",
       "oauthNotConnectedStatus": "Not connected",
       "connect": "Connect",
       "disconnect": "Disconnect",
@@ -1191,7 +1199,8 @@
         "readyForIndexing": "Ready for indexing",
         "requiresAiProvider": "Requires AI provider",
         "neonPostgresql": "Neon PostgreSQL",
-        "oauthConnected": "OAuth connected",
+        "oauthConnected": "OAuth connected · messaging soon",
+        "oauthTeamsPreview": "Preview · authorization only",
         "notConnected": "Not connected",
         "noAvatarConfigs": "No employee avatar configs yet",
         "noVoiceConfigs": "No employee voice/session configs yet",

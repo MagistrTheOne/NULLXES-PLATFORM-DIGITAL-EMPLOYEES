@@ -30,10 +30,10 @@ export const DOCS_NAV: DocsNavGroup[] = [
       },
       {
         href: "/docs/assistant",
-        label: "Чат с ассистентом",
-        breadcrumb: "Чат с ассистентом",
+        label: "Ассистент документации",
+        breadcrumb: "Ассистент документации",
         toc: [
-          { id: "assistant", label: "Ассистент FAQ" },
+          { id: "assistant", label: "LLM-ассистент" },
           { id: "contacts", label: "Контакты" },
         ],
       },
@@ -84,8 +84,10 @@ export const DOCS_NAV: DocsNavGroup[] = [
         breadcrumb: "Персональные данные",
         toc: [
           { id: "operator", label: "Оператор ПДн" },
+          { id: "categories", label: "Категории данных" },
           { id: "documents", label: "Комплект документов" },
           { id: "storage", label: "Хранение" },
+          { id: "audit", label: "Аудит" },
           { id: "rights", label: "Права субъектов" },
         ],
       },

@@ -1,14 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import {
-  ArrowRightLeft,
-  Focus,
-  MicOff,
-  NotebookPen,
-  PhoneOff,
-  UserPlus,
-} from "lucide-react";
+import { Focus, NotebookPen, PhoneOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -34,46 +27,22 @@ export function TalkSessionControls({
   const items: Array<{
     key: string;
     label: string;
-    icon: typeof ArrowRightLeft;
+    icon: typeof NotebookPen;
     onClick?: () => void;
-    stub: boolean;
     destructive?: boolean;
     active?: boolean;
   }> = [
-    {
-      key: "transfer",
-      label: t("transfer"),
-      icon: ArrowRightLeft,
-      onClick: undefined,
-      stub: true,
-    },
-    {
-      key: "invite",
-      label: t("invite"),
-      icon: UserPlus,
-      onClick: undefined,
-      stub: true,
-    },
     {
       key: "notes",
       label: t("notes"),
       icon: NotebookPen,
       onClick: onNotes,
-      stub: false,
-    },
-    {
-      key: "muteAgent",
-      label: t("muteAgent"),
-      icon: MicOff,
-      onClick: undefined,
-      stub: true,
     },
     {
       key: "focus",
       label: focusMode ? t("exitFocus") : t("focusMode"),
       icon: Focus,
       onClick: onFocusMode,
-      stub: false,
       active: focusMode,
     },
     {
@@ -81,7 +50,6 @@ export function TalkSessionControls({
       label: t("endSession"),
       icon: PhoneOff,
       onClick: onEndSession,
-      stub: false,
       destructive: true,
     },
   ];
@@ -94,7 +62,7 @@ export function TalkSessionControls({
       <div className="grid grid-cols-2 gap-2">
         {items.map((item) => {
           const Icon = item.icon;
-          const isDisabled = disabled || item.stub;
+          const isDisabled = disabled && item.key !== "end";
 
           return (
             <Button
@@ -102,16 +70,14 @@ export function TalkSessionControls({
               type="button"
               variant="ghost"
               size="sm"
-              disabled={isDisabled && item.key !== "end"}
+              disabled={isDisabled}
               onClick={item.onClick}
               className={cn(
                 "h-auto min-h-10 flex-col gap-1 rounded-xl border border-white/8 bg-white/2 px-2 py-2 text-[10px] font-normal tracking-wide text-white/75 uppercase hover:bg-white/5",
                 item.destructive &&
                   "border-white/15 text-white hover:bg-white/10 hover:text-white",
                 item.active && "bg-white/10 text-white",
-                isDisabled &&
-                  item.key !== "end" &&
-                  "cursor-not-allowed opacity-45",
+                isDisabled && "cursor-not-allowed opacity-45",
               )}
             >
               <Icon className="size-3.5 stroke-[1.5]" aria-hidden />
