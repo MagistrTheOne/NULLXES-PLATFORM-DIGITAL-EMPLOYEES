@@ -262,7 +262,14 @@
       "empty": "В рабочем пространстве нет цифровых сотрудников.",
       "noMatches": "Нет сотрудников по вашему запросу или фильтрам.",
       "loadMore": "Загрузить ещё",
-      "loadingMore": "Загрузка…"
+      "loadingMore": "Загрузка…",
+      "previous": "Назад",
+      "next": "Далее",
+      "previousPage": "Предыдущая страница",
+      "nextPage": "Следующая страница",
+      "pagesAria": "Страницы сотрудников",
+      "pageOf": "Стр. {page} из {total}",
+      "pageRange": "{start}–{end} из {total}"
     },
     "metrics": {
       "employees": "Сотрудники",

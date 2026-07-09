@@ -262,7 +262,14 @@
       "empty": "No digital employees in this workspace.",
       "noMatches": "No employees match your search or filters.",
       "loadMore": "Load more",
-      "loadingMore": "Loading…"
+      "loadingMore": "Loading…",
+      "previous": "Previous",
+      "next": "Next",
+      "previousPage": "Previous page",
+      "nextPage": "Next page",
+      "pagesAria": "Employee pages",
+      "pageOf": "Page {page} of {total}",
+      "pageRange": "{start}–{end} of {total}"
     },
     "metrics": {
       "employees": "Employees",

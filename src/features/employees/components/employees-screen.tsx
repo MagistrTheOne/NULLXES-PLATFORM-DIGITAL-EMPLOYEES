@@ -44,7 +44,7 @@ function matchesSearch(employee: EmployeeListItem, query: string): boolean {
   );
 }
 
-const PAGE_SIZE = 8;
+const PAGE_SIZE = 4;
 
 export function EmployeesScreen({
   employees,
@@ -68,6 +68,7 @@ export function EmployeesScreen({
     loadedEmployees.length,
   );
   const [page, setPage] = useState(1);
+  const listTopRef = useRef<HTMLDivElement | null>(null);
   const [materialization, setMaterialization] =
     useState<EmployeeMaterializationTarget | null>(null);
   const [postCreateScenario, setPostCreateScenario] = useState<{
@@ -132,9 +133,15 @@ export function EmployeesScreen({
 
   function handlePageChange(nextPage: number): void {
     setPage(nextPage);
+    listTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     // Prefetch the next server batch when the user nears the end of loaded data.
     const remainingPages = totalPages - nextPage;
-    if (remainingPages <= 1 && loadedNextCursor && !searchQuery && statusFilter === "all") {
+    if (
+      remainingPages <= 1 &&
+      loadedNextCursor &&
+      !searchQuery &&
+      statusFilter === "all"
+    ) {
       loadMoreFromServer();
     }
   }
@@ -221,12 +228,15 @@ export function EmployeesScreen({
               onCreateClick={handleCreateClick}
               canCreate={permissions.canManageEmployees}
             />
+            <div ref={listTopRef} className="scroll-mt-4" />
             {filteredEmployees.length > 0 ? (
               <>
                 <EmployeeGrid employees={pageEmployees} />
                 <EmployeePagination
                   page={currentPage}
                   totalPages={totalPages}
+                  totalItems={filteredEmployees.length}
+                  pageSize={PAGE_SIZE}
                   onPageChange={handlePageChange}
                   isLoading={isLoadingMore}
                 />

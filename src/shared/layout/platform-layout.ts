@@ -21,9 +21,9 @@ export const platformFullBleedClass =
 export const platformMetricGridClass =
   "grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 lg:gap-6";
 
-/** Employee card grid density across viewports. */
+/** Employee card grid — max 4 columns so page size maps to clean rows. */
 export const platformEmployeeGridClass =
-  "grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 lg:gap-6 xl:grid-cols-4 min-[1800px]:grid-cols-5 min-[1800px]:gap-6";
+  "grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 lg:gap-6 xl:grid-cols-4";
 
 export function platformPageShellClass(options?: {
   width?: keyof typeof PLATFORM_MAX_WIDTH;
