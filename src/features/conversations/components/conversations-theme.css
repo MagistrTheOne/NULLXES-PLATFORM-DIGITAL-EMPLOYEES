@@ -41,7 +41,7 @@
   flex: 1 1 0;
 }
 
-/* Centered, readable message column — capped so 27"+ ultrawides stay readable. */
+/* Centered message column — widens on 27"+ so the chat uses the middle pane. */
 .nullxes-conversation-layout .str-chat__message-list .str-chat__ul {
   max-width: min(720px, 100%);
   margin-inline: auto;
@@ -50,7 +50,13 @@
 
 @media (min-width: 1536px) {
   .nullxes-conversation-layout .str-chat__message-list .str-chat__ul {
-    max-width: min(780px, 100%);
+    max-width: min(880px, 100%);
+  }
+}
+
+@media (min-width: 1800px) {
+  .nullxes-conversation-layout .str-chat__message-list .str-chat__ul {
+    max-width: min(1040px, 100%);
   }
 }
 
