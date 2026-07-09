@@ -10,6 +10,7 @@ import { organization } from "@/entities/organization/schema";
 import { user } from "@/entities/user/schema";
 
 export const organizationProviderEnum = pgEnum("organization_provider", [
+  "nullxes",
   "openai",
   "anthropic",
   "google",

@@ -15,6 +15,7 @@ const PROVIDER_LABELS: Record<OrganizationProvider, string> = {
   openai: "OpenAI",
   anthropic: "Anthropic",
   google: "Google",
+  nullxes: "NULLXES",
 };
 
 function sourceLabel(status: ProviderKeyStatus): string {
@@ -138,9 +139,7 @@ export function ProviderKeysCard({
           />
         ))}
         <p className="text-xs text-muted-foreground">
-          NULLXES brain is platform-managed via NULLXES_API_* deployment env.
-          OpenAI, Anthropic, and Google keys route through the unified brain
-          transport when selected as default provider.
+        NULLXES PROVIDER KEY PLACE HERE.
         </p>
       </div>
     </SettingsCard>
