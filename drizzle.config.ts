@@ -1,7 +1,13 @@
 import { defineConfig } from "drizzle-kit";
+import { sanitizeEnvValue } from "./src/shared/config/env";
 import { loadEnvFiles } from "./src/shared/config/load-env-files";
 
 loadEnvFiles();
+
+const databaseUrl = sanitizeEnvValue(process.env.DATABASE_URL);
+if (!databaseUrl) {
+  throw new Error("DATABASE_URL is not set (drizzle.config.ts)");
+}
 
 export default defineConfig({
   dialect: "postgresql",
@@ -76,7 +82,7 @@ export default defineConfig({
   ],
   out: "./drizzle",
   dbCredentials: {
-    url: process.env.DATABASE_URL!,
+    url: databaseUrl,
   },
   strict: true,
 });
