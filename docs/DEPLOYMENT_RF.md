@@ -37,7 +37,7 @@ Last updated: **2026-07-09**
 | Item | Requirement |
 |------|-------------|
 | Database | Neon PostgreSQL in RF-approved region |
-| Migrations | Applied automatically on `npm run build` via `npm run db:migrate` (Neon HTTP → `scripts/db-migrate.mjs`). 39 migrations through `0038`. |
+| Migrations | Applied automatically on `npm run build` via `npm run db:migrate` (Neon HTTP → `scripts/db-migrate.mjs`). Uses `--env-file-if-exists=.env` so Vercel/CI can rely on platform env vars without a checked-in `.env`. 39 migrations through `0038`. |
 | `DATA_ENCRYPTION_KEY` | Required in production |
 | `API_KEY_PEPPER` | Recommended in production (Public API key hashing) |
 | `HEALTH_CHECK_TOKEN` | Required in production — `GET /api/health/db` fails closed without it |

@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "db:generate": "node --env-file=.env ./node_modules/drizzle-kit/bin.cjs generate --config=drizzle.config.ts",
-    "db:migrate": "node --env-file=.env --import tsx scripts/db-migrate.mjs",
+    "db:migrate": "node --env-file-if-exists=.env --import tsx scripts/db-migrate.mjs",
     "db:studio": "node --env-file=.env ./node_modules/drizzle-kit/bin.cjs studio --config=drizzle.config.ts",
     "db:verify": "node --env-file=.env -r ./scripts/mock-server-only.cjs --import tsx src/shared/db/verify-connection.ts",
     "identity:verify": "node --env-file=.env --import tsx src/features/auth/verify-identity.ts",
