@@ -1,7 +1,7 @@
 # NULLXES — Agent Brief: Missions
 
 **Product:** NULLXES Digital Employees  
-**Document date:** 2026-07-05 (`05-07-26`)  
+**Document date:** 2026-07-05 (patched 2026-07-09: mission types `prospecting_en` / `investor_base`)  
 **Audience:** AI coding agents working on **employee missions, schedules, skill linkage, and Inngest workers**  
 **Repo:** `dplatform`  
 **Companion refs:** [`AGENTS.md`](../AGENTS.md), [`AGENT_REFERENCE_2026-06-26.md`](./AGENT_REFERENCE_2026-06-26.md), [`AGENT_BLUEPRINT_2026-07-05.md`](./AGENT_BLUEPRINT_2026-07-05.md), [`AGENT_TALK_2026-07-05.md`](./AGENT_TALK_2026-07-05.md), [`PLATFORM_SCOPE.md`](./PLATFORM_SCOPE.md)
@@ -23,7 +23,7 @@ Schema: `src/entities/employee-mission/schema.ts`
 | `brief` | text | Primary instruction body |
 | `skills` | jsonb string[] | **Legacy labels** — human-readable skill names |
 | `skill_ids` | uuid[] | **Blueprint linkage** — FK ids into `skill` table |
-| `type` | enum | `prospecting` \| `custom` |
+| `type` | enum | `prospecting` \| `prospecting_en` \| `investor_base` \| `custom` (migration `0031`) |
 | `source` | enum | `manual` \| `scheduled` |
 | `schedule_id` | uuid | Set when spawned from `mission_schedule` |
 | `status` | enum | See §2 |
@@ -176,6 +176,15 @@ Cron worker:
 7. Update `last_run_at`
 
 Timezone helpers: `startOfDayInTimezone()`, `isSameCalendarDayInTimezone()` in same file.
+
+### 4.3 Outbound + handoff
+
+| Function | File | Role |
+|----------|------|------|
+| `sendMissionOutboundOnApprove` | `src/inngest/functions/send-mission-outbound.ts` | Send approved outbound after human approval |
+| `processMissionHandoffStart` | `src/inngest/functions/process-mission-handoff.ts` | Start workforce handoff from mission leads |
+
+All four mission functions are registered in `src/app/api/inngest/route.ts`.
 
 ---
 

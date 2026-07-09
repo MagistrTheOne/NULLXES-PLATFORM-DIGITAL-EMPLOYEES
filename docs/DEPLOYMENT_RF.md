@@ -2,6 +2,8 @@
 
 This document outlines deployment considerations for Russia (RU) data residency and enterprise security controls.
 
+Last updated: **2026-07-09**
+
 ## Data region
 
 - Set `data_region` to `ru` on the `organization` record for RF-targeted tenants.
@@ -20,6 +22,8 @@ This document outlines deployment considerations for Russia (RU) data residency 
 - Enable Better Auth two-factor (TOTP) for administrator accounts.
 - Toggle **Require 2FA for admins** in Settings → Security when policy mandates it.
 - Restrict API access with organization IP allowlists (Settings → Security).
+- Create API keys in Settings → Security (plan-gated: Operator+ read, Scale+ full).
+- Set `API_KEY_PEPPER` in production so key hashes use HMAC (`hmac1:`) instead of plain SHA-256.
 - Review audit events in Settings → Audit.
 
 ## Retention & compliance
@@ -33,7 +37,10 @@ This document outlines deployment considerations for Russia (RU) data residency 
 | Item | Requirement |
 |------|-------------|
 | Database | Neon PostgreSQL in RF-approved region |
+| Migrations | Applied automatically on `npm run build` via `npm run db:migrate` (Neon HTTP → `scripts/db-migrate.mjs`). 39 migrations through `0038`. |
 | `DATA_ENCRYPTION_KEY` | Required in production |
+| `API_KEY_PEPPER` | Recommended in production (Public API key hashing) |
+| `HEALTH_CHECK_TOKEN` | Required in production — `GET /api/health/db` fails closed without it |
 | `BETTER_AUTH_SECRET` | Strong random secret |
 | `BETTER_AUTH_URL` | Production origin: `https://www.nullxesdai.online` |
 | `NEXT_PUBLIC_BETTER_AUTH_URL` | Same as `BETTER_AUTH_URL` in production |
@@ -44,7 +51,8 @@ This document outlines deployment considerations for Russia (RU) data residency 
 | Inngest | `INNGEST_EVENT_KEY` + `INNGEST_SIGNING_KEY`; register app URL `https://<domain>/api/inngest` in Inngest Cloud |
 | Rate limiting (scale) | Vercel **Storage → Redis (Upstash)** linked to project — env auto-injected; verify `npm run providers:status` |
 | Talk SLA | `TALK_SLA_MODE=observe` (default prod), then `enforce` after calibration — see [SCALING_2026-07-04.md](./SCALING_2026-07-04.md) |
-| Anam pool | `ANAM_API_KEY` … `ANAM_API_KEY_10` — already in Vercel; verify with `npm run providers:status` |
+| Anam pool | `ANAM_API_KEY` … `ANAM_API_KEY_11` — verify with `npm run providers:status` |
+| xAI Voice | `XAI_API_KEY` (+ optional `XAI_VOICE_AGENT_*`) |
 | Public trust page | `/trust` — no authentication required |
 | Public documentation (MinTsifry) | `/docs` — functional, installation, operation guides; no authentication required |
 
@@ -56,19 +64,25 @@ This document outlines deployment considerations for Russia (RU) data residency 
 | `NGROK_URL` | Yes — breaks Polar webhooks and invite links if set in prod |
 | `BETTER_AUTH_URL=http://localhost:3000` | Yes — login will fail (CSP blocks localhost fetch) |
 
-Provider keys to copy as-is: `OPENAI_API_KEY`, `ANAM_API_KEY`, `ELEVENLABS_API_KEY`, `STREAM_API_KEY`, `STREAM_SECRET_KEY`, `NEXT_PUBLIC_STREAM_API_KEY`, `POLAR_*`, `DATABASE_URL`.
+Provider keys to copy as-is: `OPENAI_API_KEY`, `ANAM_API_KEY` (+ pool), `XAI_API_KEY`, `ELEVENLABS_API_KEY`, `STREAM_API_KEY`, `STREAM_SECRET_KEY`, `NEXT_PUBLIC_STREAM_API_KEY`, `POLAR_*`, `DATABASE_URL`, `API_KEY_PEPPER`, `HEALTH_CHECK_TOKEN`.
 
 Paste values **without** surrounding quotes. After changing env vars, trigger a **Redeploy** in Vercel.
 
-Verify database connectivity: `GET /api/health/db` should return `{"ok":true}`.
+Verify database connectivity (production):
+
+```bash
+curl -H "x-health-token: $HEALTH_CHECK_TOKEN" https://www.nullxesdai.online/api/health/db
+```
+
+Expect `{"ok":true}`.
 
 **Scaling (10 → 1000+ users):** full ops checklist and transition triggers — [SCALING_2026-07-04.md](./SCALING_2026-07-04.md).
 
 ## Post-deploy verification
 
-1. Apply migrations `drizzle/0016_sturdy_rafael_vega.sql` and `drizzle/0017_funny_natasha_romanoff.sql`.
-2. Run secret encryption migration script on existing data.
-3. Confirm Inngest functions registered: `export-job-process`, `retention-purge-daily`, `knowledge-ingestion-process-source`, `session-summary-completed`, `notifications-session-completed`, `notifications-knowledge-failed`.
+1. Confirm build applied pending migrations (`db:migrate` runs before `next build`). Do **not** manually apply single old SQL files (`0016`/`0017` instructions are obsolete).
+2. Run secret encryption migration script on existing data if upgrading: `npm run secrets:migrate`.
+3. Confirm Inngest functions registered, including mission workers: `process-employee-mission-started`, `run-mission-schedules-daily`, `process-mission-handoff-start`, `send-mission-outbound-on-approve`, plus knowledge / export / retention / notifications.
 4. Run `npm run talk-context:verify` and `npm run anam:backfill-external-brain` on production-like data when upgrading existing employees.
 5. Enable 2FA on owner account and verify sensitive actions are blocked without it when policy is on.
-6. Create and revoke an API key; confirm audit events appear.
+6. Create and revoke an API key; confirm audit events appear and peppered hashes (`hmac1:`) when `API_KEY_PEPPER` is set.

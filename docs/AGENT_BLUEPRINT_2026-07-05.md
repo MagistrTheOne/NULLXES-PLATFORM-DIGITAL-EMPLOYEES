@@ -262,7 +262,7 @@ Script: `src/features/agent-blueprint/verify-agent-blueprint.ts`
 
 Covers: seed → org preset/skill CRUD → employee create → default blueprint → character upsert → skill assign → `getEmployeeBlueprint()` assertions → cleanup.
 
-After schema changes: `npm run db:generate` → apply migration → re-run verify.
+After schema changes: `npm run db:generate` → `npm run db:migrate` (Neon HTTP) → re-run verify.
 
 ---
 

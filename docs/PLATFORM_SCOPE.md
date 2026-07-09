@@ -2,7 +2,7 @@
 
 Legend: **✅** done (backend + frontend where applicable) · **🟡** partial / placeholder · **⬜** not started
 
-Last updated: 2026-07-05 (Agent Blueprint + domain agent briefs).
+Last updated: **2026-07-09** (billing plans `studio`/`operator`/`scale`, Neon HTTP migrate, xAI Voice, security hardening).
 
 ---
 
@@ -10,16 +10,34 @@ Last updated: 2026-07-05 (Agent Blueprint + domain agent briefs).
 
 | Sprint / Phase | Scope | Status |
 |----------------|-------|--------|
-| **Sprint A — Phase 1** | Talk 2 min limit (UI + server), Stripe removed, Polar webhook tiers | ✅ |
+| **Sprint A — Phase 1** | Talk session limits (UI + server), Stripe removed, Polar webhook tiers | ✅ |
 | **Sprint A — Phase 2** | Public API (`/api/v1`), API keys, outbound HMAC webhooks, OpenAPI docs | ✅ |
 | **Sprint B — S.3** | Team invites (create, resend, revoke, role change, remove) | ✅ |
 | **Sprint B — S.3.1** | Accept invite flow + OAuth (Google/GitHub optional) | ✅ |
 | **Sprint C — S.6** | Notifications (Inngest + Resend, org `notify*` flags) | ✅ |
 | **Sprint C — S.2.1** | i18n sweep (en/ru via next-intl) | ✅ |
-| **S.5 Integrations** | Provider status tab (read-only deployment snapshot) | 🟡 |
-| **S.7 Security** | 2FA / API keys UI scaffold; live TOTP + key CRUD | 🟡 |
-| **S.8 Advanced** | Data export download + queued job placeholder | 🟡 |
+| **S.4 Billing** | Polar self-serve: Studio / Operator / Scale (+ Enterprise / Government manual) | ✅ |
+| **S.5 Integrations** | Provider status + Slack/Teams OAuth connect | ✅ |
+| **S.7 Security** | Live TOTP, API key CRUD + pepper, IP allowlist, outbound webhooks | ✅ |
+| **S.8 Advanced** | Data export download + queued job (Inngest) | 🟡 |
 | **RU Acquiring** | Local payment rails | ⬜ |
+
+---
+
+## Billing plans (source of truth: `src/features/billing/config/plans.ts`)
+
+| Plan | Employees | Session | Talk min/mo | Knowledge chunks | Custom avatars | Seats | API | Checkout |
+|------|-----------|---------|-------------|------------------|----------------|-------|-----|----------|
+| **free** (Evaluation) | 1 | 120 s | 30 | 5 000 | 0 | 1 | none | — |
+| **studio** | 1 | 600 s | 180 | 15 000 | 1 | 1 | none | Polar |
+| **operator** | 3 | 1 200 s | 600 | 50 000 | 3 | 3 | read | Polar |
+| **scale** | 10 | 1 800 s | 2 000 | 150 000 | 10 | 10 | full | Polar |
+| **enterprise** | ∞ | ∞ | ∞ | 100 000 | ∞ | ∞ | full | Sales |
+| **government** | ∞ | ∞ | ∞ | ∞ | ∞ | ∞ | full | Sales |
+
+Legacy `super_pro` rows were migrated to **`scale`** (`drizzle/0038_billing_plans_studio_operator_scale.sql`).
+
+Talk minutes / month are **enforced** (`assertTalkMinutesBudget`).
 
 ---
 
@@ -30,19 +48,14 @@ Last updated: 2026-07-05 (Agent Blueprint + domain agent briefs).
 | Shell / navigation | — | ✅ | `layout`, sidebar, user menu |
 | Dashboard | — | ✅ | KPIs, carousel, activity, live sessions |
 | Employees list + card | — | ✅ | |
-| Employee detail (knowledge, lifecycle) | — | ✅ | |
-| Talk runtime session | — | ✅ | All talk components |
+| Employee detail (knowledge, lifecycle, blueprint) | — | ✅ | |
+| Talk runtime session | — | ✅ | Anam + xAI Voice paths |
 | Studio (avatar, voice, brain) | — | ✅ | |
-| Settings — General | — | ✅ | Includes select options (industry, timezone, etc.) |
-| Settings — Billing | — | ✅ | |
-| Settings — Security | — | ✅ | |
-| Settings — Integrations | — | ✅ | |
-| Settings — AI | — | ✅ | |
-| Settings — Notifications | — | ✅ | |
-| Settings — Team | — | ✅ | |
-| Settings — Advanced | — | ✅ | |
-| Settings — Context panel | — | ✅ | |
-| Analytics (full screen) | — | ✅ | KPIs, charts, tables, overviews |
+| Missions | — | ✅ | List / detail / create |
+| Conversations | — | ✅ | 3-pane workspace |
+| HQ | — | ✅ | 3D office |
+| Settings (all tabs) | — | ✅ | Including Characters / Skills / Tools |
+| Analytics | — | ✅ | Full screen |
 
 Locale switching: **Settings → General → Language** (persisted to `organization_settings`).
 
@@ -52,10 +65,12 @@ Locale switching: **Settings → General → Language** (persisted to `organizat
 
 | Module | Backend | Frontend | Verify |
 |--------|---------|----------|--------|
-| Next.js 16 App Router + proxy | ✅ | ✅ | `npm run build` |
-| Neon + Drizzle migrations | ✅ | — | `db:verify` |
+| Next.js 16 App Router + proxy | ✅ | ✅ | `npm run build` (= `db:migrate` + `next build`) |
+| Neon + Drizzle (39 migrations through `0038`) | ✅ | — | `db:migrate` (Neon HTTP), `db:verify` |
 | Inngest (dev + prod handlers) | ✅ | — | `inngest:dev` |
 | Provider env getters | ✅ | — | `providers:status` |
+
+**Migrate toolchain:** `npm run db:migrate` → `scripts/db-migrate.mjs` (Neon HTTP). Do **not** use `drizzle-kit migrate` CLI on Windows — it often fails silently via WebSocket.
 
 ---
 
@@ -65,6 +80,7 @@ Locale switching: **Settings → General → Language** (persisted to `organizat
 |--------|---------|----------|--------|
 | Better Auth (email/password) | ✅ | ✅ | `auth:verify` |
 | OAuth (Google/GitHub, optional) | ✅ | ✅ | env-gated |
+| Email OTP step-up + 2FA (TOTP) | ✅ | ✅ | `email-otp:verify` |
 | Workspace bootstrap + membership | ✅ | ✅ | `workspace:verify` |
 | Team invites + accept flow | ✅ | ✅ | Settings → Team |
 
@@ -75,9 +91,10 @@ Locale switching: **Settings → General → Language** (persisted to `organizat
 | Module | Backend | Frontend | Verify |
 |--------|---------|----------|--------|
 | Employee CRUD + lifecycle | ✅ | ✅ | `employee:verify` |
-| Create wizard + studio | ✅ | ✅ | Anam avatar, ElevenLabs voice |
+| Create wizard + studio | ✅ | ✅ | Anam avatar, ElevenLabs / Anam voice, xAI Voice provision |
 | Knowledge ingest + indexing | ✅ | ✅ | Inngest pipeline |
 | Provider config (brain/voice/avatar) | ✅ | ✅ | `provider-provisioning:verify` |
+| Scenarios (picker → Talk → debrief) | ✅ | ✅ | Plan-gated monthly limits |
 
 ---
 
@@ -85,15 +102,13 @@ Locale switching: **Settings → General → Language** (persisted to `organizat
 
 | Module | Backend | Frontend | Verify |
 |--------|---------|----------|--------|
-| Schema (`character_preset`, `skill`, `tool_definition` + employee join tables) | ✅ | — | migration `0030` |
-| System seed catalog (`system-catalog.ts`) | ✅ | — | `agent-blueprint:verify` |
-| Settings CRUD (Characters / Skills / Tools tabs) | ✅ | ✅ | `/settings?tab=characters\|skills\|tools` |
-| Employee tabs (Character / Skills / Tools) | ✅ | ✅ | employee detail |
+| Schema + system seed catalog | ✅ | — | migration `0030`, `agent-blueprint:verify` |
+| Settings CRUD (Characters / Skills / Tools) | ✅ | ✅ | `/settings?tab=characters\|skills\|tools` |
+| Employee tabs + studio character step | ✅ | ✅ | employee detail / create wizard |
 | Runtime composition (Talk prompt layers + tool slugs) | ✅ | — | `build-talk-brain-request.ts` |
 | Mission `skill_ids` linkage | ✅ | 🟡 | `resolve-mission-skill-prompts.ts` |
-| Studio wizard character step | ✅ | ✅ | create wizard step `character` |
-| Default blueprint on employee create + backfill script | ✅ | — | `blueprint:backfill` |
-| Custom webhook tools / MCP / Public API scopes | ⬜ | ⬜ | Phase B |
+| Default blueprint on create + backfill | ✅ | — | `blueprint:backfill` |
+| Custom webhook tools / MCP / Public API blueprint scopes | ⬜ | ⬜ | Phase B |
 
 Brief: [`AGENT_BLUEPRINT_2026-07-05.md`](./AGENT_BLUEPRINT_2026-07-05.md)
 
@@ -103,11 +118,36 @@ Brief: [`AGENT_BLUEPRINT_2026-07-05.md`](./AGENT_BLUEPRINT_2026-07-05.md)
 
 | Module | Backend | Frontend | Notes |
 |--------|---------|----------|-------|
-| Anam live avatar session | ✅ | ✅ | Inspector panel, status bar |
+| Anam live avatar session | ✅ | ✅ | Inspector, status bar, brain-stream |
+| xAI Grok Voice | ✅ | ✅ | Talk + Conversations; `XAI_API_KEY` |
 | Stream Chat sidebar + threads | ✅ | ✅ | Multi-thread channels |
-| Conversations workspace | ✅ | ✅ | `/dashboard/conversations` — 3-pane, bubble UI |
-| Session recording + limits | ✅ | ✅ | Free plan 2 min cap |
+| Conversations workspace | ✅ | ✅ | `/dashboard/conversations` |
+| Session recording + limits | ✅ | ✅ | Per-plan session seconds + monthly Talk minutes |
+| Turn metrics | ✅ | — | `employee_session_turn` (migration `0032`) |
 | Public API sessions | ✅ | — | `/api/v1/sessions` |
+
+---
+
+## Missions
+
+| Module | Backend | Frontend | Notes |
+|--------|---------|----------|-------|
+| Mission CRUD + timeline | ✅ | ✅ | `/dashboard/missions` |
+| Types | ✅ | ✅ | `prospecting`, `prospecting_en`, `investor_base`, `custom` |
+| Schedules (cron) | ✅ | ✅ | Inngest daily runner |
+| Skill_ids → blueprint prompts | ✅ | 🟡 | Runtime wired; UI partial |
+| Approvals / outbound / handoff | ✅ | ✅ | Inngest workers |
+
+Brief: [`AGENT_MISSIONS_2026-07-05.md`](./AGENT_MISSIONS_2026-07-05.md)
+
+---
+
+## HQ
+
+| Module | Backend | Frontend | Notes |
+|--------|---------|----------|-------|
+| 3D office floor | ✅ | ✅ | `/dashboard/hq` |
+| HQ tasks / departments | ✅ | ✅ | `hq_task`, department assignment |
 
 ---
 
@@ -116,9 +156,9 @@ Brief: [`AGENT_BLUEPRINT_2026-07-05.md`](./AGENT_BLUEPRINT_2026-07-05.md)
 | Module | Backend | Frontend | Notes |
 |--------|---------|----------|-------|
 | Polar checkout + webhook | ✅ | ✅ | Stripe removed |
-| Plan tiers (free / super_pro / enterprise / government) | ✅ | ✅ | |
+| Plan tiers (6 plans above) | ✅ | ✅ | Self-serve: studio / operator / scale |
 | Customer portal link | ✅ | ✅ | Settings → Billing |
-| Usage meters | ✅ | ✅ | |
+| Usage / plan limit enforcement | ✅ | ✅ | Employees, Talk, knowledge, API access |
 
 ---
 
@@ -126,10 +166,12 @@ Brief: [`AGENT_BLUEPRINT_2026-07-05.md`](./AGENT_BLUEPRINT_2026-07-05.md)
 
 | Module | Backend | Frontend | Notes |
 |--------|---------|----------|-------|
-| API key auth (`nx_...`) | ✅ | 🟡 | Created in Security tab |
+| API key auth (`nx_live_…`) | ✅ | ✅ | Settings → Security; HMAC pepper via `API_KEY_PEPPER` |
+| Plan-gated access | ✅ | — | Operator = read; Scale+ = full |
 | `/api/v1/employees` CRUD | ✅ | — | |
 | `/api/v1/sessions` | ✅ | — | |
-| Outbound webhooks (HMAC) | ✅ | 🟡 | Settings columns; UI partial |
+| `/api/v1/employees/:id/tasks`, `/workforce/assign` | ✅ | — | |
+| Outbound webhooks (HMAC) | ✅ | ✅ | Settings → Security |
 | OpenAPI + `/api/docs` | ✅ | ✅ | |
 
 ---
@@ -162,17 +204,18 @@ Brief: [`AGENT_BLUEPRINT_2026-07-05.md`](./AGENT_BLUEPRINT_2026-07-05.md)
 | Billing | ✅ | ✅ | Polar plans + portal |
 | Team | ✅ | ✅ | Invites + members |
 | Notifications | ✅ | ✅ | Persisted toggles |
-| Integrations | ✅ | ✅ | Provider status read-only |
-| Security | 🟡 | ✅ | 2FA/API keys scaffold |
+| Integrations | ✅ | ✅ | Provider status + Slack/Teams OAuth |
+| Security | ✅ | ✅ | 2FA, API keys, IP allowlist, webhooks |
 | AI | ✅ | ✅ | Default LLM pointer |
-| Advanced | 🟡 | ✅ | Export download + job queue stub |
+| Characters / Skills / Tools | ✅ | ✅ | Agent Blueprint CRUD |
+| Advanced | 🟡 | ✅ | Export download + job queue |
 
 ---
 
 ## Next priorities
 
-1. **S.7 Security** — live TOTP enrollment, API key CRUD persistence
-2. **S.8 Advanced** — real async export jobs (Inngest) + download links
-3. **S.5 Integrations** — OAuth connectors beyond status display
-4. **RU Acquiring** — regional payment provider
-5. **Dashboard i18n gaps** — auth pages (login/register) if needed
+1. **S.8 Advanced** — harden async export jobs + download UX
+2. **Blueprint Phase B** — webhook tools / MCP / Public API blueprint scopes
+3. **RU Acquiring** — regional payment provider
+4. **Mission skill UI** — finish skill_ids picker parity with Talk blueprint
+5. **Auth page i18n** — login/register if needed

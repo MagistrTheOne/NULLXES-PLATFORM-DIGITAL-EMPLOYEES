@@ -105,7 +105,7 @@ Legend: **MVP** = ship first · **Later** = after MVP · **Web-only** = do not p
 | Text chat (Stream) | `/dashboard/conversations` + Talk chat | Chats tab + thread | **MVP** |
 | Profile / logout | Settings partial | Profile tab | **MVP** |
 | Session limits / free tier | Talk session limits | Enforce server limits; show remaining time | **MVP** |
-| Scenario Mode | `/scenarios`, debrief | Start scenario → Talk → debrief | **Later** |
+| Scenario Mode | `/dashboard/employees/[id]/scenarios` (+ debrief) | Start scenario → Talk → debrief | **Later** |
 | Knowledge upload | Employee detail | Upload / list sources | **Later** |
 | Create employee / studio | Create wizard | Simplified create or deep-link to web | **Later** |
 | Missions | `/dashboard/missions` | Optional list | **Later** |

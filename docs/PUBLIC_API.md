@@ -126,10 +126,24 @@ Header: `X-Request-Id` mirrors `requestId`.
 
 ---
 
-## 6. Production
+## 6. Plan gates & pepper
 
-- Create keys in **Settings → Security** (requires org owner + 2FA if policy enabled).
-- Set IP allowlist if configured.
+| Plan | API access |
+|------|------------|
+| free / studio | none — cannot create keys |
+| operator | read (`employees:read`, `sessions:read`) |
+| scale / enterprise / government | full (all scopes) |
+
+**`API_KEY_PEPPER`** (recommended in production): server-only secret used to HMAC-SHA256 API keys before storage (`hmac1:` prefix). Without it, keys use plain SHA-256. Setting the pepper does **not** require re-issuing keys — legacy hashes upgrade on first successful use.
+
+See `.env.example` and `src/features/security/services/api-key.ts`.
+
+---
+
+## 7. Production
+
+- Create keys in **Settings → Security** (requires org owner + 2FA if policy enabled; plan must allow API access).
+- Set `API_KEY_PEPPER` and IP allowlist if configured.
 - Replace `$BASE` with your deployment URL (`BETTER_AUTH_URL`).
 
 Legacy keys with `nx_` prefix (pre-scopes) still work and receive full scope access.

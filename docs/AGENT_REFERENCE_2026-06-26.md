@@ -1,11 +1,11 @@
 # NULLXES — Agent Technical Reference
 
 **Product:** NULLXES Digital Employees  
-**Snapshot date:** 2026-06-26  
+**Snapshot date:** 2026-06-26 (refreshed **2026-07-09**)  
 **Repo:** `dplatform`  
-**Branch baseline:** `main` @ `cad7f30`
+**Branch baseline:** `main` (billing `0038`, Neon HTTP migrate, xAI Voice, security hardening)
 
-This document is the single source of truth for AI coding agents working in this repository. Read [`AGENTS.md`](../AGENTS.md) for product philosophy and iteration constraints.
+This document is the single source of truth for AI coding agents working in this repository. Read [`AGENTS.md`](../AGENTS.md) for product philosophy and iteration constraints. Product status matrix: [`PLATFORM_SCOPE.md`](./PLATFORM_SCOPE.md).
 
 ---
 
@@ -41,22 +41,22 @@ Components live in `components/ui/`. Do not add Material UI, Ant Design, Chakra,
 
 ---
 
-## 2. Recent fixes (2026-06-26)
+## 2. Recent patches (through 2026-07-09)
 
-Commits agents should treat as current behavior:
+Treat as current behavior (newest first):
 
-| Commit | Area | Change |
-|--------|------|--------|
-| `cad7f30` | UI | shadcn preset `b1Hw82iEOu`, radix-maia, deps bump; NULLXES dark theme preserved |
-| `680ba25` | Conversations | CSS Grid workspace (280 \| flex \| 300), aligned pane headers, search/composer polish |
-| `968e534` | Conversations | `ConversationsMessageUI` — bubble messages, pill composer, `surface="conversations"` |
-| `ef2142b` | Conversations | 3-column workspace, department labels, details rail |
-| `d97727b` | Talk | Inspector panel (Details / Activity / Notes), status bar, video+chat layout |
-| `bc3bf03` | Talk | Unified `TalkChatWorkspace`, DB-backed viewer name/image/role |
-| `4e9f2c9` | Conversations | Enterprise inbox + chat + details layout |
-| `c32b2ff` | Talk + HQ | Single empty chat state (no Stream duplicate), agent details panel |
-| `4577acf` | Talk | Multi-thread Stream channels + sessions sidebar |
-| `cb9490c`–`8d2abb3` | HQ | Floor errands, drag-to-place, waypoint nav, standups, inline Talk overlay |
+| Area | Change |
+|------|--------|
+| DB migrate | `npm run db:migrate` → `scripts/db-migrate.mjs` (Neon HTTP). `build` = migrate + `next build`. Avoid `drizzle-kit migrate` CLI (silent WS failures on Windows). |
+| Billing | Plans: `free` / `studio` / `operator` / `scale` / `enterprise` / `government`. Legacy `super_pro` → `scale` (`0038`). Talk minutes/month enforced. |
+| Security | Live TOTP, API key CRUD, `API_KEY_PEPPER` HMAC hashes (`hmac1:`), IP allowlist, SSRF/rate-limit hardening |
+| Auth | Google + GitHub OAuth (env-gated), email OTP step-up |
+| Talk | xAI Grok Voice (`/api/talk/xai-voice/*`), Anam realtime plane, turn metrics (`0032`) |
+| Brain | Multi-provider transport + NULLXES SDK; `organization_provider` nullxes (`0037`) |
+| Missions | Types `prospecting_en` / `investor_base` (`0031`); schedules, outbound, handoff Inngest workers |
+| Integrations | Slack + Teams OAuth authorize/callback routes |
+
+Older UI commits (Conversations grid, Talk inspector, HQ floor) from 2026-06 remain valid.
 
 ---
 
@@ -66,13 +66,18 @@ Commits agents should treat as current behavior:
 |-------|----------------|---------|
 | `/dashboard` | `features/overview` | Workforce overview |
 | `/dashboard/employees` | `features/employees` | Digital employee roster |
-| `/dashboard/employees/[id]` | `features/employees` | Employee profile, knowledge, lifecycle |
-| `/dashboard/employees/[id]/talk` | `features/runtime-session` | Live Talk: Anam video + Stream chat + inspector |
+| `/dashboard/employees/[id]` | `features/employees` | Profile, knowledge, lifecycle, blueprint tabs |
+| `/dashboard/employees/[id]/talk` | `features/runtime-session` | Live Talk: Anam / xAI Voice + Stream + inspector |
+| `/dashboard/employees/[id]/scenarios` | `features/scenarios` | Scenario picker |
+| `/dashboard/employees/[id]/scenarios/[id]/debrief` | `features/scenarios` | Scenario debrief |
 | `/dashboard/conversations` | `features/conversations` | Text-first 3-pane workspace (`?employee=<uuid>`) |
+| `/dashboard/missions` | `features/missions` | Mission list / create / detail / edit |
 | `/dashboard/hq` | `features/hq` | 3D office floor (`?department=<slug>`) |
 | `/dashboard/analytics` | `features/analytics` | Session/message KPIs |
-| `/dashboard/settings` | `features/settings` | Org, billing, team, security |
-| `/login`, `/register` | `features/auth` | Better Auth flows |
+| `/dashboard/admin/anam` | `features/admin` | Anam pool admin (platform admin) |
+| `/settings` | `features/settings` | Org, billing, team, security, blueprint tabs |
+| `/login`, `/register`, `/accept-invite` | `features/auth` | Better Auth + invites |
+| `/trust`, `/docs/*` | public | Trust + MinTsifry docs (unauthenticated) |
 
 **Primary entity:** `digital_employee`. Everything else is secondary.
 
@@ -95,7 +100,9 @@ OpenAPI: `public/openapi.yaml` → **`GET /api/docs`**
 | `tasks:write` | `POST /employees/:id/tasks`, `POST /workforce/assign` |
 
 Key bundles in Settings → Security: **Read-only**, **Workforce Operator**, **Admin Integration**.  
-`api_key` columns: `scopes` (jsonb), `expires_at`, `last_used_at`.
+API access is **plan-gated**: Operator = read keys; Scale / Enterprise / Government = full. Free / Studio = no API.  
+`api_key` columns: `scopes` (jsonb), `expires_at`, `last_used_at`.  
+Hashes: HMAC-SHA256 with `API_KEY_PEPPER` stored as `hmac1:…` (legacy plain SHA-256 upgraded on first use).
 
 | Method | Path | Required scope(s) |
 |--------|------|-------------------|
@@ -136,12 +143,38 @@ Password recovery: `/login/forgot-password` → Better Auth `sendResetPassword` 
 | GET, POST | `/api/auth/[...all]` | Better Auth | All auth endpoints |
 | POST | `/api/talk/brain-stream` | Session + org | NDJSON brain stream `{ employeeId, sessionId?, messages[] }` |
 | POST | `/api/talk/session-abandon` | Session cookie | Mark session complete on abandon |
+| POST | `/api/talk/telemetry` | Session | Client Talk telemetry |
+| GET | `/api/talk/sessions/[sessionId]/metrics` | Session | Turn / session metrics |
+| POST | `/api/talk/xai-voice/session` | Session | Start xAI Grok Voice session |
+| POST | `/api/talk/xai-voice/execute-tool` | Session | Tool execution for xAI Voice |
 | GET, POST, HEAD, OPTIONS | `/api/anam/[...path]` | User session | Anam API proxy (CORS) |
-| GET | `/api/health/db` | None | DB probe |
+| GET | `/api/integrations/slack/authorize` | User | Slack OAuth start |
+| GET | `/api/integrations/slack/callback` | User | Slack OAuth callback |
+| GET | `/api/integrations/teams/authorize` | User | Teams OAuth start |
+| GET | `/api/integrations/teams/callback` | User | Teams OAuth callback |
+| GET | `/api/settings/export/[jobId]` | User | Export job download |
+| GET | `/api/health/db` | `HEALTH_CHECK_TOKEN` in prod | DB probe (`x-health-token` or `Authorization: Bearer`) |
 | GET, POST, PUT | `/api/inngest` | Inngest signing | Background job handler |
 | GET | `/api/checkout` | User | Polar checkout |
 | GET | `/api/portal` | User | Polar customer portal |
 | POST | `/api/webhook/polar` | Polar signature | Billing webhooks |
+| GET | `/api/docs` | Public | OpenAPI YAML |
+
+### 4.4 Billing plans (Polar)
+
+Source: `src/features/billing/config/plans.ts`
+
+| Plan | Employees | Session | Talk min/mo | API |
+|------|-----------|---------|-------------|-----|
+| free | 1 | 120 s | 30 | none |
+| studio | 1 | 600 s | 180 | none |
+| operator | 3 | 1 200 s | 600 | read |
+| scale | 10 | 1 800 s | 2 000 | full |
+| enterprise | ∞ | ∞ | ∞ | full |
+| government | ∞ | ∞ | ∞ | full |
+
+Self-serve Polar checkout: `studio`, `operator`, `scale`. Legacy `super_pro` → `scale` (migration `0038`).  
+Talk minutes enforced via `assertTalkMinutesBudget`.
 
 ---
 
@@ -281,22 +314,34 @@ Permissions: `src/features/workspace/` — `canViewEmployees`, `canOperateEmploy
 ## 7. Database (Drizzle)
 
 **Schema aggregator:** `src/shared/db/drizzle-schema.ts`  
-**Migrations:** `drizzle-kit generate` → `drizzle-kit migrate`
+**Generate:** `npm run db:generate` (drizzle-kit generate)  
+**Migrate:** `npm run db:migrate` → `scripts/db-migrate.mjs` (Neon HTTP migrator)  
+**Verify:** `npm run db:verify` (uses `-r ./scripts/mock-server-only.cjs` for Node scripts importing `server-only`)  
+**Count:** 39 SQL files in `drizzle/`; latest `0038_billing_plans_studio_operator_scale.sql`  
+**Build:** `npm run build` runs migrate then `next build`
 
 | Table | Schema | Agent use |
 |-------|--------|-----------|
 | `digital_employee` | `entities/digital-employee/schema.ts` | Core identity |
 | `employee_runtime` | `entities/runtime/schema.ts` | LLM config |
-| `employee_provider_config` | `entities/provider-config/schema.ts` | Anam/Stream/ElevenLabs JSON |
+| `employee_provider_config` | `entities/provider-config/schema.ts` | Anam/Stream/ElevenLabs/xAI JSON |
 | `employee_session` | `entities/session/schema.ts` | Talk sessions |
 | `employee_session_message` | `entities/session-message/schema.ts` | Transcript + `streamMessageId` |
+| `employee_session_turn` | session turn metrics | Talk latency / turn metrics (`0032`) |
 | `knowledge_source`, `knowledge_chunk` | `entities/knowledge/schema.ts` | RAG (1536-dim embeddings) |
 | `employee_task` | `entities/task/schema.ts` | Async agent tasks |
+| `employee_mission`, `mission_schedule` | `entities/employee-mission`, `mission-schedule` | Missions + cron |
+| `employee_scenario_session` | `entities/employee-scenario-session` | Scenario Mode |
+| `character_preset`, `skill`, `tool_definition` | blueprint entities | Agent Blueprint catalog |
+| `employee_character`, `employee_skill`, `employee_tool` | join tables | Per-employee blueprint |
 | `hq_task` | `entities/hq-task/schema.ts` | HQ floor errands |
 | `employee_work_event` | `entities/work-event/schema.ts` | Activity feed |
 | `agent_approval_request` | `entities/agent-approval/schema.ts` | Human-in-the-loop |
 | `employee_handoff` | `entities/employee-handoff/schema.ts` | Agent-to-agent handoff |
-| `api_key` | `entities/api-key/schema.ts` | Public API keys (`nx_live_` prefix, scopes jsonb) |
+| `api_key` | `entities/api-key/schema.ts` | Public API keys (`nx_live_`, scopes jsonb) |
+| `integration_connection` | `entities/integration-connection` | Slack/Teams OAuth |
+| `organization_provider_credential` | provider credentials | Org-level LLM/provider secrets |
+| `user_consent` | `entities/user-consent` | ToS / privacy consent |
 | `organization` | `entities/organization/schema.ts` | billingPlan, dataRegion |
 | Better Auth | `features/auth/schema.ts` | session, account, 2FA |
 
@@ -308,10 +353,19 @@ Permissions: `src/features/workspace/` — `canViewEmployees`, `canOperateEmploy
 
 Registered in `src/app/api/inngest/route.ts`:
 
+**Tasks / sessions**
 - `processEmployeeTaskReceived`, `processEmployeeFollowupDue`, `scanOverdueEmployeeTasks`
 - `summarizeCompletedSession`, `expireStaleEmployeeSessionsJob`
+
+**Knowledge / export / retention**
 - `processKnowledgeSource`, `retentionPurge`, `processExportJob`
+
+**Notifications**
 - `notifySessionCompleted`, `notifyKnowledgeFailed`, `notifyEmployeeCreated`, `sendWeeklyDigest`
+
+**Missions**
+- `processEmployeeMissionStarted`, `runMissionSchedulesDaily`
+- `processMissionHandoffStart`, `sendMissionOutboundOnApprove`
 
 Local dev: `npm run inngest:dev` → `http://localhost:3000/api/inngest`
 
@@ -323,7 +377,7 @@ Local dev: `npm run inngest:dev` → `http://localhost:3000/api/inngest`
 
 | Variable | Purpose |
 |----------|---------|
-| `DATABASE_URL` | Neon PostgreSQL |
+| `DATABASE_URL` | Neon PostgreSQL (paste without wrapping quotes) |
 | `BETTER_AUTH_SECRET` | Auth signing |
 | `BETTER_AUTH_URL` / `NEXT_PUBLIC_BETTER_AUTH_URL` | App origin |
 
@@ -341,26 +395,31 @@ Local dev: `npm run inngest:dev` → `http://localhost:3000/api/inngest`
 | `OPENAI_API_KEY` | Default brain + embeddings |
 | `ANTHROPIC_API_KEY` | Anthropic |
 | `GOOGLE_API_KEY` / `GEMINI_API_KEY` | Google |
-| `NULLXES_BRAIN_API_*` | Custom vLLM endpoint |
+| `NULLXES_BRAIN_API_*` | Custom vLLM / NULLXES SDK endpoint |
+| `XAI_API_KEY` | xAI Grok Voice (+ optional `XAI_VOICE_AGENT_*`) |
 
 **Avatar / voice:**
 
 | Variable | Purpose |
 |----------|---------|
-| `ANAM_API_KEY` (+ `_2`…`_10` pool) | Anam avatars |
+| `ANAM_API_KEY` (+ `_2`…`_11` pool) | Anam avatars (11 slots) |
 | `ELEVENLABS_API_KEY` | Voice synthesis |
 
-**Production ops:**
+**Production ops / security:**
 
 | Variable | Purpose |
 |----------|---------|
 | `INNGEST_SIGNING_KEY`, `INNGEST_EVENT_KEY` | Inngest |
 | `DATA_ENCRYPTION_KEY` | Field encryption (required prod) |
-| `RESEND_API_KEY` | Transactional email (invites, OTP when enabled) |
-| `RESEND_FROM_EMAIL` | Sender address on verified domain |
-| `EMAIL_OTP_STEP_UP_ENABLED` | Post-login OTP gate (`false` until Resend domain verified) |
+| `API_KEY_PEPPER` | HMAC pepper for Public API key hashes (recommended prod) |
+| `HEALTH_CHECK_TOKEN` | Protects `GET /api/health/db` in production |
+| `RESEND_API_KEY` | Transactional email |
+| `RESEND_FROM_EMAIL` | Sender on verified domain |
+| `EMAIL_OTP_STEP_UP_ENABLED` | Post-login OTP gate |
 | `NEXT_PUBLIC_EMAIL_OTP_STEP_UP_ENABLED` | Client emailOTP plugin flag |
 | `POLAR_ACCESS_TOKEN`, `POLAR_WEBHOOK_SECRET` | Billing |
+| `GITHUB_CLIENT_ID/SECRET`, `GOOGLE_CLIENT_ID/SECRET` | Optional OAuth |
+| Slack / Teams OAuth vars | Integrations (see `.env.example`) |
 
 Config helpers: `src/shared/config/env.ts`, `src/shared/config/provider-env.ts`
 
@@ -372,7 +431,8 @@ Run with `npm run <script>` (most load `.env` via `--env-file`):
 
 | Script | Domain |
 |--------|--------|
-| `db:verify` | Database connection |
+| `db:migrate` | Apply SQL migrations (Neon HTTP) |
+| `db:verify` | Database connection (`mock-server-only`) |
 | `auth:verify`, `workspace:verify` | Auth + org |
 | `employee:verify`, `employees-crud:verify` | Employee CRUD |
 | `session:verify`, `runtime:verify` | Sessions + runtime |
@@ -380,13 +440,15 @@ Run with `npm run <script>` (most load `.env` via `--env-file`):
 | **`talk-context:verify`** | Full talk context (needs `TALK_VERIFY_EMPLOYEE_ID`) |
 | `knowledge:verify`, `knowledge-retrieval:verify` | RAG |
 | `runtime-engine:verify`, `orchestration:verify` | Brain + routing |
+| `agent-blueprint:verify` | Blueprint seed + CRUD (`mock-server-only`) |
 | `analytics:verify` | Analytics queries |
 | **`public-api:verify`** | API key auth + scope middleware (DB) |
 | **`public-api:probe`** | Create probe keys + live HTTP smoke test |
 | **`api-scopes:verify`**, **`email-otp:verify`** | Scope bundles + email OTP logic |
 | `providers:status` | Provider deployment snapshot |
+| `polar:setup`, `inngest:sync` | Billing products / Inngest sync |
 
-Build gate: `npm run build`
+Build gate: `npm run build` (= `db:migrate` && `next build`)
 
 ---
 

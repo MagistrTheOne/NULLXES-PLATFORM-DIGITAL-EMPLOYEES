@@ -15,12 +15,17 @@ Manual viewport checklist after layout changes. Test in Chrome DevTools device m
 
 ## Routes
 
+- `/dashboard` (overview)
 - `/dashboard/employees`
 - `/dashboard/employees/[id]`
 - `/dashboard/employees/[id]/talk`
+- `/dashboard/employees/[id]/scenarios` (+ debrief)
+- `/dashboard/conversations`
+- `/dashboard/missions` (+ new / `[id]` / edit)
+- `/dashboard/analytics`
+- `/dashboard/hq`
 - `/dashboard/admin/anam` (platform admin only)
 - `/settings`
-- `/dashboard/hq`
 
 ## Global shell
 
@@ -52,6 +57,12 @@ Manual viewport checklist after layout changes. Test in Chrome DevTools device m
 - [ ] Workforce strip hidden on mobile, visible from `md+`
 - [ ] Chat sheet still opens from stage controls
 - [ ] Focus mode hides side panel and shows exit control
+
+## Conversations / Missions / HQ
+
+- [ ] Conversations 3-pane collapses to single column on mobile (list → thread → details)
+- [ ] Missions list/detail usable at 390px; create form does not overflow
+- [ ] HQ canvas does not force horizontal page scroll; controls remain reachable on tablet
 
 ## Settings / Admin
 

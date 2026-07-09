@@ -224,7 +224,7 @@ OpenAPI: `public/openapi.yaml` → `GET /api/docs`
 2. **One entity = one migration = one verify path** — employee schema changes get their own migration + `employee:verify` extension.
 3. **NULLXES = digital workforce OS; primary entity = `digital_employee`** — every new feature asks “which employee does this attach to?” first.
 4. **Brain split: Anam avatar-only, cognition in `/api/talk/brain-stream`** — employee brain config selects provider/model; it does not embed Anam LLM persona.
-5. **Prompt layers order:** global → character → skills → identity → role → RAG → scenario — runtime prompt from `employee_runtime` is the identity/role layer; do not collapse blueprint into it silently.
+5. **Prompt layers order:** global (Shuten) → identity/role → character → skills → RAG → scenario — matches `build-talk-brain-request.ts`; do not collapse blueprint into `employee_runtime.system_prompt` silently.
 6. **Tools: DB-enabled slugs + latency heuristics; never bypass org scope** — default tools applied in `apply-default-employee-blueprint.ts`, not in create wizard UI alone.
 7. **File map with absolute paths** — employee UI in `src/features/employees/`; lifecycle in `src/features/employee/`; create flow in `src/features/employees/create/`; entities in `src/entities/digital-employee/`.
 8. **Anti-patterns:** do not create employees without `employee_runtime`; do not skip lifecycle events on status changes; do not duplicate blueprint defaults in wizard without calling shared services.

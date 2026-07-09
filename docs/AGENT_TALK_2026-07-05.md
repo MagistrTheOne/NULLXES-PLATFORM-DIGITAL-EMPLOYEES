@@ -1,12 +1,12 @@
 # NULLXES — Agent Brief: Talk Runtime
 
 **Product:** NULLXES Digital Employees  
-**Document date:** 2026-07-05 (`05-07-26`)  
-**Audience:** AI coding agents changing **live Talk** — brain stream, prompt assembly, tool gating, avatar/voice pipeline, SLA  
+**Document date:** 2026-07-05 (patched 2026-07-09: xAI Voice, Talk minutes budget, prompt-layer order)  
+**Audience:** AI coding agents changing **live Talk** — brain stream, prompt assembly, tool gating, avatar/voice pipeline, xAI Voice, SLA  
 **Repo:** `dplatform`  
 **Companion refs:** [`AGENTS.md`](../AGENTS.md), [`AGENT_REFERENCE_2026-06-26.md`](./AGENT_REFERENCE_2026-06-26.md), [`AGENT_BLUEPRINT_2026-07-05.md`](./AGENT_BLUEPRINT_2026-07-05.md), [`AGENT_MOBILE_CLIENT_2026-07-04.md`](./AGENT_MOBILE_CLIENT_2026-07-04.md), [`PLATFORM_SCOPE.md`](./PLATFORM_SCOPE.md)
 
-Talk is the premium real-time path: user speech → STT → **NULLXES brain** → TTS → Anam avatar. Anam runs **avatar-only** (`llmId` external); the platform owns cognition via `POST /api/talk/brain-stream`.
+Talk is the premium real-time path: user speech → STT → **NULLXES brain** → TTS → Anam avatar (or **xAI Grok Voice** as an alternate realtime plane). Anam runs **avatar-only** (`llmId` external); the platform owns cognition via `POST /api/talk/brain-stream` (Anam path) or xAI session APIs (Grok Voice path).
 
 ---
 
@@ -15,10 +15,11 @@ Talk is the premium real-time path: user speech → STT → **NULLXES brain** �
 | Surface | Route | Primary component |
 |---------|-------|-------------------|
 | Live Talk room | `/dashboard/employees/[id]/talk` | `src/features/runtime-session/components/employee-talk-room.tsx` |
-| Conversations (text-first) | `/dashboard/conversations?employee=<uuid>` | `src/features/conversations/components/` |
+| Conversations (text-first) | `/dashboard/conversations?employee=<uuid>` | `src/features/conversations/components/` (+ optional xAI Voice sheet) |
 | HQ inline Talk | `/dashboard/hq` overlay | HQ office + Talk overlay |
+| xAI Voice APIs | `/api/talk/xai-voice/session`, `/execute-tool` | `src/features/xai-voice/` + Talk UI |
 
-Feature module root: `src/features/runtime-session/`
+Feature module root: `src/features/runtime-session/` (xAI: `src/features/xai-voice/`)
 
 ---
 
@@ -204,7 +205,9 @@ Privacy: `src/features/privacy/services/assert-foreign-data-processing.ts`
 2. **One entity = one migration = one verify path** — Talk changes rarely need schema; if adding session fields, one migration + runtime verify.
 3. **NULLXES = digital workforce OS; primary entity = `digital_employee`** — every brain-stream call is scoped to `employeeId` + org auth.
 4. **Brain split: Anam avatar-only, cognition in `/api/talk/brain-stream`** — never move prompt assembly into Anam persona or client-side OpenAI calls.
-5. **Prompt layers order:** global → character → skills → identity → role → RAG → scenario — changing order requires updating `build-talk-brain-request.ts` and mission brain calls together.
+5. **Prompt layers order:** global (Shuten) → identity/role → character → skills → RAG → scenario — changing order requires updating `build-talk-brain-request.ts` and mission brain calls together.  
+   Also enforce **Talk minutes/month** via `assertTalkMinutesBudget` (plan limits in `plans.ts`); session second caps remain separate.  
+   Turn metrics: `GET /api/talk/sessions/[sessionId]/metrics` + table from migration `0032`.
 6. **Tools: DB-enabled slugs + latency heuristics; never bypass org scope** — always intersect `enabledToolSlugs` with heuristic results; never inject tools from hardcoded lists in the route.
 7. **File map with absolute paths** — route: `src/app/api/talk/brain-stream/route.ts`; build: `src/features/runtime-session/services/build-talk-brain-request.ts`; tools: `src/features/runtime-session/lib/resolve-talk-brain-tools.ts`; UI: `src/features/runtime-session/components/`.
 8. **Anti-patterns:** do not duplicate prompt layers in chat pipeline vs voice pipeline; do not enable full tool catalog on every turn; do not log user message content in telemetry; do not mock SLA metrics in UI.
@@ -233,4 +236,4 @@ Privacy: `src/features/privacy/services/assert-foreign-data-processing.ts`
 
 ---
 
-*Document version: 2026-07-05. Update when brain-stream contract, prompt order, or SLA thresholds change.*
+*Document version: 2026-07-05 (patched 2026-07-09). Update when brain-stream contract, prompt order, xAI Voice, or SLA thresholds change.*
