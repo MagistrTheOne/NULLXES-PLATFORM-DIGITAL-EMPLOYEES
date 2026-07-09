@@ -7,7 +7,8 @@ export const runtime = "nodejs";
 function isAuthorizedHealthRequest(request: Request): boolean {
   const expected = process.env.HEALTH_CHECK_TOKEN?.trim();
   if (!expected) {
-    return true;
+    // Fail closed in production — require an explicit token.
+    return process.env.NODE_ENV !== "production";
   }
 
   const headerToken = request.headers.get("x-health-token")?.trim();

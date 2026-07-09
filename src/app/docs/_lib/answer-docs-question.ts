@@ -1,16 +1,30 @@
 "use server";
 
+import { headers } from "next/headers";
 import { callBrainChat } from "@/features/brain/lib/brain-chat-transport";
 import { resolveBrainApiConfig } from "@/features/brain/lib/resolve-brain-api-config";
 import type { BrainProvider } from "@/entities/digital-employee";
 import { hasOpenAiCredentials } from "@/shared/config/provider-env";
 import { hasNullxesApiCredentials } from "@/shared/nullxes-sdk";
+import { checkRateLimit } from "@/shared/security/rate-limit";
 import { findFaqAnswer } from "./docs-faq";
 import { buildDocsAssistantSystemPrompt } from "./docs-assistant-system-prompt";
 
 type DocsAnswerResult =
   | { ok: true; answer: string; source: "llm" | "faq" }
   | { ok: false; answer: string };
+
+const DOCS_ASSISTANT_RATE_LIMIT = 10;
+const DOCS_ASSISTANT_WINDOW_MS = 60_000;
+
+async function resolveDocsRateLimitKey(): Promise<string> {
+  const headerStore = await headers();
+  const forwarded = headerStore.get("x-forwarded-for");
+  if (forwarded) {
+    return forwarded.split(",")[0]?.trim() || "anonymous";
+  }
+  return headerStore.get("x-real-ip")?.trim() || "anonymous";
+}
 
 async function readCompletionText(response: Response): Promise<string | null> {
   if (!response.ok) {
@@ -67,6 +81,20 @@ export async function answerDocsQuestionAction(input: {
     return {
       ok: false,
       answer: "Вопрос слишком длинный. Сократите до 2000 символов.",
+    };
+  }
+
+  const rateLimit = await checkRateLimit({
+    name: "docs-assistant",
+    key: await resolveDocsRateLimitKey(),
+    limit: DOCS_ASSISTANT_RATE_LIMIT,
+    windowMs: DOCS_ASSISTANT_WINDOW_MS,
+  });
+
+  if (!rateLimit.ok) {
+    return {
+      ok: false,
+      answer: "Слишком много запросов. Подождите минуту и попробуйте снова.",
     };
   }
 

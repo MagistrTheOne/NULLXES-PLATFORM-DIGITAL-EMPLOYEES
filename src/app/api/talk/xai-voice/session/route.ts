@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { buildXaiVoiceSessionUpdate } from "@/features/xai-voice/lib/build-xai-voice-session-update";
 import { createXaiVoiceClientSecret } from "@/features/xai-voice/services/create-xai-voice-client-secret";
 import { resolveXaiVoiceConfigForEmployee } from "@/features/xai-voice/services/resolve-xai-voice-config";
+import { assertBrainStreamRateLimit } from "@/features/runtime-session/lib/brain-stream-rate-limit";
+import { talkApiJsonResponse } from "@/features/runtime-session/lib/talk-api-errors";
 import { buildTalkSessionBrainCache } from "@/features/runtime-session/services/build-talk-session-brain-cache";
 import { getEmployeeTalkContext } from "@/features/runtime-session/services/get-employee-talk-context";
 import { resolveTalkBrainAuth } from "@/features/runtime-session/services/resolve-talk-brain-auth";
@@ -27,14 +29,6 @@ export async function POST(request: Request): Promise<Response> {
     return NextResponse.json({ error: "employeeId is required" }, { status: 400 });
   }
 
-  const voiceConfig = await resolveXaiVoiceConfigForEmployee(employeeId);
-  if (!voiceConfig) {
-    return NextResponse.json(
-      { error: "xAI voice is not configured for this employee" },
-      { status: 404 },
-    );
-  }
-
   const authResult = await resolveTalkBrainAuth({
     employeeId,
     sessionId: body.sessionId?.trim() || undefined,
@@ -44,6 +38,23 @@ export async function POST(request: Request): Promise<Response> {
     return NextResponse.json(
       { error: authResult.error },
       { status: authResult.status },
+    );
+  }
+
+  const rateLimit = await assertBrainStreamRateLimit({
+    userId: authResult.auth.userId,
+    employeeId,
+  });
+
+  if (!rateLimit.ok) {
+    return talkApiJsonResponse(rateLimit.code, rateLimit.error, 429);
+  }
+
+  const voiceConfig = await resolveXaiVoiceConfigForEmployee(employeeId);
+  if (!voiceConfig) {
+    return NextResponse.json(
+      { error: "xAI voice is not configured for this employee" },
+      { status: 404 },
     );
   }
 

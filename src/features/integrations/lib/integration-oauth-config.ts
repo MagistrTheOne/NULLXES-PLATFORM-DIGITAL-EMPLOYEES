@@ -9,11 +9,21 @@ export function readOptionalEnvForIntegrations(name: string): string | undefined
 }
 
 function getOAuthSecret(): string {
-  return (
+  const secret =
     readOptionalEnvForIntegrations("BETTER_AUTH_SECRET") ??
-    readOptionalEnvForIntegrations("DATA_ENCRYPTION_KEY") ??
-    "nullxes-integration-oauth-dev"
-  );
+    readOptionalEnvForIntegrations("DATA_ENCRYPTION_KEY");
+
+  if (secret) {
+    return secret;
+  }
+
+  if (process.env.NODE_ENV === "production") {
+    throw new Error(
+      "BETTER_AUTH_SECRET or DATA_ENCRYPTION_KEY is required for integration OAuth in production.",
+    );
+  }
+
+  return "nullxes-integration-oauth-dev";
 }
 
 export function isSlackOAuthConfigured(): boolean {

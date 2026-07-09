@@ -132,17 +132,27 @@ export function OfficeEmployee({ employee, allEmployees = [] }: { employee: Scen
   const nextVisionCheck = useRef(0);
   const currentQuote = useRef<{ text: string; until: number } | null>(null);
 
-  // Dev-only liveliness tuning (panel itself is hidden in prod via <Leva> in office-scene).
-  const liveliness = useControls(
+  // Leva panel is hidden in prod (office-scene). Keep defaults in prod builds.
+  const HQ_LIVELINESS_DEFAULTS = {
+    breatheSpeed: 1.35,
+    breatheAmp: 0.022,
+    idleLeanAmp: 0.035,
+    lookAmp: 0.18,
+  };
+  const livelinessControls = useControls(
     "HQ Liveliness",
     {
       breatheSpeed: { value: 1.35, min: 0.1, max: 5, step: 0.05 },
-      breatheAmp:   { value: 0.022, min: 0, max: 0.1, step: 0.001 },
-      idleLeanAmp:  { value: 0.035, min: 0, max: 0.2, step: 0.001 },
-      lookAmp:      { value: 0.18, min: 0, max: 1, step: 0.01 },
+      breatheAmp: { value: 0.022, min: 0, max: 0.1, step: 0.001 },
+      idleLeanAmp: { value: 0.035, min: 0, max: 0.2, step: 0.001 },
+      lookAmp: { value: 0.18, min: 0, max: 1, step: 0.01 },
     },
-    { collapsed: true }
+    { collapsed: true },
   );
+  const liveliness =
+    process.env.NODE_ENV === "development"
+      ? livelinessControls
+      : HQ_LIVELINESS_DEFAULTS;
 
   // The "home" desk is the dragged placement when present, else the layout seat.
   const homePoint = (): [number, number] =>

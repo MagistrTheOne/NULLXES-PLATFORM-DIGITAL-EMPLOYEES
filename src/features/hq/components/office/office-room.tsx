@@ -210,15 +210,18 @@ export function Plant({ position, phase = 0 }: { position: [number, number]; pha
   const [x, z] = position;
   const groupRef = useRef<ThreeGroup>(null);
 
-  // Dev-only tuning (the Leva panel itself is hidden in prod via <Leva> in office-scene).
-  const plant = useControls(
+  // Leva panel is hidden in prod (office-scene). Keep defaults in prod builds.
+  const HQ_PLANT_DEFAULTS = { plantSwaySpeed: 0.12, plantSwayAmp: 0.025 };
+  const plantControls = useControls(
     "HQ Liveliness",
     {
       plantSwaySpeed: { value: 0.12, min: 0.01, max: 1, step: 0.01 },
-      plantSwayAmp:   { value: 0.025, min: 0, max: 0.2, step: 0.001 },
+      plantSwayAmp: { value: 0.025, min: 0, max: 0.2, step: 0.001 },
     },
-    { collapsed: true }
+    { collapsed: true },
   );
+  const plant =
+    process.env.NODE_ENV === "development" ? plantControls : HQ_PLANT_DEFAULTS;
 
   useFrame((state) => {
     if (groupRef.current) {

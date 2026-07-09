@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { executeAgentTool } from "@/features/agent-tools/services/execute-agent-tool";
+import { assertBrainStreamRateLimit } from "@/features/runtime-session/lib/brain-stream-rate-limit";
+import { talkApiJsonResponse } from "@/features/runtime-session/lib/talk-api-errors";
 import { resolveTalkBrainAuth } from "@/features/runtime-session/services/resolve-talk-brain-auth";
 
 export const runtime = "nodejs";
@@ -41,6 +43,15 @@ export async function POST(request: Request): Promise<Response> {
       { error: authResult.error },
       { status: authResult.status },
     );
+  }
+
+  const rateLimit = await assertBrainStreamRateLimit({
+    userId: authResult.auth.userId,
+    employeeId,
+  });
+
+  if (!rateLimit.ok) {
+    return talkApiJsonResponse(rateLimit.code, rateLimit.error, 429);
   }
 
   const result = await executeAgentTool({

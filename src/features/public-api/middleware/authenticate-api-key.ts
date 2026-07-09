@@ -4,6 +4,7 @@ import { organizationSettings } from "@/entities/organization-settings/schema";
 import { verifyApiKey } from "@/features/security/services/api-key";
 import { recordAuditEvent } from "@/features/security/services/record-audit-event";
 import { db } from "@/shared/db/client";
+import { checkRateLimit } from "@/shared/security/rate-limit";
 import {
   assertApiScopes,
   type ApiScope,
@@ -17,6 +18,9 @@ export type ApiAuthContext = {
   scopes: ApiScope[];
   requestId: string;
 };
+
+const API_V1_RATE_LIMIT = 120;
+const API_V1_WINDOW_MS = 60_000;
 
 function parseAllowlist(value: string | null | undefined): string[] {
   if (!value?.trim()) {
@@ -138,6 +142,31 @@ export async function authenticateApiKeyRequest(
       userAgent: request.headers.get("user-agent"),
     });
     return apiError("API access denied for this IP address", 403, { requestId });
+  }
+
+  const rateLimit = await checkRateLimit({
+    name: "api-v1",
+    key: verified.keyId,
+    limit: API_V1_RATE_LIMIT,
+    windowMs: API_V1_WINDOW_MS,
+  });
+
+  if (!rateLimit.ok) {
+    recordAuditEvent({
+      organizationId: verified.organizationId,
+      actorUserId: verified.createdByUserId,
+      action: "api.access.denied",
+      resourceType: "api_key",
+      resourceId: verified.keyId,
+      metadata: {
+        requestId,
+        reason: "rate_limited",
+        path: new URL(request.url).pathname,
+      },
+      ipAddress: clientIp,
+      userAgent: request.headers.get("user-agent"),
+    });
+    return apiError("Rate limit exceeded", 429, { requestId });
   }
 
   return {

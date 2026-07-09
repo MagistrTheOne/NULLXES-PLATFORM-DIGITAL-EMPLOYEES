@@ -1,10 +1,14 @@
+import { and, eq } from "drizzle-orm";
+import { employeeSession } from "@/entities/session/schema";
 import { getCurrentSession } from "@/features/auth/services/get-current-session";
 import { ensureWorkspace } from "@/features/auth/services/ensure-workspace";
 import {
   assertWorkspaceAccess,
   workspaceAccessDeniedMessage,
 } from "@/features/workspace";
+import { db } from "@/shared/db/client";
 import { getEmployeeTalkContext } from "./get-employee-talk-context";
+import { getEmployeeSessionLimitSeconds } from "./get-employee-session-limit";
 import { validateEmployeeSessionAccess } from "./record-employee-session";
 
 export type TalkBrainAuthContext = {
@@ -15,6 +19,66 @@ export type TalkBrainAuthContext = {
 export type TalkBrainAuthResult =
   | { ok: true; auth: TalkBrainAuthContext }
   | { ok: false; status: number; error: string };
+
+async function assertTalkSessionWithinLimit(input: {
+  sessionId: string;
+  employeeId: string;
+}): Promise<TalkBrainAuthResult | null> {
+  const [row] = await db
+    .select({
+      status: employeeSession.status,
+      startedAt: employeeSession.startedAt,
+    })
+    .from(employeeSession)
+    .where(eq(employeeSession.id, input.sessionId))
+    .limit(1);
+
+  if (!row) {
+    return { ok: false, status: 403, error: "Invalid session" };
+  }
+
+  if (
+    row.status === "completed" ||
+    row.status === "failed" ||
+    row.status === "expired"
+  ) {
+    return {
+      ok: false,
+      status: 403,
+      error: "Talk session has ended",
+    };
+  }
+
+  const limitSeconds = await getEmployeeSessionLimitSeconds(input.employeeId);
+  const elapsedSeconds = Math.max(
+    0,
+    Math.floor((Date.now() - row.startedAt.getTime()) / 1000),
+  );
+
+  if (elapsedSeconds >= limitSeconds) {
+    await db
+      .update(employeeSession)
+      .set({
+        status: "expired",
+        endedAt: new Date(),
+        durationSeconds: limitSeconds,
+      })
+      .where(
+        and(
+          eq(employeeSession.id, input.sessionId),
+          eq(employeeSession.status, row.status),
+        ),
+      );
+
+    return {
+      ok: false,
+      status: 403,
+      error: "Talk session time limit reached",
+    };
+  }
+
+  return null;
+}
 
 export async function resolveTalkBrainAuth(input: {
   employeeId: string;
@@ -64,6 +128,14 @@ export async function resolveTalkBrainAuth(input: {
 
     if (!sessionValid) {
       return { ok: false, status: 403, error: "Invalid session" };
+    }
+
+    const limitResult = await assertTalkSessionWithinLimit({
+      sessionId: input.sessionId,
+      employeeId: input.employeeId,
+    });
+    if (limitResult) {
+      return limitResult;
     }
   }
 

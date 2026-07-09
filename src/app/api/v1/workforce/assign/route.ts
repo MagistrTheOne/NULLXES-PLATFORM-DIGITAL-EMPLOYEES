@@ -7,6 +7,7 @@ import { authenticateApiKeyRequest } from "@/features/public-api/middleware/auth
 import { apiError, apiSuccess } from "@/features/public-api/lib/api-response";
 import { recordWorkEvent } from "@/features/work-event";
 import { recordAuditEvent } from "@/features/security/services/record-audit-event";
+import { isSafeOutboundUrl } from "@/shared/security/assert-safe-outbound-url";
 
 export async function POST(request: Request): Promise<Response> {
   const auth = await authenticateApiKeyRequest(request, ["tasks:write"]);
@@ -53,6 +54,13 @@ export async function POST(request: Request): Promise<Response> {
     });
   }
 
+  const callbackUrl = body.callbackUrl?.trim() || undefined;
+  if (callbackUrl && !isSafeOutboundUrl(callbackUrl)) {
+    return apiError("callbackUrl host is not allowed", 400, {
+      requestId: auth.requestId,
+    });
+  }
+
   const taskId = await createEmployeeTask({
     organizationId: auth.organizationId,
     employeeId: assignee.employeeId,
@@ -60,7 +68,7 @@ export async function POST(request: Request): Promise<Response> {
     description: message,
     source: "api",
     dueAt,
-    callbackUrl: body.callbackUrl?.trim() || undefined,
+    callbackUrl,
   });
 
   await enqueueEmployeeTask({

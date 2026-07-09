@@ -2,6 +2,7 @@ import { eq } from "drizzle-orm";
 import { digitalEmployee } from "@/entities/digital-employee/schema";
 import { knowledgeChunk, knowledgeSource } from "@/entities/knowledge/schema";
 import { ensureOrganizationSettings } from "@/entities/organization-settings";
+import { assertCanAddKnowledgeChunksForEmployee } from "@/features/billing/services/assert-knowledge-chunk-limit";
 import { dbWithTransactions } from "@/shared/db/pool-client";
 import { db } from "@/shared/db/client";
 import { enqueueKnowledgeProcessing } from "../services/enqueue-knowledge-processing";
@@ -15,6 +16,14 @@ export async function createKnowledgeSource(
 ): Promise<CreateKnowledgeSourceResult> {
   if (input.chunks.length === 0) {
     throw new Error("Knowledge source requires at least one chunk");
+  }
+
+  const limitCheck = await assertCanAddKnowledgeChunksForEmployee(
+    input.employeeId,
+    input.chunks.length,
+  );
+  if (!limitCheck.ok) {
+    throw new Error(limitCheck.message);
   }
 
   const result = await dbWithTransactions.transaction(async (tx) => {

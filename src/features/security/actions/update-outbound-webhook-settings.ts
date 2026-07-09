@@ -9,6 +9,7 @@ import {
   assertTwoFactorForSensitiveAction,
   TwoFactorRequiredError,
 } from "../services/assert-two-factor-for-sensitive-action";
+import { assertSafeOutboundUrl } from "@/shared/security/assert-safe-outbound-url";
 import { recordAuditEvent } from "../services/record-audit-event";
 
 export type UpdateOutboundWebhookSettingsInput = {
@@ -48,6 +49,14 @@ export async function updateOutboundWebhookSettingsAction(
 
   const url = input.outboundWebhookUrl.trim();
   const secret = input.outboundWebhookSecret.trim();
+
+  if (url.length > 0) {
+    try {
+      assertSafeOutboundUrl(url);
+    } catch {
+      return { ok: false, message: "Webhook URL host is not allowed." };
+    }
+  }
 
   const result = await updateOrganizationSettings({
     organizationId: workspace.organization.id,

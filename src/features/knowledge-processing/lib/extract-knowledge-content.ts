@@ -1,3 +1,5 @@
+import { assertSafeOutboundUrl } from "@/shared/security/assert-safe-outbound-url";
+
 const TEXT_FILE_EXTENSIONS = new Set([
   ".txt",
   ".md",
@@ -54,16 +56,13 @@ export async function readKnowledgeFileContent(file: File): Promise<string> {
 }
 
 export async function fetchKnowledgeUrlContent(url: string): Promise<string> {
-  const parsed = new URL(url);
-  if (!["http:", "https:"].includes(parsed.protocol)) {
-    throw new Error("Only http and https URLs are supported.");
-  }
+  const parsed = assertSafeOutboundUrl(url);
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), URL_FETCH_TIMEOUT_MS);
 
   try {
-    const response = await fetch(url, {
+    const response = await fetch(parsed.toString(), {
       signal: controller.signal,
       headers: { Accept: "text/html, text/plain, application/json, */*" },
     });

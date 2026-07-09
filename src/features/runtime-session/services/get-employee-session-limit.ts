@@ -2,21 +2,22 @@ import { eq } from "drizzle-orm";
 import { employeeRuntime } from "@/entities/runtime/schema";
 import { db } from "@/shared/db/client";
 
-/** Temporary demo cap for live Talk video. Set TALK_DEMO_SESSION_CAP_SECONDS=0 to disable. */
+/**
+ * Optional Talk video cap via TALK_DEMO_SESSION_CAP_SECONDS.
+ * Off by default (null). Set a positive number to enable; 0/off/false = disabled.
+ */
 function resolveTempDemoSessionCapSeconds(): number | null {
   const raw = process.env.TALK_DEMO_SESSION_CAP_SECONDS?.trim();
-  if (raw === "0" || raw === "off" || raw === "false") {
+  if (!raw || raw === "0" || raw === "off" || raw === "false") {
     return null;
   }
 
-  if (raw) {
-    const parsed = Number(raw);
-    if (Number.isFinite(parsed) && parsed > 0) {
-      return Math.floor(parsed);
-    }
+  const parsed = Number(raw);
+  if (Number.isFinite(parsed) && parsed > 0) {
+    return Math.floor(parsed);
   }
 
-  return 120;
+  return null;
 }
 
 export async function getEmployeeSessionLimitSeconds(
