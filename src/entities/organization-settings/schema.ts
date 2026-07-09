@@ -32,7 +32,7 @@ export const organizationSettings = pgTable("organization_settings", {
   outboundWebhookSecret: text("outbound_webhook_secret"),
   requireTwoFactorForAdmins: boolean("require_two_factor_for_admins")
     .notNull()
-    .default(false),
+    .default(true),
   apiIpAllowlist: text("api_ip_allowlist"),
   lastRetentionRunAt: timestamp("last_retention_run_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true })

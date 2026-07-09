@@ -2,6 +2,7 @@ import { eq } from "drizzle-orm";
 import { organizationSettings } from "@/entities/organization-settings/schema";
 import { db } from "@/shared/db/client";
 import { decryptField } from "@/shared/crypto/field-encryption";
+import { assertSafeOutboundUrlResolved } from "@/shared/security/assert-safe-outbound-url";
 import { signOutboundWebhookPayload } from "../lib/sign-outbound-webhook";
 
 export async function dispatchOrganizationWebhook(input: {
@@ -22,6 +23,13 @@ export async function dispatchOrganizationWebhook(input: {
     return { delivered: false };
   }
 
+  let safeUrl: URL;
+  try {
+    safeUrl = await assertSafeOutboundUrlResolved(settings.url);
+  } catch {
+    return { delivered: false };
+  }
+
   const timestamp = String(Math.floor(Date.now() / 1000));
   const body = JSON.stringify({
     event: input.event,
@@ -33,7 +41,7 @@ export async function dispatchOrganizationWebhook(input: {
     ? signOutboundWebhookPayload({ secret, timestamp, body })
     : "";
 
-  const response = await fetch(settings.url, {
+  const response = await fetch(safeUrl.toString(), {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -43,6 +51,7 @@ export async function dispatchOrganizationWebhook(input: {
       ...(signature ? { "X-NULLXES-Signature": signature } : {}),
     },
     body,
+    redirect: "error",
   });
 
   return {

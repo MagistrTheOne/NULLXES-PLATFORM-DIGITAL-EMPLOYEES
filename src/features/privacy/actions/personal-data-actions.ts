@@ -17,13 +17,13 @@ import {
 import { recordUserConsents } from "../services/record-user-consent";
 
 export async function recordPersonalDataConsentAction(input: {
-  userId: string;
   organizationId?: string | null;
   acceptedTermsOfService?: boolean;
 }): Promise<{ ok: true } | { ok: false; message: string }> {
   try {
+    const session = await requireAuth();
     await recordUserConsents({
-      userId: input.userId,
+      userId: session.user.id,
       organizationId: input.organizationId,
       consentTypes: input.acceptedTermsOfService
         ? ["personal_data_processing", "terms_of_service"]

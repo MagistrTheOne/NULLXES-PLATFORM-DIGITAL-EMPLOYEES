@@ -6,6 +6,7 @@ import {
   parseIntegrationOAuthState,
   readOptionalEnvForIntegrations,
 } from "@/features/integrations/lib/integration-oauth-config";
+import { recordAuditEvent } from "@/features/security/services/record-audit-event";
 import { upsertIntegrationConnection } from "@/features/integrations/services/upsert-integration-connection";
 import { resolveAppBaseUrl } from "@/shared/config/env";
 
@@ -77,6 +78,15 @@ export async function GET(request: Request): Promise<Response> {
     metadata: {
       teamName: tokenPayload.team?.name ?? null,
     },
+  });
+
+  recordAuditEvent({
+    organizationId: workspace.organization.id,
+    actorUserId: session.user.id,
+    actorRole: workspace.membership.role,
+    action: "integration.connected",
+    resourceType: "integration",
+    resourceId: "slack",
   });
 
   settingsUrl.searchParams.set("integration", "slack_connected");

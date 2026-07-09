@@ -1,4 +1,49 @@
+import { getPublicAppUrl } from "@/shared/config/env";
 import { isAllowedAnamProxyTarget } from "@/features/runtime-session/lib/anam-proxy-target";
+
+function allowedCorsOrigins(): Set<string> {
+  const origins = new Set<string>();
+
+  try {
+    origins.add(new URL(getPublicAppUrl()).origin);
+  } catch {
+    // ignore invalid public URL
+  }
+
+  for (const key of [
+    "BETTER_AUTH_URL",
+    "NEXT_PUBLIC_BETTER_AUTH_URL",
+    "VERCEL_PROJECT_PRODUCTION_URL",
+    "VERCEL_URL",
+  ] as const) {
+    const raw = process.env[key]?.trim();
+    if (!raw) continue;
+    try {
+      const withProtocol = raw.startsWith("http") ? raw : `https://${raw}`;
+      origins.add(new URL(withProtocol).origin);
+    } catch {
+      // skip
+    }
+  }
+
+  return origins;
+}
+
+function corsHeadersForOrigin(origin: string | null): HeadersInit {
+  const headers: Record<string, string> = {
+    "Access-Control-Allow-Methods": "GET, POST, HEAD, OPTIONS",
+    "Access-Control-Allow-Headers":
+      "Authorization, Content-Type, X-Anam-Target-Url",
+    "Access-Control-Max-Age": "86400",
+    Vary: "Origin",
+  };
+
+  if (origin && allowedCorsOrigins().has(origin)) {
+    headers["Access-Control-Allow-Origin"] = origin;
+  }
+
+  return headers;
+}
 
 export async function forwardAnamApiRequest(
   request: Request,
@@ -38,7 +83,9 @@ export async function forwardAnamApiRequest(
     body: hasBody ? body : undefined,
   });
 
-  const responseHeaders = new Headers();
+  const responseHeaders = new Headers(
+    corsHeadersForOrigin(request.headers.get("origin")),
+  );
   const upstreamContentType = upstream.headers.get("content-type");
 
   if (upstreamContentType) {
@@ -52,19 +99,8 @@ export async function forwardAnamApiRequest(
 }
 
 export function anamProxyPreflightResponse(request: Request): Response {
-  const origin = request.headers.get("origin");
-
-  const headers = new Headers({
-    "Access-Control-Allow-Methods": "GET, POST, HEAD, OPTIONS",
-    "Access-Control-Allow-Headers":
-      "Authorization, Content-Type, X-Anam-Target-Url",
-    "Access-Control-Max-Age": "86400",
-    Vary: "Origin",
+  return new Response(null, {
+    status: 204,
+    headers: corsHeadersForOrigin(request.headers.get("origin")),
   });
-
-  if (origin) {
-    headers.set("Access-Control-Allow-Origin", origin);
-  }
-
-  return new Response(null, { status: 204, headers });
 }

@@ -27,6 +27,21 @@ function getApiKeyPepper(): string | null {
   return process.env.API_KEY_PEPPER?.trim() || null;
 }
 
+/** Fail closed in production — plain SHA-256 hashes are offline-bruteforceable. */
+export function assertApiKeyPepperConfigured(): void {
+  if (process.env.NODE_ENV !== "production") {
+    return;
+  }
+  if (process.env.NEXT_PHASE === "phase-production-build") {
+    return;
+  }
+  if (!getApiKeyPepper()) {
+    throw new Error(
+      "API_KEY_PEPPER is required in production for Public API key hashing.",
+    );
+  }
+}
+
 function legacyHashApiKey(rawKey: string): string {
   return createHash("sha256").update(rawKey).digest("hex");
 }
@@ -54,7 +69,6 @@ function computeApiKeyHashes(rawKey: string): {
   return { primary: peppered, candidates: [peppered, legacy] };
 }
 
-const LEGACY_KEY_PREFIX = "nx_";
 const LIVE_KEY_PREFIX = "nx_live_";
 
 function normalizeScopes(scopes: string[] | null | undefined): ApiScope[] {
@@ -124,7 +138,7 @@ export async function verifyApiKey(
     }
   | null
 > {
-  if (!rawKey.startsWith(LEGACY_KEY_PREFIX)) {
+  if (!rawKey.startsWith(LIVE_KEY_PREFIX)) {
     return null;
   }
 

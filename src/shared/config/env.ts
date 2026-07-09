@@ -231,6 +231,32 @@ export function getDataEncryptionKey(): string {
   throw new Error("DATA_ENCRYPTION_KEY is not set");
 }
 
+/**
+ * Production runtime must set an explicit field-encryption key (not the
+ * BETTER_AUTH_SECRET-derived build/dev fallback).
+ */
+export function assertProductionSecretsConfigured(): void {
+  if (isDevelopmentRuntime() || isBuildPhase()) {
+    return;
+  }
+
+  if (process.env.NODE_ENV !== "production") {
+    return;
+  }
+
+  if (!readOptionalEnv("DATA_ENCRYPTION_KEY")) {
+    throw new Error(
+      "DATA_ENCRYPTION_KEY is required in production (do not rely on BETTER_AUTH_SECRET fallback).",
+    );
+  }
+
+  if (!readOptionalEnv("API_KEY_PEPPER")) {
+    throw new Error(
+      "API_KEY_PEPPER is required in production for Public API key hashing.",
+    );
+  }
+}
+
 export type DataEncryptionKeyRing = {
   /** Version used for new encryptions (highest configured). */
   activeVersion: number;

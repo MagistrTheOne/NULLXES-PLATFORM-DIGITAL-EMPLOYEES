@@ -1,7 +1,13 @@
 /**
  * Blocks SSRF to localhost / private / link-local / cloud metadata targets.
  * Call before any server-side fetch of user-supplied URLs.
+ *
+ * Prefer `assertSafeOutboundUrlResolved` at dispatch time — it also resolves
+ * DNS and rejects private/reserved A/AAAA records (DNS rebinding).
  */
+
+import { lookup } from "node:dns/promises";
+import { isIP } from "node:net";
 
 const BLOCKED_HOSTNAMES = new Set([
   "localhost",
@@ -63,17 +69,39 @@ function isBlockedIpv6(hostname: string): boolean {
     return true;
   }
   // Unique local fc00::/7, link-local fe80::/10
-  if (host.startsWith("fc") || host.startsWith("fd") || host.startsWith("fe8") || host.startsWith("fe9") || host.startsWith("fea") || host.startsWith("feb")) {
+  if (
+    host.startsWith("fc") ||
+    host.startsWith("fd") ||
+    host.startsWith("fe8") ||
+    host.startsWith("fe9") ||
+    host.startsWith("fea") ||
+    host.startsWith("feb")
+  ) {
     return true;
   }
   // IPv4-mapped ::ffff:x.x.x.x
   const mapped = host.match(/^::ffff:(\d{1,3}(?:\.\d{1,3}){3})$/);
   if (mapped) {
-    const parts = parseIpv4(mapped[1]);
+    const parts = parseIpv4(mapped[1]!);
     return parts ? isPrivateOrReservedIpv4(parts) : true;
   }
 
   return false;
+}
+
+function assertAddressNotPrivate(address: string): void {
+  const version = isIP(address);
+  if (version === 4) {
+    const parts = parseIpv4(address);
+    if (parts && isPrivateOrReservedIpv4(parts)) {
+      throw new Error("URL host resolves to a private address.");
+    }
+    return;
+  }
+
+  if (version === 6 && isBlockedIpv6(address)) {
+    throw new Error("URL host resolves to a private address.");
+  }
 }
 
 export function assertSafeOutboundUrl(rawUrl: string): URL {
@@ -94,7 +122,11 @@ export function assertSafeOutboundUrl(rawUrl: string): URL {
     throw new Error("URL host is not allowed.");
   }
 
-  if (hostname.endsWith(".localhost") || hostname.endsWith(".local") || hostname.endsWith(".internal")) {
+  if (
+    hostname.endsWith(".localhost") ||
+    hostname.endsWith(".local") ||
+    hostname.endsWith(".internal")
+  ) {
     throw new Error("URL host is not allowed.");
   }
 
@@ -105,6 +137,34 @@ export function assertSafeOutboundUrl(rawUrl: string): URL {
 
   if (hostname.includes(":") && isBlockedIpv6(hostname)) {
     throw new Error("URL host is not allowed.");
+  }
+
+  return parsed;
+}
+
+/** Hostname checks plus DNS resolution against private/reserved ranges. */
+export async function assertSafeOutboundUrlResolved(rawUrl: string): Promise<URL> {
+  const parsed = assertSafeOutboundUrl(rawUrl);
+  const hostname = parsed.hostname.toLowerCase();
+
+  if (isIP(hostname)) {
+    assertAddressNotPrivate(hostname.replace(/^\[|\]$/g, ""));
+    return parsed;
+  }
+
+  let records: Array<{ address: string; family: number }>;
+  try {
+    records = await lookup(hostname, { all: true, verbatim: true });
+  } catch {
+    throw new Error("URL host could not be resolved.");
+  }
+
+  if (records.length === 0) {
+    throw new Error("URL host could not be resolved.");
+  }
+
+  for (const record of records) {
+    assertAddressNotPrivate(record.address);
   }
 
   return parsed;

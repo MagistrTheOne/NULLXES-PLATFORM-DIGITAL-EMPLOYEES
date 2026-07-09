@@ -8,6 +8,7 @@ import { verifyApiKey } from "@/features/security/services/api-key";
 import { recordAuditEvent } from "@/features/security/services/record-audit-event";
 import { db } from "@/shared/db/client";
 import { checkRateLimit } from "@/shared/security/rate-limit";
+import { resolveTrustedClientIp } from "@/shared/security/resolve-trusted-client-ip";
 import {
   assertApiScopes,
   type ApiScope,
@@ -34,15 +35,6 @@ function parseAllowlist(value: string | null | undefined): string[] {
     .split(/[\n,]/)
     .map((entry) => entry.trim())
     .filter((entry) => entry.length > 0);
-}
-
-function resolveClientIp(request: Request): string | null {
-  const forwarded = request.headers.get("x-forwarded-for");
-  if (forwarded) {
-    return forwarded.split(",")[0]?.trim() ?? null;
-  }
-
-  return request.headers.get("x-real-ip");
 }
 
 function isIpAllowed(clientIp: string | null, allowlist: string[]): boolean {
@@ -88,7 +80,7 @@ export async function authenticateApiKeyRequest(
         reason: "expired",
         path: new URL(request.url).pathname,
       },
-      ipAddress: resolveClientIp(request),
+      ipAddress: resolveTrustedClientIp(request),
       userAgent: request.headers.get("user-agent"),
     });
     return apiError("API key expired", 401, { requestId });
@@ -111,7 +103,7 @@ export async function authenticateApiKeyRequest(
         grantedScopes: verified.scopes,
         path: new URL(request.url).pathname,
       },
-      ipAddress: resolveClientIp(request),
+      ipAddress: resolveTrustedClientIp(request),
       userAgent: request.headers.get("user-agent"),
     });
     return apiError("Insufficient API key scope", 403, {
@@ -141,7 +133,7 @@ export async function authenticateApiKeyRequest(
         billingPlan,
         path: new URL(request.url).pathname,
       },
-      ipAddress: resolveClientIp(request),
+      ipAddress: resolveTrustedClientIp(request),
       userAgent: request.headers.get("user-agent"),
     });
     return apiError(
@@ -160,7 +152,7 @@ export async function authenticateApiKeyRequest(
     .limit(1);
 
   const allowlist = parseAllowlist(settings?.apiIpAllowlist);
-  const clientIp = resolveClientIp(request);
+  const clientIp = resolveTrustedClientIp(request);
 
   if (!isIpAllowed(clientIp, allowlist)) {
     recordAuditEvent({

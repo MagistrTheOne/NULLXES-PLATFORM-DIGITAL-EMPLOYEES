@@ -4,6 +4,11 @@ import { revalidatePath } from "next/cache";
 import type { OrganizationProvider } from "@/entities/organization-provider-credential";
 import { requireWorkspacePermissionOrThrowMessage } from "@/features/workspace";
 import {
+  assertTwoFactorForSensitiveAction,
+  TwoFactorRequiredError,
+} from "@/features/security/services/assert-two-factor-for-sensitive-action";
+import { recordAuditEvent } from "@/features/security/services/record-audit-event";
+import {
   removeOrganizationProviderKey,
   setOrganizationProviderKey,
 } from "../services/organization-provider-credentials";
@@ -37,11 +42,34 @@ export async function setProviderCredentialAction(input: {
       "canManageOrganization",
     );
 
+    try {
+      await assertTwoFactorForSensitiveAction({
+        userId: workspace.user.id,
+        role: workspace.membership.role,
+        organizationId: workspace.organization.id,
+      });
+    } catch (error: unknown) {
+      if (error instanceof TwoFactorRequiredError) {
+        return { ok: false, message: error.message };
+      }
+      throw error;
+    }
+
     await setOrganizationProviderKey({
       organizationId: workspace.organization.id,
       provider: input.provider,
       apiKey,
       createdByUserId: workspace.user.id,
+    });
+
+    recordAuditEvent({
+      organizationId: workspace.organization.id,
+      actorUserId: workspace.user.id,
+      actorRole: workspace.membership.role,
+      action: "settings.updated",
+      resourceType: "provider_credential",
+      resourceId: input.provider,
+      metadata: { provider: input.provider, op: "set" },
     });
 
     revalidatePath("/settings");
@@ -66,9 +94,32 @@ export async function removeProviderCredentialAction(input: {
       "canManageOrganization",
     );
 
+    try {
+      await assertTwoFactorForSensitiveAction({
+        userId: workspace.user.id,
+        role: workspace.membership.role,
+        organizationId: workspace.organization.id,
+      });
+    } catch (error: unknown) {
+      if (error instanceof TwoFactorRequiredError) {
+        return { ok: false, message: error.message };
+      }
+      throw error;
+    }
+
     await removeOrganizationProviderKey({
       organizationId: workspace.organization.id,
       provider: input.provider,
+    });
+
+    recordAuditEvent({
+      organizationId: workspace.organization.id,
+      actorUserId: workspace.user.id,
+      actorRole: workspace.membership.role,
+      action: "settings.updated",
+      resourceType: "provider_credential",
+      resourceId: input.provider,
+      metadata: { provider: input.provider, op: "remove" },
     });
 
     revalidatePath("/settings");

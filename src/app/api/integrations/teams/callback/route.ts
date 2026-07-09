@@ -6,6 +6,7 @@ import {
   parseIntegrationOAuthState,
   readOptionalEnvForIntegrations,
 } from "@/features/integrations/lib/integration-oauth-config";
+import { recordAuditEvent } from "@/features/security/services/record-audit-event";
 import { upsertIntegrationConnection } from "@/features/integrations/services/upsert-integration-connection";
 import { resolveAppBaseUrl } from "@/shared/config/env";
 
@@ -80,6 +81,15 @@ export async function GET(request: Request): Promise<Response> {
     provider: "teams",
     accessToken: tokenPayload.access_token,
     refreshToken: tokenPayload.refresh_token ?? null,
+  });
+
+  recordAuditEvent({
+    organizationId: workspace.organization.id,
+    actorUserId: session.user.id,
+    actorRole: workspace.membership.role,
+    action: "integration.connected",
+    resourceType: "integration",
+    resourceId: "teams",
   });
 
   settingsUrl.searchParams.set("integration", "teams_connected");

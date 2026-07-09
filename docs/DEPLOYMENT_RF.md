@@ -23,7 +23,8 @@ Last updated: **2026-07-09**
 - Toggle **Require 2FA for admins** in Settings → Security when policy mandates it.
 - Restrict API access with organization IP allowlists (Settings → Security).
 - Create API keys in Settings → Security (plan-gated: Operator+ read, Scale+ full).
-- Set `API_KEY_PEPPER` in production so key hashes use HMAC (`hmac1:`) instead of plain SHA-256.
+- Set `API_KEY_PEPPER` in production so key hashes use HMAC (`hmac1:`). Runtime fails closed without it.
+- Optional: `EMAIL_OTP_BYPASS_EMAILS` (comma-separated). Empty in production = no OTP bypass.
 - Review audit events in Settings → Audit.
 
 ## Retention & compliance
@@ -38,8 +39,8 @@ Last updated: **2026-07-09**
 |------|-------------|
 | Database | Neon PostgreSQL in RF-approved region |
 | Migrations | Applied automatically on `npm run build` via `npm run db:migrate` (Neon HTTP → `scripts/db-migrate.mjs`). Uses `--env-file-if-exists=.env` so Vercel/CI can rely on platform env vars without a checked-in `.env`. 39 migrations through `0038`. |
-| `DATA_ENCRYPTION_KEY` | Required in production |
-| `API_KEY_PEPPER` | Recommended in production (Public API key hashing) |
+| `DATA_ENCRYPTION_KEY` | **Required** in production (no BETTER_AUTH_SECRET fallback at runtime) |
+| `API_KEY_PEPPER` | **Required** in production (Public API key HMAC hashing) |
 | `HEALTH_CHECK_TOKEN` | Required in production — `GET /api/health/db` fails closed without it |
 | `BETTER_AUTH_SECRET` | Strong random secret |
 | `BETTER_AUTH_URL` | Production origin: `https://www.nullxesdai.online` |

@@ -3,6 +3,7 @@
 import { createMembership } from "@/entities/membership/create-membership";
 import { createOrganization } from "@/entities/organization/create-organization";
 import { ensureOrganizationSettings } from "@/entities/organization-settings";
+import { recordUserConsents } from "@/features/privacy/services/record-user-consent";
 
 export async function provisionDefaultWorkspace(
   userId: string,
@@ -28,6 +29,12 @@ export async function provisionDefaultWorkspace(
   });
 
   await ensureOrganizationSettings(org.id);
+
+  await recordUserConsents({
+    userId,
+    organizationId: org.id,
+    consentTypes: ["personal_data_processing", "terms_of_service"],
+  });
 
   return { organizationId: org.id };
 }

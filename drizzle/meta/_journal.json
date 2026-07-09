@@ -274,6 +274,13 @@
       "when": 1784200000000,
       "tag": "0038_billing_plans_studio_operator_scale",
       "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1784300000000,
+      "tag": "0039_require_admin_2fa_default",
+      "breakpoints": true
     }
   ]
 }

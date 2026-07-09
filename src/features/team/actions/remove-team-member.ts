@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireAuth } from "@/features/auth/services/require-auth";
 import { ensureWorkspace } from "@/features/auth/services/ensure-workspace";
+import { recordAuditEvent } from "@/features/security/services/record-audit-event";
 import { removeTeamMember } from "../services/remove-team-member";
 
 export async function removeTeamMemberAction(
@@ -22,6 +23,14 @@ export async function removeTeamMemberAction(
   });
 
   if (result.ok) {
+    recordAuditEvent({
+      organizationId: workspace.organization.id,
+      actorUserId: session.user.id,
+      actorRole: workspace.membership.role,
+      action: "member.removed",
+      resourceType: "membership",
+      resourceId: membershipId,
+    });
     revalidatePath("/settings");
   }
 

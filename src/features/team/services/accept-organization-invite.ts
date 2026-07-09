@@ -10,10 +10,22 @@ import { hashInviteToken } from "../lib/hash-invite-token";
 export async function acceptOrganizationInvite(input: {
   token: string;
   userId: string;
-  userEmail: string;
+  /** Optional hint only — canonical email is always loaded from the user row. */
+  userEmail?: string;
 }): Promise<{ ok: true; organizationId: string } | { ok: false; message: string }> {
-  const normalizedEmail = input.userEmail.trim().toLowerCase();
   const tokenHash = hashInviteToken(input.token.trim());
+
+  const [account] = await db
+    .select({ id: user.id, email: user.email })
+    .from(user)
+    .where(eq(user.id, input.userId))
+    .limit(1);
+
+  if (!account?.email) {
+    return { ok: false, message: "User account not found." };
+  }
+
+  const normalizedEmail = account.email.trim().toLowerCase();
 
   const invite = await db.query.organizationInvite.findFirst({
     where: and(

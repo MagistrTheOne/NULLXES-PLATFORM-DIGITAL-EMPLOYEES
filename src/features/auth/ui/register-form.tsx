@@ -16,7 +16,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { acceptInviteForNewUserAction } from "@/features/team/actions/accept-invite-for-new-user";
-import { recordPersonalDataConsentAction } from "@/features/privacy/actions/personal-data-actions";
 import type { OrganizationInvitePreview } from "@/features/team/services/lookup-organization-invite";
 import type { OAuthProviderId } from "../lib/oauth-providers";
 import { authClient } from "../client";
@@ -84,30 +83,16 @@ export function RegisterForm({
         return;
       }
 
-      let organizationId: string | null = null;
-
       if (inviteToken) {
         const accepted = await acceptInviteForNewUserAction({
           token: inviteToken,
           userId,
-          email,
         });
         if (!accepted.ok) {
           throw new Error(accepted.message);
         }
-        organizationId = accepted.organizationId;
       } else {
-        const provisioned = await provisionDefaultWorkspace(userId, name);
-        organizationId = provisioned.organizationId;
-      }
-
-      const consent = await recordPersonalDataConsentAction({
-        userId,
-        organizationId,
-        acceptedTermsOfService: true,
-      });
-      if (!consent.ok) {
-        throw new Error(consent.message);
+        await provisionDefaultWorkspace(userId, name);
       }
 
       if (requireEmailVerification && !data.user.emailVerified) {
