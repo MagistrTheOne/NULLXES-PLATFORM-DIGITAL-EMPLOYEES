@@ -9,6 +9,7 @@ import {
 } from "../services/organization-provider-credentials";
 
 const SUPPORTED_PROVIDERS: OrganizationProvider[] = [
+  "nullxes",
   "openai",
   "anthropic",
   "google",

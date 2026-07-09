@@ -40,22 +40,29 @@ export async function resolveBrainApiConfig(input: {
 
   if (input.provider === "nullxes") {
     const sdkConfig = resolveNullxesSdkConfig();
-    if (!sdkConfig) {
+    const orgKey = await resolveOrganizationProviderKey(
+      input.organizationId,
+      "nullxes",
+    );
+    const apiKey = orgKey || sdkConfig?.apiKey;
+    const baseUrl = sdkConfig?.baseUrl;
+
+    if (!baseUrl || !apiKey) {
       throw new Error(
-        "NULLXES API is not configured. Set NULLXES_API_BASE_URL and NULLXES_API_KEY.",
+        "NULLXES API is not configured. Set NULLXES_API_BASE_URL and NULLXES_API_KEY, or save an organization NULLXES key.",
       );
     }
 
     const model =
       curatedModel === "nullxes-brain-v1"
-        ? sdkConfig.defaultModel || getNullxesApiDefaultModel()
+        ? sdkConfig?.defaultModel || getNullxesApiDefaultModel()
         : resolveNullxesBrainModel(curatedModel);
 
     return {
       provider: "nullxes",
       transport: "openai-compatible",
-      baseUrl: sdkConfig.baseUrl,
-      apiKey: sdkConfig.apiKey,
+      baseUrl,
+      apiKey,
       model,
       supportsTools: nullxesSupportsTools(),
     };

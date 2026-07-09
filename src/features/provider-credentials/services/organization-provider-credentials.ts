@@ -8,24 +8,32 @@ import {
   getGoogleApiKey,
   getOpenAiApiKey,
 } from "@/shared/config/provider-env";
+import { getNullxesApiKey } from "@/shared/nullxes-sdk";
 import { decryptField, encryptField } from "@/shared/crypto/field-encryption";
 import { db } from "@/shared/db/client";
 import type { ProviderKeyStatus } from "../types/provider-key-status";
 
 export type { ProviderKeyStatus };
 
+const PROVIDER_KEY_ORDER: OrganizationProvider[] = [
+  "nullxes",
+  "openai",
+  "anthropic",
+  "google",
+];
+
 function platformKeyForProvider(
   provider: OrganizationProvider,
 ): string | undefined {
   switch (provider) {
+    case "nullxes":
+      return getNullxesApiKey();
     case "openai":
       return getOpenAiApiKey();
     case "anthropic":
       return getAnthropicApiKey();
     case "google":
       return getGoogleApiKey();
-    default:
-      return undefined;
   }
 }
 
@@ -67,9 +75,8 @@ export async function listOrganizationProviderKeyStatuses(
     .where(eq(organizationProviderCredential.organizationId, organizationId));
 
   const byProvider = new Map(rows.map((row) => [row.provider, row]));
-  const providers: OrganizationProvider[] = ["openai", "anthropic", "google"];
 
-  return providers.map((provider) => {
+  return PROVIDER_KEY_ORDER.map((provider) => {
     const row = byProvider.get(provider);
     if (row) {
       return {
