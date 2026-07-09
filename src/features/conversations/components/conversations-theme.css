@@ -4,7 +4,9 @@
 
 .conversations-workspace {
   position: relative;
-  min-height: min(72dvh, 760px);
+  /* Height comes from the screen shell (viewport-locked). Avoid a second
+     min-height that forces page scroll on tall 27"+ monitors. */
+  min-height: 0;
   /* "Expensive" near-black surface with an almost invisible top glow so the
      workspace reads as depth, not a flat black box. */
   background:
@@ -39,11 +41,17 @@
   flex: 1 1 0;
 }
 
-/* Centered, readable message column (ChatGPT-like). */
+/* Centered, readable message column — capped so 27"+ ultrawides stay readable. */
 .nullxes-conversation-layout .str-chat__message-list .str-chat__ul {
-  max-width: 720px;
+  max-width: min(720px, 100%);
   margin-inline: auto;
   padding-inline: 16px;
+}
+
+@media (min-width: 1536px) {
+  .nullxes-conversation-layout .str-chat__message-list .str-chat__ul {
+    max-width: min(780px, 100%);
+  }
 }
 
 /* Strong scroller + no layout shift when composer or list changes */
@@ -95,8 +103,3 @@
   }
 }
 
-@media (min-width: 1280px) {
-  .conversations-workspace {
-    min-height: min(80dvh, 840px);
-  }
-}

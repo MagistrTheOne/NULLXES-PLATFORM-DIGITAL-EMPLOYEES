@@ -113,13 +113,15 @@ export function ConversationsScreen({
 
   return (
     <TooltipProvider delayDuration={300}>
-      <div className="conversations-screen flex min-h-[min(92dvh,980px)] flex-col gap-8">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      {/* Fill the dashboard viewport on 27"+ so the page itself does not scroll;
+          the inbox / message list / inspector scroll inside their panes. */}
+      <div className="conversations-screen flex h-[calc(100svh-6.5rem)] min-h-[520px] max-h-[1200px] flex-col gap-5 sm:gap-6">
+        <div className="flex shrink-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0 shrink-0">
             <h1 className="text-2xl font-medium tracking-tight text-white">
               {t("title")}
             </h1>
-            <p className="mt-2 text-sm font-normal text-white/55">
+            <p className="mt-1.5 text-sm font-normal text-white/55">
               {t("subtitle")}
             </p>
           </div>
@@ -134,7 +136,7 @@ export function ConversationsScreen({
           />
         </div>
 
-        <div className="conversations-workspace grid min-h-0 flex-1 overflow-hidden rounded-2xl lg:grid-cols-[300px_minmax(0,1fr)] xl:grid-cols-[300px_minmax(0,1fr)_340px] h-full">
+        <div className="conversations-workspace grid min-h-0 flex-1 overflow-hidden rounded-2xl lg:grid-cols-[280px_minmax(0,1fr)] xl:grid-cols-[300px_minmax(0,1fr)_320px] 2xl:grid-cols-[320px_minmax(0,1fr)_340px]">
           <ConversationsInbox
             className="hidden lg:flex"
             employees={filteredForList}
@@ -173,7 +175,7 @@ export function ConversationsScreen({
           {selected && resolvedDetails ? (
             <div className="hidden min-h-0 border-l border-white/6 xl:flex">
               <ConversationsInspector
-                className="w-[340px]"
+                className="w-full max-w-[340px]"
                 details={resolvedDetails}
                 departmentLabel={departmentLabel}
               />
@@ -196,7 +198,7 @@ export function ConversationsScreen({
           </Sheet>
         ) : null}
 
-        <div className="max-h-48 overflow-hidden border border-white/8 bg-[#0a0a0a] lg:hidden">
+        <div className="max-h-40 shrink-0 overflow-hidden border border-white/8 bg-[#0a0a0a] lg:hidden">
           <ConversationsInbox
             employees={filteredForList}
             selectedEmployee={selected}
