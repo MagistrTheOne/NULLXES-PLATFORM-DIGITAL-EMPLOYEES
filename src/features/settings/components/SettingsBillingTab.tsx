@@ -32,7 +32,7 @@ import type {
 } from "../types";
 import { SettingsCard } from "./settings-card";
 
-const SALES_CONTACT = "mailto:sales@nullxes.com";
+const SALES_CONTACT = "mailto:ceo@nullxes.com";
 const FOUNDERS_CONTACT = "mailto:founders@nullxes.com";
 
 const TIER_TO_CHECKOUT_PLAN: Partial<

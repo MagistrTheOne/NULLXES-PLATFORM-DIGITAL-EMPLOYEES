@@ -153,7 +153,7 @@ export function SidebarUserSection({
             asChild
             className="cursor-pointer text-white focus:bg-white/10 focus:text-white"
           >
-            <a href="mailto:sales@nullxes.com">{t("contactSales")}</a>
+            <a href="mailto:ceo@nullxes.com">{t("contactSales")}</a>
           </DropdownMenuItem>
         ) : null}
         <DropdownMenuSeparator className="bg-white/10" />
