@@ -1399,6 +1399,8 @@
     "typingIndicator": "Печатает…",
     "openTalk": "Открыть live talk",
     "toggleDetails": "Показать детали",
+    "showDetails": "Детали",
+    "hideDetails": "Скрыть детали",
     "closeDetails": "Закрыть детали",
     "more": "Ещё",
     "composerHint": "Enter — отправить · Shift + Enter — новая строка",

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { MessageSquare } from "lucide-react";
 import {
@@ -13,6 +13,7 @@ import type { EmployeeListItem } from "@/features/employees/types";
 import { TalkAnamProvider } from "@/features/runtime-session/context/talk-anam-context";
 import type { TalkAgentDetails } from "@/features/runtime-session/components/talk-agent-details";
 import type { TalkViewer } from "@/features/runtime-session/components/talk-viewer-card";
+import { cn } from "@/lib/utils";
 import { ConversationsChatPane } from "./conversations-chat-pane";
 import { ConversationsInspector } from "./conversations-inspector";
 import {
@@ -26,6 +27,19 @@ import {
 import "./conversations-theme.css";
 import "@/features/runtime-session/components/employee-talk-theme.css";
 import { connectTalkChatSessionAction } from "@/features/runtime-session/actions/connect-talk-chat-session";
+
+const DETAILS_STORAGE_KEY = "nullxes:conversations-details-open";
+
+function readStoredDetailsOpen(): boolean {
+  if (typeof window === "undefined") {
+    return false;
+  }
+  try {
+    return window.localStorage.getItem(DETAILS_STORAGE_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
 
 export type ConversationEmployee = Pick<
   EmployeeListItem,
@@ -51,6 +65,7 @@ export function ConversationsScreen({
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [mobileDetailsOpen, setMobileDetailsOpen] = useState(false);
+  const [detailsOpen, setDetailsOpen] = useState(false);
   const [threadsVersion, setThreadsVersion] = useState(0);
 
   const [conversationFilter, setConversationFilter] = useState<ConversationsFilterState>({
@@ -58,6 +73,22 @@ export function ConversationsScreen({
     employeeIds: [],
     onlyReady: false,
   });
+
+  useEffect(() => {
+    setDetailsOpen(readStoredDetailsOpen());
+  }, []);
+
+  function handleToggleDetails(): void {
+    setDetailsOpen((open) => {
+      const next = !open;
+      try {
+        window.localStorage.setItem(DETAILS_STORAGE_KEY, next ? "1" : "0");
+      } catch {
+        // ignore
+      }
+      return next;
+    });
+  }
 
   const talkReady = employees.filter((employee) => employee.canTalk);
 
@@ -136,7 +167,14 @@ export function ConversationsScreen({
           />
         </div>
 
-        <div className="conversations-workspace grid min-h-0 flex-1 overflow-hidden rounded-2xl lg:grid-cols-[280px_minmax(0,1fr)] xl:grid-cols-[300px_minmax(0,1fr)_320px] 2xl:grid-cols-[320px_minmax(0,1fr)_340px] min-[1800px]:grid-cols-[340px_minmax(0,1fr)_360px]">
+        <div
+          className={cn(
+            "conversations-workspace grid min-h-0 flex-1 overflow-hidden rounded-2xl lg:grid-cols-[280px_minmax(0,1fr)]",
+            detailsOpen
+              ? "xl:grid-cols-[300px_minmax(0,1fr)_320px] 2xl:grid-cols-[320px_minmax(0,1fr)_340px] min-[1800px]:grid-cols-[340px_minmax(0,1fr)_360px]"
+              : "xl:grid-cols-[300px_minmax(0,1fr)] 2xl:grid-cols-[320px_minmax(0,1fr)] min-[1800px]:grid-cols-[340px_minmax(0,1fr)]",
+          )}
+        >
           <ConversationsInbox
             className="hidden lg:flex"
             employees={filteredForList}
@@ -158,8 +196,14 @@ export function ConversationsScreen({
                   departmentLabel={departmentLabel}
                   viewerName={viewer.name}
                   viewerImage={viewer.image}
-                  detailsOpen={mobileDetailsOpen}
-                  onToggleDetails={() => setMobileDetailsOpen((value) => !value)}
+                  detailsOpen={detailsOpen || mobileDetailsOpen}
+                  onToggleDetails={() => {
+                    if (typeof window !== "undefined" && window.matchMedia("(min-width: 1280px)").matches) {
+                      handleToggleDetails();
+                      return;
+                    }
+                    setMobileDetailsOpen((value) => !value);
+                  }}
                 />
               </TalkAnamProvider>
             ) : (
@@ -172,7 +216,7 @@ export function ConversationsScreen({
             )}
           </div>
 
-          {selected && resolvedDetails ? (
+          {selected && resolvedDetails && detailsOpen ? (
             <div className="hidden min-h-0 border-l border-white/6 xl:flex">
               <ConversationsInspector
                 className="w-full max-w-[340px]"

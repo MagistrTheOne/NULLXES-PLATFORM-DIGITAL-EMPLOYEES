@@ -1399,6 +1399,8 @@
     "typingIndicator": "Typing…",
     "openTalk": "Open live talk",
     "toggleDetails": "Toggle details",
+    "showDetails": "Details",
+    "hideDetails": "Hide details",
     "closeDetails": "Close details",
     "more": "More options",
     "composerHint": "Enter to send · Shift + Enter for new line",

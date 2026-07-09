@@ -101,16 +101,21 @@ export function NullxesConversationHeader({
                 variant="ghost"
                 size="icon-sm"
                 onClick={onToggleDetails}
+                aria-pressed={detailsOpen}
                 className={cn(
-                  "size-9 hover:bg-white/4 hover:text-white xl:hidden",
+                  "size-9 hover:bg-white/4 hover:text-white",
                   detailsOpen ? "bg-white/6 text-white" : "text-white/45",
                 )}
-                aria-label={t("toggleDetails")}
+                aria-label={
+                  detailsOpen ? t("hideDetails") : t("showDetails")
+                }
               >
                 <Info className="size-4 stroke-[1.5]" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent>{t("toggleDetails")}</TooltipContent>
+            <TooltipContent>
+              {detailsOpen ? t("hideDetails") : t("showDetails")}
+            </TooltipContent>
           </Tooltip>
         ) : null}
 
