@@ -139,6 +139,8 @@ export type BillingSnapshot = {
   selfServeCheckoutUrls: SelfServeCheckoutUrls;
   /** @deprecated Prefer selfServeCheckoutUrls.scale.month */
   superProCheckoutUrl: string | null;
+  verificationCheckoutUrl: string | null;
+  selfServeLiveCount: number;
   portalEnabled: boolean;
 };
 

@@ -3,6 +3,18 @@ import type { PricingTierId } from "../config/pricing-tiers";
 
 export const POLAR_PRODUCT_NAMESPACE = "nullxes_digital_employees";
 
+export const POLAR_VERIFICATION_TIER = "verification";
+export const POLAR_VERIFICATION_PRODUCT_KIND = "payment_verification";
+
+export function isPolarVerificationMetadata(
+  metadata: Record<string, unknown>,
+): boolean {
+  return (
+    metadata.tier === POLAR_VERIFICATION_TIER ||
+    metadata.product_kind === POLAR_VERIFICATION_PRODUCT_KIND
+  );
+}
+
 export const BILLING_PLAN_IDS: BillingPlanId[] = [
   "free",
   "studio",

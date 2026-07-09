@@ -1091,7 +1091,12 @@
       "renewsOn": "Renews on {date}",
       "cancelsOn": "Cancels on {date}",
       "polarNotConfigured": "Self-serve checkout is unavailable until Polar is configured.",
-      "polarPricesLive": "Self-serve prices are loaded from Polar when products exist."
+      "polarPricesLive": "Live Polar prices and checkout are ready for Studio, Team, and Scale.",
+      "polarPricesPending": "Polar connected — {count}/6 self-serve products ready. Run npm run polar:setup if checkout is missing.",
+      "paymentTest": "Payment verification",
+      "paymentTestDesc": "One-time $1 charge to verify Polar checkout and webhooks",
+      "paymentTestBody": "Does not change the organization plan. Use a real card once to confirm production billing.",
+      "paymentTestCta": "Pay $1 test"
     },
     "security": {
       "authentication": "Authentication",

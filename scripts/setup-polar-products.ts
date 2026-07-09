@@ -61,11 +61,28 @@ type ProductSpec = {
   key: string;
   name: string;
   description: string;
-  recurringInterval: BillingInterval;
+  /** `null` = one-time purchase (payment verification plate). */
+  recurringInterval: BillingInterval | null;
   priceAmount: number;
   metadata: Record<string, string>;
   /** Prefer remapping this legacy product when creating/updating. */
   legacyNames?: string[];
+};
+
+/** One-time $1 plate for production payment smoke tests. Does not upgrade plan. */
+const VERIFICATION_PRODUCT_SPEC: ProductSpec = {
+  key: "verification:once",
+  name: "NULLXES Payment Verification",
+  description:
+    "One-time $1 charge to verify Polar checkout, webhooks, and card processing. Does not change the organization plan.",
+  recurringInterval: null,
+  priceAmount: 100,
+  metadata: {
+    tier: "verification",
+    product: POLAR_PRODUCT_NAMESPACE,
+    product_kind: "payment_verification",
+  },
+  legacyNames: ["payment verification", "nullxes payment verification"],
 };
 
 const INTERVALS: BillingInterval[] = ["month", "year"];
@@ -265,6 +282,29 @@ function findSalesProduct(
   return undefined;
 }
 
+function findVerificationProduct(
+  products: ListedProduct[],
+  legacyNames?: string[],
+): ListedProduct | undefined {
+  const active = products.filter((product) => !product.isArchived);
+
+  const byMeta = active.find(
+    (product) =>
+      product.metadata.tier === "verification" ||
+      product.metadata.product_kind === "payment_verification",
+  );
+  if (byMeta) return byMeta;
+
+  if (legacyNames?.length) {
+    return active.find((product) => {
+      const name = product.name.toLowerCase();
+      return legacyNames.some((legacy) => name.includes(legacy));
+    });
+  }
+
+  return undefined;
+}
+
 async function ensureProductSynced(
   existing: ListedProduct[],
   spec: ProductSpec,
@@ -275,7 +315,9 @@ async function ensureProductSynced(
     const created = await polar.products.create({
       name: spec.name,
       description: spec.description,
-      recurringInterval: spec.recurringInterval,
+      ...(spec.recurringInterval
+        ? { recurringInterval: spec.recurringInterval }
+        : { recurringInterval: null }),
       prices: [
         {
           amountType: "fixed",
@@ -440,6 +482,9 @@ async function main(): Promise<void> {
   for (const spec of BILLING_PLAN_SPECS) {
     const planId = spec.metadata.plan as BillingPlanId;
     const interval = spec.recurringInterval;
+    if (interval !== "month" && interval !== "year") {
+      throw new Error(`Self-serve product missing interval: ${spec.key}`);
+    }
     const found = findSelfServeProduct(
       existing,
       planId,
@@ -455,14 +500,45 @@ async function main(): Promise<void> {
     await ensureProductSynced(existing, spec, found);
   }
 
+  {
+    const found = findVerificationProduct(
+      existing,
+      VERIFICATION_PRODUCT_SPEC.legacyNames,
+    );
+    await ensureProductSynced(existing, VERIFICATION_PRODUCT_SPEC, found);
+  }
+
   // Refresh list for archive pass so metadata updates are visible.
   const refreshed = await listAllProducts();
   await archiveLegacyProducts(refreshed);
+
+  const selfServeReady = refreshed.filter(
+    (product) =>
+      !product.isArchived &&
+      (product.metadata.plan === "studio" ||
+        product.metadata.plan === "operator" ||
+        product.metadata.plan === "scale") &&
+      (activeFixedAmount(product) ?? 0) > 0,
+  );
+  const verification = refreshed.find(
+    (product) =>
+      !product.isArchived &&
+      (product.metadata.tier === "verification" ||
+        product.metadata.product_kind === "payment_verification"),
+  );
 
   console.log("\nDone. Required env:");
   console.log("  POLAR_ACCESS_TOKEN");
   console.log("  POLAR_WEBHOOK_SECRET");
   console.log("  POLAR_SERVER=production");
+  console.log(
+    `\nSelf-serve priced products: ${selfServeReady.length} (expect 6)`,
+  );
+  console.log(
+    verification
+      ? `Payment verification: ${verification.id} ($${((activeFixedAmount(verification) ?? 0) / 100).toFixed(2)})`
+      : "Payment verification: missing",
+  );
   console.log("\nDashboard: https://polar.sh/dashboard/nullxes-llc/products");
 }
 

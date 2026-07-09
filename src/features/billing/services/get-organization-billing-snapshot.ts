@@ -18,8 +18,10 @@ import type {
 } from "../types/polar-catalog";
 import {
   buildPolarProductPlanMap,
+  countSelfServeCheckoutProducts,
   listPolarCatalog,
   resolvePolarProductIdForPlan,
+  resolvePolarVerificationProduct,
 } from "./list-polar-catalog";
 import { isManualBillingPlan } from "../lib/billing-plan-helpers";
 import { isPolarConfigured } from "./polar-config";
@@ -37,6 +39,10 @@ export type OrganizationBillingSnapshot = {
   selfServeCheckoutUrls: SelfServeCheckoutUrls;
   /** @deprecated Use selfServeCheckoutUrls.scale.month or checkoutUrl */
   superProCheckoutUrl: string | null;
+  /** One-time $1 verification checkout (does not change plan). */
+  verificationCheckoutUrl: string | null;
+  /** Count of priced Studio/Team/Scale Polar products ready for checkout. */
+  selfServeLiveCount: number;
   portalEnabled: boolean;
 };
 
@@ -160,6 +166,18 @@ export async function getOrganizationBillingSnapshot(input: {
     polarReady,
   });
 
+  const verificationProduct = resolvePolarVerificationProduct(catalog);
+  const verificationCheckoutUrl =
+    input.canManageOrganization &&
+    polarReady &&
+    verificationProduct?.productId
+      ? buildPolarCheckoutUrl({
+          productId: verificationProduct.productId,
+          organizationId: input.organizationId,
+          customerEmail: input.customerEmail,
+        })
+      : null;
+
   const checkoutUrl =
     planId === "free"
       ? (firstCheckoutUrl(selfServeCheckoutUrls, "studio") ??
@@ -184,6 +202,8 @@ export async function getOrganizationBillingSnapshot(input: {
     selfServeCheckoutUrls,
     superProCheckoutUrl:
       firstCheckoutUrl(selfServeCheckoutUrls, "scale") ?? checkoutUrl,
+    verificationCheckoutUrl,
+    selfServeLiveCount: countSelfServeCheckoutProducts(catalog),
     portalEnabled,
   };
 }

@@ -326,11 +326,17 @@ export function SettingsBillingTab({
           <p className="mb-4 text-sm text-muted-foreground">
             {t("polarNotConfigured")}
           </p>
-        ) : billing.polarCatalog.length > 0 ? (
+        ) : billing.selfServeLiveCount >= 6 ? (
           <p className="mb-4 text-sm text-muted-foreground">
             {t("polarPricesLive")}
           </p>
-        ) : null}
+        ) : (
+          <p className="mb-4 text-sm text-muted-foreground">
+            {t("polarPricesPending", {
+              count: billing.selfServeLiveCount,
+            })}
+          </p>
+        )}
 
         <div
           className="mb-4 inline-flex rounded-full border border-border bg-background/40 p-1"
@@ -365,6 +371,34 @@ export function SettingsBillingTab({
 
         {renderTierGrid(selfServeTiers, true)}
       </SettingsCard>
+
+      {canManageOrganization && billing.verificationCheckoutUrl ? (
+        <SettingsCard
+          title={t("paymentTest")}
+          description={t("paymentTestDesc")}
+        >
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
+              <p className="text-2xl font-medium tracking-tight text-foreground">
+                $1
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {t("paymentTestBody")}
+              </p>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              className="shrink-0 border-border bg-transparent text-foreground hover:bg-accent"
+              asChild
+            >
+              <Link href={billing.verificationCheckoutUrl}>
+                {t("paymentTestCta")}
+              </Link>
+            </Button>
+          </div>
+        </SettingsCard>
+      ) : null}
 
       <SettingsCard title={t("enterpriseLadder")} description={t("enterpriseLadderDesc")}>
         {renderTierGrid(salesTiers, false)}

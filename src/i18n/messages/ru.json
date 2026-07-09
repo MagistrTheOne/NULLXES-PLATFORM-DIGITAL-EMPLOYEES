@@ -1091,7 +1091,12 @@
       "renewsOn": "Продление {date}",
       "cancelsOn": "Отмена {date}",
       "polarNotConfigured": "Self-serve оплата недоступна, пока Polar не настроен.",
-      "polarPricesLive": "Цены self-serve загружаются из Polar, когда продукты созданы."
+      "polarPricesLive": "Живые цены Polar и checkout готовы для Studio, Team и Scale.",
+      "polarPricesPending": "Polar подключён — {count}/6 self-serve продуктов готовы. Запустите npm run polar:setup, если checkout отсутствует.",
+      "paymentTest": "Проверка оплаты",
+      "paymentTestDesc": "Разовый платёж $1 для проверки Polar checkout и webhooks",
+      "paymentTestBody": "Не меняет план организации. Один раз оплатите реальной картой, чтобы подтвердить production billing.",
+      "paymentTestCta": "Оплатить тест $1"
     },
     "security": {
       "authentication": "Аутентификация",

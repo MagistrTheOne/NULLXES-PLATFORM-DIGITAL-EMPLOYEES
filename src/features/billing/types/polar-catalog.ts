@@ -14,6 +14,8 @@ export type PolarCatalogProduct = {
   checkoutEnabled: boolean;
   /** True when Polar price is non-zero (self-serve checkout candidate). */
   hasLivePrice: boolean;
+  /** One-time payment verification plate ($1), does not upgrade plan. */
+  isVerification: boolean;
 };
 
 export type PolarSubscriptionSnapshot = {

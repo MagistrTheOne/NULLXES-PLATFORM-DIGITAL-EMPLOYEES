@@ -122,10 +122,40 @@ export async function syncOrganizationBillingFromPolarEvent(input: {
 }): Promise<void> {
   const catalog = await listPolarCatalog();
   const productPlanMap = buildPolarProductPlanMap(catalog);
+  const catalogProduct = input.productId
+    ? catalog.find((product) => product.productId === input.productId)
+    : undefined;
+
+  // Payment verification is a one-time smoke charge — never mutate billing_plan.
+  if (catalogProduct?.isVerification) {
+    if (input.customerId) {
+      await db
+        .update(organization)
+        .set({ polarCustomerId: input.customerId })
+        .where(eq(organization.id, input.externalId));
+    }
+    return;
+  }
 
   const billingPlan =
     input.fallbackPlan ??
     resolveBillingPlanFromPolarProduct(input.productId, productPlanMap);
+
+  // Unknown / unmapped products must not overwrite an existing plan.
+  if (
+    input.fallbackPlan == null &&
+    input.productId &&
+    !productPlanMap.has(input.productId) &&
+    billingPlan === "free"
+  ) {
+    if (input.customerId) {
+      await db
+        .update(organization)
+        .set({ polarCustomerId: input.customerId })
+        .where(eq(organization.id, input.externalId));
+    }
+    return;
+  }
 
   await db
     .update(organization)

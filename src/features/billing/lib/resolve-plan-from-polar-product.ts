@@ -39,7 +39,7 @@ export function resolveBillingPlanFromPolarProduct(
     return "scale";
   }
 
-  return "scale";
+  return "free";
 }
 
 export function isPaidBillingPlan(planId: BillingPlanId): boolean {

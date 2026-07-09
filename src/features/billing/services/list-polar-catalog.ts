@@ -16,6 +16,7 @@ import {
 } from "../lib/format-polar-price";
 import {
   BILLING_PLAN_IDS,
+  isPolarVerificationMetadata,
   readMetadataInterval,
   readMetadataPlan,
   readMetadataTier,
@@ -130,16 +131,23 @@ export const listPolarCatalog = cache(async (): Promise<PolarCatalogProduct[]> =
         }
 
         const metadata = product.metadata as Record<string, unknown>;
-        const planId = resolvePlanIdForProduct({
-          productId: product.id,
-          name: product.name,
-          metadata,
-        });
-        const tierId = resolveTierIdForProduct({
-          name: product.name,
-          metadata,
-          planId,
-        });
+        const isVerification =
+          isPolarVerificationMetadata(metadata) ||
+          product.name.toLowerCase().includes("payment verification");
+        const planId = isVerification
+          ? null
+          : resolvePlanIdForProduct({
+              productId: product.id,
+              name: product.name,
+              metadata,
+            });
+        const tierId = isVerification
+          ? null
+          : resolveTierIdForProduct({
+              name: product.name,
+              metadata,
+              planId,
+            });
         const recurringInterval = resolveRecurringInterval({
           metadata,
           productInterval: product.recurringInterval,
@@ -156,7 +164,9 @@ export const listPolarCatalog = cache(async (): Promise<PolarCatalogProduct[]> =
         const priceLabel =
           hasLivePrice && polarPriceLabel
             ? polarPriceLabel
-            : tierFallback.priceLabel;
+            : isVerification
+              ? "$1"
+              : tierFallback.priceLabel;
         const priceNote = product.isRecurring
           ? formatPolarRecurringNote(
               product.recurringInterval,
@@ -164,7 +174,9 @@ export const listPolarCatalog = cache(async (): Promise<PolarCatalogProduct[]> =
             )
           : hasLivePrice
             ? "one-time"
-            : tierFallback.priceNote;
+            : isVerification
+              ? "one-time verification"
+              : tierFallback.priceNote;
 
         const planDefinition = planId ? BILLING_PLANS[planId] : null;
 
@@ -179,8 +191,10 @@ export const listPolarCatalog = cache(async (): Promise<PolarCatalogProduct[]> =
           isRecurring: product.isRecurring,
           recurringInterval,
           checkoutEnabled:
-            Boolean(planDefinition?.checkoutEnabled && hasLivePrice),
+            Boolean(planDefinition?.checkoutEnabled && hasLivePrice) ||
+            (isVerification && hasLivePrice),
           hasLivePrice,
+          isVerification,
         });
       }
     }
@@ -232,6 +246,28 @@ export function resolvePolarProductIdForPlan(
   interval: BillingInterval = "month",
 ): string | undefined {
   return getPolarCatalogProductForPlan(catalog, planId, interval)?.productId;
+}
+
+export function resolvePolarVerificationProduct(
+  catalog: PolarCatalogProduct[],
+): PolarCatalogProduct | undefined {
+  return catalog.find(
+    (product) => product.isVerification && product.hasLivePrice,
+  );
+}
+
+export function countSelfServeCheckoutProducts(
+  catalog: PolarCatalogProduct[],
+): number {
+  return catalog.filter(
+    (product) =>
+      product.checkoutEnabled &&
+      !product.isVerification &&
+      (product.planId === "studio" ||
+        product.planId === "operator" ||
+        product.planId === "scale") &&
+      product.hasLivePrice,
+  ).length;
 }
 
 export function buildPolarProductPlanMap(
