@@ -115,7 +115,7 @@ export function ConversationsScreen({
     <TooltipProvider delayDuration={300}>
       {/* Fill the dashboard viewport on 27"+ so the page itself does not scroll;
           the inbox / message list / inspector scroll inside their panes. */}
-      <div className="conversations-screen flex h-[calc(100svh-6.5rem)] min-h-[520px] max-h-[1200px] flex-col gap-5 sm:gap-6">
+      <div className="conversations-screen flex h-[calc(100svh-6.5rem)] min-h-[520px] flex-col gap-5 sm:gap-6 min-[1800px]:h-[calc(100svh-5.5rem)]">
         <div className="flex shrink-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0 shrink-0">
             <h1 className="text-2xl font-medium tracking-tight text-white">
@@ -136,7 +136,7 @@ export function ConversationsScreen({
           />
         </div>
 
-        <div className="conversations-workspace grid min-h-0 flex-1 overflow-hidden rounded-2xl lg:grid-cols-[280px_minmax(0,1fr)] xl:grid-cols-[300px_minmax(0,1fr)_320px] 2xl:grid-cols-[320px_minmax(0,1fr)_340px]">
+        <div className="conversations-workspace grid min-h-0 flex-1 overflow-hidden rounded-2xl lg:grid-cols-[280px_minmax(0,1fr)] xl:grid-cols-[300px_minmax(0,1fr)_320px] 2xl:grid-cols-[320px_minmax(0,1fr)_340px] min-[1800px]:grid-cols-[340px_minmax(0,1fr)_360px]">
           <ConversationsInbox
             className="hidden lg:flex"
             employees={filteredForList}
