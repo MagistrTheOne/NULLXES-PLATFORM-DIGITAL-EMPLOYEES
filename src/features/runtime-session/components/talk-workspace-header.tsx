@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Activity, ArrowLeft, Info, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useTalkAnam } from "../context/talk-anam-context";
@@ -16,6 +16,39 @@ function formatElapsed(seconds: number): string {
     return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
   }
   return `${String(minutes).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+}
+
+function useIsSecureConnection(): boolean {
+  const [secure, setSecure] = useState(false);
+
+  useEffect(() => {
+    setSecure(window.location.protocol === "https:");
+  }, []);
+
+  return secure;
+}
+
+function StatusAsterisk({
+  active,
+  label,
+}: {
+  active: boolean;
+  label: string;
+}) {
+  return (
+    <span className="inline-flex items-center gap-1.5" title={label}>
+      <span
+        aria-hidden
+        className={cn(
+          "text-sm font-semibold leading-none",
+          active ? "text-emerald-400" : "text-red-400",
+        )}
+      >
+        *
+      </span>
+      <span className="text-[11px] text-white/55">{label}</span>
+    </span>
+  );
 }
 
 export function TalkWorkspaceHeader({
@@ -36,6 +69,7 @@ export function TalkWorkspaceHeader({
   const t = useTranslations("employees.talk");
   const tCommon = useTranslations("common.actions");
   const { isLive } = useTalkAnam();
+  const isSecure = useIsSecureConnection();
   const [elapsed, setElapsed] = useState(0);
 
   useEffect(() => {
@@ -74,25 +108,20 @@ export function TalkWorkspaceHeader({
             {t("title", { name: employeeName })}
           </h1>
           <p className="mt-0.5 text-[11px] text-white/45 lg:text-xs">
-            {t("workspaceSubtitle")}
+            {isLive ? t("workspaceSubtitleLive") : t("workspaceSubtitle")}
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <div className="hidden items-center gap-3 text-[11px] text-white/45 sm:flex">
-            <span className="flex items-center gap-1.5">
-              <Activity
-                className={cn(
-                  "size-3.5 stroke-[1.5]",
-                  isLive ? "text-emerald-400" : "text-white/35",
-                )}
-              />
-              {isLive ? t("statusOnline") : t("idle")}
-            </span>
-            <span className="flex items-center gap-1.5">
-              <ShieldCheck className="size-3.5 stroke-[1.5]" />
-              {t("statusSecure")}
-            </span>
+            <StatusAsterisk
+              active={isLive}
+              label={isLive ? t("statusOnline") : t("idle")}
+            />
+            <StatusAsterisk
+              active={isSecure}
+              label={isSecure ? t("statusSecure") : t("statusInsecure")}
+            />
             <span className="tabular-nums text-white/55">
               {formatElapsed(elapsed)}
             </span>
@@ -125,17 +154,15 @@ export function TalkWorkspaceHeader({
       </div>
 
       <div className="flex items-center gap-3 border-t border-white/6 px-4 py-2 text-[10px] text-white/40 sm:hidden">
-        <span className="flex items-center gap-1">
-          <span
-            className={cn(
-              "size-1.5 rounded-full",
-              isLive ? "bg-emerald-400" : "bg-white/30",
-            )}
-          />
-          {isLive ? t("statusOnline") : t("idle")}
-        </span>
+        <StatusAsterisk
+          active={isLive}
+          label={isLive ? t("statusOnline") : t("idle")}
+        />
         <span>·</span>
-        <span>{t("statusSecure")}</span>
+        <StatusAsterisk
+          active={isSecure}
+          label={isSecure ? t("statusSecure") : t("statusInsecure")}
+        />
         <span>·</span>
         <span className="tabular-nums">{formatElapsed(elapsed)}</span>
       </div>

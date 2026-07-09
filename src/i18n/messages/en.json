@@ -581,6 +581,9 @@
       "subtitle": "Live session · chat · optional camera",
       "leave": "Leave",
       "idle": "Ready",
+      "statusInsecure": "Insecure",
+      "workspaceSubtitle": "Standing by · connection check",
+      "workspaceSubtitleLive": "Live session · Secure connection",
       "startSession": "Start session",
       "stopSession": "Stop session",
       "starting": "Starting…",
@@ -593,7 +596,6 @@
       "details": "Details",
       "conversation": "Conversation",
       "endSession": "End session",
-      "workspaceSubtitle": "Live session · Secure connection",
       "inspectorTabs": {
         "details": "Details",
         "activity": "Activity",

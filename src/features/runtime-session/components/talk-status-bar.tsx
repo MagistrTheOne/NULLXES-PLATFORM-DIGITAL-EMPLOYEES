@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTalkAnam } from "../context/talk-anam-context";
 
@@ -16,13 +15,24 @@ function formatElapsed(seconds: number): string {
   return `${String(minutes).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
 }
 
+function useIsSecureConnection(): boolean {
+  const [secure, setSecure] = useState(false);
+
+  useEffect(() => {
+    setSecure(window.location.protocol === "https:");
+  }, []);
+
+  return secure;
+}
+
 /**
- * The signature thin status line of the Talk canvas, sitting between the video
- * stage and the conversation: pipeline state · model · secure · elapsed.
+ * Thin status line of the Talk canvas: pipeline · model · secure · elapsed.
+ * Live/secure use real signals (Anam session + HTTPS), not mock badges.
  */
 export function TalkStatusBar({ modelLabel }: { modelLabel: string | null }) {
   const t = useTranslations("employees.talk");
   const { isLive, pipelineState } = useTalkAnam();
+  const isSecure = useIsSecureConnection();
   const [elapsed, setElapsed] = useState(0);
 
   useEffect(() => {
@@ -40,21 +50,19 @@ export function TalkStatusBar({ modelLabel }: { modelLabel: string | null }) {
   const stateLabel = isLive
     ? t(`stage.pipeline.${pipelineState}`)
     : t("idle");
-  const speaking = isLive && pipelineState === "speaking";
 
   return (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-white/45">
       <span className="flex items-center gap-1.5 text-white/70">
         <span
+          aria-hidden
           className={cn(
-            "size-1.5 rounded-full",
-            speaking
-              ? "bg-emerald-400"
-              : isLive
-                ? "bg-emerald-400/60"
-                : "bg-white/30",
+            "text-sm font-semibold leading-none",
+            isLive ? "text-emerald-400" : "text-red-400",
           )}
-        />
+        >
+          *
+        </span>
         {stateLabel}
       </span>
       {modelLabel ? (
@@ -64,9 +72,17 @@ export function TalkStatusBar({ modelLabel }: { modelLabel: string | null }) {
         </>
       ) : null}
       <span className="text-white/20">·</span>
-      <span className="flex items-center gap-1.5">
-        <ShieldCheck className="size-3 stroke-[1.5]" aria-hidden />
-        {t("statusSecure")}
+      <span className="inline-flex items-center gap-1.5">
+        <span
+          aria-hidden
+          className={cn(
+            "text-sm font-semibold leading-none",
+            isSecure ? "text-emerald-400" : "text-red-400",
+          )}
+        >
+          *
+        </span>
+        {isSecure ? t("statusSecure") : t("statusInsecure")}
       </span>
       {isLive ? (
         <>

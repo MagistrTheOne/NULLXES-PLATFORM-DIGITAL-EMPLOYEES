@@ -581,6 +581,9 @@
       "subtitle": "Живая сессия · чат · камера по желанию",
       "leave": "Завершить",
       "idle": "Готово",
+      "statusInsecure": "Не защищено",
+      "workspaceSubtitle": "Ожидание · проверка соединения",
+      "workspaceSubtitleLive": "Живая сессия · Защищённое соединение",
       "startSession": "Начать сессию",
       "stopSession": "Остановить сессию",
       "starting": "Запуск…",
@@ -593,7 +596,6 @@
       "details": "Детали",
       "conversation": "Разговор",
       "endSession": "Завершить сессию",
-      "workspaceSubtitle": "Живая сессия · Защищённое соединение",
       "inspectorTabs": {
         "details": "Детали",
         "activity": "Активность",
