@@ -106,9 +106,22 @@
 
 .employee-anam-video {
   height: 100%;
-  object-fit: cover;
-  object-position: center top;
+  object-fit: contain;
+  object-position: center center;
   width: 100%;
+  background: #000;
+}
+
+@media (min-width: 1024px) {
+  .talk-workspace-shell {
+    min-height: min(84dvh, 960px);
+  }
+}
+
+@media (min-width: 1800px) {
+  .talk-workspace-shell {
+    min-height: min(88dvh, 1040px);
+  }
 }
 
 .employee-talk-mobile-tabs {

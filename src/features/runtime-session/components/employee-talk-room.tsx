@@ -368,7 +368,7 @@ export function EmployeeTalkRoom({
   };
 
   return (
-    <div className="talk-workspace-shell employee-talk-workspace employee-talk-shell mx-auto flex w-full flex-1 flex-col overflow-hidden rounded-none border-0 bg-[#0a0a0a] min-h-[min(100dvh-7rem,820px)] sm:min-h-[min(88dvh,820px)] sm:rounded-2xl sm:border sm:border-white/10 lg:min-h-[min(78dvh,860px)] min-[1800px]:min-h-[min(82dvh,920px)]">
+    <div className="talk-workspace-shell employee-talk-workspace employee-talk-shell mx-auto flex w-full flex-1 flex-col overflow-hidden rounded-none border-0 bg-[#0a0a0a] min-h-[min(100dvh-7rem,900px)] sm:min-h-[min(90dvh,900px)] sm:rounded-2xl sm:border sm:border-white/10 lg:min-h-[min(84dvh,960px)] min-[1800px]:min-h-[min(88dvh,1040px)]">
       <TalkWorkspaceHeader
         employeeName={employeeName}
         sessionLimitSeconds={sessionLimitSeconds}
@@ -393,9 +393,16 @@ export function EmployeeTalkRoom({
           - Immersive stage is the hero.
           - Floating call controls overlaid on the stage.
           - Details rail is opt-in (collapsed by default).
-          - Chat opens on demand via Sheet. */}
+          - When Details is closed, keep the previous stage width so the
+            portrait frame does not become an ultra-wide crop. */}
       <div className="flex min-h-0 flex-1 overflow-hidden border-t border-white/8">
-        <div className="relative flex min-h-0 min-w-0 flex-1 flex-col bg-black">
+        <div
+          className={cn(
+            "relative flex min-h-0 min-w-0 flex-1 flex-col bg-black",
+            !showDetailsRail &&
+              "lg:mx-auto lg:max-w-[calc(100%-300px)] xl:max-w-[calc(100%-340px)]",
+          )}
+        >
           <div className="talk-workspace-stage relative min-h-0 flex-1 overflow-hidden bg-black">
             <EmployeeAnamStage
               employeeId={employeeId}

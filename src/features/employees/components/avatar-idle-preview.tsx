@@ -85,6 +85,8 @@ type AvatarIdlePreviewProps = {
   className?: string;
   sizes?: string;
   priority?: boolean;
+  /** cover fills the frame (cards); contain letterboxes (Talk stage). */
+  fit?: "cover" | "contain";
 };
 
 export function AvatarIdlePreview({
@@ -93,6 +95,7 @@ export function AvatarIdlePreview({
   className,
   sizes = "320px",
   priority,
+  fit = "cover",
 }: AvatarIdlePreviewProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [useFallback, setUseFallback] = useState(false);
@@ -185,6 +188,25 @@ export function AvatarIdlePreview({
       gl.clearColor(0.04, 0.04, 0.04, 1);
       gl.clear(gl.COLOR_BUFFER_BIT);
 
+      let quad = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
+      if (
+        fit === "contain" &&
+        image.naturalWidth > 0 &&
+        image.naturalHeight > 0
+      ) {
+        const canvasAspect = canvas.width / Math.max(canvas.height, 1);
+        const imageAspect = image.naturalWidth / image.naturalHeight;
+        if (imageAspect > canvasAspect) {
+          const y = canvasAspect / imageAspect;
+          quad = new Float32Array([-1, -y, 1, -y, -1, y, 1, y]);
+        } else {
+          const x = imageAspect / canvasAspect;
+          quad = new Float32Array([-x, -1, x, -1, -x, 1, x, 1]);
+        }
+      }
+      gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+      gl.bufferData(gl.ARRAY_BUFFER, quad, gl.DYNAMIC_DRAW);
+
       gl.useProgram(program);
       gl.uniform1f(breathLoc, time * 0.0012);
 
@@ -238,7 +260,7 @@ export function AvatarIdlePreview({
       window.cancelAnimationFrame(frameId);
       observer.disconnect();
     };
-  }, [src, useFallback]);
+  }, [src, useFallback, fit]);
 
   if (useFallback) {
     return (
@@ -248,7 +270,10 @@ export function AvatarIdlePreview({
         fill
         unoptimized
         priority={priority}
-        className={cn("object-cover", className)}
+        className={cn(
+          fit === "contain" ? "object-contain" : "object-cover",
+          className,
+        )}
         sizes={sizes}
       />
     );

@@ -234,8 +234,9 @@ export function EmployeeAnamStage({
             <AvatarIdlePreview
               src={avatarPreviewUrl!}
               alt={employeeName}
-              sizes="(max-width: 960px) 100vw"
-              className="!object-contain! h-full w-full"
+              sizes="(max-width: 960px) 100vw, 1200px"
+              fit="contain"
+              className="h-full w-full"
             />
           </div>
         </div>
