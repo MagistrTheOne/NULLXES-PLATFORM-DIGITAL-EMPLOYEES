@@ -6,6 +6,11 @@ function hasCredentials(clientId?: string, clientSecret?: string): boolean {
   return Boolean(clientId?.trim() && clientSecret?.trim());
 }
 
+/**
+ * Social providers for Better Auth — gated on env credentials.
+ * @see https://www.better-auth.com/docs/authentication/google
+ * @see https://www.better-auth.com/docs/authentication/github
+ */
 export function getEnabledOAuthProviders(): OAuthProviderId[] {
   const providers: OAuthProviderId[] = [];
 
@@ -27,6 +32,7 @@ export function getEnabledOAuthProviders(): OAuthProviderId[] {
 export function buildOAuthSocialProviders(): BetterAuthOptions["socialProviders"] {
   const socialProviders: NonNullable<BetterAuthOptions["socialProviders"]> = {};
 
+  // https://www.better-auth.com/docs/authentication/google
   if (
     hasCredentials(process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET)
   ) {
@@ -37,6 +43,7 @@ export function buildOAuthSocialProviders(): BetterAuthOptions["socialProviders"
     };
   }
 
+  // https://www.better-auth.com/docs/authentication/github
   if (
     hasCredentials(process.env.GITHUB_CLIENT_ID, process.env.GITHUB_CLIENT_SECRET)
   ) {

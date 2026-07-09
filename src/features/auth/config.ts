@@ -16,7 +16,10 @@ import {
 import { resolveAuthEmailLocale } from "@/shared/email/resolve-auth-email-locale";
 import { db } from "@/shared/db/client";
 import { account, session, twoFactor as twoFactorTable, verification } from "./schema";
-import { buildOAuthSocialProviders } from "./lib/oauth-providers";
+import {
+  buildOAuthSocialProviders,
+  getEnabledOAuthProviders,
+} from "./lib/oauth-providers";
 import { isRequireEmailVerificationEnabled } from "./lib/require-email-verification";
 
 export function createAuthConfig(): BetterAuthOptions {
@@ -27,6 +30,7 @@ export function createAuthConfig(): BetterAuthOptions {
   );
   const socialProviders = buildOAuthSocialProviders();
   const requireEmailVerification = isRequireEmailVerificationEnabled();
+  const trustedOAuthProviders = getEnabledOAuthProviders();
 
   return {
     secret: getBetterAuthSecret(),
@@ -38,7 +42,15 @@ export function createAuthConfig(): BetterAuthOptions {
         ipAddressHeaders: ["x-forwarded-for", "x-real-ip"],
       },
     },
+    // https://www.better-auth.com/docs/authentication/google
     ...(socialProviders ? { socialProviders } : {}),
+    // https://www.better-auth.com/docs/concepts/users-accounts#account-linking
+    account: {
+      accountLinking: {
+        enabled: true,
+        trustedProviders: trustedOAuthProviders,
+      },
+    },
     database: drizzleAdapter(db, {
       provider: "pg",
       schema: {
