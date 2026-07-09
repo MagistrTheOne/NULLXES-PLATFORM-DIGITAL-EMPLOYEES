@@ -1,3 +1,11 @@
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
 export function SettingsCard({
@@ -14,24 +22,19 @@ export function SettingsCard({
   footer?: React.ReactNode;
 }) {
   return (
-    <section
-      className={cn(
-        "rounded-2xl border border-border bg-card text-card-foreground",
-        className,
-      )}
-    >
-      <div className="border-b border-border px-5 py-4">
-        <h2 className="text-sm font-medium text-foreground">{title}</h2>
+    <Card size="sm" className={cn("gap-0 py-0 ring-foreground/8", className)}>
+      <CardHeader className="border-b border-border/80 px-5 py-4">
+        <CardTitle className="text-sm font-medium">{title}</CardTitle>
         {description ? (
-          <p className="mt-1 text-xs text-muted-foreground">{description}</p>
+          <CardDescription className="text-xs">{description}</CardDescription>
         ) : null}
-      </div>
-      <div className="px-5 py-5">{children}</div>
+      </CardHeader>
+      <CardContent className="px-5 py-5">{children}</CardContent>
       {footer ? (
-        <div className="flex items-center justify-end gap-3 border-t border-border px-5 py-4">
+        <CardFooter className="justify-end gap-3 border-t border-border/80 px-5 py-4">
           {footer}
-        </div>
+        </CardFooter>
       ) : null}
-    </section>
+    </Card>
   );
 }

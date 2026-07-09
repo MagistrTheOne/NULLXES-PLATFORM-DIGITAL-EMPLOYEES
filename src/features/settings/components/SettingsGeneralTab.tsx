@@ -5,8 +5,14 @@ import { useState, useTransition } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { formatDateFormatPreview, getOrganizationDateFormat } from "@/shared/i18n/format-organization-date";
 import { Button } from "@/components/ui/button";
+import {
+  Field,
+  FieldContent,
+  FieldDescription,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -34,24 +40,9 @@ import type { OrganizationProfileDto, OrganizationSettingsDto } from "../types";
 import { SettingsCard } from "./settings-card";
 import { SettingsPersonalDataCard } from "./SettingsPersonalDataCard";
 
-function Field({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="space-y-2">
-      <Label className="text-muted-foreground">{label}</Label>
-      {children}
-    </div>
-  );
-}
-
 function StatusRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-center justify-between gap-4 rounded-xl border border-border bg-background/40 px-4 py-3 text-sm">
+    <div className="flex items-center justify-between gap-4 border-b border-border/60 py-3 text-sm last:border-b-0">
       <span className="text-muted-foreground">{label}</span>
       <span className="text-foreground">{value}</span>
     </div>
@@ -114,15 +105,14 @@ export function SettingsGeneralTab({
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
       {message ? (
         <p className="rounded-xl border border-border bg-background/40 px-4 py-3 text-sm text-muted-foreground">
           {message}
         </p>
       ) : null}
 
-      <div className="grid gap-6 xl:grid-cols-2">
-        {show("profile") ? (
+      {show("profile") ? (
         <SettingsCard
           title={t("organizationProfile")}
           description={t("organizationProfileDesc")}
@@ -138,9 +128,11 @@ export function SettingsGeneralTab({
             </Button>
           }
         >
-          <div className="grid gap-4">
-            <Field label={t("organizationName")}>
+          <FieldGroup>
+            <Field>
+              <FieldLabel htmlFor="org-name">{t("organizationName")}</FieldLabel>
               <Input
+                id="org-name"
                 value={profile.name}
                 disabled={!canManageOrganization}
                 onChange={(event) =>
@@ -148,7 +140,8 @@ export function SettingsGeneralTab({
                 }
               />
             </Field>
-            <Field label={t("industry")}>
+            <Field>
+              <FieldLabel>{t("industry")}</FieldLabel>
               <Select
                 value={profile.industry}
                 disabled={!canManageOrganization}
@@ -168,8 +161,10 @@ export function SettingsGeneralTab({
                 </SelectContent>
               </Select>
             </Field>
-            <Field label={t("website")}>
+            <Field>
+              <FieldLabel htmlFor="org-website">{t("website")}</FieldLabel>
               <Input
+                id="org-website"
                 value={profile.website}
                 disabled={!canManageOrganization}
                 placeholder="https://nullxes.com"
@@ -178,7 +173,8 @@ export function SettingsGeneralTab({
                 }
               />
             </Field>
-            <Field label={t("timezone")}>
+            <Field>
+              <FieldLabel>{t("timezone")}</FieldLabel>
               <Select
                 value={profile.timezone}
                 disabled={!canManageOrganization}
@@ -198,11 +194,11 @@ export function SettingsGeneralTab({
                 </SelectContent>
               </Select>
             </Field>
-          </div>
+          </FieldGroup>
         </SettingsCard>
-        ) : null}
+      ) : null}
 
-        {show("preferences") ? (
+      {show("preferences") ? (
         <SettingsCard
           title={t("preferences")}
           description={t("preferencesDesc")}
@@ -218,11 +214,13 @@ export function SettingsGeneralTab({
             </Button>
           }
         >
-          <div className="grid gap-4">
-            <Field label={t("theme")}>
-              <p className="text-sm text-muted-foreground">{t("themeDarkOnly")}</p>
+          <FieldGroup>
+            <Field>
+              <FieldLabel>{t("theme")}</FieldLabel>
+              <FieldDescription>{t("themeDarkOnly")}</FieldDescription>
             </Field>
-            <Field label={t("language")}>
+            <Field>
+              <FieldLabel>{t("language")}</FieldLabel>
               <Select
                 value={preferences.language}
                 disabled={!canManageOrganization}
@@ -242,7 +240,8 @@ export function SettingsGeneralTab({
                 </SelectContent>
               </Select>
             </Field>
-            <Field label={t("dateFormat")}>
+            <Field>
+              <FieldLabel>{t("dateFormat")}</FieldLabel>
               <Select
                 value={preferences.dateFormat}
                 disabled={!canManageOrganization}
@@ -261,16 +260,17 @@ export function SettingsGeneralTab({
                   ))}
                 </SelectContent>
               </Select>
-              <p className="text-xs text-muted-foreground">
+              <FieldDescription>
                 {t("dateFormatPreview", {
                   example: formatDateFormatPreview(
                     getOrganizationDateFormat(preferences.dateFormat),
                     locale,
                   ),
                 })}
-              </p>
+              </FieldDescription>
             </Field>
-            <Field label={t("timeFormat")}>
+            <Field>
+              <FieldLabel>{t("timeFormat")}</FieldLabel>
               <Select
                 value={preferences.timeFormat}
                 disabled={!canManageOrganization}
@@ -290,7 +290,8 @@ export function SettingsGeneralTab({
                 </SelectContent>
               </Select>
             </Field>
-            <Field label={t("defaultTimeRange")}>
+            <Field>
+              <FieldLabel>{t("defaultTimeRange")}</FieldLabel>
               <Select
                 value={String(preferences.defaultTimeRangeDays)}
                 disabled={!canManageOrganization}
@@ -313,11 +314,11 @@ export function SettingsGeneralTab({
                 </SelectContent>
               </Select>
             </Field>
-            <div className="flex items-center justify-between gap-4 rounded-xl border border-border bg-background/40 px-4 py-3">
-              <div>
-                <p className="text-sm text-foreground">{t("compactMode")}</p>
-                <p className="text-xs text-muted-foreground">{t("compactModeDesc")}</p>
-              </div>
+            <Field orientation="horizontal" className="items-center justify-between rounded-xl border border-border/80 bg-background/30 px-4 py-3">
+              <FieldContent>
+                <FieldLabel className="text-foreground">{t("compactMode")}</FieldLabel>
+                <FieldDescription>{t("compactModeDesc")}</FieldDescription>
+              </FieldContent>
               <Switch
                 checked={preferences.compactMode}
                 disabled={!canManageOrganization}
@@ -325,12 +326,12 @@ export function SettingsGeneralTab({
                   setPreferences((current) => ({ ...current, compactMode: checked }))
                 }
               />
-            </div>
-          </div>
+            </Field>
+          </FieldGroup>
         </SettingsCard>
-        ) : null}
+      ) : null}
 
-        {show("defaults") ? (
+      {show("defaults") ? (
         <SettingsCard
           title={t("defaultEmployee")}
           description={t("defaultEmployeeDesc")}
@@ -346,8 +347,9 @@ export function SettingsGeneralTab({
             </Button>
           }
         >
-          <div className="grid gap-4">
-            <Field label={t("knowledgeProcessing")}>
+          <FieldGroup>
+            <Field>
+              <FieldLabel>{t("knowledgeProcessing")}</FieldLabel>
               <Select
                 value={defaults.knowledgeProcessing}
                 disabled={!canManageOrganization}
@@ -370,7 +372,8 @@ export function SettingsGeneralTab({
                 </SelectContent>
               </Select>
             </Field>
-            <Field label={t("sessionRetention")}>
+            <Field>
+              <FieldLabel>{t("sessionRetention")}</FieldLabel>
               <Select
                 value={String(defaults.sessionRetentionDays)}
                 disabled={!canManageOrganization}
@@ -393,11 +396,11 @@ export function SettingsGeneralTab({
                 </SelectContent>
               </Select>
             </Field>
-          </div>
+          </FieldGroup>
         </SettingsCard>
-        ) : null}
+      ) : null}
 
-        {show("privacy") ? (
+      {show("privacy") ? (
         <SettingsCard
           title={t("dataPrivacy")}
           description={t("dataPrivacyDesc")}
@@ -413,8 +416,9 @@ export function SettingsGeneralTab({
             </Button>
           }
         >
-          <div className="grid gap-4">
-            <Field label={t("retentionPolicy")}>
+          <FieldGroup>
+            <Field>
+              <FieldLabel>{t("retentionPolicy")}</FieldLabel>
               <Select
                 value={String(privacy.retentionPolicyDays)}
                 disabled={!canManageOrganization}
@@ -434,10 +438,10 @@ export function SettingsGeneralTab({
                 </SelectContent>
               </Select>
             </Field>
-            <div className="grid gap-2 text-sm">
+            <div className="grid gap-1">
               <Link
                 href="/settings?tab=advanced"
-                className="flex items-center justify-between gap-4 rounded-xl border border-border bg-background/40 px-4 py-3 transition-colors hover:bg-background/60"
+                className="flex items-center justify-between gap-4 rounded-lg px-1 py-2.5 text-sm transition-colors hover:bg-background/40"
               >
                 <span className="text-muted-foreground">{t("dataExport")}</span>
                 <span className="text-foreground underline underline-offset-4">
@@ -446,7 +450,7 @@ export function SettingsGeneralTab({
               </Link>
               <Link
                 href="/settings?tab=general"
-                className="flex items-center justify-between gap-4 rounded-xl border border-border bg-background/40 px-4 py-3 transition-colors hover:bg-background/60"
+                className="flex items-center justify-between gap-4 rounded-lg px-1 py-2.5 text-sm transition-colors hover:bg-background/40"
               >
                 <span className="text-muted-foreground">{t("personalData")}</span>
                 <span className="text-foreground underline underline-offset-4">
@@ -454,27 +458,28 @@ export function SettingsGeneralTab({
                 </span>
               </Link>
             </div>
-            <StatusRow
-              label={t("deleteSessions")}
-              value={t("deleteSessionsValue")}
-            />
-            <StatusRow
-              label={t("lastRetentionRun")}
-              value={
-                settings.lastRetentionRunAt
-                  ? new Intl.DateTimeFormat(undefined, {
-                      dateStyle: "medium",
-                      timeStyle: "short",
-                    }).format(new Date(settings.lastRetentionRunAt))
-                  : t("lastRetentionNever")
-              }
-            />
-          </div>
+            <div>
+              <StatusRow
+                label={t("deleteSessions")}
+                value={t("deleteSessionsValue")}
+              />
+              <StatusRow
+                label={t("lastRetentionRun")}
+                value={
+                  settings.lastRetentionRunAt
+                    ? new Intl.DateTimeFormat(undefined, {
+                        dateStyle: "medium",
+                        timeStyle: "short",
+                      }).format(new Date(settings.lastRetentionRunAt))
+                    : t("lastRetentionNever")
+                }
+              />
+            </div>
+          </FieldGroup>
         </SettingsCard>
-        ) : null}
+      ) : null}
 
-        <SettingsPersonalDataCard />
-      </div>
+      <SettingsPersonalDataCard />
     </div>
   );
 }

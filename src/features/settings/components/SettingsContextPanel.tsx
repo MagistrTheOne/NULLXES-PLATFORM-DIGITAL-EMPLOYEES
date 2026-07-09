@@ -35,15 +35,6 @@ function SummaryRow({
   );
 }
 
-function InlineMetric({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-lg border border-border/70 bg-background/30 px-2.5 py-2">
-      <p className="text-[11px] text-muted-foreground">{label}</p>
-      <p className="mt-0.5 text-sm font-medium tabular-nums text-foreground">{value}</p>
-    </div>
-  );
-}
-
 function formatTrend(value: number | null): string | null {
   if (value === null) {
     return null;
@@ -87,17 +78,17 @@ export function SettingsContextPanel({
 
   return (
     <SettingsCard title={t("orgSummary")} className="xl:sticky xl:top-6">
-      <div className="space-y-4">
-        <div className="grid grid-cols-3 gap-2">
-          <InlineMetric label={t("members")} value={String(context.memberCount)} />
-          <InlineMetric
+      <div className="space-y-5">
+        <div className="space-y-2.5">
+          <SummaryRow label={t("members")} value={String(context.memberCount)} />
+          <SummaryRow
             label={t("digitalEmployees")}
             value={String(context.employeeCount)}
           />
-          <InlineMetric label={t("activeNow")} value={String(context.activeNow)} />
+          <SummaryRow label={t("activeNow")} value={String(context.activeNow)} />
         </div>
 
-        <div className="space-y-2.5 border-t border-border pt-3">
+        <div className="space-y-2.5 border-t border-border/70 pt-4">
           <SummaryRow
             label={t("plan")}
             value={
@@ -117,14 +108,14 @@ export function SettingsContextPanel({
               }
             />
             {chunkLimit ? (
-            <div className="h-1 overflow-hidden rounded-full bg-white/8">
-              <div
-                className="h-full rounded-full bg-white/55"
-                style={{
-                  width: `${Math.max(chunkPercent ?? 0, context.totalChunks > 0 ? 4 : 0)}%`,
-                }}
-              />
-            </div>
+              <div className="h-1 overflow-hidden rounded-full bg-white/8">
+                <div
+                  className="h-full rounded-full bg-white/55"
+                  style={{
+                    width: `${Math.max(chunkPercent ?? 0, context.totalChunks > 0 ? 4 : 0)}%`,
+                  }}
+                />
+              </div>
             ) : null}
           </div>
           <SummaryRow
@@ -137,7 +128,7 @@ export function SettingsContextPanel({
         </div>
 
         <Collapsible open={usageOpen} onOpenChange={setUsageOpen}>
-          <CollapsibleTrigger className="flex w-full items-center justify-between gap-2 rounded-lg border border-border/70 bg-background/30 px-3 py-2.5 text-left transition-colors hover:bg-background/50">
+          <CollapsibleTrigger className="flex w-full items-center justify-between gap-2 py-1 text-left transition-colors hover:text-foreground">
             <div className="min-w-0">
               <p className="text-xs font-medium text-foreground">{t("usageOverview")}</p>
               <p className="truncate text-[11px] text-muted-foreground">{usageSummary}</p>
@@ -149,21 +140,21 @@ export function SettingsContextPanel({
               )}
             />
           </CollapsibleTrigger>
-          <CollapsibleContent className="pt-2">
-            <div className="grid grid-cols-2 gap-2">
-              <InlineMetric
+          <CollapsibleContent className="pt-3">
+            <div className="space-y-2">
+              <SummaryRow
                 label={t("sessions")}
                 value={String(context.usage.totalSessions)}
               />
-              <InlineMetric
+              <SummaryRow
                 label={t("talkTime")}
                 value={formatDurationSeconds(context.usage.totalConversationSeconds)}
               />
-              <InlineMetric
+              <SummaryRow
                 label={t("messages")}
                 value={formatNumber(context.usage.totalMessages, locale)}
               />
-              <InlineMetric
+              <SummaryRow
                 label={t("knowledgeSources")}
                 value={String(context.usage.totalKnowledgeSources)}
               />
@@ -179,7 +170,7 @@ export function SettingsContextPanel({
         </Collapsible>
 
         <Collapsible open={teamOpen} onOpenChange={setTeamOpen}>
-          <CollapsibleTrigger className="flex w-full items-center justify-between gap-2 rounded-lg border border-border/70 bg-background/30 px-3 py-2.5 text-left transition-colors hover:bg-background/50">
+          <CollapsibleTrigger className="flex w-full items-center justify-between gap-2 py-1 text-left transition-colors hover:text-foreground">
             <div className="min-w-0">
               <p className="text-xs font-medium text-foreground">{t("teamMembers")}</p>
               <p className="truncate text-[11px] text-muted-foreground">{teamSummary}</p>
@@ -191,25 +182,23 @@ export function SettingsContextPanel({
               )}
             />
           </CollapsibleTrigger>
-          <CollapsibleContent className="pt-2">
-            <ul className="space-y-1.5">
+          <CollapsibleContent className="pt-3">
+            <ul className="space-y-2">
               {context.teamMembers.length === 0 ? (
                 <li className="text-xs text-muted-foreground">{t("noTeamMembers")}</li>
               ) : (
                 context.teamMembers.map((member) => (
                   <li
                     key={member.id}
-                    className="flex items-center justify-between gap-2 rounded-lg border border-border/70 bg-background/30 px-2.5 py-2"
+                    className="flex items-center justify-between gap-2 text-xs"
                   >
                     <div className="min-w-0">
-                      <p className="truncate text-xs font-medium text-foreground">
+                      <p className="truncate font-medium text-foreground">
                         {member.name}
                       </p>
-                      <p className="truncate text-[11px] text-muted-foreground">
-                        {member.email}
-                      </p>
+                      <p className="truncate text-muted-foreground">{member.email}</p>
                     </div>
-                    <span className="shrink-0 text-[11px] capitalize text-muted-foreground">
+                    <span className="shrink-0 capitalize text-muted-foreground">
                       {member.role}
                     </span>
                   </li>

@@ -4,7 +4,17 @@ import { formatOrganizationDate } from "@/shared/i18n/format-organization-date";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { useLocale, useTranslations } from "next-intl";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import {
+  Item,
+  ItemActions,
+  ItemContent,
+  ItemDescription,
+  ItemGroup,
+  ItemMedia,
+  ItemTitle,
+} from "@/components/ui/item";
 import {
   Select,
   SelectContent,
@@ -25,6 +35,13 @@ const ASSIGNABLE_ROLES: MembershipRole[] = ["admin", "operator", "viewer"];
 
 function roleOptions(actorRole: MembershipRole): MembershipRole[] {
   return actorRole === "owner" ? ["owner", ...ASSIGNABLE_ROLES] : ASSIGNABLE_ROLES;
+}
+
+function initials(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "?";
+  if (parts.length === 1) return parts[0]!.slice(0, 2).toUpperCase();
+  return `${parts[0]![0] ?? ""}${parts[1]![0] ?? ""}`.toUpperCase();
 }
 
 export function SettingsTeamTab({
@@ -91,7 +108,14 @@ export function SettingsTeamTab({
   }
 
   return (
-    <div className="grid gap-6">
+    <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
+      <div className="space-y-1">
+        <h2 className="text-lg font-medium tracking-tight text-foreground">
+          {t("heading")}
+        </h2>
+        <p className="text-sm text-muted-foreground">{t("headingDesc")}</p>
+      </div>
+
       {canManageMembers ? (
         <SettingsCard title={t("inviteMember")} description={t("inviteDescription")}>
           <SettingsTeamInviteForm
@@ -106,17 +130,19 @@ export function SettingsTeamTab({
           title={t("pendingInvites")}
           description={t("pendingInvitesDesc")}
         >
-          <ul className="space-y-3">
+          <ItemGroup className="gap-2">
             {pendingInvites.map((invite) => (
-              <li
-                key={invite.id}
-                className="flex flex-col gap-3 rounded-xl border border-border bg-background/40 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
-              >
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-medium text-foreground">
-                    {invite.email}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
+              <Item key={invite.id} variant="outline" size="sm">
+                <ItemMedia>
+                  <Avatar size="sm">
+                    <AvatarFallback className="text-[10px]">
+                      {invite.email.slice(0, 2).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                </ItemMedia>
+                <ItemContent>
+                  <ItemTitle>{invite.email}</ItemTitle>
+                  <ItemDescription>
                     <span className="capitalize">{invite.role}</span>
                     {" · "}
                     {t("invitedBy", { name: invite.invitedByName })}
@@ -127,9 +153,9 @@ export function SettingsTeamTab({
                         locale,
                       }),
                     })}
-                  </p>
-                </div>
-                <div className="flex shrink-0 gap-2">
+                  </ItemDescription>
+                </ItemContent>
+                <ItemActions>
                   <Button
                     type="button"
                     variant="outline"
@@ -148,10 +174,10 @@ export function SettingsTeamTab({
                   >
                     {t("revoke")}
                   </Button>
-                </div>
-              </li>
+                </ItemActions>
+              </Item>
             ))}
-          </ul>
+          </ItemGroup>
         </SettingsCard>
       ) : null}
 
@@ -164,28 +190,32 @@ export function SettingsTeamTab({
           </p>
         }
       >
-        <ul className="space-y-3">
+        <ItemGroup className="gap-2">
           {members.map((member) => {
             const isSelf = member.userId === currentUserId;
             const canEditMember = canManageMembers && !isSelf;
 
             return (
-              <li
-                key={member.id}
-                className="flex flex-col gap-3 rounded-xl border border-border bg-background/40 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
-              >
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-medium text-foreground">
+              <Item key={member.id} variant="outline" size="sm">
+                <ItemMedia>
+                  <Avatar size="sm">
+                    <AvatarFallback className="text-[10px]">
+                      {initials(member.name)}
+                    </AvatarFallback>
+                  </Avatar>
+                </ItemMedia>
+                <ItemContent>
+                  <ItemTitle>
                     {member.name}
                     {isSelf ? (
-                      <span className="ml-2 text-xs font-normal text-muted-foreground">
+                      <span className="text-xs font-normal text-muted-foreground">
                         {t("you")}
                       </span>
                     ) : null}
-                  </p>
-                  <p className="truncate text-xs text-muted-foreground">{member.email}</p>
-                </div>
-                <div className="flex shrink-0 items-center gap-3">
+                  </ItemTitle>
+                  <ItemDescription>{member.email}</ItemDescription>
+                </ItemContent>
+                <ItemActions className="flex-wrap">
                   {canEditMember ? (
                     <Select
                       value={member.role}
@@ -206,16 +236,18 @@ export function SettingsTeamTab({
                       </SelectContent>
                     </Select>
                   ) : (
-                    <p className="text-xs capitalize text-foreground">{member.role}</p>
+                    <span className="text-xs capitalize text-muted-foreground">
+                      {member.role}
+                    </span>
                   )}
-                  <p className="hidden text-xs text-muted-foreground sm:block">
+                  <span className="hidden text-xs text-muted-foreground sm:inline">
                     {t("joined", {
                       date: formatOrganizationDate(member.createdAt, {
                         dateFormat,
                         locale,
                       }),
                     })}
-                  </p>
+                  </span>
                   {canEditMember ? (
                     <Button
                       type="button"
@@ -227,11 +259,11 @@ export function SettingsTeamTab({
                       {t("remove")}
                     </Button>
                   ) : null}
-                </div>
-              </li>
+                </ItemActions>
+              </Item>
             );
           })}
-        </ul>
+        </ItemGroup>
       </SettingsCard>
 
       {message ? <p className="text-sm text-muted-foreground">{message}</p> : null}

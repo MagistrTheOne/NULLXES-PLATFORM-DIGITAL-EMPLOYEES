@@ -3,7 +3,20 @@
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { BILLING_PLANS } from "@/features/billing/config/plans";
+import { resolveBillingPlanId } from "@/features/billing/lib/resolve-billing-plan";
+import { cn } from "@/lib/utils";
+import {
+  isMoreTab,
+  resolveNavGroupForTab,
+  resolveSettingsTab,
+  SETTINGS_MORE_TABS,
+  SETTINGS_PRIMARY_GROUPS,
+  type SettingsNavGroupId,
+  type SettingsTabId,
+} from "../lib/settings-nav";
 import type { SettingsPageData } from "../types";
 import { SettingsAdvancedTab } from "./SettingsAdvancedTab";
 import { SettingsAiTab } from "./SettingsAiTab";
@@ -12,35 +25,9 @@ import { SettingsContextPanel } from "./SettingsContextPanel";
 import { SettingsGeneralTab } from "./SettingsGeneralTab";
 import { SettingsIntegrationsTab } from "./SettingsIntegrationsTab";
 import { SettingsNotificationsTab } from "./SettingsNotificationsTab";
-import { SettingsOrganizationTab } from "./SettingsOrganizationTab";
 import { SettingsAuditTab } from "./SettingsAuditTab";
 import { SettingsSecurityTab } from "./SettingsSecurityTab";
 import { SettingsTeamTab } from "./SettingsTeamTab";
-
-const TAB_IDS = [
-  "general",
-  "organization",
-  "team",
-  "billing",
-  "integrations",
-  "security",
-  "audit",
-  "ai",
-  "characters",
-  "skills",
-  "tools",
-  "notifications",
-  "advanced",
-] as const;
-
-type SettingsTabId = (typeof TAB_IDS)[number];
-
-function resolveSettingsTab(tab: string | null): SettingsTabId {
-  if (tab && TAB_IDS.includes(tab as SettingsTabId)) {
-    return tab as SettingsTabId;
-  }
-  return "general";
-}
 
 export function SettingsScreen({
   data,
@@ -54,12 +41,14 @@ export function SettingsScreen({
   const searchParams = useSearchParams();
   const require2faAdmin = searchParams.get("require2fa") === "1";
   const [activeTab, setActiveTab] = useState<SettingsTabId>(() => {
-    const tab = searchParams.get("tab");
     if (require2faAdmin) {
       return "security";
     }
-    return resolveSettingsTab(tab);
+    return resolveSettingsTab(searchParams.get("tab"));
   });
+
+  const activeGroup = resolveNavGroupForTab(activeTab);
+  const plan = BILLING_PLANS[resolveBillingPlanId(data.organization.billingPlan)];
 
   useEffect(() => {
     if (require2faAdmin) {
@@ -75,39 +64,121 @@ export function SettingsScreen({
     setActiveTab(resolveSettingsTab(searchParams.get("tab")));
   }, [searchParams, require2faAdmin, activeTab, router]);
 
+  function navigateToTab(nextTab: SettingsTabId) {
+    setActiveTab(nextTab);
+    router.push(`/settings?tab=${nextTab}`);
+  }
+
+  function navigateToGroup(groupId: SettingsNavGroupId) {
+    const group = SETTINGS_PRIMARY_GROUPS.find((item) => item.id === groupId);
+    if (!group) return;
+
+    if (groupId === "more") {
+      navigateToTab(
+        isMoreTab(activeTab) ? activeTab : group.defaultTab,
+      );
+      return;
+    }
+
+    navigateToTab(group.defaultTab);
+  }
+
   return (
     <div className="flex w-full flex-col gap-6">
-      <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <div>
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div className="min-w-0">
           <h1 className="text-2xl font-medium tracking-tight text-foreground">
             {t("title")}
           </h1>
-          <p className="mt-2 text-sm text-muted-foreground">{t("subtitle")}</p>
+          <p className="mt-2 max-w-xl text-sm text-muted-foreground">
+            {t("subtitle")}
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="truncate text-sm text-foreground">
+            {data.organization.name}
+          </span>
+          <Badge variant="outline" className="font-normal text-muted-foreground">
+            {plan.name}
+          </Badge>
         </div>
       </header>
 
       <div className="grid gap-6 lg:grid-cols-1 xl:grid-cols-12">
         <div className="min-w-0 xl:col-span-8">
+          <nav
+            aria-label={t("nav.primary")}
+            className="mb-4 flex flex-wrap gap-1 border-b border-border pb-px"
+          >
+            {SETTINGS_PRIMARY_GROUPS.map((group) => {
+              const isActive = activeGroup === group.id;
+              return (
+                <button
+                  key={group.id}
+                  type="button"
+                  onClick={() => navigateToGroup(group.id)}
+                  className={cn(
+                    "rounded-none border-b-2 px-3 py-2 text-sm transition-colors",
+                    isActive
+                      ? "border-foreground text-foreground"
+                      : "border-transparent text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  {t(`nav.${group.id}`)}
+                </button>
+              );
+            })}
+          </nav>
+
+          {activeGroup === "more" ? (
+            <div className="mb-6 flex flex-wrap gap-1.5">
+              {SETTINGS_MORE_TABS.map((tabId) => {
+                const isActive = activeTab === tabId;
+                return (
+                  <button
+                    key={tabId}
+                    type="button"
+                    onClick={() => navigateToTab(tabId)}
+                    className={cn(
+                      "rounded-full border px-3 py-1.5 text-xs transition-colors",
+                      isActive
+                        ? "border-foreground/40 bg-foreground text-background"
+                        : "border-border bg-background/40 text-muted-foreground hover:border-foreground/20 hover:text-foreground",
+                    )}
+                  >
+                    {t(`tabs.${tabId}`)}
+                  </button>
+                );
+              })}
+            </div>
+          ) : null}
+
           <Tabs
             value={activeTab}
-            onValueChange={(value) => {
-              const nextTab = value as SettingsTabId;
-              setActiveTab(nextTab);
-              router.push(`/settings?tab=${nextTab}`);
-            }}
+            onValueChange={(value) => navigateToTab(value as SettingsTabId)}
             className="gap-6"
           >
-            <TabsList
-              variant="line"
-              className="h-auto w-full flex-nowrap justify-start gap-1 overflow-x-auto border-b border-border bg-transparent p-0 [-ms-overflow-style:none] scrollbar-none [&::-webkit-scrollbar]:hidden"
-            >
-              {TAB_IDS.map((tabId) => (
-                <TabsTrigger
-                  key={tabId}
-                  value={tabId}
-                  className="rounded-none border-0 border-b-2 border-transparent px-3 py-2 data-active:border-foreground data-active:bg-transparent"
-                >
-                  {t(`tabs.${tabId}`)}
+            {/* Hidden list keeps Tabs a11y; visible nav is the primary groups above. */}
+            <TabsList className="sr-only">
+              {(
+                [
+                  "general",
+                  "organization",
+                  "team",
+                  "billing",
+                  "integrations",
+                  "security",
+                  "audit",
+                  "ai",
+                  "characters",
+                  "skills",
+                  "tools",
+                  "notifications",
+                  "advanced",
+                ] as const
+              ).map((tabId) => (
+                <TabsTrigger key={tabId} value={tabId}>
+                  {tabId}
                 </TabsTrigger>
               ))}
             </TabsList>
@@ -121,10 +192,11 @@ export function SettingsScreen({
             </TabsContent>
 
             <TabsContent value="organization">
-              <SettingsOrganizationTab
+              <SettingsGeneralTab
                 organization={data.organization}
                 settings={data.settings}
                 canManageOrganization={data.canManageOrganization}
+                sections={["profile"]}
               />
             </TabsContent>
 
