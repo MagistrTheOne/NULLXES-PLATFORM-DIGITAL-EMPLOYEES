@@ -1,5 +1,6 @@
 import { createHash, randomInt } from "node:crypto";
-import { and, eq, gt, lt } from "drizzle-orm";
+import { and, desc, eq, gt, lt } from "drizzle-orm";
+import { user } from "@/entities/user/schema";
 import { verification } from "@/features/auth/schema";
 import { db } from "@/shared/db/client";
 import { isEmailDeliveryConfigured } from "@/shared/email/resend-client";
@@ -8,21 +9,24 @@ import { shouldBypassEmailOtp } from "../lib/email-otp-bypass";
 import { sendEmailOtpMessage } from "../lib/send-email-otp";
 
 const OTP_TTL_MS = 10 * 60 * 1000;
-const VERIFIED_TTL_MS = 24 * 60 * 60 * 1000;
 const RESEND_COOLDOWN_MS = 60 * 1000;
 
 export const EMAIL_OTP_PENDING_PREFIX = "email_otp:pending:";
+/** @deprecated Kept for purge/cleanup of legacy step-up rows. */
 export const EMAIL_OTP_VERIFIED_PREFIX = "email_otp:verified:";
 
 /**
  * Post-login OTP gate — only when explicitly enabled AND Resend is configured.
  * Set EMAIL_OTP_STEP_UP_ENABLED=true when Resend is configured for this env.
+ *
+ * Once the account has `emailVerified=true` (registration link or this OTP),
+ * the gate never asks again.
  */
 export function isEmailOtpEnabled(): boolean {
   return isEmailOtpStepUpEnabled() && isEmailDeliveryConfigured();
 }
 
-/** True when this user must complete the post-login email OTP gate. */
+/** True when this user must complete the one-time email OTP gate. */
 export function isEmailOtpRequiredForUser(email: string): boolean {
   if (!isEmailOtpEnabled()) {
     return false;
@@ -47,20 +51,17 @@ function verifiedIdentifier(userId: string): string {
   return `${EMAIL_OTP_VERIFIED_PREFIX}${userId}`;
 }
 
+/**
+ * Account already proved email ownership (Better Auth verification or prior OTP).
+ */
 export async function hasVerifiedEmailOtp(userId: string): Promise<boolean> {
-  const now = new Date();
   const [row] = await db
-    .select({ id: verification.id })
-    .from(verification)
-    .where(
-      and(
-        eq(verification.identifier, verifiedIdentifier(userId)),
-        gt(verification.expiresAt, now),
-      ),
-    )
+    .select({ emailVerified: user.emailVerified })
+    .from(user)
+    .where(eq(user.id, userId))
     .limit(1);
 
-  return Boolean(row);
+  return Boolean(row?.emailVerified);
 }
 
 export async function requestEmailOtp(input: {
@@ -70,6 +71,10 @@ export async function requestEmailOtp(input: {
   | { ok: true; emailSent: boolean; devCode?: string }
   | { ok: false; message: string; retryAfterSeconds?: number }
 > {
+  if (await hasVerifiedEmailOtp(input.userId)) {
+    return { ok: true, emailSent: false };
+  }
+
   const identifier = pendingIdentifier(input.userId);
   const now = new Date();
 
@@ -85,6 +90,7 @@ export async function requestEmailOtp(input: {
         gt(verification.expiresAt, now),
       ),
     )
+    .orderBy(desc(verification.createdAt))
     .limit(1);
 
   if (existing) {
@@ -99,15 +105,17 @@ export async function requestEmailOtp(input: {
         retryAfterSeconds,
       };
     }
-
-    await db.delete(verification).where(eq(verification.id, existing.id));
   }
+
+  // Drop all pending rows for this user so concurrent auto-sends cannot leave
+  // multiple hashes (verify would then miss the code from the email).
+  await db.delete(verification).where(eq(verification.identifier, identifier));
 
   const code = generateOtpCode();
   const expiresAt = new Date(now.getTime() + OTP_TTL_MS);
 
   await db.insert(verification).values({
-    id: `${input.userId}-${now.getTime()}`,
+    id: `${input.userId}-${now.getTime()}-${randomInt(0, 1_000_000)}`,
     identifier,
     value: hashOtp(code),
     expiresAt,
@@ -156,10 +164,15 @@ export async function verifyEmailOtp(input: {
     return { ok: false, message: "Enter the 6-digit verification code." };
   }
 
+  if (await hasVerifiedEmailOtp(input.userId)) {
+    return { ok: true };
+  }
+
   const identifier = pendingIdentifier(input.userId);
   const now = new Date();
+  const codeHash = hashOtp(trimmed);
 
-  const [pending] = await db
+  const pendingRows = await db
     .select({
       id: verification.id,
       value: verification.value,
@@ -167,36 +180,37 @@ export async function verifyEmailOtp(input: {
     })
     .from(verification)
     .where(eq(verification.identifier, identifier))
-    .limit(1);
+    .orderBy(desc(verification.createdAt));
 
-  if (!pending) {
+  if (pendingRows.length === 0) {
     return { ok: false, message: "No active verification code. Request a new one." };
   }
 
-  if (pending.expiresAt.getTime() <= now.getTime()) {
-    await db.delete(verification).where(eq(verification.id, pending.id));
-    return { ok: false, message: "Verification code expired. Request a new one." };
-  }
+  const match = pendingRows.find(
+    (row) =>
+      row.expiresAt.getTime() > now.getTime() && row.value === codeHash,
+  );
 
-  if (pending.value !== hashOtp(trimmed)) {
+  if (!match) {
+    const anyUnexpired = pendingRows.some(
+      (row) => row.expiresAt.getTime() > now.getTime(),
+    );
+    if (!anyUnexpired) {
+      await db.delete(verification).where(eq(verification.identifier, identifier));
+      return { ok: false, message: "Verification code expired. Request a new one." };
+    }
     return { ok: false, message: "Invalid verification code." };
   }
 
-  await db.delete(verification).where(eq(verification.id, pending.id));
-
+  await db.delete(verification).where(eq(verification.identifier, identifier));
   await db
     .delete(verification)
     .where(eq(verification.identifier, verifiedIdentifier(input.userId)));
 
-  const verifiedExpiresAt = new Date(now.getTime() + VERIFIED_TTL_MS);
-  await db.insert(verification).values({
-    id: `${input.userId}-verified-${now.getTime()}`,
-    identifier: verifiedIdentifier(input.userId),
-    value: "1",
-    expiresAt: verifiedExpiresAt,
-    createdAt: now,
-    updatedAt: now,
-  });
+  await db
+    .update(user)
+    .set({ emailVerified: true, updatedAt: now })
+    .where(eq(user.id, input.userId));
 
   return { ok: true };
 }

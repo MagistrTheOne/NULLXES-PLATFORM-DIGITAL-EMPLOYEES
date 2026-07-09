@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,6 +17,10 @@ import { requestEmailOtpAction } from "../actions/request-email-otp";
 import { verifyEmailOtpAction } from "../actions/verify-email-otp";
 import { AUTH_CARD_CLASS, AUTH_INPUT_CLASS } from "./auth-styles";
 
+function autoSendStorageKey(email: string): string {
+  return `nullxes:email-otp-autosent:${email.trim().toLowerCase()}`;
+}
+
 export function VerifyEmailOtpForm({ email }: { email: string }) {
   const t = useTranslations("auth.verifyEmailOtp");
   const router = useRouter();
@@ -25,15 +29,21 @@ export function VerifyEmailOtpForm({ email }: { email: string }) {
   const [info, setInfo] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSending, setIsSending] = useState(false);
-  const hasAutoSent = useRef(false);
 
   useEffect(() => {
-    if (hasAutoSent.current) {
-      return;
+    const key = autoSendStorageKey(email);
+    try {
+      if (sessionStorage.getItem(key) === "1") {
+        setInfo(t("description", { email }));
+        return;
+      }
+      sessionStorage.setItem(key, "1");
+    } catch {
+      // sessionStorage unavailable — still attempt one send
     }
-    hasAutoSent.current = true;
     void sendCode(false);
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mount-once auto-send per email
+  }, [email]);
 
   async function sendCode(isManual: boolean): Promise<void> {
     setIsSending(true);
@@ -44,10 +54,9 @@ export function VerifyEmailOtpForm({ email }: { email: string }) {
 
     if (!result.ok) {
       if (result.retryAfterSeconds !== undefined) {
-        // Cooldown: benign on initial auto-send, show when user clicks Resend.
         if (isManual) {
           setError(result.message);
-        } else if (!info) {
+        } else {
           setInfo(t("description", { email }));
         }
       } else {
@@ -62,7 +71,10 @@ export function VerifyEmailOtpForm({ email }: { email: string }) {
     }
 
     if (!result.emailSent) {
-      setError(t("resendFailed"));
+      // Already verified on the server, or silent no-op.
+      if (!isManual) {
+        setInfo(t("description", { email }));
+      }
       return;
     }
 
@@ -80,6 +92,12 @@ export function VerifyEmailOtpForm({ email }: { email: string }) {
     if (!result.ok) {
       setError(result.message);
       return;
+    }
+
+    try {
+      sessionStorage.removeItem(autoSendStorageKey(email));
+    } catch {
+      // ignore
     }
 
     router.push("/dashboard");
