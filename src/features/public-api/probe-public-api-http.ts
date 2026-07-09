@@ -131,7 +131,7 @@ async function probePublicApiHttp(): Promise<void> {
 
   await db
     .update(organization)
-    .set({ billingPlan: "super_pro" })
+    .set({ billingPlan: "scale" })
     .where(eq(organization.id, org.id));
 
   const employee = await createDigitalEmployee({

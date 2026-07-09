@@ -1,6 +1,7 @@
 import { BILLING_PLANS, type BillingPlanId } from "../config/plans";
 import { buildPolarCheckoutUrl } from "../lib/build-checkout-url";
 import { resolveBillingPlanId } from "../lib/resolve-billing-plan";
+import { isSelfServeCheckoutPlan } from "../lib/resolve-plan-from-polar-product";
 import {
   listPolarCatalog,
   resolvePolarProductIdForPlan,
@@ -27,22 +28,27 @@ export async function getUserBillingSnapshot(input: {
   const plan = BILLING_PLANS[planId];
   const polarReady = isPolarConfigured();
   const catalog = polarReady ? await listPolarCatalog() : [];
-  const superProProductId = resolvePolarProductIdForPlan(catalog, "super_pro");
+
+  const studioProductId = resolvePolarProductIdForPlan(catalog, "studio");
+  const scaleProductId = resolvePolarProductIdForPlan(catalog, "scale");
+  const preferredProductId = studioProductId ?? scaleProductId;
 
   const checkoutUrl =
     planId === "free" &&
     input.canManageOrganization &&
     polarReady &&
-    superProProductId
+    preferredProductId
       ? buildPolarCheckoutUrl({
-          productId: superProProductId,
+          productId: preferredProductId,
           organizationId: input.organizationId,
           customerEmail: input.customerEmail,
         })
       : null;
 
   const portalUrl =
-    planId === "super_pro" && input.canManageOrganization && polarReady
+    isSelfServeCheckoutPlan(planId) &&
+    input.canManageOrganization &&
+    polarReady
       ? "/api/portal"
       : null;
 

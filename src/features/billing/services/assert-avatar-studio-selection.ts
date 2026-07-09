@@ -38,7 +38,7 @@ export function assertAvatarStudioSelection(
       return {
         ok: false,
         message:
-          "Custom avatars are available on Super Pro and Enterprise. Choose a preset avatar or upgrade your plan.",
+          "Custom avatars start on Studio. Choose a NULLXES preset on Evaluation, or upgrade your plan.",
       };
     }
 

@@ -1,6 +1,7 @@
 import { and, eq } from "drizzle-orm";
 import type { MembershipRole } from "@/features/workspace/types";
 import { organizationInvite } from "@/entities/organization-invite/schema";
+import { assertCanAddSeat } from "@/features/billing/services/assert-can-add-seat";
 import { db } from "@/shared/db/client";
 import { createInviteToken, hashInviteToken } from "../lib/hash-invite-token";
 import { sendInviteEmail } from "../lib/send-invite-email";
@@ -18,6 +19,13 @@ export async function createOrganizationInvite(input: {
   const normalizedEmail = input.email.trim().toLowerCase();
   if (!normalizedEmail.includes("@")) {
     return { ok: false, message: "Enter a valid email address." };
+  }
+
+  const seatCheck = await assertCanAddSeat({
+    organizationId: input.organizationId,
+  });
+  if (!seatCheck.ok) {
+    return seatCheck;
   }
 
   const existingPending = await db.query.organizationInvite.findFirst({

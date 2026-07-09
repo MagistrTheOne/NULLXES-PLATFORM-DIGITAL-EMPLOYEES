@@ -5,19 +5,23 @@ export const POLAR_PRODUCT_NAMESPACE = "nullxes_digital_employees";
 
 export const BILLING_PLAN_IDS: BillingPlanId[] = [
   "free",
-  "super_pro",
+  "studio",
+  "operator",
+  "scale",
   "enterprise",
   "government",
 ];
 
 export const PRICING_TIER_IDS: PricingTierId[] = [
   "free",
-  "super_pro",
+  "studio",
+  "operator",
+  "scale",
   "discovery",
   "pilot",
   "department",
   "holding",
-  "ultra",
+  "flagship",
 ];
 
 export function readMetadataPlan(
@@ -26,6 +30,10 @@ export function readMetadataPlan(
   const raw = metadata.plan;
   if (typeof raw !== "string") {
     return null;
+  }
+
+  if (raw === "super_pro") {
+    return "scale";
   }
 
   return BILLING_PLAN_IDS.includes(raw as BillingPlanId)
@@ -39,6 +47,10 @@ export function readMetadataTier(
   const raw = metadata.tier;
   if (typeof raw !== "string") {
     return null;
+  }
+
+  if (raw === "super_pro" || raw === "ultra") {
+    return raw === "ultra" ? "flagship" : "scale";
   }
 
   return PRICING_TIER_IDS.includes(raw as PricingTierId)

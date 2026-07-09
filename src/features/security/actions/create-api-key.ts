@@ -3,6 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { requireAuth } from "@/features/auth/services/require-auth";
 import { ensureWorkspace } from "@/features/auth/services/ensure-workspace";
+import { planAllowsApiAccess } from "@/features/billing/lib/plan-capabilities";
+import { resolveBillingPlanId } from "@/features/billing/lib/resolve-billing-plan";
 import {
   assertTwoFactorForSensitiveAction,
   TwoFactorRequiredError,
@@ -22,6 +24,19 @@ export async function createApiKeyAction(input: {
 
   if (!workspace.permissions.canManageOrganization) {
     return { ok: false, message: "Only organization owners can create API keys." };
+  }
+
+  const billingPlan = resolveBillingPlanId(workspace.organization.billingPlan);
+  const requiredAccess =
+    input.scopeBundle === "readOnly" ? "read" : "full";
+  if (!planAllowsApiAccess(billingPlan, requiredAccess)) {
+    return {
+      ok: false,
+      message:
+        requiredAccess === "read"
+          ? "API read access starts on Operator. Upgrade your plan or contact sales."
+          : "Full API access starts on Scale. Upgrade your plan or contact sales.",
+    };
   }
 
   try {

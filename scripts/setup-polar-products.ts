@@ -1,6 +1,7 @@
 import { Polar } from "@polar-sh/sdk";
 import {
   BILLING_PLANS,
+  SELF_SERVE_CHECKOUT_PLAN_IDS,
   type BillingPlanId,
 } from "../src/features/billing/config/plans";
 import {
@@ -8,6 +9,14 @@ import {
   type PricingTierId,
 } from "../src/features/billing/config/pricing-tiers";
 import { POLAR_PRODUCT_NAMESPACE } from "../src/features/billing/lib/polar-product-metadata";
+
+/**
+ * Follow-up (not run in this iteration): create Polar products for
+ * Studio / Operator / Scale (₽ or USD catalog) + SBP for RU self-serve.
+ * Enterprise / government / sales ladder remain contract / contact-only.
+ *
+ * Usage: POLAR_ACCESS_TOKEN=… npx tsx scripts/setup-polar-products.ts
+ */
 
 const accessToken = process.env.POLAR_ACCESS_TOKEN?.trim();
 
@@ -40,49 +49,37 @@ type ProductSpec = {
   metadata: Record<string, string>;
 };
 
-const BILLING_PLAN_SPECS: ProductSpec[] = [
-  {
-    key: "super_pro",
-    name: "NULLXES Super Pro",
-    description: BILLING_PLANS.super_pro.description,
-    recurringInterval: "month",
-    priceAmount: 95_000,
+/** List prices in minor units. Polar presentment uses USD until SBP follow-up. */
+const SELF_SERVE_PRICE_CENTS: Record<"studio" | "operator" | "scale", number> = {
+  studio: 4_990,
+  operator: 14_990,
+  scale: 49_990,
+};
+
+const BILLING_PLAN_SPECS: ProductSpec[] = (
+  SELF_SERVE_CHECKOUT_PLAN_IDS as Array<"studio" | "operator" | "scale">
+).map((planId) => {
+  const plan = BILLING_PLANS[planId];
+  return {
+    key: planId,
+    name: `NULLXES ${plan.name}`,
+    description: plan.description,
+    recurringInterval: "month" as const,
+    priceAmount: SELF_SERVE_PRICE_CENTS[planId],
     metadata: {
-      plan: "super_pro",
-      tier: "super_pro",
+      plan: planId,
+      tier: planId,
       product: POLAR_PRODUCT_NAMESPACE,
     },
-  },
-  {
-    key: "enterprise",
-    name: "NULLXES Enterprise",
-    description: BILLING_PLANS.enterprise.description,
-    recurringInterval: "year",
-    priceAmount: 0,
-    metadata: {
-      plan: "enterprise",
-      product: POLAR_PRODUCT_NAMESPACE,
-    },
-  },
-  {
-    key: "government",
-    name: "NULLXES Government",
-    description: BILLING_PLANS.government.description,
-    recurringInterval: "year",
-    priceAmount: 0,
-    metadata: {
-      plan: "government",
-      product: POLAR_PRODUCT_NAMESPACE,
-    },
-  },
-];
+  };
+});
 
 const SALES_TIER_IDS: PricingTierId[] = [
   "discovery",
   "pilot",
   "department",
   "holding",
-  "ultra",
+  "flagship",
 ];
 
 function buildSalesTierSpecs(): ProductSpec[] {
@@ -96,7 +93,7 @@ function buildSalesTierSpecs(): ProductSpec[] {
       key: `tier:${tierId}`,
       name: `NULLXES ${tier.name}`,
       description: tier.description,
-      recurringInterval: tierId === "ultra" ? "year" : "year",
+      recurringInterval: "year" as const,
       priceAmount: 0,
       metadata: {
         tier: tierId,
@@ -131,17 +128,6 @@ async function listAllProducts(): Promise<ListedProduct[]> {
   return products;
 }
 
-function findProductByMetadata(
-  products: ListedProduct[],
-  metadata: Record<string, string>,
-): ListedProduct | undefined {
-  return products.find((product) =>
-    Object.entries(metadata).every(
-      ([key, value]) => product.metadata[key] === value,
-    ),
-  );
-}
-
 function findProductByPlan(
   products: ListedProduct[],
   planId: BillingPlanId,
@@ -150,16 +136,14 @@ function findProductByPlan(
     products.find((product) => product.metadata.plan === planId) ??
     products.find((product) => {
       const name = product.name.toLowerCase();
-      if (planId === "super_pro") {
-        return name.includes("super pro");
+      if (planId === "scale") {
+        return (
+          name.includes("scale") ||
+          name.includes("super pro") ||
+          product.metadata.plan === "super_pro"
+        );
       }
-      if (planId === "enterprise") {
-        return name.includes("enterprise");
-      }
-      if (planId === "government") {
-        return name.includes("government") || name.includes("gov");
-      }
-      return false;
+      return name.includes(planId);
     })
   );
 }
@@ -244,7 +228,10 @@ async function ensureProduct(
 
 async function main(): Promise<void> {
   console.log(`Polar server: ${server}`);
-  console.log("Syncing NULLXES billing products via Polar Core API…\n");
+  console.log("Syncing NULLXES self-serve billing products via Polar Core API…\n");
+  console.log(
+    "Note: SBP / RU payment rails are a separate follow-up after products exist.\n",
+  );
 
   const existing = await listAllProducts();
 

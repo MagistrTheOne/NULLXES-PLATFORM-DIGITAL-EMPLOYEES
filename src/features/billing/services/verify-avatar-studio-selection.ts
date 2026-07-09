@@ -62,7 +62,7 @@ function verifyAvatarStudioSelection(): void {
 
   expectCustom(
     "super pro accepts custom file",
-    assertAvatarStudioSelection("super_pro", {
+    assertAvatarStudioSelection("scale", {
       presetAvatarId: "",
       hasPhotoFile: true,
     }),
@@ -70,7 +70,7 @@ function verifyAvatarStudioSelection(): void {
 
   expectFailure(
     "super pro rejects invalid preset id",
-    assertAvatarStudioSelection("super_pro", {
+    assertAvatarStudioSelection("scale", {
       presetAvatarId: "not-a-real-preset",
       hasPhotoFile: false,
     }),

@@ -3,6 +3,7 @@ import { createMembership } from "@/entities/membership/create-membership";
 import { membership } from "@/entities/membership/schema";
 import { organizationInvite } from "@/entities/organization-invite/schema";
 import { user } from "@/entities/user/schema";
+import { assertCanAddSeat } from "@/features/billing/services/assert-can-add-seat";
 import { db } from "@/shared/db/client";
 import { hashInviteToken } from "../lib/hash-invite-token";
 
@@ -52,6 +53,13 @@ export async function acceptOrganizationInvite(input: {
     .limit(1);
 
   if (!existing) {
+    const seatCheck = await assertCanAddSeat({
+      organizationId: invite.organizationId,
+    });
+    if (!seatCheck.ok) {
+      return seatCheck;
+    }
+
     await createMembership({
       userId: input.userId,
       organizationId: invite.organizationId,

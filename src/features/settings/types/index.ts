@@ -135,6 +135,10 @@ export type BillingSnapshot = {
   subscription: PolarSubscriptionSnapshot | null;
   planSource: BillingPlanSource;
   checkoutUrl: string | null;
+  selfServeCheckoutUrls: Partial<
+    Record<"studio" | "operator" | "scale", string>
+  >;
+  /** @deprecated Prefer selfServeCheckoutUrls */
   superProCheckoutUrl: string | null;
   portalEnabled: boolean;
 };

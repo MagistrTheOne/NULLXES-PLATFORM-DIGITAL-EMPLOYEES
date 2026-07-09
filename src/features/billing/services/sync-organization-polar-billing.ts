@@ -3,7 +3,10 @@ import { organization } from "@/entities/organization/schema";
 import { db } from "@/shared/db/client";
 import type { BillingPlanId } from "../config/plans";
 import { MANUAL_BILLING_PLANS } from "../lib/billing-plan-helpers";
-import { resolveBillingPlanFromPolarProduct } from "../lib/resolve-plan-from-polar-product";
+import {
+  isSelfServeCheckoutPlan,
+  resolveBillingPlanFromPolarProduct,
+} from "../lib/resolve-plan-from-polar-product";
 import { resolveBillingPlanId } from "../lib/resolve-billing-plan";
 import {
   buildPolarProductPlanMap,
@@ -84,7 +87,7 @@ export async function syncOrganizationPolarBilling(
         updates.billingPlan = billingPlan;
       }
     } else if (
-      currentPlan === "super_pro" &&
+      isSelfServeCheckoutPlan(currentPlan) &&
       !MANUAL_BILLING_PLANS.includes(currentPlan)
     ) {
       updates.billingPlan = "free";

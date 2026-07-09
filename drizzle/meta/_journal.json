@@ -267,6 +267,13 @@
       "when": 1784100000000,
       "tag": "0037_organization_provider_nullxes",
       "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1784200000000,
+      "tag": "0038_billing_plans_studio_operator_scale",
+      "breakpoints": true
     }
   ]
 }

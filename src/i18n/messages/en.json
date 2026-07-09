@@ -36,9 +36,9 @@
       "settings": "Settings",
       "analytics": "Analytics",
       "billing": "Billing",
-      "upgrade": "Upgrade to Super Pro",
+      "upgrade": "Launch a digital employee",
       "manageSubscription": "Manage subscription",
-      "contactSales": "Enterprise & Government",
+      "contactSales": "Enterprise Design Partners",
       "logout": "Logout"
     },
     "subtitle": {
@@ -466,12 +466,12 @@
       },
       "draftRestored": "Your in-progress draft was restored. Re-upload a photo if you were using a custom avatar.",
       "upgradeGate": {
-        "limitTitle": "Upgrade to add more employees",
-        "limitDescription": "Free includes one digital employee. Upgrade to Super Pro for an unlimited workforce and custom avatars.",
-        "avatarTitle": "Custom avatars require Super Pro",
-        "avatarDescription": "Choose a NULLXES preset on Free, or upgrade for custom photo upload and generation.",
+        "limitTitle": "Launch more digital employees",
+        "limitDescription": "Evaluation includes one digital employee. Studio, Operator, and Scale expand your workforce with custom avatars.",
+        "avatarTitle": "Custom avatars start on Studio",
+        "avatarDescription": "Choose a NULLXES preset on Evaluation, or launch Studio for custom photo upload and generation.",
         "cancel": "Not now",
-        "upgrade": "Upgrade to Super Pro",
+        "upgrade": "Launch a digital employee",
         "billing": "View billing"
       },
       "errors": {
@@ -502,8 +502,8 @@
         "recommended": "Recommended for this role",
         "allScenarios": "All scenarios",
         "monthlyUsage": "{used} of {limit} scenarios used this month",
-        "limitReached": "You reached the Free scenario limit for this month. Upgrade for unlimited simulations and longer Talk sessions.",
-        "upgrade": "Upgrade to Super Pro",
+        "limitReached": "You reached the Evaluation scenario limit for this month. Launch Studio or higher for unlimited simulations and longer Talk sessions.",
+        "upgrade": "Launch a digital employee",
         "billing": "View billing",
         "starting": "Starting scenario…"
       },
@@ -520,8 +520,8 @@
         "strengths": "Strengths",
         "improvements": "Improve next time",
         "proUpsellTitle": "Deploy this workflow in production",
-        "proUpsellBody": "Super Pro unlocks unlimited employees, custom avatars, missions, and longer Talk sessions for real operations.",
-        "upgrade": "Upgrade to Super Pro",
+        "proUpsellBody": "Studio, Operator, and Scale unlock more employees, custom avatars, missions, and longer Talk sessions for real operations.",
+        "upgrade": "Launch a digital employee",
         "billing": "View billing",
         "runAnother": "Run another scenario",
         "openTalk": "Open Talk"
@@ -1020,17 +1020,26 @@
       "cancel": "Cancel"
     },
     "billing": {
+      "designPartners": "Enterprise Design Partners",
+      "designPartnersDesc": "Closed early-access program for the first companies deploying a digital workforce",
+      "designPartnersBody": "NULLXES is opening a limited Enterprise Design Partners program — early access, roadmap influence, priority architecture, and first-deployment status. Not a mass SaaS trial.",
+      "applyDesignPartner": "Apply as Design Partner",
       "currentPlan": "Current Plan",
-      "currentPlanDesc": "Premium digital workforce operations",
+      "currentPlanDesc": "Digital workforce operating plan for this organization",
+      "selfServe": "Launch a digital employee",
+      "selfServeDesc": "Founders and innovation labs — Evaluation through Scale",
+      "enterpriseLadder": "Enterprise deployment",
+      "enterpriseLadderDesc": "Discovery → Pilot → Digital Department Deployment → Holding",
       "plans": "Plans",
-      "plansDesc": "Deployment stages from self-serve to sovereign corporation",
+      "plansDesc": "Self-serve launch and enterprise deployment stages",
       "current": "Current",
       "currentPlanCta": "Current plan",
       "included": "Included",
       "flagship": "Flagship",
       "digitalCorporation": "Digital Corporation",
       "talkToFounders": "Talk to founders",
-      "upgrade": "Upgrade",
+      "launchEmployee": "Launch a digital employee",
+      "upgrade": "Launch a digital employee",
       "contactSales": "Contact sales",
       "usageMeters": "Usage Meters",
       "usageMetersDesc": "Billable workspace activity",
@@ -1045,8 +1054,8 @@
       "polarSubscription": "Polar subscription",
       "renewsOn": "Renews on {date}",
       "cancelsOn": "Cancels on {date}",
-      "polarNotConfigured": "International checkout is unavailable until Polar is configured.",
-      "polarPricesLive": "Self-serve prices are loaded from Polar."
+      "polarNotConfigured": "Self-serve checkout is unavailable until Polar is configured.",
+      "polarPricesLive": "Self-serve prices are loaded from Polar when products exist."
     },
     "security": {
       "authentication": "Authentication",

@@ -3,6 +3,7 @@ import { digitalEmployee } from "@/entities/digital-employee/schema";
 import { db } from "@/shared/db/client";
 import {
   BILLING_PLANS,
+  type ApiAccessLevel,
   type BillingPlanId,
 } from "@/features/billing/config/plans";
 
@@ -26,7 +27,7 @@ export async function assertCanCreateEmployee(
   if (total >= limit) {
     return {
       ok: false,
-      message: `Your plan allows ${limit} digital employee. Upgrade to Super Pro for unlimited workforce.`,
+      message: `Your plan allows ${limit} digital employee${limit === 1 ? "" : "s"}. Launch Studio, Operator, or Scale — or contact sales for Digital Department Deployment.`,
     };
   }
 
@@ -35,6 +36,12 @@ export async function assertCanCreateEmployee(
 
 export function getSessionLimitSecondsForPlan(billingPlan: BillingPlanId): number {
   return BILLING_PLANS[billingPlan].limits.maxSessionSeconds ?? 3600;
+}
+
+export function getTalkMinutesPerMonthForPlan(
+  billingPlan: BillingPlanId,
+): number | null {
+  return BILLING_PLANS[billingPlan].limits.maxTalkMinutesPerMonth;
 }
 
 export function assertCanCreateCustomAvatar(
@@ -47,6 +54,20 @@ export function assertCanCreateCustomAvatar(
   return {
     ok: false,
     message:
-      "Custom avatars are available on Super Pro and Enterprise. Choose a preset avatar or upgrade your plan.",
+      "Custom avatars start on Studio. Choose a NULLXES preset on Evaluation, or upgrade your plan.",
   };
+}
+
+export function planApiAccess(billingPlan: BillingPlanId): ApiAccessLevel {
+  return BILLING_PLANS[billingPlan].limits.apiAccess;
+}
+
+export function planAllowsApiAccess(
+  billingPlan: BillingPlanId,
+  required: ApiAccessLevel = "read",
+): boolean {
+  const access = planApiAccess(billingPlan);
+  if (required === "none") return true;
+  if (required === "read") return access === "read" || access === "full";
+  return access === "full";
 }

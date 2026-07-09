@@ -2,6 +2,7 @@ import { and, eq } from "drizzle-orm";
 import { employeeSession } from "@/entities/session/schema";
 import { getCurrentSession } from "@/features/auth/services/get-current-session";
 import { ensureWorkspace } from "@/features/auth/services/ensure-workspace";
+import { assertTalkMinutesBudget } from "@/features/billing/services/assert-talk-minutes-budget";
 import {
   assertWorkspaceAccess,
   workspaceAccessDeniedMessage,
@@ -116,6 +117,13 @@ export async function resolveTalkBrainAuth(input: {
       status: 403,
       error: "Talk is not available for this employee",
     };
+  }
+
+  const talkBudget = await assertTalkMinutesBudget({
+    organizationId: workspace.organization.id,
+  });
+  if (!talkBudget.ok) {
+    return { ok: false, status: 403, error: talkBudget.message };
   }
 
   if (input.sessionId) {

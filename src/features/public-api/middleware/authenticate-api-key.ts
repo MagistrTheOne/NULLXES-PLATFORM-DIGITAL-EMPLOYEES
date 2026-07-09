@@ -1,6 +1,9 @@
 import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
+import { organization } from "@/entities/organization/schema";
 import { organizationSettings } from "@/entities/organization-settings/schema";
+import { planAllowsApiAccess } from "@/features/billing/lib/plan-capabilities";
+import { resolveBillingPlanId } from "@/features/billing/lib/resolve-billing-plan";
 import { verifyApiKey } from "@/features/security/services/api-key";
 import { recordAuditEvent } from "@/features/security/services/record-audit-event";
 import { db } from "@/shared/db/client";
@@ -115,6 +118,39 @@ export async function authenticateApiKeyRequest(
       requestId,
       requiredScopes,
     });
+  }
+
+  const [org] = await db
+    .select({ billingPlan: organization.billingPlan })
+    .from(organization)
+    .where(eq(organization.id, verified.organizationId))
+    .limit(1);
+
+  const billingPlan = resolveBillingPlanId(org?.billingPlan ?? "free");
+  const needsWrite = requiredScopes.some((scope) => scope.endsWith(":write"));
+  if (!planAllowsApiAccess(billingPlan, needsWrite ? "full" : "read")) {
+    recordAuditEvent({
+      organizationId: verified.organizationId,
+      actorUserId: verified.createdByUserId,
+      action: "api.access.denied",
+      resourceType: "api_key",
+      resourceId: verified.keyId,
+      metadata: {
+        requestId,
+        reason: "plan_api_access",
+        billingPlan,
+        path: new URL(request.url).pathname,
+      },
+      ipAddress: resolveClientIp(request),
+      userAgent: request.headers.get("user-agent"),
+    });
+    return apiError(
+      needsWrite
+        ? "Full API access requires Scale or Enterprise"
+        : "API access requires Operator or higher",
+      403,
+      { requestId },
+    );
   }
 
   const [settings] = await db

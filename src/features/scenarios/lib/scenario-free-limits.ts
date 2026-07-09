@@ -39,7 +39,7 @@ export async function assertCanStartScenario(input: {
     const planName = BILLING_PLANS[input.billingPlan].name;
     return {
       ok: false,
-      message: `${planName} includes ${limit} scenarios per month. Upgrade to Super Pro for unlimited workforce simulations.`,
+      message: `${planName} includes ${limit} scenarios per month. Launch Studio or higher for unlimited workforce simulations.`,
     };
   }
 

@@ -1,4 +1,5 @@
 import {
+  SELF_SERVE_CHECKOUT_PLAN_IDS,
   type BillingPlanId,
 } from "../config/plans";
 import { buildPolarCheckoutUrl } from "../lib/build-checkout-url";
@@ -21,16 +22,45 @@ import {
 import { isManualBillingPlan } from "../lib/billing-plan-helpers";
 import { isPolarConfigured } from "./polar-config";
 import { tryGetPolarClient } from "./polar-client";
+import { isSelfServeCheckoutPlan } from "../lib/resolve-plan-from-polar-product";
 
 export type OrganizationBillingSnapshot = {
   polarReady: boolean;
   polarCatalog: PolarCatalogProduct[];
   subscription: PolarSubscriptionSnapshot | null;
   planSource: BillingPlanSource;
+  /** Preferred self-serve checkout (Studio when on Evaluation). */
   checkoutUrl: string | null;
+  /** Per-plan Polar checkout URLs for Studio / Operator / Scale. */
+  selfServeCheckoutUrls: Partial<Record<BillingPlanId, string>>;
+  /** @deprecated Use selfServeCheckoutUrls.scale or checkoutUrl */
   superProCheckoutUrl: string | null;
   portalEnabled: boolean;
 };
+
+function buildSelfServeCheckoutUrls(input: {
+  catalog: PolarCatalogProduct[];
+  organizationId: string;
+  customerEmail?: string;
+  canManageOrganization: boolean;
+  polarReady: boolean;
+}): Partial<Record<BillingPlanId, string>> {
+  if (!input.canManageOrganization || !input.polarReady) {
+    return {};
+  }
+
+  const urls: Partial<Record<BillingPlanId, string>> = {};
+  for (const planId of SELF_SERVE_CHECKOUT_PLAN_IDS) {
+    const productId = resolvePolarProductIdForPlan(input.catalog, planId);
+    if (!productId) continue;
+    urls[planId] = buildPolarCheckoutUrl({
+      productId,
+      organizationId: input.organizationId,
+      customerEmail: input.customerEmail,
+    });
+  }
+  return urls;
+}
 
 export async function getOrganizationBillingSnapshot(input: {
   organizationId: string;
@@ -92,18 +122,20 @@ export async function getOrganizationBillingSnapshot(input: {
     }
   }
 
-  const superProProductId = resolvePolarProductIdForPlan(catalog, "super_pro");
+  const selfServeCheckoutUrls = buildSelfServeCheckoutUrls({
+    catalog,
+    organizationId: input.organizationId,
+    customerEmail: input.customerEmail,
+    canManageOrganization: input.canManageOrganization,
+    polarReady,
+  });
 
   const checkoutUrl =
-    planId === "free" &&
-    input.canManageOrganization &&
-    polarReady &&
-    superProProductId
-      ? buildPolarCheckoutUrl({
-          productId: superProProductId,
-          organizationId: input.organizationId,
-          customerEmail: input.customerEmail,
-        })
+    planId === "free"
+      ? (selfServeCheckoutUrls.studio ??
+        selfServeCheckoutUrls.operator ??
+        selfServeCheckoutUrls.scale ??
+        null)
       : null;
 
   const portalEnabled =
@@ -111,7 +143,7 @@ export async function getOrganizationBillingSnapshot(input: {
     polarReady &&
     (Boolean(subscription) ||
       Boolean(input.polarCustomerId) ||
-      planId === "super_pro");
+      isSelfServeCheckoutPlan(planId));
 
   return {
     polarReady,
@@ -119,8 +151,8 @@ export async function getOrganizationBillingSnapshot(input: {
     subscription,
     planSource,
     checkoutUrl,
-    superProCheckoutUrl: checkoutUrl,
+    selfServeCheckoutUrls,
+    superProCheckoutUrl: selfServeCheckoutUrls.scale ?? checkoutUrl,
     portalEnabled,
   };
 }
-

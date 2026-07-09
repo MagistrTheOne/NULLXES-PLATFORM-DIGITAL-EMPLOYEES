@@ -5,14 +5,24 @@ import type {
   PolarSubscriptionSnapshot,
 } from "../types/polar-catalog";
 
+const SELF_SERVE_TIER_TO_PLAN: Partial<Record<PricingTierId, BillingPlanId>> = {
+  studio: "studio",
+  operator: "operator",
+  scale: "scale",
+};
+
 function findPolarCatalogProductForTier(
   catalog: PolarCatalogProduct[],
   tierId: PricingTierId,
 ): PolarCatalogProduct | undefined {
+  const planId = SELF_SERVE_TIER_TO_PLAN[tierId];
   return (
     catalog.find((product) => product.tierId === tierId) ??
-    (tierId === "super_pro"
-      ? catalog.find((product) => product.planId === "super_pro")
+    (planId
+      ? catalog.find((product) => product.planId === planId)
+      : undefined) ??
+    (tierId === "scale"
+      ? catalog.find((product) => product.planId === "scale")
       : undefined)
   );
 }

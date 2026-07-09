@@ -2,12 +2,14 @@ import type { BillingPlanId } from "./plans";
 
 export type PricingTierId =
   | "free"
-  | "super_pro"
+  | "studio"
+  | "operator"
+  | "scale"
   | "discovery"
   | "pilot"
   | "department"
   | "holding"
-  | "ultra";
+  | "flagship";
 
 export type PricingTierEngagement = "self_serve" | "sales";
 
@@ -22,42 +24,74 @@ export type PricingTier = {
   features: string[];
 };
 
+/**
+ * Marketing catalog — RU list prices.
+ * Self-serve CTA copy: "Launch a digital employee" (not "Choose a plan").
+ */
 export const PRICING_TIERS: PricingTier[] = [
   {
     id: "free",
-    name: "Free",
-    priceLabel: "$0",
+    name: "Evaluation",
+    priceLabel: "₽0",
     priceNote: "No credit card",
-    description: "Evaluate a single digital employee with curated presets.",
+    description:
+      "Evaluate a digital employee with curated NULLXES presets and hard Talk limits.",
+    engagement: "self_serve",
+    flagship: false,
+    features: [
+      "1 digital employee (presets)",
+      "2-minute Talk sessions · 30 min / month",
+      "Evaluation watermark",
+    ],
+  },
+  {
+    id: "studio",
+    name: "Studio",
+    priceLabel: "₽4 990",
+    priceNote: "per month",
+    description: "Launch one digital employee for founders and innovation labs.",
     engagement: "self_serve",
     flagship: false,
     features: [
       "1 digital employee",
-      "4 NULLXES employee presets",
-      "2-minute Talk sessions",
+      "10-minute Talk · 180 min / month",
+      "1 custom avatar",
     ],
   },
   {
-    id: "super_pro",
-    name: "Super Pro",
-    priceLabel: "$950",
+    id: "operator",
+    name: "Operator",
+    priceLabel: "₽14 990",
     priceNote: "per month",
-    description: "Self-serve workspace for small teams running real workloads.",
+    description: "A small digital workforce for labs running real workloads.",
     engagement: "self_serve",
     flagship: false,
     features: [
-      "Unlimited digital employees",
-      "Custom avatar upload & generation",
-      "Full analytics & audit trail",
-      "Team access & API",
+      "3 digital employees",
+      "20-minute Talk · 600 min / month",
+      "API read access",
+    ],
+  },
+  {
+    id: "scale",
+    name: "Scale",
+    priceLabel: "₽49 990",
+    priceNote: "per month",
+    description: "Grow a digital team before enterprise Design Partner deployment.",
+    engagement: "self_serve",
+    flagship: false,
+    features: [
+      "10 digital employees",
+      "30-minute Talk · 2 000 min / month",
+      "Full API access",
     ],
   },
   {
     id: "discovery",
     name: "Discovery",
-    priceLabel: "$20K–50K",
+    priceLabel: "₽1.5–4M",
     priceNote: "Fixed-scope engagement",
-    description: "Map your processes and prove value before scaling.",
+    description: "Map processes and prove value before scaling the workforce.",
     engagement: "sales",
     flagship: false,
     features: [
@@ -70,13 +104,13 @@ export const PRICING_TIERS: PricingTier[] = [
   {
     id: "pilot",
     name: "Pilot",
-    priceLabel: "$80K–250K",
+    priceLabel: "₽6–20M",
     priceNote: "Per pilot program",
-    description: "Stand up your first live department in production.",
+    description: "Stand up the first live digital employees in production.",
     engagement: "sales",
     flagship: false,
     features: [
-      "First live department (3–10 employees)",
+      "3–10 digital employees in production",
       "Custom avatars & voices",
       "Systems & knowledge integration",
       "Success metrics & reporting",
@@ -84,10 +118,11 @@ export const PRICING_TIERS: PricingTier[] = [
   },
   {
     id: "department",
-    name: "Department",
-    priceLabel: "$500K–2M",
+    name: "Digital Department Deployment",
+    priceLabel: "₽40–150M",
     priceNote: "Annual program",
-    description: "Operate a full department as a managed digital workforce.",
+    description:
+      "Operate a full digital department as a managed workforce layer — not a single-team chatbot.",
     engagement: "sales",
     flagship: false,
     features: [
@@ -100,7 +135,7 @@ export const PRICING_TIERS: PricingTier[] = [
   {
     id: "holding",
     name: "Holding",
-    priceLabel: "$5M–20M",
+    priceLabel: "₽400M–1.5B",
     priceNote: "Annual platform license",
     description: "Coordinate digital workforces across many organizations.",
     engagement: "sales",
@@ -113,12 +148,12 @@ export const PRICING_TIERS: PricingTier[] = [
     ],
   },
   {
-    id: "ultra",
-    name: "Ultra",
-    priceLabel: "$500M",
-    priceNote: "Strategic partnership",
+    id: "flagship",
+    name: "Flagship",
+    priceLabel: "Strategic",
+    priceNote: "Partnership · contact founders",
     description:
-      "A sovereign digital corporation built and operated with NULLXES.",
+      "A sovereign digital corporation built and operated with NULLXES — pricing by negotiation.",
     engagement: "sales",
     flagship: true,
     features: [
@@ -134,13 +169,27 @@ export function getGridPricingTiers(): PricingTier[] {
   return PRICING_TIERS.filter((tier) => !tier.flagship);
 }
 
+export function getSelfServePricingTiers(): PricingTier[] {
+  return PRICING_TIERS.filter(
+    (tier) => tier.engagement === "self_serve" && !tier.flagship,
+  );
+}
+
+export function getSalesPricingTiers(): PricingTier[] {
+  return PRICING_TIERS.filter(
+    (tier) => tier.engagement === "sales" && !tier.flagship,
+  );
+}
+
 export function getFlagshipPricingTier(): PricingTier | undefined {
   return PRICING_TIERS.find((tier) => tier.flagship);
 }
 
 const PLAN_TO_TIER: Record<BillingPlanId, PricingTierId> = {
   free: "free",
-  super_pro: "super_pro",
+  studio: "studio",
+  operator: "operator",
+  scale: "scale",
   enterprise: "department",
   government: "holding",
 };

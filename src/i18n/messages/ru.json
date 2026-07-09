@@ -36,9 +36,9 @@
       "settings": "Настройки",
       "analytics": "Аналитика",
       "billing": "Биллинг",
-      "upgrade": "Перейти на Super Pro",
+      "upgrade": "Запустите цифрового сотрудника",
       "manageSubscription": "Управление подпиской",
-      "contactSales": "Enterprise и Government",
+      "contactSales": "Enterprise Design Partners",
       "logout": "Выйти"
     },
     "subtitle": {
@@ -466,13 +466,13 @@
       },
       "draftRestored": "Черновик восстановлен. Если использовали своё фото — загрузите его снова.",
       "upgradeGate": {
-        "limitTitle": "Нужен апгрейд для новых сотрудников",
-        "limitDescription": "На Free доступен один цифровой сотрудник. Super Pro — без лимита и с кастомными аватарами.",
-        "avatarTitle": "Кастомные аватары — на Super Pro",
-        "avatarDescription": "На Free выберите пресет NULLXES или перейдите на Super Pro для загрузки фото.",
+        "limitTitle": "Запустите больше цифровых сотрудников",
+        "limitDescription": "Evaluation — один цифровой сотрудник. Studio, Operator и Scale расширяют workforce с кастомными аватарами.",
+        "avatarTitle": "Кастомные аватары — с Studio",
+        "avatarDescription": "На Evaluation выберите пресет NULLXES или запустите Studio для загрузки фото.",
         "cancel": "Не сейчас",
-        "upgrade": "Перейти на Super Pro",
-        "billing": "Тарифы"
+        "upgrade": "Запустите цифрового сотрудника",
+        "billing": "Биллинг"
       },
       "errors": {
         "nameRequired": "Укажите имя сотрудника.",
@@ -502,8 +502,8 @@
         "recommended": "Рекомендуем для этой роли",
         "allScenarios": "Все сценарии",
         "monthlyUsage": "Использовано {used} из {limit} сценариев в этом месяце",
-        "limitReached": "Достигнут лимит Free на сценарии в этом месяце. Upgrade — безлимитные симуляции и более длинные Talk-сессии.",
-        "upgrade": "Upgrade на Super Pro",
+        "limitReached": "Достигнут лимит Evaluation на сценарии в этом месяце. Запустите Studio или выше — симуляции без месячного лимита и более длинные Talk-сессии.",
+        "upgrade": "Запустите цифрового сотрудника",
         "billing": "Биллинг",
         "starting": "Запуск сценария…"
       },
@@ -520,8 +520,8 @@
         "strengths": "Сильные стороны",
         "improvements": "Улучшить в следующий раз",
         "proUpsellTitle": "Вынести workflow в production",
-        "proUpsellBody": "Super Pro — безлимитные сотрудники, custom avatars, missions и более длинные Talk-сессии для реальных операций.",
-        "upgrade": "Upgrade на Super Pro",
+        "proUpsellBody": "Studio, Operator и Scale — больше сотрудников, custom avatars, missions и более длинные Talk-сессии для реальных операций.",
+        "upgrade": "Запустите цифрового сотрудника",
         "billing": "Биллинг",
         "runAnother": "Ещё один сценарий",
         "openTalk": "Открыть Talk"
@@ -1020,17 +1020,26 @@
       "cancel": "Отмена"
     },
     "billing": {
+      "designPartners": "Enterprise Design Partners",
+      "designPartnersDesc": "Закрытая программа раннего доступа для первых компаний, внедряющих цифровую рабочую силу",
+      "designPartnersBody": "NULLXES открывает ограниченную программу Enterprise Design Partners — ранний доступ, влияние на roadmap, приоритетная архитектура и статус первого внедрения. Это не mass SaaS trial.",
+      "applyDesignPartner": "Стать Design Partner",
       "currentPlan": "Текущий план",
-      "currentPlanDesc": "Премиум-операции цифрового workforce",
+      "currentPlanDesc": "Операционный план цифровой рабочей силы для этой организации",
+      "selfServe": "Запустите цифрового сотрудника",
+      "selfServeDesc": "Founders и innovation labs — Evaluation → Scale",
+      "enterpriseLadder": "Enterprise-внедрение",
+      "enterpriseLadderDesc": "Discovery → Pilot → Digital Department Deployment → Holding",
       "plans": "Планы",
-      "plansDesc": "Стадии внедрения: от self-serve до суверенной корпорации",
+      "plansDesc": "Self-serve запуск и стадии enterprise-внедрения",
       "current": "Текущий",
       "currentPlanCta": "Текущий план",
       "included": "Включено",
       "flagship": "Флагман",
       "digitalCorporation": "Цифровая корпорация",
       "talkToFounders": "Связаться с основателями",
-      "upgrade": "Улучшить",
+      "launchEmployee": "Запустите цифрового сотрудника",
+      "upgrade": "Запустите цифрового сотрудника",
       "contactSales": "Связаться с продажами",
       "usageMeters": "Метрики использования",
       "usageMetersDesc": "Активность workspace для биллинга",
@@ -1045,8 +1054,8 @@
       "polarSubscription": "Подписка Polar",
       "renewsOn": "Продление {date}",
       "cancelsOn": "Отмена {date}",
-      "polarNotConfigured": "Международная оплата недоступна, пока Polar не настроен.",
-      "polarPricesLive": "Цены self-serve загружаются из Polar."
+      "polarNotConfigured": "Self-serve оплата недоступна, пока Polar не настроен.",
+      "polarPricesLive": "Цены self-serve загружаются из Polar, когда продукты созданы."
     },
     "security": {
       "authentication": "Аутентификация",

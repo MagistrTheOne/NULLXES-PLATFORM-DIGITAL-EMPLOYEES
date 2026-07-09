@@ -1,6 +1,10 @@
 import { cache } from "react";
 import { BILLING_PLANS, type BillingPlanId } from "../config/plans";
-import { PRICING_TIERS, type PricingTierId } from "../config/pricing-tiers";
+import {
+  PRICING_TIERS,
+  resolvePricingTierIdForPlan,
+  type PricingTierId,
+} from "../config/pricing-tiers";
 import { extractPrimaryProductPrice } from "../lib/extract-product-price";
 import {
   formatPolarAmount,
@@ -25,21 +29,26 @@ function resolvePlanIdForProduct(input: {
   }
 
   const metadataTier = readMetadataTier(input.metadata);
-  if (metadataTier === "super_pro") {
-    return "super_pro";
-  }
+  if (metadataTier === "studio") return "studio";
+  if (metadataTier === "operator") return "operator";
+  if (metadataTier === "scale") return "scale";
+  if (metadataTier === "free") return "free";
 
   const normalized = input.name.toLowerCase();
-  if (normalized.includes("super pro")) {
-    return "super_pro";
+  if (normalized.includes("studio")) return "studio";
+  if (normalized.includes("operator")) return "operator";
+  if (
+    normalized.includes("scale") ||
+    normalized.includes("super pro") ||
+    normalized.includes("super_pro")
+  ) {
+    return "scale";
   }
-  if (normalized.includes("enterprise")) {
-    return "enterprise";
-  }
+  if (normalized.includes("enterprise")) return "enterprise";
   if (normalized.includes("government") || normalized.includes("gov")) {
     return "government";
   }
-  if (normalized.includes("free")) {
+  if (normalized.includes("free") || normalized.includes("evaluation")) {
     return "free";
   }
 
@@ -56,17 +65,8 @@ function resolveTierIdForProduct(input: {
     return metadataTier;
   }
 
-  if (input.planId === "super_pro") {
-    return "super_pro";
-  }
-  if (input.planId === "enterprise") {
-    return "department";
-  }
-  if (input.planId === "government") {
-    return "holding";
-  }
-  if (input.planId === "free") {
-    return "free";
+  if (input.planId) {
+    return resolvePricingTierIdForPlan(input.planId);
   }
 
   const normalized = input.name.toLowerCase();
@@ -176,8 +176,8 @@ export function getPolarCatalogProductForTier(
 ): PolarCatalogProduct | undefined {
   return (
     catalog.find((product) => product.tierId === tierId) ??
-    (tierId === "super_pro"
-      ? getPolarCatalogProductForPlan(catalog, "super_pro")
+    (tierId === "scale"
+      ? getPolarCatalogProductForPlan(catalog, "scale")
       : undefined)
   );
 }

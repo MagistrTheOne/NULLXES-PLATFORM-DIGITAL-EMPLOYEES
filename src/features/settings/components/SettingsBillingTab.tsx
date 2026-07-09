@@ -14,9 +14,11 @@ import {
 } from "@/features/billing/lib/billing-plan-helpers";
 import {
   getFlagshipPricingTier,
-  getGridPricingTiers,
+  getSalesPricingTiers,
+  getSelfServePricingTiers,
   resolvePricingTierIdForPlan,
   type PricingTier,
+  type PricingTierId,
 } from "@/features/billing/config/pricing-tiers";
 import { resolveBillingPlanId } from "@/features/billing/lib/resolve-billing-plan";
 import type {
@@ -28,6 +30,14 @@ import { SettingsCard } from "./settings-card";
 
 const SALES_CONTACT = "mailto:sales@nullxes.com";
 const FOUNDERS_CONTACT = "mailto:founders@nullxes.com";
+
+const TIER_TO_CHECKOUT_PLAN: Partial<
+  Record<PricingTierId, "studio" | "operator" | "scale">
+> = {
+  studio: "studio",
+  operator: "operator",
+  scale: "scale",
+};
 
 function formatRenewalDate(isoDate: string): string {
   return new Intl.DateTimeFormat(undefined, {
@@ -55,7 +65,6 @@ export function SettingsBillingTab({
   const activePlan = BILLING_PLANS[planId];
   const currentTierId = resolvePricingTierIdForPlan(planId);
   const polarReady = billing.polarReady;
-  const checkoutUrl = billing.checkoutUrl ?? billing.superProCheckoutUrl;
 
   const polarCatalogProduct = billing.polarCatalog.find(
     (product) => product.planId === planId,
@@ -72,8 +81,21 @@ export function SettingsBillingTab({
       null,
   });
 
-  const gridTiers = getGridPricingTiers();
+  const selfServeTiers = getSelfServePricingTiers();
+  const salesTiers = getSalesPricingTiers();
   const flagshipTier = getFlagshipPricingTier();
+
+  function checkoutUrlForTier(tier: PricingTier): string | null {
+    const planKey = TIER_TO_CHECKOUT_PLAN[tier.id];
+    if (!planKey) return null;
+    return (
+      billing.selfServeCheckoutUrls?.[planKey] ??
+      (tier.id === "scale"
+        ? (billing.superProCheckoutUrl ?? billing.checkoutUrl)
+        : null) ??
+      null
+    );
+  }
 
   function renderTierCta(tier: PricingTier): React.ReactNode {
     const isCurrent = tier.id === currentTierId;
@@ -91,30 +113,6 @@ export function SettingsBillingTab({
       );
     }
 
-    if (tier.id === "super_pro") {
-      if (canManageOrganization && polarReady && checkoutUrl) {
-        return (
-          <Button
-            type="button"
-            className="w-full justify-center bg-foreground text-background hover:bg-foreground/90"
-            asChild
-          >
-            <Link href={checkoutUrl}>{t("upgrade")}</Link>
-          </Button>
-        );
-      }
-      return (
-        <Button
-          type="button"
-          variant="outline"
-          disabled
-          className="w-full justify-center border-border bg-transparent text-muted-foreground"
-        >
-          {t("upgrade")}
-        </Button>
-      );
-    }
-
     if (tier.id === "free") {
       return (
         <Button
@@ -124,6 +122,31 @@ export function SettingsBillingTab({
           className="w-full justify-center border-border bg-transparent text-muted-foreground"
         >
           {t("included")}
+        </Button>
+      );
+    }
+
+    if (tier.engagement === "self_serve") {
+      const checkoutUrl = checkoutUrlForTier(tier);
+      if (canManageOrganization && polarReady && checkoutUrl) {
+        return (
+          <Button
+            type="button"
+            className="w-full justify-center bg-foreground text-background hover:bg-foreground/90"
+            asChild
+          >
+            <Link href={checkoutUrl}>{t("launchEmployee")}</Link>
+          </Button>
+        );
+      }
+      return (
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full justify-center border-border bg-transparent text-foreground hover:bg-accent"
+          asChild
+        >
+          <a href={SALES_CONTACT}>{t("contactSales")}</a>
         </Button>
       );
     }
@@ -140,8 +163,89 @@ export function SettingsBillingTab({
     );
   }
 
+  function renderTierGrid(tiers: PricingTier[]) {
+    return (
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {tiers.map((tier) => {
+          const isCurrent = tier.id === currentTierId;
+          const polarPrice = getPolarCatalogPriceForTier(
+            billing.polarCatalog,
+            tier.id,
+          );
+          const priceLabel = polarPrice?.priceLabel ?? tier.priceLabel;
+          const priceNote = polarPrice?.priceNote ?? tier.priceNote;
+
+          return (
+            <div
+              key={tier.id}
+              className={cn(
+                "flex h-full flex-col rounded-2xl border bg-background/40 p-5 transition-colors",
+                isCurrent
+                  ? "border-foreground/40 ring-1 ring-foreground/15"
+                  : "border-border hover:border-foreground/20",
+              )}
+            >
+              <div className="flex items-start justify-between gap-2">
+                <p className="text-sm font-medium text-foreground">
+                  {tier.name}
+                </p>
+                {isCurrent ? (
+                  <span className="rounded-full border border-foreground/30 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-foreground/70">
+                    {t("current")}
+                  </span>
+                ) : null}
+              </div>
+
+              <div className="mt-4">
+                <p className="text-2xl font-medium tracking-tight text-foreground">
+                  {priceLabel}
+                </p>
+                <p className="mt-1 text-[11px] uppercase tracking-wide text-muted-foreground">
+                  {priceNote}
+                </p>
+              </div>
+
+              <p className="mt-3 text-sm text-muted-foreground">
+                {tier.description}
+              </p>
+
+              <ul className="mt-4 flex-1 space-y-2 border-t border-border pt-4 text-sm text-foreground/80">
+                {tier.features.map((feature) => (
+                  <li key={feature} className="flex items-start gap-2">
+                    <Check className="mt-0.5 size-3.5 shrink-0 text-foreground/40" />
+                    <span>{feature}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <div className="mt-5">{renderTierCta(tier)}</div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+
   return (
     <div className="grid gap-6">
+      <SettingsCard
+        title={t("designPartners")}
+        description={t("designPartnersDesc")}
+      >
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="max-w-2xl text-sm text-muted-foreground">
+            {t("designPartnersBody")}
+          </p>
+          <Button
+            type="button"
+            className="shrink-0 bg-foreground text-background hover:bg-foreground/90"
+            asChild
+          >
+            <a href={SALES_CONTACT}>{t("applyDesignPartner")}</a>
+          </Button>
+        </div>
+      </SettingsCard>
+
       <SettingsCard title={t("currentPlan")} description={t("currentPlanDesc")}>
         <div className="space-y-4">
           <div className="rounded-xl border border-border bg-background/40 px-4 py-4">
@@ -191,7 +295,7 @@ export function SettingsBillingTab({
         </div>
       </SettingsCard>
 
-      <SettingsCard title={t("plans")} description={t("plansDesc")}>
+      <SettingsCard title={t("selfServe")} description={t("selfServeDesc")}>
         {!polarReady ? (
           <p className="mb-4 text-sm text-muted-foreground">
             {t("polarNotConfigured")}
@@ -202,64 +306,11 @@ export function SettingsBillingTab({
           </p>
         ) : null}
 
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {gridTiers.map((tier) => {
-            const isCurrent = tier.id === currentTierId;
-            const polarPrice = getPolarCatalogPriceForTier(
-              billing.polarCatalog,
-              tier.id,
-            );
-            const priceLabel = polarPrice?.priceLabel ?? tier.priceLabel;
-            const priceNote = polarPrice?.priceNote ?? tier.priceNote;
+        {renderTierGrid(selfServeTiers)}
+      </SettingsCard>
 
-            return (
-              <div
-                key={tier.id}
-                className={cn(
-                  "flex h-full flex-col rounded-2xl border bg-background/40 p-5 transition-colors",
-                  isCurrent
-                    ? "border-foreground/40 ring-1 ring-foreground/15"
-                    : "border-border hover:border-foreground/20",
-                )}
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <p className="text-sm font-medium text-foreground">
-                    {tier.name}
-                  </p>
-                  {isCurrent ? (
-                    <span className="rounded-full border border-foreground/30 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-foreground/70">
-                      {t("current")}
-                    </span>
-                  ) : null}
-                </div>
-
-                <div className="mt-4">
-                  <p className="text-2xl font-medium tracking-tight text-foreground">
-                    {priceLabel}
-                  </p>
-                  <p className="mt-1 text-[11px] uppercase tracking-wide text-muted-foreground">
-                    {priceNote}
-                  </p>
-                </div>
-
-                <p className="mt-3 text-sm text-muted-foreground">
-                  {tier.description}
-                </p>
-
-                <ul className="mt-4 flex-1 space-y-2 border-t border-border pt-4 text-sm text-foreground/80">
-                  {tier.features.map((feature) => (
-                    <li key={feature} className="flex items-start gap-2">
-                      <Check className="mt-0.5 size-3.5 shrink-0 text-foreground/40" />
-                      <span>{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-
-                <div className="mt-5">{renderTierCta(tier)}</div>
-              </div>
-            );
-          })}
-        </div>
+      <SettingsCard title={t("enterpriseLadder")} description={t("enterpriseLadderDesc")}>
+        {renderTierGrid(salesTiers)}
 
         {flagshipTier ? (
           <div className="mt-3 flex flex-col gap-5 rounded-2xl border border-foreground/20 bg-background/40 p-6 md:flex-row md:items-center md:justify-between">
@@ -283,22 +334,12 @@ export function SettingsBillingTab({
               </ul>
             </div>
             <div className="flex shrink-0 flex-col items-start gap-2 md:items-end">
-              {(() => {
-                const polarPrice = getPolarCatalogPriceForTier(
-                  billing.polarCatalog,
-                  flagshipTier.id,
-                );
-                return (
-                  <>
-                    <p className="text-2xl font-medium tracking-tight text-foreground">
-                      {polarPrice?.priceLabel ?? flagshipTier.priceLabel}
-                    </p>
-                    <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
-                      {polarPrice?.priceNote ?? flagshipTier.priceNote}
-                    </p>
-                  </>
-                );
-              })()}
+              <p className="text-2xl font-medium tracking-tight text-foreground">
+                {flagshipTier.priceLabel}
+              </p>
+              <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                {flagshipTier.priceNote}
+              </p>
               <Button
                 type="button"
                 className="bg-foreground text-background hover:bg-foreground/90"
