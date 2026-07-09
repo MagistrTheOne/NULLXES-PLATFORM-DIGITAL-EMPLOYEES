@@ -1,5 +1,12 @@
-import { BILLING_PLANS, type BillingPlanId } from "../config/plans";
-import type { PricingTierId } from "../config/pricing-tiers";
+import {
+  BILLING_PLANS,
+  type BillingInterval,
+  type BillingPlanId,
+} from "../config/plans";
+import {
+  getTierDisplayPrice,
+  type PricingTierId,
+} from "../config/pricing-tiers";
 import type {
   PolarCatalogProduct,
   PolarSubscriptionSnapshot,
@@ -14,16 +21,20 @@ const SELF_SERVE_TIER_TO_PLAN: Partial<Record<PricingTierId, BillingPlanId>> = {
 function findPolarCatalogProductForTier(
   catalog: PolarCatalogProduct[],
   tierId: PricingTierId,
+  interval: BillingInterval,
 ): PolarCatalogProduct | undefined {
   const planId = SELF_SERVE_TIER_TO_PLAN[tierId];
+  const matches = catalog.filter(
+    (product) =>
+      product.tierId === tierId ||
+      (planId != null && product.planId === planId) ||
+      (tierId === "scale" && product.planId === "scale"),
+  );
+
   return (
-    catalog.find((product) => product.tierId === tierId) ??
-    (planId
-      ? catalog.find((product) => product.planId === planId)
-      : undefined) ??
-    (tierId === "scale"
-      ? catalog.find((product) => product.planId === "scale")
-      : undefined)
+    matches.find((product) => product.recurringInterval === interval) ??
+    matches.find((product) => product.recurringInterval == null) ??
+    matches[0]
   );
 }
 
@@ -61,8 +72,9 @@ export function resolveEffectiveBillingPlanId(input: {
 export function getPolarCatalogPriceForTier(
   catalog: PolarCatalogProduct[],
   tierId: PricingTierId,
+  interval: BillingInterval = "month",
 ): Pick<PolarCatalogProduct, "priceLabel" | "priceNote"> | null {
-  const product = findPolarCatalogProductForTier(catalog, tierId);
+  const product = findPolarCatalogProductForTier(catalog, tierId, interval);
   if (!product) {
     return null;
   }
@@ -71,4 +83,27 @@ export function getPolarCatalogPriceForTier(
     priceLabel: product.priceLabel,
     priceNote: product.priceNote,
   };
+}
+
+export function resolveTierPriceDisplay(input: {
+  catalog: PolarCatalogProduct[];
+  tierId: PricingTierId;
+  interval: BillingInterval;
+  fallbackTier: {
+    priceLabel: string;
+    priceNote: string;
+    priceLabelAnnual?: string;
+    priceNoteAnnual?: string;
+  };
+}): { priceLabel: string; priceNote: string } {
+  const live = getPolarCatalogPriceForTier(
+    input.catalog,
+    input.tierId,
+    input.interval,
+  );
+  if (live) {
+    return live;
+  }
+
+  return getTierDisplayPrice(input.fallbackTier, input.interval);
 }

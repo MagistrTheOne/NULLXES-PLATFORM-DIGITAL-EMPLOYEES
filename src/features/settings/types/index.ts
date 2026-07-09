@@ -127,6 +127,7 @@ import type {
   BillingPlanSource,
   PolarCatalogProduct,
   PolarSubscriptionSnapshot,
+  SelfServeCheckoutUrls,
 } from "@/features/billing/types/polar-catalog";
 
 export type BillingSnapshot = {
@@ -135,10 +136,8 @@ export type BillingSnapshot = {
   subscription: PolarSubscriptionSnapshot | null;
   planSource: BillingPlanSource;
   checkoutUrl: string | null;
-  selfServeCheckoutUrls: Partial<
-    Record<"studio" | "operator" | "scale", string>
-  >;
-  /** @deprecated Prefer selfServeCheckoutUrls */
+  selfServeCheckoutUrls: SelfServeCheckoutUrls;
+  /** @deprecated Prefer selfServeCheckoutUrls.scale.month */
   superProCheckoutUrl: string | null;
   portalEnabled: boolean;
 };

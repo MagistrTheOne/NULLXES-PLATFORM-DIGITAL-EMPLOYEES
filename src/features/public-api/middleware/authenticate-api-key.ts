@@ -147,7 +147,7 @@ export async function authenticateApiKeyRequest(
     return apiError(
       needsWrite
         ? "Full API access requires Scale or Enterprise"
-        : "API access requires Operator or higher",
+        : "API access requires Team or higher",
       403,
       { requestId },
     );

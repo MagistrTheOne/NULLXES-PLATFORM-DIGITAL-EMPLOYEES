@@ -1,4 +1,4 @@
-import type { BillingPlanId } from "../config/plans";
+import type { BillingInterval, BillingPlanId } from "../config/plans";
 import type { PricingTierId } from "../config/pricing-tiers";
 
 export type PolarCatalogProduct = {
@@ -10,6 +10,7 @@ export type PolarCatalogProduct = {
   priceLabel: string;
   priceNote: string;
   isRecurring: boolean;
+  recurringInterval: BillingInterval | null;
   checkoutEnabled: boolean;
   /** True when Polar price is non-zero (self-serve checkout candidate). */
   hasLivePrice: boolean;
@@ -27,3 +28,8 @@ export type PolarSubscriptionSnapshot = {
 };
 
 export type BillingPlanSource = "polar" | "manual" | "free";
+
+/** Checkout URLs keyed by billing interval for a self-serve plan. */
+export type SelfServeCheckoutUrls = Partial<
+  Record<"studio" | "operator" | "scale", Partial<Record<BillingInterval, string>>>
+>;

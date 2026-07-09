@@ -16,7 +16,7 @@ Last updated: **2026-07-09** (billing plans `studio`/`operator`/`scale`, Neon HT
 | **Sprint B — S.3.1** | Accept invite flow + OAuth (Google/GitHub optional) | ✅ |
 | **Sprint C — S.6** | Notifications (Inngest + Resend, org `notify*` flags) | ✅ |
 | **Sprint C — S.2.1** | i18n sweep (en/ru via next-intl) | ✅ |
-| **S.4 Billing** | Polar self-serve: Studio / Operator / Scale (+ Enterprise / Government manual) | ✅ |
+| **S.4 Billing** | Polar self-serve: Studio / Team / Scale (+ monthly/annual, Enterprise / Government manual) | ✅ |
 | **S.5 Integrations** | Provider status + Slack/Teams OAuth connect | ✅ |
 | **S.7 Security** | Live TOTP, API key CRUD + pepper, IP allowlist, outbound webhooks | ✅ |
 | **S.8 Advanced** | Data export download + queued job (Inngest) | 🟡 |
@@ -26,16 +26,18 @@ Last updated: **2026-07-09** (billing plans `studio`/`operator`/`scale`, Neon HT
 
 ## Billing plans (source of truth: `src/features/billing/config/plans.ts`)
 
-| Plan | Employees | Session | Talk min/mo | Knowledge chunks | Custom avatars | Seats | API | Checkout |
-|------|-----------|---------|-------------|------------------|----------------|-------|-----|----------|
-| **free** (Evaluation) | 1 | 120 s | 30 | 5 000 | 0 | 1 | none | — |
-| **studio** | 1 | 600 s | 180 | 15 000 | 1 | 1 | none | Polar |
-| **operator** | 3 | 1 200 s | 600 | 50 000 | 3 | 3 | read | Polar |
-| **scale** | 10 | 1 800 s | 2 000 | 150 000 | 10 | 10 | full | Polar |
-| **enterprise** | ∞ | ∞ | ∞ | 100 000 | ∞ | ∞ | full | Sales |
-| **government** | ∞ | ∞ | ∞ | ∞ | ∞ | ∞ | full | Sales |
+USD Polar presentment. DB id `operator` is displayed as **Team**. Annual = −20% (separate Polar products).
 
-Legacy `super_pro` rows were migrated to **`scale`** (`drizzle/0038_billing_plans_studio_operator_scale.sql`).
+| Plan (DB) | UI | Monthly | Annual | Employees | Session | Talk min/mo | API |
+|-----------|-----|---------|--------|-----------|---------|-------------|-----|
+| **free** | Evaluation | $0 | — | 1 | 120 s | 30 | none |
+| **studio** | Studio | $49 | $470 | 1 | 600 s | 180 | none |
+| **operator** | Team | $200 | $1 920 | 3 | 1 200 s | 600 | read |
+| **scale** | Scale | $600 | $5 760 | 10 | 1 800 s | 2 000 | full |
+| **enterprise** | Enterprise | Contact sales | — | ∞ | ∞ | ∞ | full |
+| **government** | Government | Contact sales | — | ∞ | ∞ | ∞ | full |
+
+Legacy `super_pro` → **`scale`** (migration `0038` + Polar remap). Sync catalog: `npm run polar:setup`.
 
 Talk minutes / month are **enforced** (`assertTalkMinutesBudget`).
 

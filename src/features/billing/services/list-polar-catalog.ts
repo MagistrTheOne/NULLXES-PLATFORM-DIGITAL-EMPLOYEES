@@ -1,5 +1,9 @@
 import { cache } from "react";
-import { BILLING_PLANS, type BillingPlanId } from "../config/plans";
+import {
+  BILLING_PLANS,
+  type BillingInterval,
+  type BillingPlanId,
+} from "../config/plans";
 import {
   PRICING_TIERS,
   resolvePricingTierIdForPlan,
@@ -12,6 +16,7 @@ import {
 } from "../lib/format-polar-price";
 import {
   BILLING_PLAN_IDS,
+  readMetadataInterval,
   readMetadataPlan,
   readMetadataTier,
 } from "../lib/polar-product-metadata";
@@ -36,7 +41,9 @@ function resolvePlanIdForProduct(input: {
 
   const normalized = input.name.toLowerCase();
   if (normalized.includes("studio")) return "studio";
-  if (normalized.includes("operator")) return "operator";
+  if (normalized.includes("operator") || normalized.includes("team")) {
+    return "operator";
+  }
   if (
     normalized.includes("scale") ||
     normalized.includes("super pro") ||
@@ -74,6 +81,22 @@ function resolveTierIdForProduct(input: {
     if (normalized.includes(tier.name.toLowerCase())) {
       return tier.id;
     }
+  }
+
+  return null;
+}
+
+function resolveRecurringInterval(input: {
+  metadata: Record<string, unknown>;
+  productInterval: string | null | undefined;
+}): BillingInterval | null {
+  const fromMeta = readMetadataInterval(input.metadata);
+  if (fromMeta) {
+    return fromMeta;
+  }
+
+  if (input.productInterval === "month" || input.productInterval === "year") {
+    return input.productInterval;
   }
 
   return null;
@@ -117,6 +140,10 @@ export const listPolarCatalog = cache(async (): Promise<PolarCatalogProduct[]> =
           metadata,
           planId,
         });
+        const recurringInterval = resolveRecurringInterval({
+          metadata,
+          productInterval: product.recurringInterval,
+        });
         const price = extractPrimaryProductPrice(product);
         const hasLivePrice = Boolean(price && price.amountCents > 0);
         const polarPriceLabel = price
@@ -150,6 +177,7 @@ export const listPolarCatalog = cache(async (): Promise<PolarCatalogProduct[]> =
           priceLabel,
           priceNote,
           isRecurring: product.isRecurring,
+          recurringInterval,
           checkoutEnabled:
             Boolean(planDefinition?.checkoutEnabled && hasLivePrice),
           hasLivePrice,
@@ -166,27 +194,44 @@ export const listPolarCatalog = cache(async (): Promise<PolarCatalogProduct[]> =
 export function getPolarCatalogProductForPlan(
   catalog: PolarCatalogProduct[],
   planId: BillingPlanId,
+  interval: BillingInterval = "month",
 ): PolarCatalogProduct | undefined {
-  return catalog.find((product) => product.planId === planId);
+  const matches = catalog.filter((product) => product.planId === planId);
+  return (
+    matches.find((product) => product.recurringInterval === interval) ??
+    matches.find((product) => product.recurringInterval == null) ??
+    matches[0]
+  );
 }
 
 export function getPolarCatalogProductForTier(
   catalog: PolarCatalogProduct[],
   tierId: PricingTierId,
+  interval: BillingInterval = "month",
 ): PolarCatalogProduct | undefined {
-  return (
-    catalog.find((product) => product.tierId === tierId) ??
-    (tierId === "scale"
-      ? getPolarCatalogProductForPlan(catalog, "scale")
-      : undefined)
-  );
+  const matches = catalog.filter((product) => product.tierId === tierId);
+  const byInterval =
+    matches.find((product) => product.recurringInterval === interval) ??
+    matches.find((product) => product.recurringInterval == null) ??
+    matches[0];
+
+  if (byInterval) {
+    return byInterval;
+  }
+
+  if (tierId === "scale") {
+    return getPolarCatalogProductForPlan(catalog, "scale", interval);
+  }
+
+  return undefined;
 }
 
 export function resolvePolarProductIdForPlan(
   catalog: PolarCatalogProduct[],
   planId: BillingPlanId,
+  interval: BillingInterval = "month",
 ): string | undefined {
-  return getPolarCatalogProductForPlan(catalog, planId)?.productId;
+  return getPolarCatalogProductForPlan(catalog, planId, interval)?.productId;
 }
 
 export function buildPolarProductPlanMap(

@@ -34,7 +34,7 @@ export async function createApiKeyAction(input: {
       ok: false,
       message:
         requiredAccess === "read"
-          ? "API read access starts on Operator. Upgrade your plan or contact sales."
+          ? "API read access starts on Team. Upgrade your plan or contact sales."
           : "Full API access starts on Scale. Upgrade your plan or contact sales.",
     };
   }

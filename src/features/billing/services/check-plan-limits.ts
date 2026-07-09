@@ -27,7 +27,7 @@ export async function assertCanCreateEmployee(
   if (total >= limit) {
     return {
       ok: false,
-      message: `Your plan allows ${limit} digital employee${limit === 1 ? "" : "s"}. Launch Studio, Operator, or Scale — or contact sales for Digital Department Deployment.`,
+      message: `Your plan allows ${limit} digital employee${limit === 1 ? "" : "s"}. Launch Studio, Team, or Scale — or contact sales for Digital Department Deployment.`,
     };
   }
 

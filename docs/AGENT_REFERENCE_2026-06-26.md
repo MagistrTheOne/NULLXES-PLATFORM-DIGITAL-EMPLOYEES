@@ -164,16 +164,16 @@ Password recovery: `/login/forgot-password` → Better Auth `sendResetPassword` 
 
 Source: `src/features/billing/config/plans.ts`
 
-| Plan | Employees | Session | Talk min/mo | API |
-|------|-----------|---------|-------------|-----|
-| free | 1 | 120 s | 30 | none |
-| studio | 1 | 600 s | 180 | none |
-| operator | 3 | 1 200 s | 600 | read |
-| scale | 10 | 1 800 s | 2 000 | full |
-| enterprise | ∞ | ∞ | ∞ | full |
-| government | ∞ | ∞ | ∞ | full |
+| Plan (DB) | UI | Monthly | Annual | Employees | Session | Talk min/mo | API |
+|-----------|-----|---------|--------|-----------|---------|-------------|-----|
+| free | Evaluation | $0 | — | 1 | 120 s | 30 | none |
+| studio | Studio | $49 | $470 | 1 | 600 s | 180 | none |
+| operator | Team | $200 | $1 920 | 3 | 1 200 s | 600 | read |
+| scale | Scale | $600 | $5 760 | 10 | 1 800 s | 2 000 | full |
+| enterprise | Enterprise | Contact sales | — | ∞ | ∞ | ∞ | full |
+| government | Government | Contact sales | — | ∞ | ∞ | ∞ | full |
 
-Self-serve Polar checkout: `studio`, `operator`, `scale`. Legacy `super_pro` → `scale` (migration `0038`).  
+Self-serve Polar checkout: `studio` / `operator` (Team) / `scale` × `month|year` (separate products). Sync: `npm run polar:setup`. Legacy `super_pro` → `scale`.  
 Talk minutes enforced via `assertTalkMinutesBudget`.
 
 ---

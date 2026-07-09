@@ -53,7 +53,22 @@ export function readMetadataTier(
     return raw === "ultra" ? "flagship" : "scale";
   }
 
+  // Marketing alias: Team UI maps to operator tier id.
+  if (raw === "team") {
+    return "operator";
+  }
+
   return PRICING_TIER_IDS.includes(raw as PricingTierId)
     ? (raw as PricingTierId)
     : null;
+}
+
+export function readMetadataInterval(
+  metadata: Record<string, unknown>,
+): "month" | "year" | null {
+  const raw = metadata.interval;
+  if (raw === "month" || raw === "year") {
+    return raw;
+  }
+  return null;
 }

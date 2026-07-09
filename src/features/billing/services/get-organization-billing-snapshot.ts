@@ -1,5 +1,6 @@
 import {
   SELF_SERVE_CHECKOUT_PLAN_IDS,
+  type BillingInterval,
   type BillingPlanId,
 } from "../config/plans";
 import { buildPolarCheckoutUrl } from "../lib/build-checkout-url";
@@ -13,6 +14,7 @@ import type {
   BillingPlanSource,
   PolarCatalogProduct,
   PolarSubscriptionSnapshot,
+  SelfServeCheckoutUrls,
 } from "../types/polar-catalog";
 import {
   buildPolarProductPlanMap,
@@ -29,14 +31,16 @@ export type OrganizationBillingSnapshot = {
   polarCatalog: PolarCatalogProduct[];
   subscription: PolarSubscriptionSnapshot | null;
   planSource: BillingPlanSource;
-  /** Preferred self-serve checkout (Studio when on Evaluation). */
+  /** Preferred self-serve checkout (Studio monthly when on Evaluation). */
   checkoutUrl: string | null;
-  /** Per-plan Polar checkout URLs for Studio / Operator / Scale. */
-  selfServeCheckoutUrls: Partial<Record<BillingPlanId, string>>;
-  /** @deprecated Use selfServeCheckoutUrls.scale or checkoutUrl */
+  /** Per-plan Polar checkout URLs for Studio / Team / Scale × month|year. */
+  selfServeCheckoutUrls: SelfServeCheckoutUrls;
+  /** @deprecated Use selfServeCheckoutUrls.scale.month or checkoutUrl */
   superProCheckoutUrl: string | null;
   portalEnabled: boolean;
 };
+
+const BILLING_INTERVALS: BillingInterval[] = ["month", "year"];
 
 function buildSelfServeCheckoutUrls(input: {
   catalog: PolarCatalogProduct[];
@@ -44,22 +48,48 @@ function buildSelfServeCheckoutUrls(input: {
   customerEmail?: string;
   canManageOrganization: boolean;
   polarReady: boolean;
-}): Partial<Record<BillingPlanId, string>> {
+}): SelfServeCheckoutUrls {
   if (!input.canManageOrganization || !input.polarReady) {
     return {};
   }
 
-  const urls: Partial<Record<BillingPlanId, string>> = {};
+  const urls: SelfServeCheckoutUrls = {};
   for (const planId of SELF_SERVE_CHECKOUT_PLAN_IDS) {
-    const productId = resolvePolarProductIdForPlan(input.catalog, planId);
-    if (!productId) continue;
-    urls[planId] = buildPolarCheckoutUrl({
-      productId,
-      organizationId: input.organizationId,
-      customerEmail: input.customerEmail,
-    });
+    if (
+      planId !== "studio" &&
+      planId !== "operator" &&
+      planId !== "scale"
+    ) {
+      continue;
+    }
+
+    const byInterval: Partial<Record<BillingInterval, string>> = {};
+    for (const interval of BILLING_INTERVALS) {
+      const productId = resolvePolarProductIdForPlan(
+        input.catalog,
+        planId,
+        interval,
+      );
+      if (!productId) continue;
+      byInterval[interval] = buildPolarCheckoutUrl({
+        productId,
+        organizationId: input.organizationId,
+        customerEmail: input.customerEmail,
+      });
+    }
+
+    if (Object.keys(byInterval).length > 0) {
+      urls[planId] = byInterval;
+    }
   }
   return urls;
+}
+
+function firstCheckoutUrl(
+  urls: SelfServeCheckoutUrls,
+  planId: "studio" | "operator" | "scale",
+): string | null {
+  return urls[planId]?.month ?? urls[planId]?.year ?? null;
 }
 
 export async function getOrganizationBillingSnapshot(input: {
@@ -132,9 +162,9 @@ export async function getOrganizationBillingSnapshot(input: {
 
   const checkoutUrl =
     planId === "free"
-      ? (selfServeCheckoutUrls.studio ??
-        selfServeCheckoutUrls.operator ??
-        selfServeCheckoutUrls.scale ??
+      ? (firstCheckoutUrl(selfServeCheckoutUrls, "studio") ??
+        firstCheckoutUrl(selfServeCheckoutUrls, "operator") ??
+        firstCheckoutUrl(selfServeCheckoutUrls, "scale") ??
         null)
       : null;
 
@@ -152,7 +182,8 @@ export async function getOrganizationBillingSnapshot(input: {
     planSource,
     checkoutUrl,
     selfServeCheckoutUrls,
-    superProCheckoutUrl: selfServeCheckoutUrls.scale ?? checkoutUrl,
+    superProCheckoutUrl:
+      firstCheckoutUrl(selfServeCheckoutUrls, "scale") ?? checkoutUrl,
     portalEnabled,
   };
 }

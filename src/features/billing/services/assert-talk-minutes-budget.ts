@@ -53,7 +53,7 @@ export async function assertTalkMinutesBudget(input: {
   if (usedMinutes >= limitMinutes) {
     return {
       ok: false,
-      message: `Monthly Talk budget reached (${limitMinutes} min on ${BILLING_PLANS[planId].name}). Upgrade Studio, Operator, or Scale — or contact sales.`,
+      message: `Monthly Talk budget reached (${limitMinutes} min on ${BILLING_PLANS[planId].name}). Upgrade Studio, Team, or Scale — or contact sales.`,
     };
   }
 

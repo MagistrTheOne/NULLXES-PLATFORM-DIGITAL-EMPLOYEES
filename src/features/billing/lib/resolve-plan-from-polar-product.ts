@@ -27,7 +27,7 @@ export function resolveBillingPlanFromPolarProduct(
   if (normalized.includes("studio")) {
     return "studio";
   }
-  if (normalized.includes("operator")) {
+  if (normalized.includes("operator") || normalized.includes("team")) {
     return "operator";
   }
   if (

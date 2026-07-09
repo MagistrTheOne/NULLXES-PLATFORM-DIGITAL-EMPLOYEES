@@ -8,10 +8,14 @@ export type BillingPlanId =
 
 export type ApiAccessLevel = "none" | "read" | "full";
 
+export type BillingInterval = "month" | "year";
+
 export type BillingPlanDefinition = {
   id: BillingPlanId;
   name: string;
   priceLabel: string;
+  /** Annual list price when self-serve annual product exists (−20%). */
+  priceLabelAnnual?: string;
   description: string;
   checkoutEnabled: boolean;
   limits: {
@@ -33,7 +37,7 @@ export const BILLING_PLANS: Record<BillingPlanId, BillingPlanDefinition> = {
   free: {
     id: "free",
     name: "Evaluation",
-    priceLabel: "₽0",
+    priceLabel: "$0",
     description: "Evaluate a digital employee with curated NULLXES presets.",
     checkoutEnabled: false,
     limits: {
@@ -57,7 +61,8 @@ export const BILLING_PLANS: Record<BillingPlanId, BillingPlanDefinition> = {
   studio: {
     id: "studio",
     name: "Studio",
-    priceLabel: "₽4 990 / mo",
+    priceLabel: "$49 / mo",
+    priceLabelAnnual: "$470 / yr",
     description: "Launch one digital employee for founders and innovation labs.",
     checkoutEnabled: true,
     limits: {
@@ -80,9 +85,10 @@ export const BILLING_PLANS: Record<BillingPlanId, BillingPlanDefinition> = {
   },
   operator: {
     id: "operator",
-    name: "Operator",
-    priceLabel: "₽14 990 / mo",
-    description: "Small workforce for labs running real workloads.",
+    name: "Team",
+    priceLabel: "$200 / mo",
+    priceLabelAnnual: "$1,920 / yr",
+    description: "Small digital workforce for teams running real workloads.",
     checkoutEnabled: true,
     limits: {
       maxEmployees: 3,
@@ -106,7 +112,8 @@ export const BILLING_PLANS: Record<BillingPlanId, BillingPlanDefinition> = {
   scale: {
     id: "scale",
     name: "Scale",
-    priceLabel: "₽49 990 / mo",
+    priceLabel: "$600 / mo",
+    priceLabelAnnual: "$5,760 / yr",
     description: "Grow a digital team before enterprise deployment.",
     checkoutEnabled: true,
     limits: {
@@ -184,3 +191,13 @@ export const SELF_SERVE_CHECKOUT_PLAN_IDS: BillingPlanId[] = [
   "operator",
   "scale",
 ];
+
+/** USD cents for Polar fixed prices (monthly / annual −20%). */
+export const SELF_SERVE_PRICE_CENTS: Record<
+  "studio" | "operator" | "scale",
+  Record<BillingInterval, number>
+> = {
+  studio: { month: 4_900, year: 47_000 },
+  operator: { month: 20_000, year: 192_000 },
+  scale: { month: 60_000, year: 576_000 },
+};

@@ -33,7 +33,7 @@ export async function assertCanAddSeat(input: {
   if (total >= maxSeats) {
     return {
       ok: false,
-      message: `${BILLING_PLANS[planId].name} includes ${maxSeats} seat${maxSeats === 1 ? "" : "s"}. Upgrade Operator or Scale, or contact sales for Digital Department Deployment.`,
+      message: `${BILLING_PLANS[planId].name} includes ${maxSeats} seat${maxSeats === 1 ? "" : "s"}. Upgrade Team or Scale, or contact sales for Digital Department Deployment.`,
     };
   }
 

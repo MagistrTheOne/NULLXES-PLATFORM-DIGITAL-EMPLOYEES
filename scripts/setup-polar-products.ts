@@ -2,6 +2,8 @@ import { Polar } from "@polar-sh/sdk";
 import {
   BILLING_PLANS,
   SELF_SERVE_CHECKOUT_PLAN_IDS,
+  SELF_SERVE_PRICE_CENTS,
+  type BillingInterval,
   type BillingPlanId,
 } from "../src/features/billing/config/plans";
 import {
@@ -11,11 +13,14 @@ import {
 import { POLAR_PRODUCT_NAMESPACE } from "../src/features/billing/lib/polar-product-metadata";
 
 /**
- * Follow-up (not run in this iteration): create Polar products for
- * Studio / Operator / Scale (₽ or USD catalog) + SBP for RU self-serve.
- * Enterprise / government / sales ladder remain contract / contact-only.
+ * Sync NULLXES self-serve + sales products in Polar via Core API.
  *
- * Usage: POLAR_ACCESS_TOKEN=… npx tsx scripts/setup-polar-products.ts
+ * Month and year are separate products (recurring_interval is immutable).
+ *
+ * Usage: npm run polar:setup
+ *
+ * Docs: https://polar.sh/docs/api-reference/products/create
+ *       https://polar.sh/docs/api-reference/products/update
  */
 
 const accessToken = process.env.POLAR_ACCESS_TOKEN?.trim();
@@ -33,45 +38,64 @@ const polar = new Polar({
   server,
 });
 
+type ListedPrice = {
+  id: string;
+  amountType?: string;
+  priceAmount?: number | null;
+  amount?: number | null;
+  isArchived?: boolean;
+};
+
 type ListedProduct = {
   id: string;
   name: string;
+  description: string | null;
   isRecurring: boolean;
+  isArchived: boolean;
+  recurringInterval: string | null;
   metadata: Record<string, string>;
+  prices: ListedPrice[];
 };
 
 type ProductSpec = {
   key: string;
   name: string;
   description: string;
-  recurringInterval: "month" | "year";
+  recurringInterval: BillingInterval;
   priceAmount: number;
   metadata: Record<string, string>;
+  /** Prefer remapping this legacy product when creating/updating. */
+  legacyNames?: string[];
 };
 
-/** List prices in minor units. Polar presentment uses USD until SBP follow-up. */
-const SELF_SERVE_PRICE_CENTS: Record<"studio" | "operator" | "scale", number> = {
-  studio: 4_990,
-  operator: 14_990,
-  scale: 49_990,
-};
+const INTERVALS: BillingInterval[] = ["month", "year"];
 
 const BILLING_PLAN_SPECS: ProductSpec[] = (
   SELF_SERVE_CHECKOUT_PLAN_IDS as Array<"studio" | "operator" | "scale">
-).map((planId) => {
+).flatMap((planId) => {
   const plan = BILLING_PLANS[planId];
-  return {
-    key: planId,
-    name: `NULLXES ${plan.name}`,
-    description: plan.description,
-    recurringInterval: "month" as const,
-    priceAmount: SELF_SERVE_PRICE_CENTS[planId],
-    metadata: {
-      plan: planId,
-      tier: planId,
-      product: POLAR_PRODUCT_NAMESPACE,
-    },
-  };
+  return INTERVALS.map((interval) => {
+    const suffix = interval === "year" ? " (Annual)" : "";
+    return {
+      key: `${planId}:${interval}`,
+      name: `NULLXES ${plan.name}${suffix}`,
+      description: plan.description,
+      recurringInterval: interval,
+      priceAmount: SELF_SERVE_PRICE_CENTS[planId][interval],
+      metadata: {
+        plan: planId,
+        tier: planId,
+        interval,
+        product: POLAR_PRODUCT_NAMESPACE,
+      },
+      legacyNames:
+        planId === "scale" && interval === "month"
+          ? ["nullxes super pro", "super pro"]
+          : planId === "operator"
+            ? ["nullxes operator", "operator"]
+            : undefined,
+    };
+  });
 });
 
 const SALES_TIER_IDS: PricingTierId[] = [
@@ -97,10 +121,33 @@ function buildSalesTierSpecs(): ProductSpec[] {
       priceAmount: 0,
       metadata: {
         tier: tierId,
+        interval: "year",
         product: POLAR_PRODUCT_NAMESPACE,
       },
+      legacyNames:
+        tierId === "flagship" ? ["nullxes ultra", "ultra"] : undefined,
     };
   });
+}
+
+function activeFixedAmount(product: ListedProduct): number | null {
+  for (const price of product.prices) {
+    if (price.isArchived) continue;
+    if (price.amountType === "fixed") {
+      return price.priceAmount ?? price.amount ?? null;
+    }
+  }
+  return null;
+}
+
+function activeFixedPriceId(product: ListedProduct): string | null {
+  for (const price of product.prices) {
+    if (price.isArchived) continue;
+    if (price.amountType === "fixed") {
+      return price.id;
+    }
+  }
+  return null;
 }
 
 async function listAllProducts(): Promise<ListedProduct[]> {
@@ -119,8 +166,23 @@ async function listAllProducts(): Promise<ListedProduct[]> {
       products.push({
         id: product.id,
         name: product.name,
+        description: product.description ?? null,
         isRecurring: product.isRecurring,
+        isArchived: product.isArchived,
+        recurringInterval: product.recurringInterval ?? null,
         metadata,
+        prices: product.prices.map((price) => ({
+          id: price.id,
+          amountType: "amountType" in price ? String(price.amountType) : undefined,
+          priceAmount:
+            "priceAmount" in price
+              ? (price.priceAmount as number | null | undefined)
+              : undefined,
+          amount:
+            "amount" in price ? (price.amount as number | null | undefined) : undefined,
+          isArchived:
+            "isArchived" in price ? Boolean(price.isArchived) : undefined,
+        })),
       });
     }
   }
@@ -128,73 +190,86 @@ async function listAllProducts(): Promise<ListedProduct[]> {
   return products;
 }
 
-function findProductByPlan(
+function findSelfServeProduct(
   products: ListedProduct[],
   planId: BillingPlanId,
+  interval: BillingInterval,
+  legacyNames?: string[],
 ): ListedProduct | undefined {
-  return (
-    products.find((product) => product.metadata.plan === planId) ??
-    products.find((product) => {
-      const name = product.name.toLowerCase();
-      if (planId === "scale") {
-        return (
-          name.includes("scale") ||
-          name.includes("super pro") ||
-          product.metadata.plan === "super_pro"
-        );
-      }
-      return name.includes(planId);
-    })
-  );
-}
+  const active = products.filter((product) => !product.isArchived);
 
-function findProductByTier(
-  products: ListedProduct[],
-  tierId: PricingTierId,
-): ListedProduct | undefined {
-  return (
-    products.find((product) => product.metadata.tier === tierId) ??
-    products.find((product) =>
-      product.name.toLowerCase().includes(
-        PRICING_TIERS.find((tier) => tier.id === tierId)?.name.toLowerCase() ??
-          tierId,
-      ),
-    )
+  const byMeta = active.find(
+    (product) =>
+      product.metadata.plan === planId &&
+      (product.metadata.interval === interval ||
+        (!product.metadata.interval &&
+          product.recurringInterval === interval)),
   );
-}
+  if (byMeta) return byMeta;
 
-async function ensureProductMetadata(
-  product: ListedProduct,
-  metadata: Record<string, string>,
-): Promise<void> {
-  const needsUpdate = Object.entries(metadata).some(
-    ([key, value]) => product.metadata[key] !== value,
-  );
-
-  if (!needsUpdate) {
-    return;
+  // Legacy Super Pro → Scale month
+  if (planId === "scale" && interval === "month") {
+    const superPro = active.find(
+      (product) =>
+        product.metadata.plan === "super_pro" ||
+        product.name.toLowerCase().includes("super pro"),
+    );
+    if (superPro) return superPro;
   }
 
-  await polar.products.update({
-    id: product.id,
-    productUpdate: {
-      metadata: {
-        ...product.metadata,
-        ...metadata,
-      },
-    },
-  });
+  if (legacyNames?.length) {
+    const byName = active.find((product) => {
+      const name = product.name.toLowerCase();
+      return (
+        legacyNames.some((legacy) => name.includes(legacy)) &&
+        (product.recurringInterval === interval ||
+          product.metadata.interval === interval ||
+          (!product.metadata.interval && interval === "month"))
+      );
+    });
+    if (byName) return byName;
+  }
 
-  console.log(`Updated metadata on ${product.name}`);
+  return undefined;
 }
 
-async function ensureProduct(
+function findSalesProduct(
+  products: ListedProduct[],
+  tierId: PricingTierId,
+  legacyNames?: string[],
+): ListedProduct | undefined {
+  const active = products.filter((product) => !product.isArchived);
+
+  const byMeta = active.find((product) => {
+    const tier = product.metadata.tier;
+    if (tier === tierId) return true;
+    if (tierId === "flagship" && tier === "ultra") return true;
+    return false;
+  });
+  if (byMeta) return byMeta;
+
+  if (legacyNames?.length) {
+    return active.find((product) => {
+      const name = product.name.toLowerCase();
+      return legacyNames.some((legacy) => name.includes(legacy));
+    });
+  }
+
+  const tierName = PRICING_TIERS.find((tier) => tier.id === tierId)?.name;
+  if (tierName) {
+    return active.find((product) =>
+      product.name.toLowerCase().includes(tierName.toLowerCase()),
+    );
+  }
+
+  return undefined;
+}
+
+async function ensureProductSynced(
   existing: ListedProduct[],
   spec: ProductSpec,
-  finder: (products: ListedProduct[]) => ListedProduct | undefined,
+  product: ListedProduct | undefined,
 ): Promise<ListedProduct> {
-  let product = finder(existing);
-
   if (!product) {
     console.log(`\nCreating "${spec.name}"…`);
     const created = await polar.products.create({
@@ -210,75 +285,185 @@ async function ensureProduct(
       ],
       metadata: spec.metadata,
     });
-    product = {
+
+    const listed: ListedProduct = {
       id: created.id,
       name: created.name,
+      description: created.description ?? null,
       isRecurring: created.isRecurring,
+      isArchived: created.isArchived,
+      recurringInterval: created.recurringInterval ?? null,
       metadata: spec.metadata,
+      prices: created.prices.map((price) => ({
+        id: price.id,
+        amountType: "amountType" in price ? String(price.amountType) : "fixed",
+        priceAmount:
+          "priceAmount" in price
+            ? (price.priceAmount as number | null | undefined)
+            : undefined,
+        isArchived: false,
+      })),
     };
+    existing.push(listed);
     console.log(`Created ${spec.name}: ${created.id}`);
-    existing.push(product);
-    return product;
+    return listed;
   }
 
   console.log(`\n${spec.name}: ${product.id}`);
-  await ensureProductMetadata(product, spec.metadata);
+
+  const currentAmount = activeFixedAmount(product);
+  const currentPriceId = activeFixedPriceId(product);
+  const needsPriceReplace =
+    currentAmount == null || currentAmount !== spec.priceAmount;
+  const needsMeta = Object.entries(spec.metadata).some(
+    ([key, value]) => product.metadata[key] !== value,
+  );
+  const needsName = product.name !== spec.name;
+  const needsDescription = (product.description ?? "") !== spec.description;
+
+  if (!needsPriceReplace && !needsMeta && !needsName && !needsDescription) {
+    console.log("  already in sync");
+    return product;
+  }
+
+  const prices = needsPriceReplace
+    ? [
+        {
+          amountType: "fixed" as const,
+          priceCurrency: "usd" as const,
+          priceAmount: spec.priceAmount,
+        },
+      ]
+    : currentPriceId
+      ? [{ id: currentPriceId }]
+      : undefined;
+
+  await polar.products.update({
+    id: product.id,
+    productUpdate: {
+      name: spec.name,
+      description: spec.description,
+      metadata: {
+        ...product.metadata,
+        ...spec.metadata,
+      },
+      ...(prices ? { prices } : {}),
+    },
+  });
+
+  console.log(
+    `  updated${needsPriceReplace ? ` price→${spec.priceAmount}` : ""}${needsMeta ? " metadata" : ""}${needsName ? " name" : ""}`,
+  );
+
+  product.name = spec.name;
+  product.description = spec.description;
+  product.metadata = { ...product.metadata, ...spec.metadata };
   return product;
+}
+
+async function archiveLegacyProducts(products: ListedProduct[]): Promise<void> {
+  const keepIds = new Set(
+    products
+      .filter(
+        (product) =>
+          !product.isArchived &&
+          (product.metadata.product === POLAR_PRODUCT_NAMESPACE ||
+            product.metadata.plan ||
+            product.metadata.tier),
+      )
+      .map((product) => product.id),
+  );
+
+  // After sync, also archive known junk names without namespace metadata.
+  const junkNameMatchers = [
+    /^monthly$/i,
+    /^yearly$/i,
+    /^enterprise$/i,
+  ];
+
+  for (const product of products) {
+    if (product.isArchived) continue;
+
+    const isJunkName = junkNameMatchers.some((re) => re.test(product.name.trim()));
+    const unmapped =
+      product.metadata.product !== POLAR_PRODUCT_NAMESPACE &&
+      !product.metadata.plan &&
+      !product.metadata.tier;
+
+    if (!isJunkName && !unmapped) {
+      continue;
+    }
+
+    // Do not archive products we just mapped into the namespace.
+    if (keepIds.has(product.id) && !isJunkName) {
+      continue;
+    }
+
+    // If it gained namespace metadata during this run, skip.
+    if (product.metadata.product === POLAR_PRODUCT_NAMESPACE && !isJunkName) {
+      continue;
+    }
+
+    console.log(`\nArchiving legacy "${product.name}" (${product.id})…`);
+    await polar.products.update({
+      id: product.id,
+      productUpdate: {
+        isArchived: true,
+      },
+    });
+    product.isArchived = true;
+    console.log("  archived");
+  }
 }
 
 async function main(): Promise<void> {
   console.log(`Polar server: ${server}`);
-  console.log("Syncing NULLXES self-serve billing products via Polar Core API…\n");
-  console.log(
-    "Note: SBP / RU payment rails are a separate follow-up after products exist.\n",
-  );
+  console.log("Syncing NULLXES billing products (month + year)…\n");
 
   const existing = await listAllProducts();
 
-  if (existing.length === 0) {
-    console.log("No products found in this organization.");
-  } else {
-    for (const product of existing) {
-      const plan = product.metadata.plan ? ` plan=${product.metadata.plan}` : "";
-      const tier = product.metadata.tier ? ` tier=${product.metadata.tier}` : "";
-      console.log(
-        `- ${product.name} (${product.id})${product.isRecurring ? " [recurring]" : ""}${plan}${tier}`,
-      );
-    }
+  console.log("Current products:");
+  for (const product of existing.filter((item) => !item.isArchived)) {
+    const plan = product.metadata.plan ? ` plan=${product.metadata.plan}` : "";
+    const tier = product.metadata.tier ? ` tier=${product.metadata.tier}` : "";
+    const interval = product.metadata.interval
+      ? ` interval=${product.metadata.interval}`
+      : product.recurringInterval
+        ? ` interval=${product.recurringInterval}`
+        : "";
+    const amount = activeFixedAmount(product);
+    console.log(
+      `- ${product.name} (${product.id})${plan}${tier}${interval} amount=${amount ?? "n/a"}`,
+    );
   }
 
   for (const spec of BILLING_PLAN_SPECS) {
-    await ensureProduct(existing, spec, (products) =>
-      findProductByPlan(products, spec.metadata.plan as BillingPlanId),
+    const planId = spec.metadata.plan as BillingPlanId;
+    const interval = spec.recurringInterval;
+    const found = findSelfServeProduct(
+      existing,
+      planId,
+      interval,
+      spec.legacyNames,
     );
+    await ensureProductSynced(existing, spec, found);
   }
 
   for (const spec of buildSalesTierSpecs()) {
     const tierId = spec.metadata.tier as PricingTierId;
-    await ensureProduct(existing, spec, (products) =>
-      findProductByTier(products, tierId),
-    );
+    const found = findSalesProduct(existing, tierId, spec.legacyNames);
+    await ensureProductSynced(existing, spec, found);
   }
 
-  const unmapped = existing.filter(
-    (product) =>
-      product.metadata.product !== POLAR_PRODUCT_NAMESPACE &&
-      !product.metadata.plan &&
-      !product.metadata.tier,
-  );
+  // Refresh list for archive pass so metadata updates are visible.
+  const refreshed = await listAllProducts();
+  await archiveLegacyProducts(refreshed);
 
-  if (unmapped.length > 0) {
-    console.log("\nUnmapped legacy products (safe to archive in Polar UI):");
-    for (const product of unmapped) {
-      console.log(`- ${product.name} (${product.id})`);
-    }
-  }
-
-  console.log("\nPolar catalog is metadata-driven — no POLAR_PRODUCT_* env vars needed.");
-  console.log("Required env only:");
+  console.log("\nDone. Required env:");
   console.log("  POLAR_ACCESS_TOKEN");
   console.log("  POLAR_WEBHOOK_SECRET");
   console.log("  POLAR_SERVER=production");
+  console.log("\nDashboard: https://polar.sh/dashboard/nullxes-llc/products");
 }
 
 main().catch((error: unknown) => {

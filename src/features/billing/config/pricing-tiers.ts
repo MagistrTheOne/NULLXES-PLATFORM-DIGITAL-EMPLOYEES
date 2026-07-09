@@ -1,4 +1,4 @@
-import type { BillingPlanId } from "./plans";
+import type { BillingInterval, BillingPlanId } from "./plans";
 
 export type PricingTierId =
   | "free"
@@ -18,21 +18,25 @@ export type PricingTier = {
   name: string;
   priceLabel: string;
   priceNote: string;
+  priceLabelAnnual?: string;
+  priceNoteAnnual?: string;
   description: string;
   engagement: PricingTierEngagement;
   flagship: boolean;
+  recommended?: boolean;
   features: string[];
 };
 
 /**
- * Marketing catalog — RU list prices.
+ * Marketing catalog — USD list prices (Polar presentment).
  * Self-serve CTA copy: "Launch a digital employee" (not "Choose a plan").
+ * DB plan id `operator` is displayed as Team.
  */
 export const PRICING_TIERS: PricingTier[] = [
   {
     id: "free",
     name: "Evaluation",
-    priceLabel: "₽0",
+    priceLabel: "$0",
     priceNote: "No credit card",
     description:
       "Evaluate a digital employee with curated NULLXES presets and hard Talk limits.",
@@ -47,8 +51,10 @@ export const PRICING_TIERS: PricingTier[] = [
   {
     id: "studio",
     name: "Studio",
-    priceLabel: "₽4 990",
+    priceLabel: "$49",
     priceNote: "per month",
+    priceLabelAnnual: "$470",
+    priceNoteAnnual: "per year · save 20%",
     description: "Launch one digital employee for founders and innovation labs.",
     engagement: "self_serve",
     flagship: false,
@@ -60,12 +66,15 @@ export const PRICING_TIERS: PricingTier[] = [
   },
   {
     id: "operator",
-    name: "Operator",
-    priceLabel: "₽14 990",
+    name: "Team",
+    priceLabel: "$200",
     priceNote: "per month",
-    description: "A small digital workforce for labs running real workloads.",
+    priceLabelAnnual: "$1,920",
+    priceNoteAnnual: "per year · save 20%",
+    description: "A small digital workforce for teams running real workloads.",
     engagement: "self_serve",
     flagship: false,
+    recommended: true,
     features: [
       "3 digital employees",
       "20-minute Talk · 600 min / month",
@@ -75,8 +84,10 @@ export const PRICING_TIERS: PricingTier[] = [
   {
     id: "scale",
     name: "Scale",
-    priceLabel: "₽49 990",
+    priceLabel: "$600",
     priceNote: "per month",
+    priceLabelAnnual: "$5,760",
+    priceNoteAnnual: "per year · save 20%",
     description: "Grow a digital team before enterprise Design Partner deployment.",
     engagement: "self_serve",
     flagship: false,
@@ -89,7 +100,7 @@ export const PRICING_TIERS: PricingTier[] = [
   {
     id: "discovery",
     name: "Discovery",
-    priceLabel: "₽1.5–4M",
+    priceLabel: "Contact sales",
     priceNote: "Fixed-scope engagement",
     description: "Map processes and prove value before scaling the workforce.",
     engagement: "sales",
@@ -104,7 +115,7 @@ export const PRICING_TIERS: PricingTier[] = [
   {
     id: "pilot",
     name: "Pilot",
-    priceLabel: "₽6–20M",
+    priceLabel: "Contact sales",
     priceNote: "Per pilot program",
     description: "Stand up the first live digital employees in production.",
     engagement: "sales",
@@ -119,7 +130,7 @@ export const PRICING_TIERS: PricingTier[] = [
   {
     id: "department",
     name: "Digital Department Deployment",
-    priceLabel: "₽40–150M",
+    priceLabel: "Contact sales",
     priceNote: "Annual program",
     description:
       "Operate a full digital department as a managed workforce layer — not a single-team chatbot.",
@@ -135,7 +146,7 @@ export const PRICING_TIERS: PricingTier[] = [
   {
     id: "holding",
     name: "Holding",
-    priceLabel: "₽400M–1.5B",
+    priceLabel: "Contact sales",
     priceNote: "Annual platform license",
     description: "Coordinate digital workforces across many organizations.",
     engagement: "sales",
@@ -183,6 +194,26 @@ export function getSalesPricingTiers(): PricingTier[] {
 
 export function getFlagshipPricingTier(): PricingTier | undefined {
   return PRICING_TIERS.find((tier) => tier.flagship);
+}
+
+export function getTierDisplayPrice(
+  tier: Pick<
+    PricingTier,
+    "priceLabel" | "priceNote" | "priceLabelAnnual" | "priceNoteAnnual"
+  >,
+  interval: BillingInterval,
+): { priceLabel: string; priceNote: string } {
+  if (interval === "year" && tier.priceLabelAnnual) {
+    return {
+      priceLabel: tier.priceLabelAnnual,
+      priceNote: tier.priceNoteAnnual ?? "per year",
+    };
+  }
+
+  return {
+    priceLabel: tier.priceLabel,
+    priceNote: tier.priceNote,
+  };
 }
 
 const PLAN_TO_TIER: Record<BillingPlanId, PricingTierId> = {

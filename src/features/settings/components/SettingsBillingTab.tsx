@@ -1,16 +1,20 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { Check } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { formatDurationSeconds } from "@/features/analytics/lib/format-duration";
-import { BILLING_PLANS } from "@/features/billing/config/plans";
+import {
+  BILLING_PLANS,
+  type BillingInterval,
+} from "@/features/billing/config/plans";
 import {
   getBillingPlanDisplay,
-  getPolarCatalogPriceForTier,
   resolveEffectiveBillingPlanId,
+  resolveTierPriceDisplay,
 } from "@/features/billing/lib/billing-plan-helpers";
 import {
   getFlagshipPricingTier,
@@ -57,6 +61,9 @@ export function SettingsBillingTab({
   billing: BillingSnapshot;
 }) {
   const t = useTranslations("settings.billing");
+  const [billingInterval, setBillingInterval] =
+    useState<BillingInterval>("month");
+
   const dbPlanId = resolveBillingPlanId(organization.billingPlan);
   const planId = resolveEffectiveBillingPlanId({
     dbPlanId,
@@ -67,7 +74,10 @@ export function SettingsBillingTab({
   const polarReady = billing.polarReady;
 
   const polarCatalogProduct = billing.polarCatalog.find(
-    (product) => product.planId === planId,
+    (product) =>
+      product.planId === planId &&
+      (product.recurringInterval === billingInterval ||
+        product.recurringInterval == null),
   );
   const currentPlanDisplay = getBillingPlanDisplay({
     planId,
@@ -88,11 +98,13 @@ export function SettingsBillingTab({
   function checkoutUrlForTier(tier: PricingTier): string | null {
     const planKey = TIER_TO_CHECKOUT_PLAN[tier.id];
     if (!planKey) return null;
+    const byInterval = billing.selfServeCheckoutUrls?.[planKey];
     return (
-      billing.selfServeCheckoutUrls?.[planKey] ??
-      (tier.id === "scale"
-        ? (billing.superProCheckoutUrl ?? billing.checkoutUrl)
-        : null) ??
+      byInterval?.[billingInterval] ??
+      byInterval?.month ??
+      byInterval?.year ??
+      (tier.id === "scale" ? billing.superProCheckoutUrl : null) ??
+      billing.checkoutUrl ??
       null
     );
   }
@@ -163,17 +175,22 @@ export function SettingsBillingTab({
     );
   }
 
-  function renderTierGrid(tiers: PricingTier[]) {
+  function renderTierGrid(tiers: PricingTier[], withInterval: boolean) {
     return (
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {tiers.map((tier) => {
           const isCurrent = tier.id === currentTierId;
-          const polarPrice = getPolarCatalogPriceForTier(
-            billing.polarCatalog,
-            tier.id,
-          );
-          const priceLabel = polarPrice?.priceLabel ?? tier.priceLabel;
-          const priceNote = polarPrice?.priceNote ?? tier.priceNote;
+          const price = withInterval
+            ? resolveTierPriceDisplay({
+                catalog: billing.polarCatalog,
+                tierId: tier.id,
+                interval: billingInterval,
+                fallbackTier: tier,
+              })
+            : {
+                priceLabel: tier.priceLabel,
+                priceNote: tier.priceNote,
+              };
 
           return (
             <div
@@ -182,26 +199,35 @@ export function SettingsBillingTab({
                 "flex h-full flex-col rounded-2xl border bg-background/40 p-5 transition-colors",
                 isCurrent
                   ? "border-foreground/40 ring-1 ring-foreground/15"
-                  : "border-border hover:border-foreground/20",
+                  : tier.recommended
+                    ? "border-foreground/25"
+                    : "border-border hover:border-foreground/20",
               )}
             >
               <div className="flex items-start justify-between gap-2">
                 <p className="text-sm font-medium text-foreground">
                   {tier.name}
                 </p>
-                {isCurrent ? (
-                  <span className="rounded-full border border-foreground/30 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-foreground/70">
-                    {t("current")}
-                  </span>
-                ) : null}
+                <div className="flex flex-wrap justify-end gap-1">
+                  {tier.recommended && !isCurrent ? (
+                    <span className="rounded-full border border-foreground/30 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-foreground/70">
+                      {t("recommended")}
+                    </span>
+                  ) : null}
+                  {isCurrent ? (
+                    <span className="rounded-full border border-foreground/30 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-foreground/70">
+                      {t("current")}
+                    </span>
+                  ) : null}
+                </div>
               </div>
 
               <div className="mt-4">
                 <p className="text-2xl font-medium tracking-tight text-foreground">
-                  {priceLabel}
+                  {price.priceLabel}
                 </p>
                 <p className="mt-1 text-[11px] uppercase tracking-wide text-muted-foreground">
-                  {priceNote}
+                  {price.priceNote}
                 </p>
               </div>
 
@@ -306,11 +332,42 @@ export function SettingsBillingTab({
           </p>
         ) : null}
 
-        {renderTierGrid(selfServeTiers)}
+        <div
+          className="mb-4 inline-flex rounded-full border border-border bg-background/40 p-1"
+          role="group"
+          aria-label={t("billingInterval")}
+        >
+          <button
+            type="button"
+            onClick={() => setBillingInterval("month")}
+            className={cn(
+              "rounded-full px-3 py-1.5 text-xs font-medium transition-colors",
+              billingInterval === "month"
+                ? "bg-foreground text-background"
+                : "text-muted-foreground hover:text-foreground",
+            )}
+          >
+            {t("billingIntervalMonthly")}
+          </button>
+          <button
+            type="button"
+            onClick={() => setBillingInterval("year")}
+            className={cn(
+              "rounded-full px-3 py-1.5 text-xs font-medium transition-colors",
+              billingInterval === "year"
+                ? "bg-foreground text-background"
+                : "text-muted-foreground hover:text-foreground",
+            )}
+          >
+            {t("billingIntervalAnnual")}
+          </button>
+        </div>
+
+        {renderTierGrid(selfServeTiers, true)}
       </SettingsCard>
 
       <SettingsCard title={t("enterpriseLadder")} description={t("enterpriseLadderDesc")}>
-        {renderTierGrid(salesTiers)}
+        {renderTierGrid(salesTiers, false)}
 
         {flagshipTier ? (
           <div className="mt-3 flex flex-col gap-5 rounded-2xl border border-foreground/20 bg-background/40 p-6 md:flex-row md:items-center md:justify-between">
