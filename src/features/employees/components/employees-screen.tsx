@@ -13,9 +13,14 @@ import { useEmployeeCreateEligibility } from "../lib/use-employee-create-eligibi
 import type { EmployeeListItem } from "../types";
 import { EmployeeEmptyState } from "./employee-empty-state";
 import { EmployeeGrid } from "./employee-grid";
+import { EmployeeListView } from "./employee-list-view";
 import { EmployeeMetrics } from "./employee-metrics";
 import { EmployeePagination } from "./employee-pagination";
-import { EmployeeToolbar } from "./employee-toolbar";
+import { EmployeeTableView } from "./employee-table-view";
+import {
+  EmployeeToolbar,
+  type EmployeeViewMode,
+} from "./employee-toolbar";
 import {
   EmployeeMaterializationOverlay,
   type EmployeeMaterializationTarget,
@@ -44,7 +49,28 @@ function matchesSearch(employee: EmployeeListItem, query: string): boolean {
   );
 }
 
-const PAGE_SIZE = 4;
+const PAGE_SIZE_BY_VIEW: Record<EmployeeViewMode, number> = {
+  grid: 4,
+  list: 10,
+  table: 12,
+};
+
+const VIEW_MODE_STORAGE_KEY = "nullxes:employees-view-mode";
+
+function readStoredViewMode(): EmployeeViewMode {
+  if (typeof window === "undefined") {
+    return "grid";
+  }
+  try {
+    const stored = window.localStorage.getItem(VIEW_MODE_STORAGE_KEY);
+    if (stored === "grid" || stored === "list" || stored === "table") {
+      return stored;
+    }
+  } catch {
+    // ignore
+  }
+  return "grid";
+}
 
 export function EmployeesScreen({
   employees,
@@ -59,6 +85,7 @@ export function EmployeesScreen({
   const tCommon = useTranslations("common");
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | EmployeeStatus>("all");
+  const [viewMode, setViewMode] = useState<EmployeeViewMode>("grid");
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [upgradeDialogOpen, setUpgradeDialogOpen] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -76,6 +103,10 @@ export function EmployeesScreen({
     name: string;
   } | null>(null);
   const materializationPreviewRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    setViewMode(readStoredViewMode());
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -99,20 +130,30 @@ export function EmployeesScreen({
   }, [loadedEmployees, searchQuery, statusFilter]);
 
   const hasEmployees = loadedEmployees.length > 0;
+  const pageSize = PAGE_SIZE_BY_VIEW[viewMode];
 
   useEffect(() => {
     setPage(1);
-  }, [searchQuery, statusFilter]);
+  }, [searchQuery, statusFilter, viewMode]);
 
   const totalPages = Math.max(
     1,
-    Math.ceil(filteredEmployees.length / PAGE_SIZE),
+    Math.ceil(filteredEmployees.length / pageSize),
   );
   const currentPage = Math.min(page, totalPages);
   const pageEmployees = filteredEmployees.slice(
-    (currentPage - 1) * PAGE_SIZE,
-    currentPage * PAGE_SIZE,
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize,
   );
+
+  function handleViewModeChange(nextMode: EmployeeViewMode): void {
+    setViewMode(nextMode);
+    try {
+      window.localStorage.setItem(VIEW_MODE_STORAGE_KEY, nextMode);
+    } catch {
+      // ignore
+    }
+  }
 
   function loadMoreFromServer(): void {
     if (!loadedNextCursor || isLoadingMore) {
@@ -134,7 +175,6 @@ export function EmployeesScreen({
   function handlePageChange(nextPage: number): void {
     setPage(nextPage);
     listTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    // Prefetch the next server batch when the user nears the end of loaded data.
     const remainingPages = totalPages - nextPage;
     if (
       remainingPages <= 1 &&
@@ -223,20 +263,30 @@ export function EmployeesScreen({
             <EmployeeToolbar
               searchQuery={searchQuery}
               statusFilter={statusFilter}
+              viewMode={viewMode}
               onSearchQueryChange={setSearchQuery}
               onStatusFilterChange={setStatusFilter}
+              onViewModeChange={handleViewModeChange}
               onCreateClick={handleCreateClick}
               canCreate={permissions.canManageEmployees}
             />
             <div ref={listTopRef} className="scroll-mt-4" />
             {filteredEmployees.length > 0 ? (
               <>
-                <EmployeeGrid employees={pageEmployees} />
+                {viewMode === "grid" ? (
+                  <EmployeeGrid employees={pageEmployees} />
+                ) : null}
+                {viewMode === "list" ? (
+                  <EmployeeListView employees={pageEmployees} />
+                ) : null}
+                {viewMode === "table" ? (
+                  <EmployeeTableView employees={pageEmployees} />
+                ) : null}
                 <EmployeePagination
                   page={currentPage}
                   totalPages={totalPages}
                   totalItems={filteredEmployees.length}
-                  pageSize={PAGE_SIZE}
+                  pageSize={pageSize}
                   onPageChange={handlePageChange}
                   isLoading={isLoadingMore}
                 />

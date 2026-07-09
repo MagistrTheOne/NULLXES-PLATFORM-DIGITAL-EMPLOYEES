@@ -269,7 +269,14 @@
       "nextPage": "Next page",
       "pagesAria": "Employee pages",
       "pageOf": "Page {page} of {total}",
-      "pageRange": "{start}–{end} of {total}"
+      "pageRange": "{start}–{end} of {total}",
+      "colName": "Name",
+      "colRole": "Role",
+      "colDepartment": "Department",
+      "colStatus": "Status",
+      "colCreated": "Created",
+      "colActions": "Actions",
+      "view": "View"
     },
     "metrics": {
       "employees": "Employees",
@@ -280,7 +287,11 @@
     "toolbar": {
       "search": "Search employees",
       "status": "Status",
-      "allStatuses": "All statuses"
+      "allStatuses": "All statuses",
+      "viewMode": "View mode",
+      "viewGrid": "Grid",
+      "viewList": "List",
+      "viewTable": "Table"
     },
     "status": {
       "draft": "Draft",

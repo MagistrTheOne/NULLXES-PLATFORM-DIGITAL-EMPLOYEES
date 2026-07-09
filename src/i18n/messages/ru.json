@@ -269,7 +269,14 @@
       "nextPage": "Следующая страница",
       "pagesAria": "Страницы сотрудников",
       "pageOf": "Стр. {page} из {total}",
-      "pageRange": "{start}–{end} из {total}"
+      "pageRange": "{start}–{end} из {total}",
+      "colName": "Имя",
+      "colRole": "Роль",
+      "colDepartment": "Отдел",
+      "colStatus": "Статус",
+      "colCreated": "Создан",
+      "colActions": "Действия",
+      "view": "Открыть"
     },
     "metrics": {
       "employees": "Сотрудники",
@@ -280,7 +287,11 @@
     "toolbar": {
       "search": "Поиск сотрудников",
       "status": "Статус",
-      "allStatuses": "Все статусы"
+      "allStatuses": "Все статусы",
+      "viewMode": "Режим просмотра",
+      "viewGrid": "Сетка",
+      "viewList": "Список",
+      "viewTable": "Таблица"
     },
     "status": {
       "draft": "Черновик",
