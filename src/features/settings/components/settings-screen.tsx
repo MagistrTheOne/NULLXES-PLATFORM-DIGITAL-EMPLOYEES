@@ -21,7 +21,6 @@ import type { SettingsPageData } from "../types";
 import { SettingsAdvancedTab } from "./SettingsAdvancedTab";
 import { SettingsAiTab } from "./SettingsAiTab";
 import { SettingsBillingTab } from "./SettingsBillingTab";
-import { SettingsContextPanel } from "./SettingsContextPanel";
 import { SettingsGeneralTab } from "./SettingsGeneralTab";
 import { SettingsIntegrationsTab } from "./SettingsIntegrationsTab";
 import { SettingsNotificationsTab } from "./SettingsNotificationsTab";
@@ -104,8 +103,7 @@ export function SettingsScreen({
         </div>
       </header>
 
-      <div className="grid gap-6 lg:grid-cols-1 xl:grid-cols-12">
-        <div className="min-w-0 xl:col-span-8">
+      <div className="min-w-0">
           <nav
             aria-label={t("nav.primary")}
             className="mb-4 flex flex-wrap gap-1 border-b border-border pb-px"
@@ -282,15 +280,6 @@ export function SettingsScreen({
               />
             </TabsContent>
           </Tabs>
-        </div>
-
-        <aside className="xl:col-span-4">
-          <SettingsContextPanel
-            organization={data.organization}
-            context={data.context}
-            dateFormat={data.settings.dateFormat}
-          />
-        </aside>
       </div>
     </div>
   );
