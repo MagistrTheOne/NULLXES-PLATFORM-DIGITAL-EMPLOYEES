@@ -1,16 +1,14 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import {
   ArrowRight,
-  Briefcase,
-  CheckCircle2,
-  Clock3,
+  ChevronLeft,
+  ChevronRight,
   MoreHorizontal,
-  Radar,
   Search,
-  Users,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -22,54 +20,40 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 import type { MissionListItem } from "../queries/list-organization-missions";
 
 type MissionStatus = MissionListItem["status"];
 
 const PAGE_SIZE = 6;
 
-const STATUS_TABS = [
-  { id: "all", label: "All Missions" },
-  { id: "planned", label: "Planned" },
-  { id: "working", label: "In Progress" },
-  { id: "waiting_approval", label: "Review" },
-  { id: "completed", label: "Completed" },
-  { id: "failed", label: "Failed" },
+const STATUS_TAB_IDS = [
+  "all",
+  "planned",
+  "working",
+  "waiting_approval",
+  "completed",
+  "failed",
 ] as const;
 
-type StatusTabId = (typeof STATUS_TABS)[number]["id"];
+type StatusTabId = (typeof STATUS_TAB_IDS)[number];
 
-function statusLabel(status: MissionStatus): string {
+function statusLabelKey(status: MissionStatus): string {
   switch (status) {
     case "planned":
-      return "Planned";
+      return "statusPlanned";
     case "working":
-      return "In Progress";
+      return "statusWorking";
     case "waiting_approval":
-      return "Review";
+      return "statusReview";
     case "completed":
-      return "Completed";
+      return "statusCompleted";
     case "failed":
-      return "Failed";
+      return "statusFailed";
     case "cancelled":
-      return "Cancelled";
+      return "statusCancelled";
     default:
-      return status;
-  }
-}
-
-function stageProgress(status: MissionStatus): number {
-  switch (status) {
-    case "planned":
-      return 0;
-    case "working":
-      return 30;
-    case "waiting_approval":
-      return 70;
-    case "completed":
-      return 100;
-    default:
-      return 0;
+      return "statusPlanned";
   }
 }
 
@@ -103,39 +87,38 @@ function formatDate(value: Date): string {
   });
 }
 
-function StatCard({
-  icon: Icon,
-  label,
-  value,
-  hint,
-}: {
-  icon: typeof Briefcase;
-  label: string;
-  value: string;
-  hint?: string;
-}) {
-  return (
-    <div className="rounded-2xl border border-white/8 bg-[#111111] p-5">
-      <div className="flex items-center justify-between">
-        <span className="text-xs uppercase tracking-wide text-white/40">
-          {label}
-        </span>
-        <Icon className="size-4 text-white/30" />
-      </div>
-      <p className="mt-3 text-2xl font-medium tracking-tight text-white">
-        {value}
-      </p>
-      {hint ? <p className="mt-1 text-xs text-white/45">{hint}</p> : null}
-    </div>
-  );
+function buildPageWindow(current: number, total: number): (number | "…")[] {
+  if (total <= 7) {
+    return Array.from({ length: total }, (_, index) => index + 1);
+  }
+
+  const pages: (number | "…")[] = [1];
+  const start = Math.max(2, current - 1);
+  const end = Math.min(total - 1, current + 1);
+
+  if (start > 2) {
+    pages.push("…");
+  }
+
+  for (let page = start; page <= end; page += 1) {
+    pages.push(page);
+  }
+
+  if (end < total - 1) {
+    pages.push("…");
+  }
+
+  pages.push(total);
+  return pages;
 }
 
-function MissionCard({ mission }: { mission: MissionListItem }) {
-  const progress =
-    mission.type === "prospecting" && mission.leadsCount > 0
-      ? Math.min(Math.round((Math.min(mission.leadsCount, 10) / 10) * 100), 100)
-      : stageProgress(mission.status);
-
+function MissionRow({
+  mission,
+  t,
+}: {
+  mission: MissionListItem;
+  t: ReturnType<typeof useTranslations<"missions.list">>;
+}) {
   function copyLink() {
     if (typeof window !== "undefined") {
       void navigator.clipboard?.writeText(
@@ -144,100 +127,75 @@ function MissionCard({ mission }: { mission: MissionListItem }) {
     }
   }
 
+  const typeLabel =
+    mission.type === "prospecting" ? t("typeProspecting") : t("typeCustom");
+
   return (
-    <div className="w-full min-w-0 overflow-hidden rounded-2xl border border-white/8 bg-[#111111] p-5 transition-colors hover:border-white/15">
-      <div className="flex min-w-0 flex-col gap-5 lg:flex-row lg:items-center">
-        <div className="flex min-w-0 flex-1 items-start gap-4">
-          <span className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-white/70">
-            <Radar className="size-5" />
-          </span>
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-base font-medium text-white">
-              {mission.title}
-            </p>
-            <p className="mt-0.5 truncate text-sm text-white/60">
-              {mission.employeeName}
-              {" · "}
-              {mission.type === "prospecting" ? "Prospecting" : "Custom"}
-            </p>
-            <p className="mt-2 line-clamp-2 text-sm text-white/45">
+    <li className="border-b border-white/8 last:border-b-0">
+      <div className="grid grid-cols-1 gap-3 px-4 py-3.5 transition-colors hover:bg-white/[0.03] sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center lg:grid-cols-[minmax(0,1.6fr)_7.5rem_11rem_9rem_auto] lg:gap-4">
+        <div className="min-w-0">
+          <p className="truncate text-sm font-medium text-white">
+            {mission.title}
+          </p>
+          <p className="mt-0.5 truncate text-xs text-white/50">
+            {mission.employeeName}
+            {" · "}
+            {typeLabel}
+          </p>
+          {mission.brief ? (
+            <p className="mt-1 line-clamp-1 text-xs text-white/35">
               {mission.brief}
             </p>
-          </div>
+          ) : null}
         </div>
 
-        <div className="w-full shrink-0 lg:w-44">
-          <p className="text-xs uppercase tracking-wide text-white/40">Status</p>
-          <div className="mt-2 flex items-center justify-between gap-2">
-            <Badge
-              variant="outline"
-              className="border-white/10 bg-transparent text-white/80"
-            >
-              {statusLabel(mission.status)}
-            </Badge>
-            <span className="text-xs text-white/45">{progress}%</span>
-          </div>
-          <div className="mt-2 h-1 overflow-hidden rounded-full bg-white/8">
-            <div
-              className="h-full rounded-full bg-white/50"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-          <p className="mt-3 text-xs uppercase tracking-wide text-white/40">
-            Proposals
-          </p>
-          <p className="mt-1 text-sm text-white/70">{mission.leadsCount}</p>
+        <div className="flex items-center lg:justify-start">
+          <Badge
+            variant="outline"
+            className="border-white/10 bg-transparent font-normal text-white/75"
+          >
+            {t(statusLabelKey(mission.status))}
+          </Badge>
         </div>
 
-        <div className="w-full shrink-0 lg:w-48">
-          <p className="text-xs uppercase tracking-wide text-white/40">
-            Assigned to
-          </p>
-          <div className="mt-2 flex items-center gap-2">
-            <Avatar size="sm">
-              {mission.employeeAvatarUrl ? (
-                <AvatarImage
-                  src={mission.employeeAvatarUrl}
-                  alt={mission.employeeName}
-                  className="object-cover"
-                />
-              ) : null}
-              <AvatarFallback className="bg-white/10 text-white/70">
-                {initials(mission.employeeName)}
-              </AvatarFallback>
-            </Avatar>
-            <div className="min-w-0">
-              <p className="truncate text-sm text-white">
-                {mission.employeeName}
-              </p>
-              <p className="truncate text-xs text-white/45">Digital Employee</p>
-            </div>
-          </div>
-          <p className="mt-3 text-xs uppercase tracking-wide text-white/40">
-            Created
-          </p>
-          <p className="mt-1 text-xs text-white/55">
-            {formatDate(mission.createdAt)}
-          </p>
+        <div className="hidden min-w-0 items-center gap-2 lg:flex">
+          <Avatar size="sm">
+            {mission.employeeAvatarUrl ? (
+              <AvatarImage
+                src={mission.employeeAvatarUrl}
+                alt={mission.employeeName}
+                className="object-cover"
+              />
+            ) : null}
+            <AvatarFallback className="bg-white/10 text-[10px] text-white/70">
+              {initials(mission.employeeName)}
+            </AvatarFallback>
+          </Avatar>
+          <p className="truncate text-sm text-white/80">{mission.employeeName}</p>
         </div>
 
-        <div className="flex shrink-0 items-center gap-2">
+        <p className="hidden text-xs tabular-nums text-white/45 lg:block">
+          {formatDate(mission.createdAt)}
+        </p>
+
+        <div className="flex shrink-0 items-center gap-1.5 sm:justify-end">
           <Button
             asChild
-            variant="outline"
-            className="border-white/10 bg-transparent text-white hover:bg-white/5"
+            variant="ghost"
+            size="sm"
+            className="h-8 px-2.5 text-white/70 hover:bg-white/5 hover:text-white"
           >
             <Link href={`/dashboard/missions/${mission.id}`}>
-              View mission
-              <ArrowRight className="size-4" />
+              {t("view")}
+              <ArrowRight className="size-3.5" />
             </Link>
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
-                variant="outline"
+                variant="ghost"
                 size="icon"
-                className="border-white/10 bg-transparent text-white/70 hover:bg-white/5"
+                className="size-8 text-white/50 hover:bg-white/5 hover:text-white"
               >
                 <MoreHorizontal className="size-4" />
               </Button>
@@ -245,14 +203,104 @@ function MissionCard({ mission }: { mission: MissionListItem }) {
             <DropdownMenuContent align="end" className="bg-[#111111]">
               <DropdownMenuItem asChild>
                 <Link href={`/dashboard/missions/${mission.id}`}>
-                  Open mission
+                  {t("open")}
                 </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={copyLink}>Copy link</DropdownMenuItem>
+              <DropdownMenuItem onClick={copyLink}>{t("copyLink")}</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
       </div>
+    </li>
+  );
+}
+
+function MissionPagination({
+  page,
+  totalPages,
+  totalItems,
+  pageSize,
+  onPageChange,
+  t,
+}: {
+  page: number;
+  totalPages: number;
+  totalItems: number;
+  pageSize: number;
+  onPageChange: (page: number) => void;
+  t: ReturnType<typeof useTranslations<"missions.list">>;
+}) {
+  if (totalPages <= 1 && totalItems <= pageSize) {
+    return null;
+  }
+
+  const window = buildPageWindow(page, Math.max(totalPages, 1));
+  const rangeStart = totalItems === 0 ? 0 : (page - 1) * pageSize + 1;
+  const rangeEnd = Math.min(page * pageSize, totalItems);
+
+  return (
+    <div className="flex flex-col items-center gap-3 border-t border-white/8 px-4 py-4 sm:flex-row sm:justify-between">
+      <p className="text-xs tabular-nums text-white/45">
+        {t("pageRange", {
+          start: rangeStart,
+          end: rangeEnd,
+          total: totalItems,
+        })}
+      </p>
+
+      <nav aria-label={t("pagesAria")} className="flex items-center gap-1">
+        <button
+          type="button"
+          aria-label={t("previousPage")}
+          disabled={page <= 1}
+          onClick={() => onPageChange(page - 1)}
+          className="flex h-8 items-center gap-1 rounded-lg border border-white/10 px-2.5 text-xs text-white/60 transition-colors hover:bg-white/5 hover:text-white disabled:opacity-30 disabled:hover:bg-transparent"
+        >
+          <ChevronLeft className="size-4" />
+          <span className="hidden sm:inline">{t("previous")}</span>
+        </button>
+
+        {window.map((entry, index) =>
+          entry === "…" ? (
+            <span
+              key={`ellipsis-${index}`}
+              className="flex size-8 items-center justify-center text-xs text-white/30"
+            >
+              …
+            </span>
+          ) : (
+            <button
+              key={entry}
+              type="button"
+              aria-current={entry === page ? "page" : undefined}
+              onClick={() => onPageChange(entry)}
+              className={cn(
+                "flex size-8 items-center justify-center rounded-lg border text-xs tabular-nums transition-colors",
+                entry === page
+                  ? "border-white/25 bg-white/10 text-white"
+                  : "border-white/10 text-white/55 hover:bg-white/5 hover:text-white",
+              )}
+            >
+              {entry}
+            </button>
+          ),
+        )}
+
+        <button
+          type="button"
+          aria-label={t("nextPage")}
+          disabled={page >= totalPages}
+          onClick={() => onPageChange(page + 1)}
+          className="flex h-8 items-center gap-1 rounded-lg border border-white/10 px-2.5 text-xs text-white/60 transition-colors hover:bg-white/5 hover:text-white disabled:opacity-30 disabled:hover:bg-transparent"
+        >
+          <span className="hidden sm:inline">{t("next")}</span>
+          <ChevronRight className="size-4" />
+        </button>
+      </nav>
+
+      <p className="text-xs tabular-nums text-white/45 sm:min-w-[5.5rem] sm:text-right">
+        {t("pageOf", { page, total: Math.max(totalPages, 1) })}
+      </p>
     </div>
   );
 }
@@ -264,23 +312,15 @@ export function MissionsScreen({
   missions: MissionListItem[];
   canCreate: boolean;
 }) {
+  const t = useTranslations("missions.list");
   const [activeTab, setActiveTab] = useState<StatusTabId>("all");
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
+  const listTopRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     setPage(1);
   }, [activeTab, query]);
-
-  const stats = useMemo(() => {
-    const planned = missions.filter((m) => m.status === "planned").length;
-    const working = missions.filter((m) => m.status === "working").length;
-    const completed = missions.filter((m) => m.status === "completed").length;
-    const failed = missions.filter(
-      (m) => m.status === "failed" || m.status === "cancelled",
-    ).length;
-    return { total: missions.length, planned, working, completed, failed };
-  }, [missions]);
 
   const tabCounts = useMemo(() => {
     const counts: Record<StatusTabId, number> = {
@@ -292,9 +332,9 @@ export function MissionsScreen({
       failed: 0,
     };
     for (const mission of missions) {
-      for (const tab of STATUS_TABS) {
-        if (tab.id !== "all" && matchesTab(mission.status, tab.id)) {
-          counts[tab.id] += 1;
+      for (const tabId of STATUS_TAB_IDS) {
+        if (tabId !== "all" && matchesTab(mission.status, tabId)) {
+          counts[tabId] += 1;
         }
       }
     }
@@ -325,158 +365,129 @@ export function MissionsScreen({
     safePage * PAGE_SIZE,
   );
 
+  function handlePageChange(nextPage: number): void {
+    setPage(nextPage);
+    listTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  const tabLabel = (id: StatusTabId): string => {
+    switch (id) {
+      case "all":
+        return t("tabAll");
+      case "planned":
+        return t("tabPlanned");
+      case "working":
+        return t("tabWorking");
+      case "waiting_approval":
+        return t("tabReview");
+      case "completed":
+        return t("tabCompleted");
+      case "failed":
+        return t("tabFailed");
+    }
+  };
+
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-6 py-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h1 className="text-2xl font-medium tracking-tight text-white">
-            Mission Control
+            {t("title")}
           </h1>
-          <p className="mt-2 max-w-2xl text-sm text-white/60">
-            Assign missions to digital employees, review evidence, and approve
-            outputs before anything goes outbound.
-          </p>
+          <p className="mt-2 max-w-2xl text-sm text-white/60">{t("subtitle")}</p>
         </div>
         {canCreate ? (
           <Button
             asChild
             className="shrink-0 bg-white text-black hover:bg-white/90"
           >
-            <Link href="/dashboard/missions/new">Assign mission</Link>
+            <Link href="/dashboard/missions/new">{t("assign")}</Link>
           </Button>
         ) : null}
       </div>
 
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
-        <StatCard
-          icon={Briefcase}
-          label="Total Missions"
-          value={String(stats.total)}
-          hint="All time"
-        />
-        <StatCard
-          icon={Clock3}
-          label="Planned"
-          value={String(stats.planned)}
-          hint="Awaiting execution"
-        />
-        <StatCard
-          icon={Radar}
-          label="In Progress"
-          value={String(stats.working)}
-          hint="Actively running"
-        />
-        <StatCard
-          icon={CheckCircle2}
-          label="Completed"
-          value={String(stats.completed)}
-          hint="Successfully delivered"
-        />
-        <StatCard
-          icon={Users}
-          label="Failed"
-          value={String(stats.failed)}
-          hint="Needs attention"
-        />
-      </div>
-
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex flex-wrap gap-1 overflow-x-auto">
-          {STATUS_TABS.map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm transition-colors ${
-                activeTab === tab.id
-                  ? "bg-white/10 text-white"
-                  : "text-white/55 hover:bg-white/5 hover:text-white"
-              }`}
-            >
-              <span>{tab.label}</span>
-              <span className="text-xs text-white/40">{tabCounts[tab.id]}</span>
-            </button>
-          ))}
-        </div>
-        <div className="relative lg:w-72">
+      <div className="flex flex-col gap-3 border-b border-white/8 pb-px lg:flex-row lg:items-end lg:justify-between">
+        <nav
+          aria-label={t("tabsAria")}
+          className="flex flex-wrap gap-1 overflow-x-auto"
+        >
+          {STATUS_TAB_IDS.map((tabId) => {
+            const isActive = activeTab === tabId;
+            return (
+              <button
+                key={tabId}
+                type="button"
+                onClick={() => setActiveTab(tabId)}
+                className={cn(
+                  "flex items-center gap-1.5 border-b-2 px-3 py-2 text-sm transition-colors",
+                  isActive
+                    ? "border-white text-white"
+                    : "border-transparent text-white/55 hover:text-white",
+                )}
+              >
+                <span>{tabLabel(tabId)}</span>
+                <span className="text-xs tabular-nums text-white/40">
+                  {tabCounts[tabId]}
+                </span>
+              </button>
+            );
+          })}
+        </nav>
+        <div className="relative mb-2 lg:mb-1.5 lg:w-72">
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-white/35" />
           <Input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search missions..."
+            placeholder={t("searchPlaceholder")}
             className="border-white/10 bg-[#111111] pl-9 text-white placeholder:text-white/35"
           />
         </div>
       </div>
 
+      <div ref={listTopRef} className="scroll-mt-4" />
+
       {missions.length === 0 ? (
         <div className="rounded-2xl border border-white/8 bg-[#111111] px-6 py-12 text-center">
-          <p className="text-sm text-white/70">No missions yet.</p>
-          <p className="mt-2 text-sm text-white/50">
-            Start with a prospecting mission for your sales employee.
-          </p>
+          <p className="text-sm text-white/70">{t("empty")}</p>
+          <p className="mt-2 text-sm text-white/50">{t("emptyHint")}</p>
           {canCreate ? (
             <Button
               asChild
               className="mt-6 bg-white text-black hover:bg-white/90"
             >
-              <Link href="/dashboard/missions/new">Assign first mission</Link>
+              <Link href="/dashboard/missions/new">{t("assignFirst")}</Link>
             </Button>
           ) : null}
         </div>
       ) : filtered.length === 0 ? (
         <div className="rounded-2xl border border-white/8 bg-[#111111] px-6 py-12 text-center">
-          <p className="text-sm text-white/60">
-            No missions match this filter.
-          </p>
+          <p className="text-sm text-white/60">{t("noMatches")}</p>
         </div>
       ) : (
-        <>
-          <div className="grid min-w-0 gap-3">
-            {paged.map((mission) => (
-              <MissionCard key={mission.id} mission={mission} />
-            ))}
+        <div className="overflow-hidden rounded-2xl border border-white/8 bg-[#111111]">
+          <div className="hidden border-b border-white/8 px-4 py-2.5 text-[11px] uppercase tracking-wide text-white/35 lg:grid lg:grid-cols-[minmax(0,1.6fr)_7.5rem_11rem_9rem_auto] lg:gap-4">
+            <span>{t("colMission")}</span>
+            <span>{t("colStatus")}</span>
+            <span>{t("colEmployee")}</span>
+            <span>{t("colCreated")}</span>
+            <span className="sr-only">{t("colActions")}</span>
           </div>
 
-          {pageCount > 1 ? (
-            <div className="flex items-center justify-center gap-2">
-              <Button
-                variant="outline"
-                size="icon"
-                disabled={safePage === 1}
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                className="border-white/10 bg-transparent text-white/70 hover:bg-white/5"
-              >
-                <ArrowRight className="size-4 rotate-180" />
-              </Button>
-              {Array.from({ length: pageCount }, (_, index) => index + 1).map(
-                (pageNumber) => (
-                  <button
-                    key={pageNumber}
-                    type="button"
-                    onClick={() => setPage(pageNumber)}
-                    className={`size-9 rounded-lg text-sm transition-colors ${
-                      pageNumber === safePage
-                        ? "bg-white/10 text-white"
-                        : "text-white/55 hover:bg-white/5 hover:text-white"
-                    }`}
-                  >
-                    {pageNumber}
-                  </button>
-                ),
-              )}
-              <Button
-                variant="outline"
-                size="icon"
-                disabled={safePage === pageCount}
-                onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
-                className="border-white/10 bg-transparent text-white/70 hover:bg-white/5"
-              >
-                <ArrowRight className="size-4" />
-              </Button>
-            </div>
-          ) : null}
-        </>
+          <ul>
+            {paged.map((mission) => (
+              <MissionRow key={mission.id} mission={mission} t={t} />
+            ))}
+          </ul>
+
+          <MissionPagination
+            page={safePage}
+            totalPages={pageCount}
+            totalItems={filtered.length}
+            pageSize={PAGE_SIZE}
+            onPageChange={handlePageChange}
+            t={t}
+          />
+        </div>
       )}
     </div>
   );
