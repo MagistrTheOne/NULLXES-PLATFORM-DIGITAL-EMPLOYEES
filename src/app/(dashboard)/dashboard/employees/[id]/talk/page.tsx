@@ -7,7 +7,6 @@ import { getScenarioSessionForUser } from "@/features/scenarios/services/scenari
 import { getTalkAgentPanel } from "@/features/runtime-session/queries/get-talk-agent-panel";
 import { getTalkAgentActivity } from "@/features/runtime-session/queries/get-talk-agent-activity";
 import { buildTalkAgentDetails } from "@/features/runtime-session/lib/build-talk-agent-details";
-import { getTalkWorkforceSnapshot } from "@/features/runtime-session/queries/get-talk-workforce-snapshot";
 import { EmployeeTalkSession } from "@/features/runtime-session/components/employee-talk-session";
 import { formatBrainModelDisplay } from "@/features/brain/lib/format-brain-model-display";
 import { resolveBrainModelForProvider } from "@/features/settings/lib/brain-model-defaults";
@@ -60,12 +59,11 @@ export default async function EmployeeTalkPage({
     ),
   });
 
-  const [panel, activity, locale, tHq, workforceSnapshot] = await Promise.all([
+  const [panel, activity, locale, tHq] = await Promise.all([
     getTalkAgentPanel(employee.id),
     getTalkAgentActivity(employee.id),
     getLocale(),
     getTranslations("hq.departments"),
-    getTalkWorkforceSnapshot(workspace.organization.id),
   ]);
 
   const departmentSlug = resolveEmployeeDepartment(
@@ -100,7 +98,6 @@ export default async function EmployeeTalkPage({
         role: workspace.permissions.role,
       }}
       departmentLabel={departmentLabel}
-      workforceSnapshot={workforceSnapshot}
     />
   );
 }

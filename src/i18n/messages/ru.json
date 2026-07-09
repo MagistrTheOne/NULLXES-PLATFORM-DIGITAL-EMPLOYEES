@@ -607,6 +607,8 @@
       "details": "Детали",
       "conversation": "Разговор",
       "endSession": "Завершить сессию",
+      "showDetails": "Детали",
+      "hideDetails": "Скрыть детали",
       "inspectorTabs": {
         "details": "Детали",
         "activity": "Активность",

@@ -33,6 +33,13 @@ export function TalkSessionControls({
     active?: boolean;
   }> = [
     {
+      key: "end",
+      label: t("endSession"),
+      icon: PhoneOff,
+      onClick: onEndSession,
+      destructive: true,
+    },
+    {
       key: "notes",
       label: t("notes"),
       icon: NotebookPen,
@@ -45,13 +52,6 @@ export function TalkSessionControls({
       onClick: onFocusMode,
       active: focusMode,
     },
-    {
-      key: "end",
-      label: t("endSession"),
-      icon: PhoneOff,
-      onClick: onEndSession,
-      destructive: true,
-    },
   ];
 
   return (
@@ -59,7 +59,7 @@ export function TalkSessionControls({
       <p className="text-[10px] tracking-[0.14em] text-white/45 uppercase">
         {t("title")}
       </p>
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-3 gap-2">
         {items.map((item) => {
           const Icon = item.icon;
           const isDisabled = disabled && item.key !== "end";
@@ -75,7 +75,7 @@ export function TalkSessionControls({
               className={cn(
                 "h-auto min-h-10 flex-col gap-1 rounded-xl border border-white/8 bg-white/2 px-2 py-2 text-[10px] font-normal tracking-wide text-white/75 uppercase hover:bg-white/5",
                 item.destructive &&
-                  "border-white/15 text-white hover:bg-white/10 hover:text-white",
+                  "border-red-500/30 text-red-300 hover:bg-red-500/10 hover:text-red-200",
                 item.active && "bg-white/10 text-white",
                 isDisabled && "cursor-not-allowed opacity-45",
               )}

@@ -58,6 +58,8 @@ export function TalkWorkspaceHeader({
   onEndSession,
   onLimitReached,
   onOpenDetails,
+  detailsOpen = false,
+  onToggleDetails,
 }: {
   employeeName: string;
   sessionLimitSeconds: number;
@@ -65,6 +67,8 @@ export function TalkWorkspaceHeader({
   onEndSession: () => void;
   onLimitReached?: () => void;
   onOpenDetails?: () => void;
+  detailsOpen?: boolean;
+  onToggleDetails?: () => void;
 }) {
   const t = useTranslations("employees.talk");
   const tCommon = useTranslations("common.actions");
@@ -113,6 +117,17 @@ export function TalkWorkspaceHeader({
         </div>
 
         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={sessionBusy}
+            onClick={onEndSession}
+            className="h-8 border-red-500/35 bg-transparent px-3 text-[11px] text-red-300 hover:bg-red-500/10 hover:text-red-200"
+          >
+            {t("endSession")}
+          </Button>
+
           <div className="hidden items-center gap-3 text-[11px] text-white/45 sm:flex">
             <StatusAsterisk
               active={isLive}
@@ -127,16 +142,24 @@ export function TalkWorkspaceHeader({
             </span>
           </div>
 
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            disabled={sessionBusy}
-            onClick={onEndSession}
-            className="h-8 border-red-500/35 bg-transparent px-3 text-[11px] text-red-300 hover:bg-red-500/10 hover:text-red-200"
-          >
-            {t("endSession")}
-          </Button>
+          {onToggleDetails ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={sessionBusy}
+              aria-pressed={detailsOpen}
+              onClick={onToggleDetails}
+              className={cn(
+                "hidden h-8 border-white/15 bg-transparent px-3 text-[11px] text-white/75 hover:bg-white/10 lg:inline-flex",
+                detailsOpen && "border-white/25 bg-white/8 text-white",
+              )}
+            >
+              <Info className="size-3.5" />
+              {detailsOpen ? t("hideDetails") : t("showDetails")}
+            </Button>
+          ) : null}
+
           {onOpenDetails ? (
             <Button
               type="button"

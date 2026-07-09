@@ -24,8 +24,6 @@ import {
 } from "@/components/ui/sheet";
 import type { TalkAgentDetails } from "./talk-agent-details";
 import { TalkInspectorPanel } from "./talk-inspector-panel";
-import { TalkWorkforceStrip } from "./talk-workforce-strip";
-import type { TalkWorkforceSnapshot } from "../queries/get-talk-workforce-snapshot";
 import { TalkWorkspaceHeader } from "./talk-workspace-header";
 import type { TalkViewer } from "./talk-viewer-card";
 import type { TalkChatCredentials } from "../services/create-talk-chat-session";
@@ -315,7 +313,6 @@ export type EmployeeTalkSessionInputProps = {
   agentDetails: TalkAgentDetails;
   viewer: TalkViewer;
   departmentLabel: string | null;
-  workforceSnapshot: TalkWorkforceSnapshot;
 };
 
 export type EmployeeTalkRoomProps = EmployeeTalkSessionInputProps & {
@@ -339,7 +336,6 @@ export function EmployeeTalkRoom({
   agentDetails,
   viewer,
   departmentLabel,
-  workforceSnapshot,
   sessionLimitSeconds,
   activeSession,
   onActiveSessionChange,
@@ -352,9 +348,11 @@ export function EmployeeTalkRoom({
   const [cameraEnabled, setCameraEnabled] = useState(false);
   const [showChat, setShowChat] = useState(false);
   const [showInspector, setShowInspector] = useState(false);
+  const [detailsOpen, setDetailsOpen] = useState(false);
   const [focusMode, setFocusMode] = useState(false);
   const [voiceSheetOpen, setVoiceSheetOpen] = useState(false);
   const t = useTranslations("employees.talk");
+  const showDetailsRail = detailsOpen && !focusMode;
 
   const handleShare = async () => {
     const url = window.location.href;
@@ -380,13 +378,22 @@ export function EmployeeTalkRoom({
         }}
         onLimitReached={onSessionLimitReached}
         onOpenDetails={() => setShowInspector(true)}
+        detailsOpen={showDetailsRail}
+        onToggleDetails={() => {
+          if (focusMode) {
+            setFocusMode(false);
+            setDetailsOpen(true);
+            return;
+          }
+          setDetailsOpen((open) => !open);
+        }}
       />
 
-      {/* Video-call centric layout inspired by the concept:
-          - Large immersive stage (video / preview) is the hero.
-          - Floating controls overlaid on the stage (mic, cam, chat toggle, end).
-          - Right panel: agent information exactly as we already provide (Details / Activity / Notes tabs, stats, current activity).
-          - Text chat is available on demand via Sheet (keeps the call UI clean and focused like the reference). */}
+      {/* Video-first Talk layout:
+          - Immersive stage is the hero.
+          - Floating call controls overlaid on the stage.
+          - Details rail is opt-in (collapsed by default).
+          - Chat opens on demand via Sheet. */}
       <div className="flex min-h-0 flex-1 overflow-hidden border-t border-white/8">
         <div className="relative flex min-h-0 min-w-0 flex-1 flex-col bg-black">
           <div className="talk-workspace-stage relative min-h-0 flex-1 overflow-hidden bg-black">
@@ -433,13 +440,9 @@ export function EmployeeTalkRoom({
               </div>
             ) : null}
           </div>
-
-          <div className="talk-workforce-panel hidden shrink-0 border-t border-white/8 bg-[#0a0a0a] p-3 md:block">
-            <TalkWorkforceStrip snapshot={workforceSnapshot} />
-          </div>
         </div>
 
-        {!focusMode ? (
+        {showDetailsRail ? (
           <div className="hidden w-[300px] min-w-0 shrink-0 overflow-hidden border-l border-white/8 lg:flex xl:w-[340px]">
             <TalkInspectorPanel
               details={agentDetails}
@@ -448,7 +451,10 @@ export function EmployeeTalkRoom({
               onEndSession={() => {
                 void onLeaveSession();
               }}
-              onFocusMode={() => setFocusMode(true)}
+              onFocusMode={() => {
+                setDetailsOpen(false);
+                setFocusMode(true);
+              }}
               onOpenGrokVoice={() => setVoiceSheetOpen(true)}
               focusMode={focusMode}
               sessionBusy={sessionBusy}
