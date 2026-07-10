@@ -9,13 +9,26 @@ import { hasNullxesApiCredentials } from "@/shared/nullxes-sdk";
 import { checkRateLimit } from "@/shared/security/rate-limit";
 import { findFaqAnswer } from "./docs-faq";
 import { buildDocsAssistantSystemPrompt } from "./docs-assistant-system-prompt";
+import { retrieveDocsContext } from "./docs-corpus";
 
 type DocsAnswerResult =
-  | { ok: true; answer: string; source: "llm" | "faq" }
+  | {
+      ok: true;
+      answer: string;
+      source: "llm" | "faq";
+      model?: string;
+      citations: string[];
+    }
   | { ok: false; answer: string };
+
+export type DocsChatTurn = {
+  role: "user" | "assistant";
+  content: string;
+};
 
 const DOCS_ASSISTANT_RATE_LIMIT = 10;
 const DOCS_ASSISTANT_WINDOW_MS = 60_000;
+const DOCS_PRIMARY_MODEL = "gpt-4o";
 
 async function resolveDocsRateLimitKey(): Promise<string> {
   const headerStore = await headers();
@@ -42,24 +55,42 @@ async function readCompletionText(response: Response): Promise<string | null> {
   }
 }
 
+function extractCitations(answer: string, fallbackHrefs: string[]): string[] {
+  const fromAnswer = Array.from(
+    answer.matchAll(/\]\((\/docs(?:\/[a-z0-9\-/#]+)?)\)/gi),
+  ).map((match) => match[1]!);
+  const unique = [...new Set([...fromAnswer, ...fallbackHrefs])];
+  return unique.slice(0, 6);
+}
+
 async function askLlm(input: {
   provider: BrainProvider;
   model: string;
   question: string;
+  history: DocsChatTurn[];
+  systemPrompt: string;
 }): Promise<string | null> {
   const api = await resolveBrainApiConfig({
     provider: input.provider,
     configuredModel: input.model,
   });
 
+  const historyMessages = input.history
+    .slice(-6)
+    .map((turn) => ({
+      role: turn.role,
+      content: turn.content,
+    }));
+
   const response = await callBrainChat({
     api,
     messages: [
-      { role: "system", content: buildDocsAssistantSystemPrompt() },
+      { role: "system", content: input.systemPrompt },
+      ...historyMessages,
       { role: "user", content: input.question },
     ],
     temperature: 0.2,
-    maxTokens: 900,
+    maxTokens: 1200,
     stream: false,
   });
 
@@ -68,6 +99,7 @@ async function askLlm(input: {
 
 export async function answerDocsQuestionAction(input: {
   question: string;
+  history?: DocsChatTurn[];
 }): Promise<DocsAnswerResult> {
   const question = input.question.trim();
   if (!question) {
@@ -98,12 +130,17 @@ export async function answerDocsQuestionAction(input: {
     };
   }
 
+  const retrieved = retrieveDocsContext(question, 5);
+  const systemPrompt = buildDocsAssistantSystemPrompt(retrieved);
+  const citationFallback = retrieved.map((chunk) => chunk.href);
+
+  // Prefer real OpenAI GPT-4o for the documentation portal.
   const llmAttempts: Array<{ provider: BrainProvider; model: string }> = [];
+  if (hasOpenAiCredentials()) {
+    llmAttempts.push({ provider: "openai", model: DOCS_PRIMARY_MODEL });
+  }
   if (hasNullxesApiCredentials()) {
     llmAttempts.push({ provider: "nullxes", model: "nullxes-brain-v1" });
-  }
-  if (hasOpenAiCredentials()) {
-    llmAttempts.push({ provider: "openai", model: "gpt-4o-mini" });
   }
 
   for (const attempt of llmAttempts) {
@@ -112,9 +149,17 @@ export async function answerDocsQuestionAction(input: {
         provider: attempt.provider,
         model: attempt.model,
         question,
+        history: input.history ?? [],
+        systemPrompt,
       });
       if (answer) {
-        return { ok: true, answer, source: "llm" };
+        return {
+          ok: true,
+          answer,
+          source: "llm",
+          model: attempt.model,
+          citations: extractCitations(answer, citationFallback),
+        };
       }
     } catch {
       // Try next provider / fall through to FAQ.
@@ -123,12 +168,17 @@ export async function answerDocsQuestionAction(input: {
 
   const faq = findFaqAnswer(question);
   if (faq) {
-    return { ok: true, answer: faq.answer, source: "faq" };
+    return {
+      ok: true,
+      answer: `${faq.answer}\n\nСм. также: ${citationFallback.slice(0, 3).join(", ")}`,
+      source: "faq",
+      citations: citationFallback.slice(0, 3),
+    };
   }
 
   return {
     ok: false,
     answer:
-      "Сейчас не удалось получить ответ модели. Откройте /docs или /docs/personal-data, либо напишите ceo@nullxes.com · Telegram @MagistrTheOne.",
+      "Сейчас не удалось получить ответ GPT-4o. Откройте /docs/troubleshooting или напишите ceo@nullxes.com · Telegram @MagistrTheOne.",
   };
 }

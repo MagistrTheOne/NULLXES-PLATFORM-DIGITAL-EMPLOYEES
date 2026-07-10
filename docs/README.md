@@ -17,6 +17,8 @@
 
 **Live OpenAPI:** `GET /api/docs` → `public/openapi.yaml`  
 **Human API docs:** `/docs/api`  
+**Docs portal:** `/docs` (v2 Diátaxis) · Assistant GPT-4o: `/docs/assistant`  
+**Agent index:** `/llms.txt` · `/llms-full.txt`  
 **Typed client:** `npm run api:generate` (Orval)
 
 **Database:** 40 migrations through `0040_platform_employee_catalog`. Apply with `npm run db:migrate` (Neon HTTP — not `drizzle-kit migrate` CLI).

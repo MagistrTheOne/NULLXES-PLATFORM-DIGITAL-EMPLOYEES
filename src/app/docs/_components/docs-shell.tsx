@@ -8,14 +8,23 @@ import {
   ChevronRight,
   Code2,
   LifeBuoy,
+  Menu,
   Search,
+  X,
 } from "lucide-react";
-import { DOCS_NAV, findDocsNavItem } from "../_lib/docs-nav";
+import { DOCS_NAV, DOCS_NAV_FLAT, findDocsNavItem } from "../_lib/docs-nav";
+import { DOCS_CORPUS } from "../_lib/docs-corpus";
 
-const DOCS_VERSION = "1.1.0";
+const DOCS_VERSION = "2.0.0";
 const DOCS_UPDATED = "10 июл. 2026 г.";
 
-function NavList({ query }: { query: string }) {
+function NavList({
+  query,
+  onNavigate,
+}: {
+  query: string;
+  onNavigate?: () => void;
+}) {
   const pathname = usePathname();
   const normalized = query.trim().toLowerCase();
 
@@ -23,18 +32,33 @@ function NavList({ query }: { query: string }) {
     if (!normalized) {
       return DOCS_NAV;
     }
+
+    const corpusHits = new Set(
+      DOCS_CORPUS.filter((chunk) => {
+        const hay = `${chunk.title} ${chunk.keywords.join(" ")} ${chunk.body}`.toLowerCase();
+        return hay.includes(normalized);
+      }).map((chunk) => chunk.href.split("#")[0]),
+    );
+
     return DOCS_NAV.map((group) => ({
       ...group,
-      items: group.items.filter((item) =>
-        item.label.toLowerCase().includes(normalized),
+      items: group.items.filter(
+        (item) =>
+          item.label.toLowerCase().includes(normalized) ||
+          corpusHits.has(item.href),
       ),
     })).filter((group) => group.items.length > 0);
   }, [normalized]);
 
   if (groups.length === 0) {
-    return (
-      <p className="px-3 py-4 text-sm text-white/40">Ничего не найдено.</p>
+    const flatHits = DOCS_NAV_FLAT.filter((item) =>
+      item.label.toLowerCase().includes(normalized),
     );
+    if (flatHits.length === 0) {
+      return (
+        <p className="px-3 py-4 text-sm text-white/40">Ничего не найдено.</p>
+      );
+    }
   }
 
   return (
@@ -51,6 +75,7 @@ function NavList({ query }: { query: string }) {
                 <li key={item.href}>
                   <Link
                     href={item.href}
+                    onClick={onNavigate}
                     className={`block rounded-md px-3 py-1.5 text-[13px] transition-colors ${
                       isActive
                         ? "bg-white/10 text-white"
@@ -72,12 +97,12 @@ function NavList({ query }: { query: string }) {
 export function DocsShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const [query, setQuery] = useState("");
+  const [mobileOpen, setMobileOpen] = useState(false);
   const activeItem = findDocsNavItem(pathname);
 
   return (
     <div className="min-h-screen bg-black text-white">
       <div className="mx-auto flex w-full max-w-[1400px]">
-        {/* Sidebar */}
         <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-white/10 lg:flex">
           <div className="border-b border-white/10 px-4 py-4">
             <Link href="/dashboard" className="flex items-center gap-2">
@@ -110,10 +135,46 @@ export function DocsShell({ children }: { children: ReactNode }) {
           </div>
         </aside>
 
-        {/* Main */}
+        {mobileOpen ? (
+          <div className="fixed inset-0 z-40 lg:hidden">
+            <button
+              type="button"
+              className="absolute inset-0 bg-black/70"
+              aria-label="Закрыть меню"
+              onClick={() => setMobileOpen(false)}
+            />
+            <div className="absolute inset-y-0 left-0 flex w-[min(100%,18rem)] flex-col border-r border-white/10 bg-black">
+              <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
+                <span className="text-sm font-medium">Документация</span>
+                <button
+                  type="button"
+                  onClick={() => setMobileOpen(false)}
+                  className="rounded-md p-1 text-white/60 hover:bg-white/5 hover:text-white"
+                >
+                  <X className="size-4" />
+                </button>
+              </div>
+              <div className="flex-1 overflow-y-auto px-2 py-4">
+                <NavList
+                  query={query}
+                  onNavigate={() => setMobileOpen(false)}
+                />
+              </div>
+            </div>
+          </div>
+        ) : null}
+
         <div className="flex min-w-0 flex-1 flex-col">
           <header className="sticky top-0 z-10 border-b border-white/10 bg-black/80 backdrop-blur">
-            <div className="flex items-center gap-3 px-6 py-2.5">
+            <div className="flex items-center gap-3 px-4 py-2.5 sm:px-6">
+              <button
+                type="button"
+                className="rounded-md border border-white/10 p-1.5 text-white/70 lg:hidden"
+                onClick={() => setMobileOpen(true)}
+                aria-label="Открыть меню"
+              >
+                <Menu className="size-4" />
+              </button>
               <div className="relative max-w-md flex-1">
                 <Search className="pointer-events-none absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-white/35" />
                 <input
@@ -125,10 +186,16 @@ export function DocsShell({ children }: { children: ReactNode }) {
               </div>
               <Link
                 href="/docs/api"
-                className="ml-auto inline-flex items-center gap-1.5 text-[13px] text-white/60 transition-colors hover:text-white"
+                className="ml-auto hidden items-center gap-1.5 text-[13px] text-white/60 transition-colors hover:text-white sm:inline-flex"
               >
                 <Code2 className="size-3.5" />
-                API Reference
+                API
+              </Link>
+              <Link
+                href="/docs/assistant"
+                className="hidden items-center gap-1.5 text-[13px] text-white/60 transition-colors hover:text-white md:inline-flex"
+              >
+                GPT-4o
               </Link>
               <Link
                 href="/dashboard"
@@ -141,7 +208,7 @@ export function DocsShell({ children }: { children: ReactNode }) {
           </header>
 
           <div className="flex min-w-0 flex-1">
-            <main className="min-w-0 flex-1 px-6 py-7 xl:px-9">
+            <main className="min-w-0 flex-1 px-4 py-7 sm:px-6 xl:px-9">
               {activeItem ? (
                 <nav className="mb-5 flex items-center gap-1.5 text-xs text-white/40">
                   <Link href="/docs" className="hover:text-white">
@@ -154,7 +221,6 @@ export function DocsShell({ children }: { children: ReactNode }) {
               <div className="max-w-3xl">{children}</div>
             </main>
 
-            {/* Right rail */}
             <aside className="sticky top-[45px] hidden h-[calc(100vh-45px)] w-60 shrink-0 flex-col gap-5 overflow-y-auto border-l border-white/10 px-5 py-7 xl:flex">
               {activeItem && activeItem.toc.length > 0 ? (
                 <div>
@@ -182,27 +248,26 @@ export function DocsShell({ children }: { children: ReactNode }) {
                   Нужна помощь?
                 </p>
                 <p className="mt-1 text-xs leading-relaxed text-white/50">
-                  Спросите Yuki Nakora (LLM по /docs) или обратитесь к
-                  правообладателю напрямую.
+                  Yuki Nakora отвечает через OpenAI GPT-4o по корпусу /docs.
                 </p>
                 <div className="mt-3 flex flex-col gap-2 text-xs">
                   <Link
                     href="/docs/assistant"
                     className="text-white underline underline-offset-4"
                   >
-                    Ассистент документации
+                    Ассистент GPT-4o
                   </Link>
                   <Link
-                    href="/docs/personal-data"
+                    href="/docs/plans"
                     className="text-white underline underline-offset-4"
                   >
-                    Персональные данные (152-ФЗ)
+                    Тарифы и лимиты
                   </Link>
                   <Link
-                    href="/trust"
+                    href="/docs/troubleshooting"
                     className="text-white underline underline-offset-4"
                   >
-                    Центр доверия
+                    Устранение неполадок
                   </Link>
                   <a
                     href="mailto:ceo@nullxes.com"
@@ -221,6 +286,11 @@ export function DocsShell({ children }: { children: ReactNode }) {
                 <p className="mt-1">
                   Последнее обновление:{" "}
                   <span className="text-white/70">{DOCS_UPDATED}</span>
+                </p>
+                <p className="mt-2">
+                  <Link href="/llms.txt" className="text-white/55 hover:text-white">
+                    /llms.txt
+                  </Link>
                 </p>
               </div>
             </aside>

@@ -10,7 +10,7 @@ export const DOCS_FAQ: DocsFaqEntry[] = [
     id: "overview",
     question: "Что такое NULLXES Digital Employees?",
     answer:
-      "NULLXES Digital Employees — платформа управления цифровой рабочей силой: создание digital employees, диалоги, миссии, аналитика и API. Документация размещена на nullxesdai.online/docs.",
+      "NULLXES Digital Employees — платформа управления цифровой рабочей силой: digital employees, Talk, миссии, аналитика и Public API. Документация: nullxesdai.online/docs. Ассистент: /docs/assistant (GPT-4o).",
     keywords: ["что такое", "обзор", "платформа", "назначение"],
   },
   {
@@ -31,42 +31,56 @@ export const DOCS_FAQ: DocsFaqEntry[] = [
     id: "install",
     question: "Какие требования для установки?",
     answer:
-      "Node.js 20+, PostgreSQL 15+ (Neon), хостинг Next.js, Inngest, OPENAI_API_KEY, BETTER_AUTH_SECRET, DATABASE_URL. Подробности — раздел «Установка и настройка» в документации.",
+      "Node.js 20+, PostgreSQL 15+ (Neon), хостинг Next.js, Inngest, OPENAI_API_KEY, BETTER_AUTH_SECRET, DATABASE_URL. Подробности — /docs/installation.",
     keywords: ["установка", "требования", "node", "postgres", "env"],
   },
   {
-    id: "llm",
-    question: "Какой LLM используется для миссий и парсинга?",
+    id: "plans",
+    question: "Какие тарифы и лимиты?",
     answer:
-      "Для анализа и структурирования текстов в Mission Control используется исключительно OpenAI GPT через официальный API. Организация может указать свой ключ OpenAI в Settings → AI.",
-    keywords: ["gpt", "openai", "llm", "миссии", "парсинг"],
+      "Evaluation (free), Studio, Team (operator), Scale, Enterprise, Government. Матрица лимитов: /docs/plans. Evaluation — catalog only без create; API с Team (read) и Scale+ (full).",
+    keywords: ["тариф", "план", "лимит", "evaluation", "studio", "billing"],
+  },
+  {
+    id: "llm",
+    question: "Какой LLM используется?",
+    answer:
+      "Миссии/парсинг: OpenAI GPT. Ассистент документации: OpenAI GPT-4o с RAG по /docs. Организация может указать свой ключ OpenAI в Settings → AI.",
+    keywords: ["gpt", "openai", "llm", "gpt-4o", "ассистент"],
   },
   {
     id: "missions",
     question: "Как создать миссию?",
     answer:
-      "Missions → Assign mission → выберите digital employee → тип Prospecting или Custom → заполните brief → Assign mission. Статус отслеживается в Mission Control.",
+      "Missions → Assign mission → выберите digital employee → Prospecting или Custom → brief → Assign mission. Статус в Mission Control. Approvals: Settings → Security.",
     keywords: ["миссия", "mission", "prospecting", "yuki"],
   },
   {
     id: "api",
     question: "Как пользоваться Public API?",
     answer:
-      "Public API v1: base /api/v1, Authorization: Bearer nx_live_…. Ключи — Settings → Security (scopes: employees:read/write, sessions:read, tasks:write). Документация: /docs/api. OpenAPI YAML: GET /api/docs. Тариф: Evaluation/Studio без API; Operator — чтение; Scale+ — полный доступ.",
+      "Base /api/v1, Authorization: Bearer nx_live_…. Ключи — Settings → Security. Документация: /docs/api. OpenAPI: GET /api/docs. Evaluation/Studio без API; Team — read; Scale+ — full.",
     keywords: ["api", "openapi", "ключ", "nx_live", "интеграц", "rest", "scopes"],
+  },
+  {
+    id: "talk",
+    question: "Как работает Talk?",
+    answer:
+      "Карточка сотрудника → Talk. Нужен статус Talk Ready. Лимиты минут — по тарифу (/docs/plans). Подробнее: /docs/talk.",
+    keywords: ["talk", "диалог", "голос", "сессия"],
   },
   {
     id: "support",
     question: "Как связаться с поддержкой?",
     answer:
-      "Email: ceo@nullxes.com\nTelegram: @MagistrTheOne\nРуководитель: Онюшко Максим Олегович (Maxim Onyushko), ООО «НУЛЛЕКСЕС».",
+      "Ассистент: /docs/assistant (Yuki Nakora, GPT-4o).\nEmail: ceo@nullxes.com\nTelegram: @MagistrTheOne\nРуководитель: Онюшко Максим Олегович (Maxim Onyushko).",
     keywords: ["поддержка", "контакт", "email", "telegram", "ceo"],
   },
   {
     id: "pdn",
     question: "Где документация по персональным данным (152-ФЗ)?",
     answer:
-      "Раздел «Персональные данные» (/docs/personal-data): оператор ПДн, категории данных, места и условия хранения, шифрование, сроки/уничтожение, аудит доступа (Settings → Audit), права субъектов. Trust Center (/trust) — статичное описание мер безопасности. Документы формируются по ФЗ №152-ФЗ, ГОСТ Р ИСО/МЭК 27001-2021 и ГОСТ Р 7.0.8-2013.",
+      "Раздел /docs/personal-data: оператор ПДн, категории, хранение, шифрование, аудит, права субъектов. Trust Center: /trust.",
     keywords: ["пдн", "152", "персональные", "fz", "гост", "аудит", "хранение"],
   },
 ];
@@ -88,11 +102,13 @@ export function findFaqAnswer(input: string): DocsFaqEntry | null {
 
   let best: DocsFaqEntry | null = null;
   let bestScore = 0;
-
   for (const entry of DOCS_FAQ) {
-    const score = entry.keywords.reduce((total, keyword) => {
-      return normalized.includes(keyword) ? total + 1 : total;
-    }, 0);
+    let score = 0;
+    for (const keyword of entry.keywords) {
+      if (normalized.includes(keyword)) {
+        score += 1;
+      }
+    }
     if (score > bestScore) {
       bestScore = score;
       best = entry;

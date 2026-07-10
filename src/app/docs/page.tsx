@@ -3,40 +3,65 @@ import { DOCS_LEGAL_ENTITY } from "./_lib/docs-legal";
 
 const DOC_SECTIONS = [
   {
-    href: "/docs/functional",
-    title: "Описание функциональных характеристик",
-    description:
-      "Назначение ПО, состав модулей, поддерживаемые сценарии работы с цифровыми сотрудниками, миссиями, аналитикой и интеграциями.",
-  },
-  {
     href: "/docs/installation",
-    title: "Информация для установки",
+    title: "Установка и настройка",
     description:
-      "Системные требования, переменные окружения, развёртывание на Vercel/Neon, миграции базы данных и проверка работоспособности.",
+      "Системные требования, переменные окружения, миграции и проверка работоспособности.",
   },
   {
     href: "/docs/operation",
-    title: "Информация для эксплуатации",
+    title: "Эксплуатация",
     description:
-      "Руководство пользователя: вход в систему, создание цифрового сотрудника, миссии, разговоры, настройки организации и API.",
+      "Вход, создание сотрудника, миссии, настройки организации.",
+  },
+  {
+    href: "/docs/talk",
+    title: "Talk",
+    description: "Диалог с digital employee: старт сессии, лимиты, Talk Ready.",
+  },
+  {
+    href: "/docs/plans",
+    title: "Тарифы и лимиты",
+    description:
+      "Evaluation, Studio, Team, Scale, Enterprise, Government — единая матрица.",
   },
   {
     href: "/docs/api",
     title: "Public API v1",
     description:
-      "REST API для интеграций: scopes, эндпоинты, формат ответа, примеры curl, OpenAPI и typed SDK (Orval).",
+      "Scopes, эндпоинты, примеры curl, OpenAPI и typed SDK (Orval).",
+  },
+  {
+    href: "/docs/knowledge",
+    title: "Knowledge",
+    description: "Источники знаний, индексация и лимиты chunks по тарифу.",
+  },
+  {
+    href: "/docs/troubleshooting",
+    title: "Устранение неполадок",
+    description: "Talk, API, миссии и тарифы — типовые сбои.",
   },
   {
     href: "/docs/personal-data",
     title: "Персональные данные (152-ФЗ)",
     description:
-      "Оператор ПДн, категории данных, персональное хранение, шифрование, аудит доступа и права субъектов по 152-ФЗ.",
+      "Оператор ПДн, категории данных, хранение, аудит и права субъектов.",
+  },
+  {
+    href: "/docs/terms",
+    title: "Пользовательское соглашение",
+    description: "Предмет доступа, обязанности сторон и ответственность.",
   },
   {
     href: "/docs/assistant",
-    title: "Ассистент документации",
+    title: "Ассистент GPT-4o",
     description:
-      "Yuki Nakora отвечает через LLM по материалам /docs: установка, эксплуатация, миссии и 152-ФЗ.",
+      "Yuki Nakora отвечает через OpenAI GPT-4o по корпусу /docs с цитатами.",
+  },
+  {
+    href: "/docs/changelog",
+    title: "Changelog",
+    description: "История изменений портала документации.",
   },
 ] as const;
 
@@ -51,9 +76,7 @@ export default function DocsOverviewPage() {
           <strong className="font-medium text-white">
             NULLXES Digital Employees
           </strong>{" "}
-          и содержит сведения, необходимые для проведения экспертизы в
-          соответствии с требованиями к документированию программного
-          обеспечения.
+          и содержит сведения для эксплуатации продукта и проведения экспертизы.
         </p>
       </section>
 
@@ -87,13 +110,6 @@ export default function DocsOverviewPage() {
             </dd>
           </div>
         </dl>
-        <p className="mt-4 text-sm leading-relaxed text-white/60">
-          Сайт{" "}
-          <span className="font-mono text-white">{DOCS_LEGAL_ENTITY.domain}</span>{" "}
-          используется правообладателем для размещения программного обеспечения,
-          документации и служебных интерфейсов. Доступ к продуктовым функциям
-          осуществляется после аутентификации пользователя организации.
-        </p>
       </section>
 
       <section
@@ -119,33 +135,13 @@ export default function DocsOverviewPage() {
             </dd>
           </div>
           <div>
-            <dt className="text-white/40">Дата регистрации</dt>
-            <dd className="mt-1 text-white">{DOCS_LEGAL_ENTITY.registeredAt}</dd>
-          </div>
-          <div>
-            <dt className="text-white/40">Руководитель</dt>
-            <dd className="mt-1 text-white">
-              {DOCS_LEGAL_ENTITY.director} ({DOCS_LEGAL_ENTITY.directorEn})
-            </dd>
-          </div>
-          <div>
             <dt className="text-white/40">Email</dt>
             <dd className="mt-1">
-              <a href={`mailto:${DOCS_LEGAL_ENTITY.email}`} className="text-white underline">
-                {DOCS_LEGAL_ENTITY.email}
-              </a>
-            </dd>
-          </div>
-          <div>
-            <dt className="text-white/40">Telegram</dt>
-            <dd className="mt-1">
               <a
-                href="https://t.me/MagistrTheOne"
+                href={`mailto:${DOCS_LEGAL_ENTITY.email}`}
                 className="text-white underline"
-                target="_blank"
-                rel="noreferrer"
               >
-                {DOCS_LEGAL_ENTITY.telegram}
+                {DOCS_LEGAL_ENTITY.email}
               </a>
             </dd>
           </div>
@@ -160,15 +156,15 @@ export default function DocsOverviewPage() {
           Обработка текстовых данных (требования к LLM)
         </h2>
         <p className="mt-3 text-sm leading-relaxed text-white/60">
-          Для задач анализа, структурирования и генерации текстов (в том числе
-          обработка результатов веб-поиска, формирование лидов и коммерческих
-          предложений в модуле Mission Control) используется{" "}
-          <strong className="font-medium text-white">
-            исключительно модель OpenAI GPT
-          </strong>{" "}
-          через официальный API OpenAI. Альтернативные LLM-провайдеры в
-          производственном контуре обработки миссий и парсинга не применяются.
-          Организация может указать собственный ключ OpenAI в Settings → AI.
+          Для миссий и парсинга используется{" "}
+          <strong className="font-medium text-white">OpenAI GPT</strong> через
+          официальный API. Ассистент документации на{" "}
+          <Link href="/docs/assistant" className="text-white underline">
+            /docs/assistant
+          </Link>{" "}
+          отвечает через{" "}
+          <strong className="font-medium text-white">OpenAI GPT-4o</strong> по
+          корпусу /docs.
         </p>
       </section>
 
@@ -190,19 +186,23 @@ export default function DocsOverviewPage() {
 
       <section className="text-sm text-white/50">
         <p>
-          Public API (документация):{" "}
+          Public API:{" "}
           <Link href="/docs/api" className="text-white hover:underline">
             /docs/api
-          </Link>
-        </p>
-        <p className="mt-2">
-          OpenAPI спецификация (YAML):{" "}
+          </Link>{" "}
+          · OpenAPI:{" "}
           <Link href="/api/docs" className="text-white hover:underline">
             /api/docs
           </Link>
         </p>
         <p className="mt-2">
-          Центр доверия и безопасности:{" "}
+          Для AI-агентов:{" "}
+          <Link href="/llms.txt" className="text-white hover:underline">
+            /llms.txt
+          </Link>
+        </p>
+        <p className="mt-2">
+          Trust:{" "}
           <Link href="/trust" className="text-white hover:underline">
             /trust
           </Link>

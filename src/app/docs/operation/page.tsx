@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function DocsOperationPage() {
   return (
     <article className="flex flex-col gap-8 text-sm leading-relaxed text-white/60">
@@ -71,7 +73,7 @@ export default function DocsOperationPage() {
         <h3 className="font-medium text-white">4. Mission Control — постановка миссии</h3>
         <ol className="mt-4 list-decimal space-y-2 pl-5">
           <li>Sidebar → Missions → Assign mission (/dashboard/missions/new)</li>
-          <li>Выберите сотрудника (например, Yuki Naruka)</li>
+          <li>Выберите сотрудника (например, Yuki Nakora)</li>
           <li>Тип: Prospecting или Custom</li>
           <li>
             Brief — текстовое задание, например: «Find 10 B2B companies in
@@ -101,7 +103,11 @@ export default function DocsOperationPage() {
         <ul className="mt-4 list-disc space-y-2 pl-5">
           <li>
             <strong className="text-white">Settings → General</strong> — язык,
-            timezone, retention
+            timezone, retention (
+            <Link href="/dashboard/settings" className="text-white underline">
+              /dashboard/settings
+            </Link>
+            )
           </li>
           <li>
             <strong className="text-white">Settings → Team</strong> — участники,
@@ -151,7 +157,7 @@ export default function DocsOperationPage() {
             </span>
           </li>
           <li>
-            Тариф: Evaluation/Studio — без API; Operator — чтение; Scale+ —
+            Тариф: Evaluation/Studio — без API; Team — чтение; Scale+ —
             полный доступ
           </li>
         </ul>

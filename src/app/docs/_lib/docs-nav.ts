@@ -12,9 +12,10 @@ export type DocsNavGroup = {
   items: DocsNavItem[];
 };
 
+/** Diátaxis-inspired IA: start · guides · reference · compliance · help */
 export const DOCS_NAV: DocsNavGroup[] = [
   {
-    label: "Введение",
+    label: "Начало",
     items: [
       {
         href: "/docs",
@@ -29,8 +30,22 @@ export const DOCS_NAV: DocsNavGroup[] = [
         ],
       },
       {
+        href: "/docs/installation",
+        label: "Установка",
+        breadcrumb: "Установка",
+        toc: [
+          { id: "requirements", label: "Системные требования" },
+          { id: "source", label: "Исходный код" },
+          { id: "contacts", label: "Контакты разработчика" },
+          { id: "env", label: "Переменные окружения" },
+          { id: "migrations", label: "Миграции БД" },
+          { id: "inngest", label: "Регистрация Inngest" },
+          { id: "verify", label: "Проверка установки" },
+        ],
+      },
+      {
         href: "/docs/assistant",
-        label: "Ассистент документации",
+        label: "Ассистент (GPT-4o)",
         breadcrumb: "Ассистент документации",
         toc: [
           { id: "assistant", label: "LLM-ассистент" },
@@ -40,7 +55,58 @@ export const DOCS_NAV: DocsNavGroup[] = [
     ],
   },
   {
-    label: "Платформа",
+    label: "Руководства",
+    items: [
+      {
+        href: "/docs/operation",
+        label: "Эксплуатация",
+        breadcrumb: "Эксплуатация",
+        toc: [
+          { id: "login", label: "Вход в систему" },
+          { id: "create", label: "Создание сотрудника" },
+          { id: "talk", label: "Диалог (Talk)" },
+          { id: "missions", label: "Mission Control" },
+          { id: "settings", label: "Настройки" },
+          { id: "api", label: "Public API" },
+          { id: "monitoring", label: "Мониторинг" },
+        ],
+      },
+      {
+        href: "/docs/talk",
+        label: "Talk",
+        breadcrumb: "Talk",
+        toc: [
+          { id: "overview", label: "Обзор" },
+          { id: "start", label: "Как начать" },
+          { id: "limits", label: "Лимиты" },
+          { id: "ready", label: "Talk Ready" },
+        ],
+      },
+      {
+        href: "/docs/knowledge",
+        label: "Knowledge",
+        breadcrumb: "Knowledge",
+        toc: [
+          { id: "overview", label: "Обзор" },
+          { id: "upload", label: "Загрузка" },
+          { id: "limits", label: "Лимиты chunks" },
+        ],
+      },
+      {
+        href: "/docs/troubleshooting",
+        label: "Устранение неполадок",
+        breadcrumb: "Устранение неполадок",
+        toc: [
+          { id: "talk", label: "Talk" },
+          { id: "api", label: "API" },
+          { id: "missions", label: "Миссии" },
+          { id: "billing", label: "Тарифы" },
+        ],
+      },
+    ],
+  },
+  {
+    label: "Справочник",
     items: [
       {
         href: "/docs/functional",
@@ -54,24 +120,35 @@ export const DOCS_NAV: DocsNavGroup[] = [
           { id: "roles", label: "Роли пользователей" },
         ],
       },
-    ],
-  },
-  {
-    label: "Установка",
-    items: [
       {
-        href: "/docs/installation",
-        label: "Установка и настройка",
-        breadcrumb: "Установка",
+        href: "/docs/plans",
+        label: "Тарифы и лимиты",
+        breadcrumb: "Тарифы и лимиты",
         toc: [
-          { id: "requirements", label: "Системные требования" },
-          { id: "source", label: "Исходный код" },
-          { id: "contacts", label: "Контакты разработчика" },
-          { id: "env", label: "Переменные окружения" },
-          { id: "migrations", label: "Миграции БД" },
-          { id: "inngest", label: "Регистрация Inngest" },
-          { id: "verify", label: "Проверка установки" },
+          { id: "matrix", label: "Матрица тарифов" },
+          { id: "api", label: "Доступ к API" },
+          { id: "names", label: "Имена планов" },
         ],
+      },
+      {
+        href: "/docs/api",
+        label: "Public API",
+        breadcrumb: "Public API",
+        toc: [
+          { id: "overview", label: "Обзор" },
+          { id: "auth", label: "Ключи и scopes" },
+          { id: "endpoints", label: "Эндпоинты" },
+          { id: "responses", label: "Формат ответа" },
+          { id: "examples", label: "Примеры" },
+          { id: "sdk", label: "Typed SDK" },
+          { id: "security", label: "Безопасность" },
+        ],
+      },
+      {
+        href: "/docs/changelog",
+        label: "Changelog",
+        breadcrumb: "Changelog",
+        toc: [{ id: "recent", label: "Недавние изменения" }],
       },
     ],
   },
@@ -100,39 +177,6 @@ export const DOCS_NAV: DocsNavGroup[] = [
           { id: "scope", label: "Предмет и доступ" },
           { id: "obligations", label: "Обязанности" },
           { id: "liability", label: "Ответственность" },
-        ],
-      },
-    ],
-  },
-  {
-    label: "Эксплуатация",
-    items: [
-      {
-        href: "/docs/operation",
-        label: "Эксплуатация",
-        breadcrumb: "Эксплуатация",
-        toc: [
-          { id: "login", label: "Вход в систему" },
-          { id: "create", label: "Создание сотрудника" },
-          { id: "talk", label: "Диалог (Talk)" },
-          { id: "missions", label: "Mission Control" },
-          { id: "settings", label: "Настройки" },
-          { id: "api", label: "Public API" },
-          { id: "monitoring", label: "Мониторинг" },
-        ],
-      },
-      {
-        href: "/docs/api",
-        label: "Public API",
-        breadcrumb: "Public API",
-        toc: [
-          { id: "overview", label: "Обзор" },
-          { id: "auth", label: "Ключи и scopes" },
-          { id: "endpoints", label: "Эндпоинты" },
-          { id: "responses", label: "Формат ответа" },
-          { id: "examples", label: "Примеры" },
-          { id: "sdk", label: "Typed SDK" },
-          { id: "security", label: "Безопасность" },
         ],
       },
     ],

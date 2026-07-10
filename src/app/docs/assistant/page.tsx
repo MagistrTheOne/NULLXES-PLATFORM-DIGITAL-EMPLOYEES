@@ -13,9 +13,11 @@ export default async function DocsAssistantPage() {
           Ассистент документации
         </h2>
         <p className="mt-4 text-sm leading-relaxed text-white/60">
-          Yuki Nakora отвечает через LLM по материалам портала документации:
-          установка, эксплуатация, миссии, API и персональные данные (152-ФЗ).
-          Для юридически значимых запросов используйте контакты оператора ПДн.
+          Yuki Nakora отвечает через{" "}
+          <strong className="text-white">OpenAI GPT-4o</strong> с retrieval по
+          корпусу /docs (тарифы, Talk, API, 152-ФЗ). Ответы содержат ссылки на
+          разделы. Для юридически значимых запросов используйте контакты
+          оператора ПДн.
         </p>
       </header>
 

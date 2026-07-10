@@ -66,7 +66,7 @@ export default function TrustPage() {
           <Link href="/docs/personal-data" className="text-white hover:underline">
             /docs/personal-data
           </Link>
-          . FAQ assistant:{" "}
+          . Documentation assistant (GPT-4o):{" "}
           <Link href="/docs/assistant" className="text-white hover:underline">
             /docs/assistant
           </Link>

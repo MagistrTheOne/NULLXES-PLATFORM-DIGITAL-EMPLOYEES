@@ -136,6 +136,14 @@ export default function DocsFunctionalPage() {
             сотрудниками, миссиями и диалогами в рамках выданных прав.
           </li>
         </ul>
+        <p className="mt-4 text-xs text-white/40">
+          Роли membership не путать с тарифами Evaluation / Studio / Team /
+          Scale. См.{" "}
+          <a href="/docs/plans" className="text-white underline">
+            /docs/plans
+          </a>
+          .
+        </p>
       </section>
     </article>
   );
