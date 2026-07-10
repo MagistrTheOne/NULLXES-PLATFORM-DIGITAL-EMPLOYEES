@@ -1179,7 +1179,7 @@
       "apiDocsTitle": "Удалённая интеграция",
       "apiBaseUrl": "Базовый URL",
       "apiAuthHeader": "Заголовок Authorization",
-      "apiDocsLink": "Спецификация OpenAPI"
+      "apiDocsLink": "Документация и OpenAPI"
     },
     "approvals": {
       "title": "Одобрения агентов",

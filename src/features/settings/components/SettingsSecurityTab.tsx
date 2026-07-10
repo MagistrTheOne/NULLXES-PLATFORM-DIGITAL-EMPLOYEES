@@ -575,14 +575,24 @@ export function SettingsSecurityTab({
                   Authorization: Bearer nx_live_...
                 </p>
                 <p className="mt-2">{t("apiDocsLink")}</p>
-                <a
-                  href="/api/docs"
-                  className="font-mono text-foreground underline"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  /api/docs
-                </a>
+                <div className="mt-1 flex flex-col gap-1">
+                  <a
+                    href="/docs/api"
+                    className="font-mono text-foreground underline"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    /docs/api
+                  </a>
+                  <a
+                    href="/api/docs"
+                    className="font-mono text-foreground underline"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    /api/docs
+                  </a>
+                </div>
               </div>
               <Button
                 type="button"

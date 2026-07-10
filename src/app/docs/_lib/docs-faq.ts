@@ -49,6 +49,13 @@ export const DOCS_FAQ: DocsFaqEntry[] = [
     keywords: ["миссия", "mission", "prospecting", "yuki"],
   },
   {
+    id: "api",
+    question: "Как пользоваться Public API?",
+    answer:
+      "Public API v1: base /api/v1, Authorization: Bearer nx_live_…. Ключи — Settings → Security (scopes: employees:read/write, sessions:read, tasks:write). Документация: /docs/api. OpenAPI YAML: GET /api/docs. Тариф: Evaluation/Studio без API; Operator — чтение; Scale+ — полный доступ.",
+    keywords: ["api", "openapi", "ключ", "nx_live", "интеграц", "rest", "scopes"],
+  },
+  {
     id: "support",
     question: "Как связаться с поддержкой?",
     answer:

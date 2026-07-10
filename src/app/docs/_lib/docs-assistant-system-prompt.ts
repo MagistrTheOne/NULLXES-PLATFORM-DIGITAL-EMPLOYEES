@@ -36,9 +36,10 @@ Key routes:
 - /docs — documentation portal
 - /docs/installation — install
 - /docs/operation — operations
+- /docs/api — Public API v1 (scopes, endpoints, examples); OpenAPI YAML at /api/docs
 - /docs/functional — features
 - /docs/personal-data — personal data / 152-FZ (categories, storage, audit, rights)
 - /docs/assistant — this LLM documentation assistant
 - /trust — Trust Center (static policy pages, not live monitoring)
-- Settings → Security → Audit — organization audit log (authenticated)`;
+- Settings → Security — API keys, IP allowlist, Audit log (authenticated)`;
 }

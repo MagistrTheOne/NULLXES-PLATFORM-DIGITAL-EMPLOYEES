@@ -128,12 +128,33 @@ export default function DocsOperationPage() {
       >
         <h3 className="font-medium text-white">6. Public API</h3>
         <p className="mt-3">
-          REST API v1 доступен с API key (Settings → Security). Спецификация
-          OpenAPI:{" "}
-          <span className="font-mono text-white">GET /api/docs</span>. Примеры
-          запросов — в репозитории{" "}
-          <span className="font-mono text-white">docs/PUBLIC_API.md</span>.
+          REST API v1 — сотрудники, сессии Talk и задачи. Ключи: Settings →
+          Security. Полное описание scopes, эндпоинтов и примеров — в разделе{" "}
+          <a href="/docs/api" className="text-white underline">
+            /docs/api
+          </a>
+          . Машинная спецификация OpenAPI:{" "}
+          <a href="/api/docs" className="font-mono text-white underline">
+            GET /api/docs
+          </a>
+          .
         </p>
+        <ul className="mt-4 list-disc space-y-2 pl-5">
+          <li>
+            Base path:{" "}
+            <span className="font-mono text-white">/api/v1</span>
+          </li>
+          <li>
+            Auth:{" "}
+            <span className="font-mono text-white">
+              Authorization: Bearer nx_live_…
+            </span>
+          </li>
+          <li>
+            Тариф: Evaluation/Studio — без API; Operator — чтение; Scale+ —
+            полный доступ
+          </li>
+        </ul>
       </section>
 
       <section

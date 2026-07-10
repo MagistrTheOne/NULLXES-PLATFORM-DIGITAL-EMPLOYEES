@@ -1179,7 +1179,7 @@
       "apiDocsTitle": "Remote integration",
       "apiBaseUrl": "Base URL",
       "apiAuthHeader": "Authorization header",
-      "apiDocsLink": "OpenAPI specification"
+      "apiDocsLink": "Documentation & OpenAPI"
     },
     "approvals": {
       "title": "Agent approvals",

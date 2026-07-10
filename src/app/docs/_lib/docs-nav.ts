@@ -121,6 +121,20 @@ export const DOCS_NAV: DocsNavGroup[] = [
           { id: "monitoring", label: "Мониторинг" },
         ],
       },
+      {
+        href: "/docs/api",
+        label: "Public API",
+        breadcrumb: "Public API",
+        toc: [
+          { id: "overview", label: "Обзор" },
+          { id: "auth", label: "Ключи и scopes" },
+          { id: "endpoints", label: "Эндпоинты" },
+          { id: "responses", label: "Формат ответа" },
+          { id: "examples", label: "Примеры" },
+          { id: "sdk", label: "Typed SDK" },
+          { id: "security", label: "Безопасность" },
+        ],
+      },
     ],
   },
 ];

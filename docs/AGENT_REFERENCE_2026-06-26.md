@@ -90,7 +90,10 @@ Older UI commits (Conversations grid, Talk inspector, HQ floor) from 2026-06 rem
 Auth: `Authorization: Bearer nx_live_<api_key>` (legacy `nx_` keys still accepted)  
 Middleware: `src/features/public-api/middleware/authenticate-api-key.ts`  
 Scopes: `src/features/public-api/lib/api-scopes.ts`  
-OpenAPI: `public/openapi.yaml` → **`GET /api/docs`**
+**Contract (source of truth):** `public/openapi.yaml` → **`GET /api/docs`**  
+**Human docs:** `/docs/api`  
+**Typed client:** Orval — `npm run api:generate` → `src/features/public-api/generated/` (+ `sdk.ts`, mutator `lib/custom-fetch.ts`)  
+**Validation deps:** direct `zod@^4`, `drizzle-zod` (request schemas can migrate onto Zod; handlers may still use manual JSON parse)
 
 | Scope | Routes |
 |-------|--------|
@@ -115,7 +118,9 @@ Hashes: HMAC-SHA256 with `API_KEY_PEPPER` stored as `hmac1:…` (legacy plain SH
 
 Responses include `requestId` (+ `X-Request-Id` header). Denied access → audit `api.access.denied`.
 
-**Testing:** [`docs/PUBLIC_API.md`](./PUBLIC_API.md) — `npm run public-api:probe` (creates keys + HTTP smoke test).
+**Spec / testing:** [`docs/PUBLIC_API.md`](./PUBLIC_API.md) — architecture, Orval, probe (`npm run public-api:probe`).
+
+**Add endpoint checklist:** update `public/openapi.yaml` → implement `src/app/api/v1/...` → `npm run api:generate` → refresh `/docs/api` + `PUBLIC_API.md`.
 
 ### 4.2 Email OTP (Better Auth + Resend)
 
@@ -475,7 +480,7 @@ Build gate: `npm run build` (= `db:migrate` && `next build`)
 | Change message rendering | `conversations-message-ui.tsx` or `talk-message-ui.tsx` |
 | Change chat pipeline | `attach-talk-chat-pipeline.ts` |
 | HQ floor behavior | `src/features/hq/components/office/` |
-| Add public API endpoint | `src/app/api/v1/` + update `public/openapi.yaml` |
+| Add public API endpoint | `src/app/api/v1/` + `public/openapi.yaml` + `npm run api:generate` + `/docs/api` |
 | Schema change | one entity in `src/entities/` → `npm run db:generate` |
 | i18n strings | `src/i18n/messages/en.json`, `ru.json` |
 

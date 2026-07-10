@@ -21,6 +21,12 @@ const DOC_SECTIONS = [
       "Руководство пользователя: вход в систему, создание цифрового сотрудника, миссии, разговоры, настройки организации и API.",
   },
   {
+    href: "/docs/api",
+    title: "Public API v1",
+    description:
+      "REST API для интеграций: scopes, эндпоинты, формат ответа, примеры curl, OpenAPI и typed SDK (Orval).",
+  },
+  {
     href: "/docs/personal-data",
     title: "Персональные данные (152-ФЗ)",
     description:
@@ -184,7 +190,13 @@ export default function DocsOverviewPage() {
 
       <section className="text-sm text-white/50">
         <p>
-          OpenAPI спецификация:{" "}
+          Public API (документация):{" "}
+          <Link href="/docs/api" className="text-white hover:underline">
+            /docs/api
+          </Link>
+        </p>
+        <p className="mt-2">
+          OpenAPI спецификация (YAML):{" "}
           <Link href="/api/docs" className="text-white hover:underline">
             /api/docs
           </Link>

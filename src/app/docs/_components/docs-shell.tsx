@@ -12,8 +12,8 @@ import {
 } from "lucide-react";
 import { DOCS_NAV, findDocsNavItem } from "../_lib/docs-nav";
 
-const DOCS_VERSION = "1.0.0";
-const DOCS_UPDATED = "30 июн. 2026 г.";
+const DOCS_VERSION = "1.1.0";
+const DOCS_UPDATED = "10 июл. 2026 г.";
 
 function NavList({ query }: { query: string }) {
   const pathname = usePathname();
@@ -124,7 +124,7 @@ export function DocsShell({ children }: { children: ReactNode }) {
                 />
               </div>
               <Link
-                href="/api/docs"
+                href="/docs/api"
                 className="ml-auto inline-flex items-center gap-1.5 text-[13px] text-white/60 transition-colors hover:text-white"
               >
                 <Code2 className="size-3.5" />

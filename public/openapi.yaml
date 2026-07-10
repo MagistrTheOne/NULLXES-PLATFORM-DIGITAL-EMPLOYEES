@@ -7,6 +7,10 @@ info:
 
     Authenticate with a Bearer API key created in Settings → Security.
     Keys use the `nx_live_...` prefix and are scoped to your organization.
+
+    Human documentation: /docs/api
+    OpenAPI YAML: GET /api/docs
+    Typed client (repo): npm run api:generate
 servers:
   - url: /api/v1
 security:

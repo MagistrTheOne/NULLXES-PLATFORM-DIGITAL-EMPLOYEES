@@ -10,13 +10,16 @@
 | [AGENT_MISSIONS_2026-07-05.md](./AGENT_MISSIONS_2026-07-05.md) | **AI agents / missions** | Missions, schedules, skill_ids, Inngest workers |
 | [SCALING_2026-07-04.md](./SCALING_2026-07-04.md) | Engineering / DevOps | Scaling: 10 → 100 → 1000+ users, plan limits, ops checklist |
 | [PLATFORM_SCOPE.md](./PLATFORM_SCOPE.md) | Product / engineering | Sprint roadmap and module status matrix (2026-07-09) |
-| [PUBLIC_API.md](./PUBLIC_API.md) | Integrations / QA | Public API scopes, pepper, probe script, curl examples |
+| [PUBLIC_API.md](./PUBLIC_API.md) | Integrations / QA | Public API v1 TZ: OpenAPI contract, Orval SDK, scopes, probe, curl |
 | [DEPLOYMENT_RF.md](./DEPLOYMENT_RF.md) | DevOps | Russia deployment + production env checklist |
 | [RESPONSIVE_VERIFICATION.md](./RESPONSIVE_VERIFICATION.md) | QA / frontend | Viewport checklist for dashboard routes |
+| [BETA_FREE_TIER.md](./BETA_FREE_TIER.md) | Ops / beta | Free catalog employees, partner shell orgs, seed |
 
-**Live OpenAPI:** `GET /api/docs` → `public/openapi.yaml`
+**Live OpenAPI:** `GET /api/docs` → `public/openapi.yaml`  
+**Human API docs:** `/docs/api`  
+**Typed client:** `npm run api:generate` (Orval)
 
-**Database:** 39 migrations through `0038_billing_plans_studio_operator_scale`. Apply with `npm run db:migrate` (Neon HTTP — not `drizzle-kit migrate` CLI).
+**Database:** 40 migrations through `0040_platform_employee_catalog`. Apply with `npm run db:migrate` (Neon HTTP — not `drizzle-kit migrate` CLI).
 
 **Billing plans:** `free` · `studio` · `operator` · `scale` · `enterprise` · `government` (`src/features/billing/config/plans.ts`).
 

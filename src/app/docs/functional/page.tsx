@@ -75,7 +75,11 @@ export default function DocsFunctionalPage() {
           </li>
           <li>
             <strong className="text-white">Public API v1</strong> — REST API для
-            управления сотрудниками, сессиями и задачами; OpenAPI на{" "}
+            управления сотрудниками, сессиями и задачами; документация{" "}
+            <a href="/docs/api" className="text-white underline">
+              /docs/api
+            </a>
+            , OpenAPI на{" "}
             <span className="font-mono text-white">/api/docs</span>.
           </li>
           <li>
