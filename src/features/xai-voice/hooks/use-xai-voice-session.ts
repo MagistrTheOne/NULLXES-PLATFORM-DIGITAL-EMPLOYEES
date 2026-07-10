@@ -29,6 +29,10 @@ export function useXaiVoiceSession(input: {
   employeeId: string;
   sessionId?: string;
   enabled: boolean;
+  /** Override session bootstrap endpoint (e.g. public landing trial). */
+  sessionEndpoint?: string;
+  /** Hard stop after N live seconds (guest trial). */
+  maxDurationSec?: number;
 }) {
   const [state, setState] = useState<XaiVoiceSessionState>("idle");
   const [error, setError] = useState<string | null>(null);
@@ -477,14 +481,17 @@ export function useXaiVoiceSession(input: {
     disconnect();
 
     try {
-      const response = await fetch("/api/talk/xai-voice/session", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          employeeId: input.employeeId,
-          sessionId: input.sessionId,
-        }),
-      });
+      const response = await fetch(
+        input.sessionEndpoint ?? "/api/talk/xai-voice/session",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            employeeId: input.employeeId,
+            sessionId: input.sessionId,
+          }),
+        },
+      );
 
       if (!response.ok) {
         const payload = (await response.json().catch(() => ({}))) as {
@@ -543,6 +550,7 @@ export function useXaiVoiceSession(input: {
     handleServerEvent,
     input.employeeId,
     input.enabled,
+    input.sessionEndpoint,
     input.sessionId,
     startCapture,
     waitForSessionConfigured,
@@ -564,17 +572,28 @@ export function useXaiVoiceSession(input: {
       return;
     }
 
+    const maxDurationSec = input.maxDurationSec;
     const interval = window.setInterval(() => {
       if (callStartedAtRef.current === null) {
         return;
       }
-      setCallDurationSec(
-        Math.floor((Date.now() - callStartedAtRef.current) / 1000),
+      const elapsed = Math.floor(
+        (Date.now() - callStartedAtRef.current) / 1000,
       );
+      setCallDurationSec(elapsed);
+      if (
+        typeof maxDurationSec === "number" &&
+        maxDurationSec > 0 &&
+        elapsed >= maxDurationSec
+      ) {
+        disconnect();
+        setState("ended");
+        setError("Trial ended — 1 minute complete. Sign in for full Talk.");
+      }
     }, 1000);
 
     return () => window.clearInterval(interval);
-  }, [state]);
+  }, [disconnect, input.maxDurationSec, state]);
 
   const toggleMicMute = useCallback(() => {
     setMicMuted((current) => {

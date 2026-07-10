@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export function LandingNav({ signedIn }: { signedIn: boolean }) {
   return (
-    <header className="relative z-20 flex items-center justify-between gap-6 px-6 py-5 md:px-10 lg:px-14">
+    <header className="relative z-20 flex shrink-0 items-center justify-between gap-6 px-6 py-5 md:px-10 lg:px-14">
       <Link
         href="/"
         className="font-(family-name:--font-landing-serif) text-sm tracking-[0.35em] text-white uppercase"
@@ -34,20 +34,12 @@ export function LandingNav({ signedIn }: { signedIn: boolean }) {
             Go to dashboard
           </Link>
         ) : (
-          <>
-            <Link
-              href="/login"
-              className="px-3 py-2 text-xs tracking-wide text-white/65 transition-colors hover:text-white"
-            >
-              Login
-            </Link>
-            <Link
-              href="/register"
-              className="rounded-full border border-(--landing-gold)/70 px-4 py-2 text-xs tracking-wide text-(--landing-gold) transition-colors hover:bg-(--landing-gold)/10"
-            >
-              Register
-            </Link>
-          </>
+          <Link
+            href="/register"
+            className="rounded-full border border-(--landing-gold)/70 px-4 py-2 text-xs tracking-wide text-(--landing-gold) transition-colors hover:bg-(--landing-gold)/10"
+          >
+            Talk to sales
+          </Link>
         )}
       </div>
     </header>

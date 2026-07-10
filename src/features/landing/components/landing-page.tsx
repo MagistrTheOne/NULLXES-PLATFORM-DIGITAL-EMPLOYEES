@@ -24,7 +24,7 @@ export function LandingPage({
 }) {
   return (
     <div
-      className={`${landingSerif.variable} relative min-h-screen overflow-x-hidden bg-black text-white`}
+      className={`${landingSerif.variable} relative overflow-x-hidden bg-black text-white`}
       style={landingVars}
     >
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -32,11 +32,23 @@ export function LandingPage({
         <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.03)_0%,transparent_42%)]" />
       </div>
 
-      <div className="relative flex min-h-screen flex-col">
+      {/* Hero: one full viewport on desktop — no in-section scroll */}
+      <div className="relative flex min-h-dvh flex-col lg:h-dvh lg:min-h-0 lg:overflow-hidden">
         <LandingNav signedIn={signedIn} />
         <AdelineHero signedIn={signedIn} plaque={plaque} />
-        <UseCaseSection signedIn={signedIn} />
       </div>
+
+      {/* Use cases: next full viewport */}
+      <div className="relative">
+        <UseCaseSection signedIn={signedIn} plaque={plaque} />
+      </div>
+
+      <style>{`
+        @keyframes landing-wave {
+          0%, 100% { transform: scaleY(0.45); opacity: 0.65; }
+          50% { transform: scaleY(1); opacity: 1; }
+        }
+      `}</style>
     </div>
   );
 }

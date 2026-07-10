@@ -1,109 +1,141 @@
 "use client";
 
+import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
-import { useLocale, useTranslations } from "next-intl";
-import { Archive, Circle, Loader2, Pause, Radio, UserRound } from "lucide-react";
-import type { EmployeeStatus } from "@/entities/digital-employee";
-import { AvatarIdlePreview } from "@/features/employees/components/avatar-idle-preview";
-import { formatRelativeTime } from "@/features/overview/lib/format-relative-time";
+import { AudioLines } from "lucide-react";
+import { XaiVoiceCallSheet } from "@/features/xai-voice/components/xai-voice-call-sheet";
 import { ADELINE_KALEN_EMPLOYEE_ID } from "@/shared/config/xai-voice-env";
-import { cn } from "@/lib/utils";
 import type { AdelineLandingPlaque } from "../services/get-adeline-landing-plaque";
 
-const STATUS_ICONS: Record<
-  EmployeeStatus,
-  { Icon: typeof Radio; dim?: boolean }
-> = {
-  active: { Icon: Radio },
-  paused: { Icon: Pause, dim: true },
-  draft: { Icon: Circle, dim: true },
-  archived: { Icon: Archive, dim: true },
-};
-
 const MARKETING_PORTRAIT = "/marketing/adeline-kalen.jpg";
+const GUEST_TRIAL_SECONDS = 60;
+const GUEST_VOICE_ENDPOINT = "/api/landing/adeline-demo/voice";
+
+function TalkingWaveform({ active }: { active?: boolean }) {
+  return (
+    <span className="flex h-3.5 items-end gap-[2px]" aria-hidden>
+      {[0.45, 0.9, 0.55, 1, 0.4, 0.75, 0.5].map((scale, index) => (
+        <span
+          key={index}
+          className="w-[2px] origin-bottom rounded-full bg-(--landing-gold)"
+          style={{
+            height: `${scale * 100}%`,
+            animation: active
+              ? `landing-wave 1.1s ease-in-out ${index * 0.08}s infinite`
+              : undefined,
+            opacity: active ? undefined : 0.55,
+          }}
+        />
+      ))}
+    </span>
+  );
+}
 
 /**
- * Product employee plaque — same card chrome as Overview carousel
- * (`OverviewEmployeeCarousel`), keyed to Adeline Kalen.
- * @see https://www.nullxesdai.online/dashboard/employees/b0ab9bc2-aed4-4e1c-875f-dfb9180d234a
+ * Mockup-style Adeline plaque with Talk / Voice.
+ * Guests get a 60s public Voice trial; signed-in Talk opens the live employee room.
  */
-export function AdelinePlaque({ plaque }: { plaque: AdelineLandingPlaque }) {
-  const locale = useLocale();
-  const t = useTranslations("dashboard.carousel");
-  const tStatus = useTranslations("employees.status");
-  const { Icon, dim } = STATUS_ICONS[plaque.status];
-
+export function AdelinePlaque({
+  plaque,
+  signedIn,
+}: {
+  plaque: AdelineLandingPlaque;
+  signedIn: boolean;
+}) {
+  const [voiceOpen, setVoiceOpen] = useState(false);
   const employeeId = plaque.id || ADELINE_KALEN_EMPLOYEE_ID;
-  const livePreview =
-    plaque.avatarPreviewUrl && plaque.avatarProvisioningStatus === "ready"
-      ? plaque.avatarPreviewUrl
-      : null;
-  const previewSrc = livePreview ?? MARKETING_PORTRAIT;
-  const isProvisioning =
-    !livePreview &&
-    (plaque.avatarProvisioningStatus === "pending" ||
-      plaque.avatarProvisioningStatus === "provisioning");
+  const portrait = MARKETING_PORTRAIT;
+  const talkHref = `/dashboard/employees/${employeeId}/talk`;
 
-  const talkedLabel = plaque.lastSessionAt
-    ? t("talked", {
-        time: formatRelativeTime(new Date(plaque.lastSessionAt), locale),
-      })
-    : t("noSessions");
+  const startGuestOrSignedVoice = () => {
+    setVoiceOpen(true);
+  };
 
   return (
-    <Link
-      href={`/dashboard/employees/${employeeId}`}
-      data-employee-id={employeeId}
-      className={cn(
-        "group flex w-full max-w-[280px] flex-col overflow-hidden rounded-2xl",
-        "border border-white/10 bg-[#111111] text-white",
-        "shadow-[0_30px_80px_rgba(0,0,0,0.55)] transition-colors hover:bg-white/3",
-      )}
-    >
-      <div className="relative flex aspect-4/3 items-center justify-center border-b border-white/8 bg-white/2">
-        {isProvisioning ? (
-          <div className="flex flex-col items-center gap-2 text-white/40">
-            <Loader2 className="size-7 animate-spin stroke-[1.25]" />
-          </div>
-        ) : previewSrc ? (
-          <AvatarIdlePreview
-            src={previewSrc}
+    <>
+      <article
+        data-employee-id={employeeId}
+        className="flex w-full max-w-[360px] flex-col overflow-hidden rounded-[1.35rem] border border-(--landing-gold)/45 bg-[#0a0a0a] shadow-[0_30px_80px_rgba(0,0,0,0.55)]"
+      >
+        <div className="relative aspect-4/5 w-full overflow-hidden bg-black">
+          <Image
+            src={portrait}
             alt={plaque.name}
-            sizes="280px"
+            fill
+            priority
+            className="object-cover object-[center_18%]"
+            sizes="(max-width: 1024px) 320px, 360px"
           />
-        ) : (
-          <div className="flex flex-col items-center gap-2 text-white/40">
-            <UserRound className="size-7 stroke-[1.25]" />
-          </div>
-        )}
-      </div>
+          <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-black/85 via-transparent to-transparent" />
+        </div>
 
-      <div className="flex flex-1 flex-col gap-2.5 px-4 py-3.5">
-        <div className="flex min-w-0 items-start justify-between gap-2">
+        <div className="flex items-end justify-between gap-4 border-t border-white/5 px-5 py-4">
           <div className="min-w-0">
-            <p className="truncate text-sm font-semibold tracking-tight text-white group-hover:text-white/85">
+            <p className="truncate text-[15px] font-medium tracking-tight text-white">
               {plaque.name}
             </p>
-            <p className="mt-0.5 truncate text-xs text-white/50">{plaque.role}</p>
+            <p className="mt-0.5 truncate text-xs tracking-wide text-(--landing-gold)">
+              Digital Executive
+            </p>
           </div>
-          <span
-            className="flex items-center text-white/45"
-            title={tStatus(plaque.status)}
-            aria-label={tStatus(plaque.status)}
+          <div className="inline-flex shrink-0 items-center gap-2 rounded-full border border-(--landing-gold)/40 bg-black/60 px-3 py-1.5 text-[11px] text-(--landing-gold)">
+            <TalkingWaveform active />
+            <span>Talking</span>
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-2 border-t border-white/5 px-5 py-4">
+          {signedIn ? (
+            <Link
+              href={talkHref}
+              className="inline-flex h-11 items-center justify-center rounded-xl bg-white text-sm font-medium text-black transition-opacity hover:opacity-90"
+            >
+              Talk
+            </Link>
+          ) : (
+            <button
+              type="button"
+              onClick={startGuestOrSignedVoice}
+              className="inline-flex h-11 items-center justify-center rounded-xl bg-white text-sm font-medium text-black transition-opacity hover:opacity-90"
+            >
+              Talk · 1 min
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={startGuestOrSignedVoice}
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-white/15 bg-transparent text-sm text-white transition-colors hover:border-white/30 hover:bg-white/5"
           >
-            <Icon
-              className={cn("size-3.5 stroke-[1.5]", dim && "opacity-50")}
-              aria-hidden
-            />
-          </span>
+            <AudioLines className="size-4" />
+            {signedIn ? "Voice" : "Voice · 1 min"}
+          </button>
+          {!signedIn ? (
+            <p className="text-center text-[11px] text-white/40">
+              Public trial — no account required
+            </p>
+          ) : (
+            <Link
+              href={`/dashboard/employees/${employeeId}`}
+              className="text-center text-[11px] text-white/40 transition-colors hover:text-white/65"
+            >
+              Open employee profile
+            </Link>
+          )}
         </div>
-        <div className="mt-auto space-y-0.5 text-xs text-white/45">
-          <p className="truncate">{talkedLabel}</p>
-          <p className="tabular-nums text-white/75">
-            {t("sessionsInPeriod", { count: plaque.sessionsInRange })}
-          </p>
-        </div>
-      </div>
-    </Link>
+      </article>
+
+      <XaiVoiceCallSheet
+        open={voiceOpen}
+        onOpenChange={setVoiceOpen}
+        employeeId={employeeId}
+        employeeName={plaque.name}
+        avatarPreviewUrl={portrait}
+        translationNamespace="employees.talk.xaiVoice"
+        sessionEndpoint={signedIn ? undefined : GUEST_VOICE_ENDPOINT}
+        maxDurationSec={signedIn ? undefined : GUEST_TRIAL_SECONDS}
+        trialLabel={signedIn ? undefined : "1 minute trial"}
+      />
+    </>
   );
 }

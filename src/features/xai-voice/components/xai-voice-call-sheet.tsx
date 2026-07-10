@@ -40,6 +40,9 @@ export function XaiVoiceCallSheet({
   avatarPreviewUrl,
   sessionId,
   translationNamespace = "conversations.xaiVoice",
+  sessionEndpoint,
+  maxDurationSec,
+  trialLabel,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -48,6 +51,9 @@ export function XaiVoiceCallSheet({
   avatarPreviewUrl?: string | null;
   sessionId?: string;
   translationNamespace?: string;
+  sessionEndpoint?: string;
+  maxDurationSec?: number;
+  trialLabel?: string;
 }) {
   const t = useTranslations(translationNamespace);
   const transcriptEndRef = useRef<HTMLDivElement | null>(null);
@@ -68,6 +74,8 @@ export function XaiVoiceCallSheet({
     employeeId,
     sessionId,
     enabled: open,
+    sessionEndpoint,
+    maxDurationSec,
   });
 
   const isSessionLocked = isLive || state === "connecting";
@@ -121,7 +129,15 @@ export function XaiVoiceCallSheet({
                 </DialogTitle>
                 <p className="font-mono text-sm tabular-nums text-white/55 sm:text-base">
                   {formatCallDuration(callDurationSec)}
+                  {typeof maxDurationSec === "number" && maxDurationSec > 0
+                    ? ` / ${formatCallDuration(maxDurationSec)}`
+                    : null}
                 </p>
+                {trialLabel ? (
+                  <p className="text-[11px] tracking-wide text-white/40 uppercase">
+                    {trialLabel}
+                  </p>
+                ) : null}
               </div>
             ) : (
               <>
