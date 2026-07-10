@@ -2,15 +2,14 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import { AudioLines } from "lucide-react";
 import { XaiVoiceCallSheet } from "@/features/xai-voice/components/xai-voice-call-sheet";
 import { ADELINE_KALEN_EMPLOYEE_ID } from "@/shared/config/xai-voice-env";
 import type { AdelineLandingPlaque } from "../services/get-adeline-landing-plaque";
 
 const MARKETING_PORTRAIT = "/marketing/adeline-kalen.jpg";
-const GUEST_TRIAL_SECONDS = 60;
-const GUEST_VOICE_ENDPOINT = "/api/landing/adeline-demo/voice";
+const DEMO_TRIAL_SECONDS = 60;
+const DEMO_VOICE_ENDPOINT = "/api/landing/adeline-demo/voice";
 
 function TalkingWaveform({ active }: { active?: boolean }) {
   return (
@@ -33,23 +32,22 @@ function TalkingWaveform({ active }: { active?: boolean }) {
 }
 
 /**
- * Mockup-style Adeline plaque with Talk / Voice.
- * Guests get a 60s public Voice trial; signed-in Talk opens the live employee room.
+ * Landing demo plaque — Talk / Voice stay on the marketing page (no dashboard).
+ * 60s public Adeline trial for everyone, signed-in or not.
  */
 export function AdelinePlaque({
   plaque,
-  signedIn,
 }: {
   plaque: AdelineLandingPlaque;
-  signedIn: boolean;
+  /** Kept for call-site compatibility; demo never routes to dashboard. */
+  signedIn?: boolean;
 }) {
-  const [voiceOpen, setVoiceOpen] = useState(false);
+  const [demoOpen, setDemoOpen] = useState(false);
   const employeeId = plaque.id || ADELINE_KALEN_EMPLOYEE_ID;
   const portrait = MARKETING_PORTRAIT;
-  const talkHref = `/dashboard/employees/${employeeId}/talk`;
 
-  const startGuestOrSignedVoice = () => {
-    setVoiceOpen(true);
+  const startDemo = () => {
+    setDemoOpen(true);
   };
 
   return (
@@ -86,55 +84,37 @@ export function AdelinePlaque({
         </div>
 
         <div className="flex flex-col gap-2 border-t border-white/5 px-5 py-4">
-          {signedIn ? (
-            <Link
-              href={talkHref}
-              className="inline-flex h-11 items-center justify-center rounded-xl bg-white text-sm font-medium text-black transition-opacity hover:opacity-90"
-            >
-              Talk
-            </Link>
-          ) : (
-            <button
-              type="button"
-              onClick={startGuestOrSignedVoice}
-              className="inline-flex h-11 items-center justify-center rounded-xl bg-white text-sm font-medium text-black transition-opacity hover:opacity-90"
-            >
-              Talk · 1 min
-            </button>
-          )}
           <button
             type="button"
-            onClick={startGuestOrSignedVoice}
+            onClick={startDemo}
+            className="inline-flex h-11 items-center justify-center rounded-xl bg-white text-sm font-medium text-black transition-opacity hover:opacity-90"
+          >
+            Talk · 1 min
+          </button>
+          <button
+            type="button"
+            onClick={startDemo}
             className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-white/15 bg-transparent text-sm text-white transition-colors hover:border-white/30 hover:bg-white/5"
           >
             <AudioLines className="size-4" />
-            {signedIn ? "Voice" : "Voice · 1 min"}
+            Voice · 1 min
           </button>
-          {!signedIn ? (
-            <p className="text-center text-[11px] text-white/40">
-              Public trial — no account required
-            </p>
-          ) : (
-            <Link
-              href={`/dashboard/employees/${employeeId}`}
-              className="text-center text-[11px] text-white/40 transition-colors hover:text-white/65"
-            >
-              Open employee profile
-            </Link>
-          )}
+          <p className="text-center text-[11px] text-white/40">
+            1 minute public demo — no account required
+          </p>
         </div>
       </article>
 
       <XaiVoiceCallSheet
-        open={voiceOpen}
-        onOpenChange={setVoiceOpen}
+        open={demoOpen}
+        onOpenChange={setDemoOpen}
         employeeId={employeeId}
         employeeName={plaque.name}
         avatarPreviewUrl={portrait}
         translationNamespace="employees.talk.xaiVoice"
-        sessionEndpoint={signedIn ? undefined : GUEST_VOICE_ENDPOINT}
-        maxDurationSec={signedIn ? undefined : GUEST_TRIAL_SECONDS}
-        trialLabel={signedIn ? undefined : "1 minute trial"}
+        sessionEndpoint={DEMO_VOICE_ENDPOINT}
+        maxDurationSec={DEMO_TRIAL_SECONDS}
+        trialLabel="1 minute demo"
       />
     </>
   );
