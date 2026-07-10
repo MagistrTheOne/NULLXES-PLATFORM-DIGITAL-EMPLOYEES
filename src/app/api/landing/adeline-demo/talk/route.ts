@@ -1,8 +1,6 @@
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
-import type { AvatarProviderConfigPayload } from "@/entities/provider-config";
 import { digitalEmployee } from "@/entities/digital-employee/schema";
-import { employeeProviderConfig } from "@/entities/provider-config/schema";
 import { ADELINE_MARKETING_PORTRAIT } from "@/features/landing/lib/adeline-marketing";
 import { createAnamTalkSessionTokenForEmployee } from "@/features/runtime-session/services/create-anam-talk-session";
 import { ADELINE_KALEN_EMPLOYEE_ID } from "@/shared/config/xai-voice-env";
@@ -58,20 +56,6 @@ export async function POST(request: Request): Promise<Response> {
     );
   }
 
-  const [avatarRow] = await db
-    .select({ config: employeeProviderConfig.config })
-    .from(employeeProviderConfig)
-    .where(
-      and(
-        eq(employeeProviderConfig.employeeId, ADELINE_KALEN_EMPLOYEE_ID),
-        eq(employeeProviderConfig.providerType, "avatar"),
-      ),
-    )
-    .limit(1);
-
-  const avatarConfig = avatarRow?.config as
-    | AvatarProviderConfigPayload
-    | undefined;
   const tokenResult = await createAnamTalkSessionTokenForEmployee(
     employee.organizationId,
     employee.id,
