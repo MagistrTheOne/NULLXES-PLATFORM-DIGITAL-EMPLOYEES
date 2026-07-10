@@ -62,6 +62,8 @@ export function attachTalkVoicePipeline(input: {
   scenarioSessionId?: string;
   voiceMode: TalkVoiceMode;
   setPipelineState: (state: TalkPipelineState) => void;
+  /** Override brain bootstrap endpoint (e.g. public landing demo). */
+  brainEndpoint?: string;
 }): () => void {
   const coordinator = getTalkPipelineCoordinator(input.employeeId);
   coordinator.reset();
@@ -142,6 +144,7 @@ export function attachTalkVoicePipeline(input: {
             scenarioSessionId: input.scenarioSessionId,
             channel: "voice",
             messages: pipelineMessages,
+            brainEndpoint: input.brainEndpoint,
             signal: brainAbort.signal,
             onServerPerf: (payload) => {
               telemetry.mergeServerPerf(payload);
@@ -175,6 +178,7 @@ export function attachTalkVoicePipeline(input: {
             scenarioSessionId: input.scenarioSessionId,
             channel: "voice",
             messages: pipelineMessages,
+            brainEndpoint: input.brainEndpoint,
             signal: brainAbort.signal,
             onServerPerf: (payload) => {
               telemetry.mergeServerPerf(payload);

@@ -10,6 +10,8 @@ export async function streamTalkBrainReply(input: {
   scenarioSessionId?: string;
   channel?: TalkBrainChannel;
   messages: TalkPipelineMessage[];
+  /** Override brain bootstrap endpoint (e.g. public landing demo). */
+  brainEndpoint?: string;
   onChunk?: (chunk: string) => void | Promise<void>;
   onToolTrace?: (traceKey: string | null) => void | Promise<void>;
   onBrainMeta?: (meta: { modelLabel: string }) => void | Promise<void>;
@@ -19,19 +21,22 @@ export async function streamTalkBrainReply(input: {
   }) => void | Promise<void>;
   signal?: AbortSignal;
 }): Promise<string> {
-  const response = await fetch("/api/talk/brain-stream", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      employeeId: input.employeeId,
-      sessionId: input.sessionId,
-      turnId: input.turnId,
-      scenarioSessionId: input.scenarioSessionId,
-      channel: input.channel ?? "voice",
-      messages: input.messages,
-    }),
-    signal: input.signal,
-  });
+  const response = await fetch(
+    input.brainEndpoint ?? "/api/talk/brain-stream",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        employeeId: input.employeeId,
+        sessionId: input.sessionId,
+        turnId: input.turnId,
+        scenarioSessionId: input.scenarioSessionId,
+        channel: input.channel ?? "voice",
+        messages: input.messages,
+      }),
+      signal: input.signal,
+    },
+  );
 
   if (!response.ok) {
     let detail = response.statusText;
