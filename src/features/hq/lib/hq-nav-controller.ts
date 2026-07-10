@@ -6,36 +6,25 @@ import { OFFICE_ROOMS, OPS_TABLE_POINT } from "./office-layout";
 /**
  * HQ Nav Controller (deterministic locomotion).
  *
- * LLM / platform truth → AgentOfficeState → this module → polyline on the
- * invisible nav graph. The renderer only interpolates along the path.
- * No wander / coffee / vision carnival.
+ * Only issues a path when the agent must relocate for a real platform reason.
+ * Idle / desk work never gets a "walk home" path — that fought desk colliders
+ * and looked like walk↔return loops.
  */
 export function buildOfficeNavPath(input: {
   fromDepartment: HqDepartment;
   officeState: AgentOfficeState;
   deskCoords: NavPoint;
-  /** Active floor errand destination, if any. */
   errandDestination?: HqDepartment | null;
   errandTarget?: NavPoint | null;
 }): NavPoint[] | null {
-  const {
-    fromDepartment,
-    officeState,
-    deskCoords,
-    errandDestination,
-    errandTarget,
-  } = input;
+  const { fromDepartment, officeState, errandDestination, errandTarget } = input;
 
   if (errandDestination && errandTarget) {
     return buildErrandPath(fromDepartment, errandDestination, errandTarget);
   }
 
   if (officeState.zone === "ops_table" || officeState.action === "review") {
-    return [
-      ROOM_DOORS[fromDepartment],
-      ATRIUM_HUB,
-      OPS_TABLE_POINT,
-    ];
+    return [ROOM_DOORS[fromDepartment], ATRIUM_HUB, OPS_TABLE_POINT];
   }
 
   if (officeState.action === "handoff") {
@@ -44,22 +33,15 @@ export function buildOfficeNavPath(input: {
     return buildErrandPath(fromDepartment, destDept, [room.x, room.z]);
   }
 
-  // Idle / working / talking / blocked — stay at (or return to) desk.
-  // Same-room path is a single point so the agent walks home if displaced.
-  if (
-    Math.hypot(
-      officeState.targetCoords[0] - deskCoords[0],
-      officeState.targetCoords[1] - deskCoords[1],
-    ) > 0.35
-  ) {
-    return buildErrandPath(
-      fromDepartment,
-      fromDepartment,
-      officeState.targetCoords,
-    );
-  }
-
+  // monitor / call / research / draft / blocked — stay put at seat
   return null;
+}
+
+export function pathSignature(path: NavPoint[] | null | undefined): string {
+  if (!path || path.length === 0) {
+    return "";
+  }
+  return path.map(([x, z]) => `${x.toFixed(2)},${z.toFixed(2)}`).join("|");
 }
 
 function zoneToDepartment(

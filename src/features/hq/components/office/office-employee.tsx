@@ -108,6 +108,8 @@ export function OfficeEmployee({ employee, allEmployees = [] }: { employee: Scen
   const clockRef = useRef(0);
   const movingRef = useRef(false);
   const pathIndex = useRef(0);
+  const pathKeyRef = useRef("");
+  const arrivedRef = useRef(false);
   const idlePhase = useRef(rng.current() * Math.PI * 2);
 
   // Vision "encoder" — simple proximity + facing awareness so agents notice each other.
@@ -166,21 +168,30 @@ export function OfficeEmployee({ employee, allEmployees = [] }: { employee: Scen
     thoughtHideAt.current = clockRef.current + 3.5;
   };
 
-  // Reset the goal when behavior, plan, seat, office state, or placement changes.
+  // Only re-home when seat / override changes — not on every poll tick.
   useEffect(() => {
-    const target = employee.officeState?.targetCoords;
-    const [hx, hz] = override ?? target ?? [employee.position[0], employee.position[1]];
+    if (employee.task) {
+      return;
+    }
+    const [hx, hz] = override ?? [
+      employee.position[0],
+      employee.position[1],
+    ];
     goal.current.set(hx, 0, hz);
-    movingRef.current = false;
-  }, [
-    employee.behavior,
-    employee.plan.intent,
-    employee.plan.movement,
-    employee.position,
-    employee.officeState?.targetCoords,
-    employee.officeState?.action,
-    override,
-  ]);
+    arrivedRef.current = false;
+  }, [employee.position, override, employee.task]);
+
+  // Restart path only when the route signature actually changes.
+  useEffect(() => {
+    const key = employee.task
+      ? employee.task.path.map(([x, z]) => `${x.toFixed(2)},${z.toFixed(2)}`).join("|")
+      : "";
+    if (key !== pathKeyRef.current) {
+      pathKeyRef.current = key;
+      pathIndex.current = 0;
+      arrivedRef.current = false;
+    }
+  }, [employee.task]);
 
   useFrame((state, delta) => {
     const root = rootRef.current;
@@ -225,33 +236,33 @@ export function OfficeEmployee({ employee, allEmployees = [] }: { employee: Scen
     liftY.current += (0 - liftY.current) * Math.min(1, delta * 10);
     root.position.y = FLOOR_CLEARANCE + liftY.current;
 
-    // An active floor errand overrides ambient behavior: follow the invisible
-    // waypoint route (door → atrium → door → target) so the figure walks the
-    // corridors instead of clipping through walls. Advance once each node is
-    // reached, then dwell at the final target until the task clears.
-    if (employee.task) {
+    // Follow invisible nav path only when platform state requires relocation.
+    if (employee.task && employee.task.path.length > 0) {
       const path = employee.task.path;
-      const idx = Math.min(pathIndex.current, path.length - 1);
-      const node = path[idx];
-      goal.current.set(node[0], 0, node[1]);
-      const reach = tmpDir.copy(goal.current).sub(posRef.current);
-      reach.y = 0;
-      if (reach.length() < 0.25 && pathIndex.current < path.length - 1) {
-        pathIndex.current += 1;
+      if (arrivedRef.current) {
+        const last = path[path.length - 1]!;
+        goal.current.set(last[0], 0, last[1]);
+      } else {
+        const idx = Math.min(pathIndex.current, path.length - 1);
+        const node = path[idx]!;
+        goal.current.set(node[0], 0, node[1]);
+        const reach = tmpDir.copy(goal.current).sub(posRef.current);
+        reach.y = 0;
+        if (reach.length() < 0.28) {
+          if (pathIndex.current < path.length - 1) {
+            pathIndex.current += 1;
+          } else {
+            arrivedRef.current = true;
+          }
+        }
       }
     } else {
-      if (pathIndex.current !== 0) {
-        pathIndex.current = 0;
-      }
-      // Standup: head to the assigned atrium ring slot and hold there.
+      pathIndex.current = 0;
+      arrivedRef.current = false;
       if (employee.meetingTarget) {
         goal.current.set(employee.meetingTarget[0], 0, employee.meetingTarget[1]);
-      } else if (
-        employee.plan.movement === "none" &&
-        (employee.plan.anchor === "desk" || employee.officeState?.action === "monitor")
-      ) {
-        const [x, z] =
-          employee.officeState?.targetCoords ?? deskPoint();
+      } else {
+        const [x, z] = deskPoint();
         goal.current.set(x, 0, z);
       }
     }
@@ -260,15 +271,16 @@ export function OfficeEmployee({ employee, allEmployees = [] }: { employee: Scen
     tmpDir.y = 0;
     const dist = tmpDir.length();
 
-    if (dist > 0.08) {
+    if (dist <= 0.12) {
+      movingRef.current = false;
+      posRef.current.x = goal.current.x;
+      posRef.current.z = goal.current.z;
+    } else {
       movingRef.current = true;
       tmpDir.normalize();
-
       const step = Math.min(dist, WALK_SPEED * delta);
       const desiredX = posRef.current.x + tmpDir.x * step;
       const desiredZ = posRef.current.z + tmpDir.z * step;
-
-      // Resolve against walls + desks + central props
       const obstacles = getStaticObstacles();
       const [resolvedX, resolvedZ] = resolveMovement(
         posRef.current.x,
@@ -276,18 +288,15 @@ export function OfficeEmployee({ employee, allEmployees = [] }: { employee: Scen
         desiredX,
         desiredZ,
         obstacles,
-        employee.task ? 0.22 : 0.28,
+        employee.task && !arrivedRef.current ? 0.2 : 0.24,
       );
-
       posRef.current.x = resolvedX;
       posRef.current.z = resolvedZ;
-
       const targetYaw = Math.atan2(tmpDir.x, tmpDir.z);
       root.rotation.y += (targetYaw - root.rotation.y) * Math.min(1, delta * 8);
-    } else {
-      movingRef.current = false;
+    }
 
-      // Face the ring center while standing in the meeting.
+    if (!movingRef.current) {
       if (employee.meetingTarget) {
         const faceYaw = Math.atan2(
           MEETING_POINT[0] - posRef.current.x,
@@ -303,7 +312,6 @@ export function OfficeEmployee({ employee, allEmployees = [] }: { employee: Scen
         }
       }
 
-      // Quiet idle micro-motion at desk only — no wander / coffee / vision quotes.
       if (
         !employee.meetingTarget &&
         !employee.task &&
@@ -321,39 +329,38 @@ export function OfficeEmployee({ employee, allEmployees = [] }: { employee: Scen
       }
     }
 
-    // Final safety clamps (scene bounds + collision)
     posRef.current.x = clampToScene(posRef.current.x);
     posRef.current.z = clampToScene(posRef.current.z);
 
-    const finalObstacles = getStaticObstacles();
-    const [finalX, finalZ] = resolveMovement(
-      posRef.current.x,
-      posRef.current.z,
-      posRef.current.x,
-      posRef.current.z,
-      finalObstacles,
-      employee.task ? 0.22 : 0.28,
-    );
-    posRef.current.x = finalX;
-    posRef.current.z = finalZ;
+    // Only re-resolve while moving — settled seats must not fight desk AABBs.
+    if (movingRef.current) {
+      const finalObstacles = getStaticObstacles();
+      const [finalX, finalZ] = resolveMovement(
+        posRef.current.x,
+        posRef.current.z,
+        posRef.current.x,
+        posRef.current.z,
+        finalObstacles,
+        0.22,
+      );
+      posRef.current.x = finalX;
+      posRef.current.z = finalZ;
+    }
 
     root.position.x = posRef.current.x;
     root.position.z = posRef.current.z;
-    root.position.y = FLOOR_CLEARANCE + liftY.current;
 
     const moving = movingRef.current;
     const animation = employee.plan.animation;
 
-    // Sitting posture when settled at desk (visual liveliness)
     const shouldSit =
       !moving &&
       employee.plan.anchor === "desk" &&
       !employee.meetingTarget &&
       !employee.task;
 
-    // Sink the character a little when sitting (works for both GLB and fallback)
-    const sitOffsetY = shouldSit ? -0.16 : 0;
-    root.position.y = liftY.current + sitOffsetY;
+    const sitOffsetY = shouldSit ? -0.08 : 0;
+    root.position.y = FLOOR_CLEARANCE + liftY.current + sitOffsetY;
 
     if (bodyRef.current) {
       if (moving) {

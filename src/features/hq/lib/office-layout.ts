@@ -276,8 +276,8 @@ export function getDeskPositions(room: RoomDef): Array<[number, number]> {
 const deskPositions = getDeskPositions;
 
 /**
- * Place N employees on a tidy grid inside a room footprint, biased toward the
- * open (atrium-facing) half so they read as "at their desks".
+ * Place N employees on chair-side seats in front of desks (not on desk
+ * colliders — sitting on the desk AABB caused walk↔push oscillation).
  */
 export function placeEmployeesInRoom(
   room: RoomDef,
@@ -287,23 +287,31 @@ export function placeEmployeesInRoom(
     return [];
   }
 
-  const columns = Math.min(count, 3);
-  const rows = Math.ceil(count / columns);
-  const padX = room.w * 0.26;
-  const padZ = room.d * 0.26;
-  const usableW = room.w - padX * 2;
-  const usableD = room.d - padZ * 2;
+  const desks = getDeskPositions(room);
+  /** Chair sits on the atrium-facing side of the desk. */
+  const CHAIR_OFFSET_Z = 0.62;
+  const seats = desks.map(([x, z]) => [x, z + CHAIR_OFFSET_Z] as [number, number]);
 
-  const positions: Array<[number, number]> = [];
-  for (let index = 0; index < count; index += 1) {
+  if (count <= seats.length) {
+    return seats.slice(0, count);
+  }
+
+  // Overflow: tidy grid behind the desk row, still clear of desk AABBs.
+  const extras: Array<[number, number]> = [];
+  const overflow = count - seats.length;
+  const columns = Math.min(overflow, 3);
+  const padX = room.w * 0.28;
+  const usableW = room.w - padX * 2;
+  const baseZ = room.z + room.d * 0.18;
+  for (let index = 0; index < overflow; index += 1) {
     const col = index % columns;
     const row = Math.floor(index / columns);
     const fx = columns === 1 ? 0.5 : col / (columns - 1);
-    const fz = rows === 1 ? 0.5 : row / (rows - 1);
-    const x = room.x - usableW / 2 + fx * usableW;
-    const z = room.z - usableD / 2 + fz * usableD;
-    positions.push([x, z]);
+    extras.push([
+      room.x - usableW / 2 + fx * usableW,
+      baseZ + row * 0.85,
+    ]);
   }
 
-  return positions;
+  return [...seats, ...extras];
 }
