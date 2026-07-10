@@ -37,7 +37,7 @@ import type { SceneEmployee, SceneRoom } from "./office/scene-types";
 function CanvasFallback() {
   const t = useTranslations("hq.office");
   return (
-    <div className="absolute inset-0 flex items-center justify-center gap-2 text-black/45">
+    <div className="absolute inset-0 flex items-center justify-center gap-2 text-white/45">
       <Loader2 className="size-4 animate-spin" />
       <span className="text-sm">{t("loading")}</span>
     </div>
@@ -255,7 +255,7 @@ export function HqOfficeCanvas({
   return (
     <div
       ref={containerRef}
-      className="relative isolate z-0 h-[clamp(420px,58vh,680px)] w-full overflow-hidden rounded-3xl border border-white/10 bg-[#d2d5d9]"
+      className="relative isolate z-0 h-[clamp(420px,58vh,680px)] w-full overflow-hidden rounded-3xl border border-white/10 bg-[#0f0f0f]"
     >
       {state.employees.length > 0 ? (
         <OfficeScene
@@ -266,7 +266,7 @@ export function HqOfficeCanvas({
         />
       ) : (
         <div className="absolute inset-0 flex items-center justify-center">
-          <p className="text-sm text-black/45">{t("office.empty")}</p>
+          <p className="text-sm text-white/45">{t("office.empty")}</p>
         </div>
       )}
 

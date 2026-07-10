@@ -81,9 +81,12 @@ export const STATUS_COLORS: Record<HqRuntimeStatus, string> = {
 };
 
 export const FLOOR_HALF = 22;
-/** Low partition height — floor-plan language, not Sims room walls. */
-export const WALL_HEIGHT = 0.42;
-export const WALL_THICKNESS = 0.1;
+/**
+ * Readable partition height. Too-low dark walls vanish on black marble;
+ * ~1.2 keeps a floor-plan feel without Sims-height rooms.
+ */
+export const WALL_HEIGHT = 1.2;
+export const WALL_THICKNESS = 0.14;
 /** Central Operations Table footprint (XZ). */
 export const OPS_TABLE_POINT: [number, number] = [0, 0.2];
 export const OPS_TABLE_HALF_W = 2.5;

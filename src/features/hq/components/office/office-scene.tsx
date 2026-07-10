@@ -77,7 +77,8 @@ function CameraRig({
   const focusing = useRef(false);
 
   useEffect(() => {
-    desired.current.set(px, 0.5, pz);
+    // Keep the whole floor readable — only nudge target, never dive into a desk.
+    desired.current.set(px * 0.35, 0.5, pz * 0.35);
     focusing.current = true;
   }, [px, pz]);
 
@@ -183,7 +184,7 @@ export default function OfficeScene({
       <Canvas
         shadows
         orthographic
-        camera={{ position: [22, 18, 22], zoom: 34, near: 1, far: 240 }}
+        camera={{ position: [26, 22, 26], zoom: 28, near: 1, far: 240 }}
         gl={{ antialias: true, preserveDrawingBuffer: false }}
         // Explicitly set a non-deprecated shadow map type via onCreated.
         // Passing shadowMap inside gl is not valid (gl only takes WebGLRendererParameters).
@@ -280,10 +281,10 @@ export default function OfficeScene({
         enableZoom
         enableRotate
         target={[0, 0.5, 0]}
-        minZoom={24}
-        maxZoom={110}
-        minPolarAngle={0.55}
-        maxPolarAngle={1.15}
+        minZoom={18}
+        maxZoom={70}
+        minPolarAngle={0.65}
+        maxPolarAngle={1.2}
         enableDamping
         dampingFactor={0.12}
       />
