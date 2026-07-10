@@ -96,13 +96,19 @@ export async function startEmployeeSession(input: {
   userId: string;
 }): Promise<string> {
   const employee = await db.query.digitalEmployee.findFirst({
-    where: and(
-      eq(digitalEmployee.id, input.employeeId),
-      eq(digitalEmployee.organizationId, input.organizationId),
-    ),
+    where: eq(digitalEmployee.id, input.employeeId),
   });
 
   if (!employee) {
+    throw new Error("Employee not found");
+  }
+
+  const allowed = await callerCanAccessEmployeeSession({
+    employeeOrganizationId: employee.organizationId,
+    callerOrganizationId: input.organizationId,
+    employeeId: input.employeeId,
+  });
+  if (!allowed) {
     throw new Error("Employee not found");
   }
 

@@ -179,6 +179,40 @@ export async function listOrganizationEmployees(
   );
 }
 
+/** Cursor that yields the full org list (desc) after a catalog-only first page. */
+const ORG_LIST_START_CURSOR = encodeCursor(
+  new Date("9999-12-31T23:59:59.999Z"),
+  "ffffffff-ffff-ffff-ffff-ffffffffffff",
+);
+
+async function loadPublishedCatalogItems(): Promise<EmployeeListItem[]> {
+  const catalog = await listPublishedPlatformCatalog();
+  if (catalog.length === 0) {
+    return [];
+  }
+
+  const catalogEmployees = await db
+    .select()
+    .from(digitalEmployee)
+    .where(
+      inArray(
+        digitalEmployee.id,
+        catalog.map((entry) => entry.employeeId),
+      ),
+    );
+
+  const byId = new Map(
+    catalogEmployees.map((employee) => [employee.id, employee]),
+  );
+  const ordered = catalog
+    .map((entry) => byId.get(entry.employeeId))
+    .filter((employee): employee is NonNullable<typeof employee> =>
+      Boolean(employee),
+    );
+
+  return hydrateEmployeeListItems(ordered, "platform");
+}
+
 async function loadOrganizationEmployeesPage(
   organizationId: string,
   options?: { cursor?: string; limit?: number },
@@ -194,6 +228,28 @@ async function loadOrganizationEmployeesPage(
 
   const planId = resolveBillingPlanId(org?.billingPlan ?? "free");
   const includePlatformCatalog = !planAllowsCreateEmployees(planId);
+
+  // First page only: catalog occupies slots first so total items never exceed limit.
+  let catalogItems: EmployeeListItem[] = [];
+  if (includePlatformCatalog && !cursor) {
+    const allCatalog = await loadPublishedCatalogItems();
+    catalogItems = allCatalog.slice(0, limit);
+  }
+
+  const orgSlots = limit - catalogItems.length;
+
+  if (orgSlots === 0) {
+    const [orgHead] = await db
+      .select({ id: digitalEmployee.id })
+      .from(digitalEmployee)
+      .where(eq(digitalEmployee.organizationId, organizationId))
+      .limit(1);
+
+    return {
+      items: catalogItems,
+      nextCursor: orgHead ? ORG_LIST_START_CURSOR : null,
+    };
+  }
 
   const employees = await db
     .select()
@@ -213,41 +269,11 @@ async function loadOrganizationEmployeesPage(
       ),
     )
     .orderBy(desc(digitalEmployee.createdAt), desc(digitalEmployee.id))
-    .limit(limit + 1);
+    .limit(orgSlots + 1);
 
-  const pageRows = employees.slice(0, limit);
-  const hasMore = employees.length > limit;
-
+  const pageRows = employees.slice(0, orgSlots);
+  const hasMore = employees.length > orgSlots;
   const orgItems = await hydrateEmployeeListItems(pageRows, "organization");
-
-  // First page only: prepend published platform catalog for Evaluation orgs.
-  let catalogItems: EmployeeListItem[] = [];
-  if (includePlatformCatalog && !cursor) {
-    const catalog = await listPublishedPlatformCatalog();
-    if (catalog.length > 0) {
-      const catalogEmployees = await db
-        .select()
-        .from(digitalEmployee)
-        .where(
-          inArray(
-            digitalEmployee.id,
-            catalog.map((entry) => entry.employeeId),
-          ),
-        );
-
-      const byId = new Map(
-        catalogEmployees.map((employee) => [employee.id, employee]),
-      );
-      const ordered = catalog
-        .map((entry) => byId.get(entry.employeeId))
-        .filter((employee): employee is NonNullable<typeof employee> =>
-          Boolean(employee),
-        );
-
-      catalogItems = await hydrateEmployeeListItems(ordered, "platform");
-    }
-  }
-
   const items = [...catalogItems, ...orgItems];
   const last = pageRows[pageRows.length - 1];
 
