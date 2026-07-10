@@ -23,6 +23,9 @@ export function LandingNav({ signedIn }: { signedIn: boolean }) {
         <a href="#security" className="transition-colors hover:text-white/85">
           Security
         </a>
+        <a href="#pricing" className="transition-colors hover:text-white/85">
+          Pricing
+        </a>
       </nav>
 
       <div className="flex items-center gap-3">

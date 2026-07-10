@@ -5,6 +5,7 @@ import { AdelineHero } from "./adeline-hero";
 import { UseCaseSection } from "./use-case-section";
 import { EnterpriseSection } from "./enterprise-section";
 import { SecuritySection } from "./security-section";
+import { PricingSection } from "./pricing-section";
 import type { AdelineLandingPlaque } from "../services/get-adeline-landing-plaque";
 
 const landingSerif = Cormorant_Garamond({
@@ -49,6 +50,10 @@ export function LandingPage({
 
       <div className="relative">
         <SecuritySection signedIn={signedIn} plaque={plaque} />
+      </div>
+
+      <div className="relative">
+        <PricingSection signedIn={signedIn} />
       </div>
 
       <style>{`
