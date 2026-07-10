@@ -9,6 +9,7 @@ import {
   getDefaultAnalyticsRange,
   startOfUtcDay,
 } from "@/features/analytics/lib/date-range";
+import { ADELINE_MARKETING_PORTRAIT } from "../lib/adeline-marketing";
 import { ADELINE_KALEN_EMPLOYEE_ID } from "@/shared/config/xai-voice-env";
 import { db } from "@/shared/db/client";
 import { withDatabaseRetry } from "@/shared/db/with-database-retry";
@@ -29,7 +30,7 @@ const FALLBACK: AdelineLandingPlaque = {
   name: "Adeline Kalen",
   role: "Head of the Interworld Department",
   status: "active",
-  avatarPreviewUrl: "/marketing/adeline-kalen.jpg",
+  avatarPreviewUrl: ADELINE_MARKETING_PORTRAIT,
   avatarProvisioningStatus: "ready",
   sessionsInRange: 0,
   lastSessionAt: null,
@@ -110,8 +111,7 @@ export async function getAdelineLandingPlaque(): Promise<AdelineLandingPlaque> {
         name: employee.name,
         role: employee.role,
         status: employee.status,
-        avatarPreviewUrl:
-          avatarConfig?.previewUrl ?? "/marketing/adeline-kalen.jpg",
+        avatarPreviewUrl: ADELINE_MARKETING_PORTRAIT,
         avatarProvisioningStatus: avatarConfig?.previewUrl
           ? readProvisioningStatus(avatarConfig.provisioningStatus)
           : "ready",

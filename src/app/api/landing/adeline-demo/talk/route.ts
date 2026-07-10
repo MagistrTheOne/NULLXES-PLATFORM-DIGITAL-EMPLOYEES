@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import type { AvatarProviderConfigPayload } from "@/entities/provider-config";
 import { digitalEmployee } from "@/entities/digital-employee/schema";
 import { employeeProviderConfig } from "@/entities/provider-config/schema";
+import { ADELINE_MARKETING_PORTRAIT } from "@/features/landing/lib/adeline-marketing";
 import { createAnamTalkSessionTokenForEmployee } from "@/features/runtime-session/services/create-anam-talk-session";
 import { ADELINE_KALEN_EMPLOYEE_ID } from "@/shared/config/xai-voice-env";
 import { db } from "@/shared/db/client";
@@ -88,7 +89,6 @@ export async function POST(request: Request): Promise<Response> {
     maxDurationSec: LANDING_ADELINE_TALK_TRIAL_SECONDS,
     employeeId: employee.id,
     employeeName: employee.name,
-    avatarPreviewUrl:
-      avatarConfig?.previewUrl ?? "/marketing/adeline-kalen.jpg",
+    avatarPreviewUrl: ADELINE_MARKETING_PORTRAIT,
   });
 }

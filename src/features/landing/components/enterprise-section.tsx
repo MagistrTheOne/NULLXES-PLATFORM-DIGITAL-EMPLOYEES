@@ -1,5 +1,6 @@
 "use client";
 
+import { ADELINE_MARKETING_PORTRAIT } from "../lib/adeline-marketing";
 import type { AdelineLandingPlaque } from "../services/get-adeline-landing-plaque";
 import { LandingRowsSection } from "./landing-rows-section";
 
@@ -40,9 +41,7 @@ export function EnterpriseSection({
       label="Enterprise"
       headline="Built for institutions that cannot afford a wrong answer."
       rows={ROWS}
-      portraitSrc={
-        plaque.avatarPreviewUrl ?? "/marketing/adeline-kalen.jpg"
-      }
+      portraitSrc={ADELINE_MARKETING_PORTRAIT}
       portraitName={plaque.name}
       ctaHref={signedIn ? "/dashboard" : "/register"}
       ctaLabel={signedIn ? "Go to dashboard →" : "Talk to sales →"}

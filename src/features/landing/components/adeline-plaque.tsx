@@ -5,10 +5,10 @@ import Image from "next/image";
 import { AudioLines } from "lucide-react";
 import { XaiVoiceCallSheet } from "@/features/xai-voice/components/xai-voice-call-sheet";
 import { ADELINE_KALEN_EMPLOYEE_ID } from "@/shared/config/xai-voice-env";
+import { ADELINE_MARKETING_PORTRAIT } from "../lib/adeline-marketing";
 import type { AdelineLandingPlaque } from "../services/get-adeline-landing-plaque";
 import { LandingAnamDemoOverlay } from "./landing-anam-demo-overlay";
 
-const MARKETING_PORTRAIT = "/marketing/adeline-kalen.jpg";
 const DEMO_TRIAL_SECONDS = 60;
 const DEMO_VOICE_ENDPOINT = "/api/landing/adeline-demo/voice";
 
@@ -45,7 +45,7 @@ export function AdelinePlaque({
   const [talkOpen, setTalkOpen] = useState(false);
   const [voiceOpen, setVoiceOpen] = useState(false);
   const employeeId = plaque.id || ADELINE_KALEN_EMPLOYEE_ID;
-  const portrait = MARKETING_PORTRAIT;
+  const portrait = ADELINE_MARKETING_PORTRAIT;
 
   return (
     <>
