@@ -3,6 +3,8 @@ import { Cormorant_Garamond } from "next/font/google";
 import { LandingNav } from "./landing-nav";
 import { AdelineHero } from "./adeline-hero";
 import { UseCaseSection } from "./use-case-section";
+import { EnterpriseSection } from "./enterprise-section";
+import { SecuritySection } from "./security-section";
 import type { AdelineLandingPlaque } from "../services/get-adeline-landing-plaque";
 
 const landingSerif = Cormorant_Garamond({
@@ -32,15 +34,21 @@ export function LandingPage({
         <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.03)_0%,transparent_42%)]" />
       </div>
 
-      {/* Hero: one full viewport on desktop — no in-section scroll */}
       <div className="relative flex min-h-dvh flex-col lg:h-dvh lg:min-h-0 lg:overflow-hidden">
         <LandingNav signedIn={signedIn} />
         <AdelineHero signedIn={signedIn} plaque={plaque} />
       </div>
 
-      {/* Use cases: next full viewport */}
       <div className="relative">
         <UseCaseSection signedIn={signedIn} plaque={plaque} />
+      </div>
+
+      <div className="relative">
+        <EnterpriseSection signedIn={signedIn} plaque={plaque} />
+      </div>
+
+      <div className="relative">
+        <SecuritySection signedIn={signedIn} plaque={plaque} />
       </div>
 
       <style>{`

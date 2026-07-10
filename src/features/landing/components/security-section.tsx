@@ -3,31 +3,31 @@
 import type { AdelineLandingPlaque } from "../services/get-adeline-landing-plaque";
 import { LandingRowsSection } from "./landing-rows-section";
 
-const CASES = [
+const ROWS = [
   {
-    id: "client-operations",
+    id: "identity-access",
     number: "01",
-    title: "Client Operations",
-    body: "A digital employee handles incoming conversations across your approved channels.",
+    title: "Identity & access",
+    body: "Workspace roles, invites, and step-up auth keep the floor gated.",
     reveal: "portrait" as const,
   },
   {
-    id: "knowledge-access",
+    id: "keys-boundaries",
     number: "02",
-    title: "Knowledge Access",
-    body: "Policies, services and operational context are available in one accountable interaction.",
+    title: "Keys & boundaries",
+    body: "API keys, IP allowlists, and outbound webhooks stay under org control.",
     reveal: "portrait" as const,
   },
   {
-    id: "executive-presence",
+    id: "session-discipline",
     number: "03",
-    title: "Executive Presence",
-    body: "A visible digital representative for high-stakes conversations and public-facing work.",
+    title: "Session discipline",
+    body: "Talk limits, plan budgets, and auditable session lifecycle — not an open mic to the model.",
     reveal: "talk" as const,
   },
 ] as const;
 
-export function UseCaseSection({
+export function SecuritySection({
   signedIn,
   plaque,
 }: {
@@ -36,13 +36,10 @@ export function UseCaseSection({
 }) {
   return (
     <LandingRowsSection
-      id="use-case"
-      label="Use cases"
-      headlineLines={[
-        "The digital frontline.",
-        "Built for real operations.",
-      ]}
-      rows={CASES}
+      id="security"
+      label="Security"
+      headline="Trust is the product surface."
+      rows={ROWS}
       portraitSrc={
         plaque.avatarPreviewUrl ?? "/marketing/adeline-kalen.jpg"
       }

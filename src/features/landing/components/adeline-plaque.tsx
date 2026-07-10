@@ -6,6 +6,7 @@ import { AudioLines } from "lucide-react";
 import { XaiVoiceCallSheet } from "@/features/xai-voice/components/xai-voice-call-sheet";
 import { ADELINE_KALEN_EMPLOYEE_ID } from "@/shared/config/xai-voice-env";
 import type { AdelineLandingPlaque } from "../services/get-adeline-landing-plaque";
+import { LandingAnamDemoOverlay } from "./landing-anam-demo-overlay";
 
 const MARKETING_PORTRAIT = "/marketing/adeline-kalen.jpg";
 const DEMO_TRIAL_SECONDS = 60;
@@ -32,23 +33,19 @@ function TalkingWaveform({ active }: { active?: boolean }) {
 }
 
 /**
- * Landing demo plaque — Talk / Voice stay on the marketing page (no dashboard).
- * 60s public Adeline trial for everyone, signed-in or not.
+ * Landing demo plaque — Talk = Anam avatar, Voice = xAI audio.
+ * Both stay on the marketing page (no dashboard).
  */
 export function AdelinePlaque({
   plaque,
 }: {
   plaque: AdelineLandingPlaque;
-  /** Kept for call-site compatibility; demo never routes to dashboard. */
   signedIn?: boolean;
 }) {
-  const [demoOpen, setDemoOpen] = useState(false);
+  const [talkOpen, setTalkOpen] = useState(false);
+  const [voiceOpen, setVoiceOpen] = useState(false);
   const employeeId = plaque.id || ADELINE_KALEN_EMPLOYEE_ID;
   const portrait = MARKETING_PORTRAIT;
-
-  const startDemo = () => {
-    setDemoOpen(true);
-  };
 
   return (
     <>
@@ -86,14 +83,14 @@ export function AdelinePlaque({
         <div className="flex flex-col gap-2 border-t border-white/5 px-5 py-4">
           <button
             type="button"
-            onClick={startDemo}
+            onClick={() => setTalkOpen(true)}
             className="inline-flex h-11 items-center justify-center rounded-xl bg-white text-sm font-medium text-black transition-opacity hover:opacity-90"
           >
             Talk · 1 min
           </button>
           <button
             type="button"
-            onClick={startDemo}
+            onClick={() => setVoiceOpen(true)}
             className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-white/15 bg-transparent text-sm text-white transition-colors hover:border-white/30 hover:bg-white/5"
           >
             <AudioLines className="size-4" />
@@ -105,9 +102,16 @@ export function AdelinePlaque({
         </div>
       </article>
 
+      <LandingAnamDemoOverlay
+        open={talkOpen}
+        onOpenChange={setTalkOpen}
+        employeeName={plaque.name}
+        avatarPreviewUrl={portrait}
+      />
+
       <XaiVoiceCallSheet
-        open={demoOpen}
-        onOpenChange={setDemoOpen}
+        open={voiceOpen}
+        onOpenChange={setVoiceOpen}
         employeeId={employeeId}
         employeeName={plaque.name}
         avatarPreviewUrl={portrait}

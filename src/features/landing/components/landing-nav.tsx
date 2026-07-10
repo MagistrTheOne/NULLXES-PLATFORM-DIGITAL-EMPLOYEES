@@ -17,7 +17,7 @@ export function LandingNav({ signedIn }: { signedIn: boolean }) {
         <a href="#use-case" className="transition-colors hover:text-white/85">
           Solutions
         </a>
-        <a href="#use-case" className="transition-colors hover:text-white/85">
+        <a href="#enterprise" className="transition-colors hover:text-white/85">
           Enterprise
         </a>
         <a href="#security" className="transition-colors hover:text-white/85">
