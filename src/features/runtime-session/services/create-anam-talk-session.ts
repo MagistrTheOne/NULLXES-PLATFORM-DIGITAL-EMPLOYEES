@@ -69,12 +69,20 @@ function resolveFallbackVideoOptions(
   }
 
   const supported = payload.supportedDimensions ?? [];
+  let parsedAnySupported = false;
+
   for (const token of supported) {
     const parsed = parseAnamSupportedVideoDimension(token);
+    if (!parsed) {
+      continue;
+    }
+
+    parsedAnySupported = true;
+
+    // Prefer a supported size that differs from what already failed.
     if (
-      parsed &&
-      (parsed.videoWidth !== current.videoWidth ||
-        parsed.videoHeight !== current.videoHeight)
+      parsed.videoWidth !== current.videoWidth ||
+      parsed.videoHeight !== current.videoHeight
     ) {
       return {
         videoQuality: current.videoQuality,
@@ -84,6 +92,16 @@ function resolveFallbackVideoOptions(
     }
   }
 
+  // Anam returned a supported list, but every parseable entry matches current.
+  // Do not invent cara-3 — only omit custom dims (model default) or give up.
+  if (parsedAnySupported) {
+    if (current.videoWidth || current.videoHeight) {
+      return { videoQuality: current.videoQuality };
+    }
+    return null;
+  }
+
+  // No usable supportedDimensions from Anam — generic fallbacks.
   if (
     current.videoWidth !== ANAM_CARA3_VIDEO_DIMENSIONS.videoWidth ||
     current.videoHeight !== ANAM_CARA3_VIDEO_DIMENSIONS.videoHeight
