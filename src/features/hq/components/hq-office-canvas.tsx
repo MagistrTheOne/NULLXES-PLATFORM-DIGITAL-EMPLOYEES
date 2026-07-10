@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import dynamic from "next/dynamic";
 import { useGLTF } from "@react-three/drei";
 import { useTranslations } from "next-intl";
@@ -9,13 +9,14 @@ import type { OrthographicCamera } from "three";
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import {
   OFFICE_ROOMS,
+  OPS_TABLE_POINT,
   STATUS_COLORS,
   placeEmployeesInRoom,
 } from "../lib/office-layout";
 import { DEPARTMENT_ORDER } from "../lib/department-layout";
-import { buildErrandPath } from "../lib/nav-graph";
-import { computeStandup } from "../lib/standup";
+import { buildErrandPath, ATRIUM_HUB, ROOM_DOORS } from "../lib/nav-graph";
 import { deriveActivitySignals } from "../lib/derive-employee-activity";
+import { resolveAgentOfficeState } from "../lib/agent-office-state";
 import {
   behaviorFromPlan,
   planHqBehavior,
@@ -67,8 +68,6 @@ export function HqOfficeCanvas({
   const tLegend = useTranslations("hq.legend");
   const tLofi = useTranslations("hq.lofi");
 
-  const idleThoughts = tLofi.raw("thoughts") as string[];
-  const activeThoughts = tLofi.raw("thoughtsActive") as string[];
   const reactions = tLofi.raw("reactions") as string[];
   const meetingLabel = tLofi("meeting");
 
@@ -90,19 +89,7 @@ export function HqOfficeCanvas({
     }
   }, []);
 
-  // Coarse ticking clock (1s) so standups can start/end without a render loop.
-  const [nowSeconds, setNowSeconds] = useState(() => Date.now() / 1000);
-  useEffect(() => {
-    const id = window.setInterval(
-      () => setNowSeconds(Date.now() / 1000),
-      1000,
-    );
-    return () => window.clearInterval(id);
-  }, []);
-  const standup = useMemo(
-    () => computeStandup(state.employees, nowSeconds),
-    [state.employees, nowSeconds],
-  );
+  // Coarse clock reserved for future timed floor events.
   const controlsRef = useRef<OrbitControlsImpl | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -110,6 +97,19 @@ export function HqOfficeCanvas({
     def: OFFICE_ROOMS[department],
     label: tDepartments(department),
   }));
+
+  const statusCounts = useMemo(() => {
+    const counts: Record<HqRuntimeStatus, number> = {
+      active: 0,
+      busy: 0,
+      idle: 0,
+      offline: 0,
+    };
+    for (const employee of state.employees) {
+      counts[employee.runtimeStatus] += 1;
+    }
+    return counts;
+  }, [state.employees]);
 
   const employees: SceneEmployee[] = state.departments.flatMap((group) => {
     const room = OFFICE_ROOMS[group.department];
@@ -127,59 +127,104 @@ export function HqOfficeCanvas({
         employee.activity.badge,
         tActivity,
       );
-      const meetingTarget = standup.get(employee.id) ?? null;
       const signals = deriveActivitySignals({
         status: employee.status,
         isLive: employee.isLive,
         activity: employee.activity,
         task: employee.task,
       });
+      const officeState = resolveAgentOfficeState({
+        employee,
+        signals,
+        seatIndex: index,
+        seatCount: group.employees.length,
+        missionHint: employee.mission,
+        taskBadgeLabel: taskLabel,
+      });
       const plan = planHqBehavior({
         employee,
         signals,
-        taskBadgeLabel: taskLabel,
-        hasStandup: meetingTarget !== null,
+        taskBadgeLabel: officeState.label ?? taskLabel,
+        hasStandup: false,
       });
-      const behavior = behaviorFromPlan(plan, employee.runtimeStatus);
-      const useLofiThoughts =
-        plan.intent === "idle" && !plan.speechText && !employee.task;
+      // Override plan when office state requires ops-table review walk.
+      const effectivePlan =
+        officeState.action === "review" && officeState.zone === "ops_table"
+          ? {
+              ...plan,
+              intent: "move" as const,
+              anchor: "path" as const,
+              animation: "walk" as const,
+              movement: "walk_path" as const,
+              speechText: officeState.label ?? plan.speechText,
+            }
+          : officeState.status === "idle"
+            ? {
+                ...plan,
+                intent: "idle" as const,
+                anchor: "desk" as const,
+                animation: "sit" as const,
+                movement: "none" as const,
+                speechText: officeState.label ?? null,
+              }
+            : {
+                ...plan,
+                speechText: officeState.label ?? plan.speechText,
+              };
+      const behavior = behaviorFromPlan(effectivePlan, employee.runtimeStatus);
+      const speechText = officeState.label ?? effectivePlan.speechText ?? null;
+
+      let task: SceneEmployee["task"] = null;
+      if (employee.task) {
+        const target: [number, number] = [
+          OFFICE_ROOMS[employee.task.destination].x,
+          OFFICE_ROOMS[employee.task.destination].z,
+        ];
+        task = {
+          label: employee.task.label,
+          target,
+          path: buildErrandPath(
+            employee.department,
+            employee.task.destination,
+            target,
+          ),
+        };
+      } else if (officeState.zone === "ops_table") {
+        task = {
+          label: officeState.label ?? "Review",
+          target: OPS_TABLE_POINT,
+          path: [
+            ROOM_DOORS[employee.department],
+            ATRIUM_HUB,
+            OPS_TABLE_POINT,
+          ],
+        };
+      }
+
       return {
         id: employee.id,
         name: employee.name,
-        taskLabel,
+        taskLabel: speechText,
         status: employee.runtimeStatus,
         position: positions[index] ?? [room.x, room.z],
         roam,
         behavior,
-        plan,
-        speechText: plan.speechText ?? null,
+        plan: effectivePlan,
+        officeState,
+        speechText,
         thoughts:
           llmThoughts[employee.id] && llmThoughts[employee.id].length > 0
             ? llmThoughts[employee.id]
-            : useLofiThoughts
-              ? idleThoughts
-              : activeThoughts,
+            : [],
         reactions,
-        meetingTarget,
+        meetingTarget: null,
         meetingLabel,
         modelUrl: pickCharacterModel(employee.name),
-        task: employee.task
-          ? (() => {
-              const target: [number, number] = [
-                OFFICE_ROOMS[employee.task.destination].x,
-                OFFICE_ROOMS[employee.task.destination].z,
-              ];
-              return {
-                label: employee.task.label,
-                target,
-                path: buildErrandPath(
-                  employee.department,
-                  employee.task.destination,
-                  target,
-                ),
-              };
-            })()
-          : null,
+        task,
+        deskHighlight:
+          officeState.status === "working" && officeState.action !== "handoff",
+        audioPulse: officeState.status === "talking",
+        blocked: officeState.status === "blocked",
       };
     });
   });
@@ -217,6 +262,7 @@ export function HqOfficeCanvas({
           rooms={rooms}
           employees={employees}
           controlsRef={controlsRef}
+          opsItems={state.opsItems}
         />
       ) : (
         <div className="absolute inset-0 flex items-center justify-center">
@@ -268,18 +314,29 @@ export function HqOfficeCanvas({
         ) : null}
       </div>
 
-      {/* Status legend */}
-      <div className="absolute right-4 bottom-4 flex items-center gap-4 rounded-full border border-white/10 bg-black/60 px-4 py-2 backdrop-blur-md">
+      {/* Compact live status indicator — top right */}
+      <div className="absolute top-4 right-4 flex items-center gap-3 rounded-full border border-white/10 bg-black/70 px-3 py-1.5 backdrop-blur-md">
+        <span className="flex items-center gap-1.5 text-[10px] tracking-wide text-white/70 uppercase">
+          <span className="relative flex size-1.5">
+            <span className="absolute inline-flex size-full animate-ping rounded-full bg-white/40 opacity-60" />
+            <span className="relative inline-flex size-1.5 rounded-full bg-white/80" />
+          </span>
+          {t("live")} {state.liveCount}
+        </span>
+        <span className="h-3 w-px bg-white/15" aria-hidden />
         {LEGEND_ORDER.map((status) => (
           <span
             key={status}
-            className="flex items-center gap-1.5 text-[11px] text-white/55"
+            className="flex items-center gap-1 text-[10px] text-white/45"
+            title={`${tLegend(status)}: ${statusCounts[status]}`}
           >
             <span
               className="size-1.5 rounded-full"
               style={{ backgroundColor: STATUS_COLORS[status] }}
             />
-            {tLegend(status)}
+            <span className="tabular-nums text-white/55">
+              {statusCounts[status]}
+            </span>
           </span>
         ))}
       </div>

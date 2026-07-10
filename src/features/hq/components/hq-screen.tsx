@@ -10,6 +10,7 @@ import type { HqDepartment, HqState } from "../types";
 import { HqDesignEditor } from "./hq-design-editor";
 import { HqDirectory } from "./hq-directory";
 import { HqMetricsStrip } from "./hq-metrics-strip";
+import { HqMissionTimeline } from "./hq-mission-timeline";
 import { HqOfficeCanvas } from "./hq-office-canvas";
 import { HqProfilePanel } from "./hq-profile-panel";
 import { HqStatusBar } from "./hq-status-bar";
@@ -68,6 +69,7 @@ export function HqScreen({
             />
             <HqProfilePanel employees={state.employees} />
           </div>
+          <HqMissionTimeline events={state.recentTimeline} />
         </TabsContent>
 
         <TabsContent value="directory">

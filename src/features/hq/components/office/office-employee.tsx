@@ -159,26 +159,6 @@ export function OfficeEmployee({ employee, allEmployees = [] }: { employee: Scen
     override ?? [employee.position[0], employee.position[1]];
   const deskPoint = (): [number, number] => homePoint();
 
-  // Real central coffee station in the atrium (for occasional visits)
-  const COFFEE_STATION: [number, number] = [-1.8, -7.2];
-  const coffeePoint = (): [number, number] => COFFEE_STATION;
-  const randomPoint = (): [number, number] => {
-    const obstacles = getStaticObstacles();
-    for (let attempt = 0; attempt < 6; attempt += 1) {
-      const x =
-        employee.roam.minX + rng.current() * (employee.roam.maxX - employee.roam.minX);
-      const z =
-        employee.roam.minZ + rng.current() * (employee.roam.maxZ - employee.roam.minZ);
-      // crude check: if too close to any obstacle center, retry
-      const tooClose = obstacles.some(
-        (o) => Math.hypot(x - o.x, z - o.z) < Math.max(o.halfW, o.halfD) + 0.45,
-      );
-      if (!tooClose) return [x, z];
-    }
-    // fallback to desk if we can't find a clean spot quickly
-    return deskPoint();
-  };
-
   const emitThought = (time: number) => {
     if (employee.speechText) {
       setBubbleKind("thought");
@@ -194,8 +174,6 @@ export function OfficeEmployee({ employee, allEmployees = [] }: { employee: Scen
     }
   };
 
-  // NULLXES/kavka one-liner when the user grabs or drops the figure. Uses the
-  // render clock so the bubble auto-hides through the same useFrame timer.
   const emitReaction = () => {
     const pool = employee.reactions;
     if (pool.length === 0) {
@@ -206,40 +184,20 @@ export function OfficeEmployee({ employee, allEmployees = [] }: { employee: Scen
     thoughtHideAt.current = clockRef.current + 3.5;
   };
 
-  // Autonomous wander only when the behavior planner allows it.
-  const decide = (time: number) => {
-    if (
-      employee.behavior === "still" ||
-      employee.behavior === "desk" ||
-      employee.plan.movement !== "wander"
-    ) {
-      const [x, z] = deskPoint();
-      goal.current.set(x, 0, z);
-      return;
-    }
-    const roll = rng.current();
-    const moveBias = employee.behavior === "roam" ? 0.72 : 0.4;
-    if (roll < moveBias * 0.6) {
-      const [x, z] = randomPoint();
-      goal.current.set(x, 0, z);
-    } else if (roll < moveBias) {
-      const [x, z] = coffeePoint();
-      goal.current.set(x, 0, z);
+  // Agents only move when officeState / task requires it — no autonomous wander.
+  const settleAtTarget = (time: number) => {
+    const [x, z] = employee.officeState?.targetCoords ?? deskPoint();
+    goal.current.set(x, 0, z);
+    if (employee.speechText && rng.current() < 0.35) {
       emitThought(time);
-    } else {
-      const [x, z] = deskPoint();
-      goal.current.set(x, 0, z);
-      if (rng.current() < 0.7) {
-        emitThought(time);
-      }
     }
-    const gap = employee.behavior === "roam" ? 3 + rng.current() * 4 : 6 + rng.current() * 7;
-    nextDecisionAt.current = time + gap;
+    nextDecisionAt.current = time + 10 + rng.current() * 8;
   };
 
-  // Reset the goal when behavior, plan, seat, or manual placement changes.
+  // Reset the goal when behavior, plan, seat, office state, or placement changes.
   useEffect(() => {
-    const [hx, hz] = override ?? [employee.position[0], employee.position[1]];
+    const target = employee.officeState?.targetCoords;
+    const [hx, hz] = override ?? target ?? [employee.position[0], employee.position[1]];
     goal.current.set(hx, 0, hz);
     movingRef.current = false;
   }, [
@@ -247,6 +205,8 @@ export function OfficeEmployee({ employee, allEmployees = [] }: { employee: Scen
     employee.plan.intent,
     employee.plan.movement,
     employee.position,
+    employee.officeState?.targetCoords,
+    employee.officeState?.action,
     override,
   ]);
 
@@ -316,9 +276,10 @@ export function OfficeEmployee({ employee, allEmployees = [] }: { employee: Scen
         goal.current.set(employee.meetingTarget[0], 0, employee.meetingTarget[1]);
       } else if (
         employee.plan.movement === "none" &&
-        employee.plan.anchor === "desk"
+        (employee.plan.anchor === "desk" || employee.officeState?.action === "monitor")
       ) {
-        const [x, z] = deskPoint();
+        const [x, z] =
+          employee.officeState?.targetCoords ?? deskPoint();
         goal.current.set(x, 0, z);
       }
     }
@@ -363,10 +324,12 @@ export function OfficeEmployee({ employee, allEmployees = [] }: { employee: Scen
         root.rotation.y += (faceYaw - root.rotation.y) * Math.min(1, delta * 6);
       } else if (!employee.task && time >= nextDecisionAt.current) {
         if (employee.plan.movement === "wander") {
-          decide(time);
+          settleAtTarget(time);
         } else if (employee.speechText) {
           emitThought(time);
           nextDecisionAt.current = time + 8 + rng.current() * 6;
+        } else {
+          nextDecisionAt.current = time + 12;
         }
       }
 
@@ -636,6 +599,24 @@ export function OfficeEmployee({ employee, allEmployees = [] }: { employee: Scen
         <ringGeometry args={[0.3, 0.34, 32]} />
         <meshBasicMaterial color={color} transparent opacity={0.85} />
       </mesh>
+      {employee.deskHighlight ? (
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.012, 0]}>
+          <circleGeometry args={[0.55, 32]} />
+          <meshBasicMaterial color="#ffffff" transparent opacity={0.04} />
+        </mesh>
+      ) : null}
+      {employee.audioPulse ? (
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.028, 0]}>
+          <ringGeometry args={[0.38, 0.42, 32]} />
+          <meshBasicMaterial color="#ffffff" transparent opacity={0.35} />
+        </mesh>
+      ) : null}
+      {employee.blocked ? (
+        <mesh position={[0.28, 0.08, 0.28]}>
+          <sphereGeometry args={[0.045, 12, 12]} />
+          <meshBasicMaterial color="#f87171" />
+        </mesh>
+      ) : null}
       {isSelected ? (
         <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.025, 0]}>
           <ringGeometry args={[0.4, 0.46, 40]} />

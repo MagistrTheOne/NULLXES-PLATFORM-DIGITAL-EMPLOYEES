@@ -1545,10 +1545,10 @@
     "departments": {
       "reception": "Ресепшен",
       "sales": "Продажи",
-      "support": "Поддержка клиентов",
+      "support": "Клиентский сервис",
       "hr": "HR",
-      "analytics": "Аналитика",
-      "executive": "Этаж руководства"
+      "analytics": "Операции",
+      "executive": "Executive"
     },
     "activity": {
       "idle": "Простой",
@@ -1612,15 +1612,24 @@
       "none": "—",
       "noTasks": "Сейчас нет активных задач.",
       "noActivity": "Нет недавней активности.",
+      "noMission": "Нет активной миссии",
       "tabs": {
         "profile": "Профиль",
         "tasks": "Задачи",
         "metrics": "Метрики",
         "activity": "Активность"
       },
+      "stages": {
+        "research": "Research",
+        "draft": "Draft",
+        "awaitingApproval": "На согласовании",
+        "sent": "Отправлено"
+      },
       "fields": {
         "status": "Статус",
         "currentTask": "Текущая задача",
+        "currentMission": "Текущая миссия",
+        "lastAction": "Последнее действие",
         "department": "Отдел",
         "model": "Модель",
         "runtime": "В работе",
@@ -1633,8 +1642,17 @@
       },
       "actions": {
         "talk": "Разговор",
-        "settings": "Настройки"
+        "settings": "Настройки",
+        "pause": "Пауза",
+        "assignTask": "Назначить задачу"
       }
+    },
+    "timeline": {
+      "title": "Таймлайн миссий",
+      "description": "Последние операционные события на этаже.",
+      "empty": "Событий миссий пока нет.",
+      "openJournal": "Открыть журнал",
+      "open": "Открыть"
     }
   },
   "analytics": {

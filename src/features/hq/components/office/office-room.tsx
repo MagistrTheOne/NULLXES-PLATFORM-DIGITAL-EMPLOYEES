@@ -19,10 +19,7 @@ const CHAIR_COLOR = "#1f1f1f";
 type WallVariant = "concrete" | "accent" | "glass";
 
 /**
- * Architectural wall with three material languages:
- *  concrete — white/gray architectural concrete (default, most zones)
- *  accent   — black panels for executive / critical zones
- *  glass    — lightly tinted glass for open-space dividers
+ * Low metallic partition — floor-plan language, not full Sims walls.
  */
 function Wall({
   position,
@@ -33,57 +30,31 @@ function Wall({
   args: [number, number, number];
   variant?: WallVariant;
 }) {
-  if (variant === "glass") {
-    return (
-      <group position={position}>
-        {/* Tinted glass pane */}
-        <mesh castShadow receiveShadow>
-          <boxGeometry args={args} />
-          <meshStandardMaterial
-            color="#1a1d20"
-            roughness={0.12}
-            metalness={0.4}
-            transparent
-            opacity={0.34}
-          />
-        </mesh>
-        {/* Thin frame top edge for definition */}
-        <mesh position={[0, args[1] / 2 - 0.02, 0]}>
-          <boxGeometry args={[args[0], 0.04, args[2] + 0.01]} />
-          <meshStandardMaterial color="#0c0c0c" roughness={0.6} metalness={0.2} />
-        </mesh>
-      </group>
-    );
-  }
+  const color =
+    variant === "accent"
+      ? "#0a0a0a"
+      : variant === "glass"
+        ? "#1a1d20"
+        : "#1c1c1e";
 
-  if (variant === "accent") {
-    return (
-      <group position={position}>
-        {/* Black accent panel */}
-        <mesh castShadow receiveShadow>
-          <boxGeometry args={args} />
-          <meshStandardMaterial color="#0b0b0c" roughness={0.5} metalness={0.18} />
-        </mesh>
-        {/* Subtle recessed light reveal near the top (premium exec feel) */}
-        <mesh position={[0, args[1] / 2 - 0.12, 0]}>
-          <boxGeometry args={[args[0] * 0.96, 0.015, args[2] + 0.01]} />
-          <meshStandardMaterial
-            color="#ffffff"
-            emissive="#ffffff"
-            emissiveIntensity={0.5}
-            toneMapped={false}
-          />
-        </mesh>
-      </group>
-    );
-  }
-
-  // concrete (default)
   return (
-    <mesh position={position} castShadow receiveShadow>
-      <boxGeometry args={args} />
-      <meshStandardMaterial color="#dadcdd" roughness={0.9} metalness={0.02} />
-    </mesh>
+    <group position={position}>
+      <mesh castShadow receiveShadow>
+        <boxGeometry args={args} />
+        <meshStandardMaterial
+          color={color}
+          roughness={variant === "glass" ? 0.15 : 0.45}
+          metalness={variant === "glass" ? 0.35 : 0.55}
+          transparent={variant === "glass"}
+          opacity={variant === "glass" ? 0.4 : 1}
+        />
+      </mesh>
+      {/* Thin metal cap */}
+      <mesh position={[0, args[1] / 2 + 0.01, 0]}>
+        <boxGeometry args={[args[0] + 0.02, 0.02, args[2] + 0.02]} />
+        <meshStandardMaterial color="#9a9a9a" roughness={0.3} metalness={0.8} />
+      </mesh>
+    </group>
   );
 }
 
@@ -518,13 +489,14 @@ export function OfficeRoom({ room }: { room: SceneRoom }) {
       )}
 
       <Html
-        position={[def.x, WALL_HEIGHT + 0.22, labelZ]}
+        position={[def.x, WALL_HEIGHT + 0.08, labelZ]}
         center
         zIndexRange={[10, 0]}
         wrapperClass="pointer-events-none"
       >
-        <div className="pointer-events-none flex select-none whitespace-nowrap rounded-md border border-white/10 bg-white/90 px-2.5 py-1">
-          <span className="text-[11px] font-semibold tracking-[0.12em] text-black uppercase">
+        <div className="pointer-events-none flex select-none items-center gap-1.5 whitespace-nowrap rounded-sm border border-white/12 bg-[#161616]/95 px-2.5 py-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+          <span className="size-1 rounded-full bg-white/35" aria-hidden />
+          <span className="text-[9px] font-medium tracking-[0.18em] text-white/55 uppercase">
             {label}
           </span>
         </div>

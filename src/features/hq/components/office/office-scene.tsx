@@ -9,10 +9,10 @@ import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import { useOfficeStore } from "../../store/use-office-store";
 import { OfficeEmployee } from "./office-employee";
 import { FloorSystem, CeilingSystem } from "./office-architecture";
-import { HQ_MODELS } from "./office-models";
-import { OfficeProps } from "./office-props";
+import { CentralOperationsTable } from "./central-operations-table";
 import { OfficeRoom, Plant } from "./office-room";
 import type { SceneEmployee, SceneRoom } from "./scene-types";
+import type { HqOpsItem } from "../../types";
 
 /** Overhead ceiling-light positions (x, z) over each department cluster. */
 const CEILING_LIGHTS: Array<[number, number]> = [
@@ -163,10 +163,12 @@ export default function OfficeScene({
   rooms,
   employees,
   controlsRef,
+  opsItems = [],
 }: {
   rooms: SceneRoom[];
   employees: SceneEmployee[];
   controlsRef: React.RefObject<OrbitControlsImpl | null>;
+  opsItems?: HqOpsItem[];
 }) {
   const selectEmployee = useOfficeStore((state) => state.selectEmployee);
   const draggingId = useOfficeStore((state) => state.draggingId);
@@ -243,8 +245,7 @@ export default function OfficeScene({
           />
         ))}
 
-        {/* Architectural shell — floors (black marble / tech concrete / glass /
-            LED navigation) + overhead ceiling grid, vents and LED petals. */}
+        {/* Architectural shell — floors + overhead ceiling grid */}
         <FloorSystem />
         <CeilingSystem />
 
@@ -252,56 +253,15 @@ export default function OfficeScene({
           <OfficeRoom key={room.def.department} room={room} />
         ))}
 
-        {/* Extra ambient plants around the central atrium for more life */}
+        {/* Quiet atrium plants — kept sparse */}
         <Plant position={[-6.5, -3.8]} phase={1.7} />
         <Plant position={[7.2, 4.1]} phase={4.2} />
 
-        {/* Scattered floor papers in the open atrium */}
-        <group position={[-3.5, 0.015, -1.2]} rotation={[0, 0.7, 0]}>
-          <mesh>
-            <planeGeometry args={[0.2, 0.15]} />
-            <meshStandardMaterial color="#1c1c1c" roughness={0.95} side={2} />
-          </mesh>
-        </group>
-        <group position={[4.1, 0.015, 2.8]} rotation={[0, -1.1, 0]}>
-          <mesh>
-            <planeGeometry args={[0.17, 0.12]} />
-            <meshStandardMaterial color="#222222" roughness={0.95} side={2} />
-          </mesh>
-        </group>
-
-        {/* Simple coffee station in the atrium (visual liveliness) */}
-        <group position={[-1.8, 0, -7.2]}>
-          {/* Counter */}
-          <mesh position={[0, 0.42, 0]} castShadow receiveShadow>
-            <boxGeometry args={[1.8, 0.08, 0.7]} />
-            <meshStandardMaterial color="#181818" roughness={0.6} />
-          </mesh>
-          {/* Coffee machine body */}
-          <mesh position={[-0.35, 0.72, 0]} castShadow>
-            <boxGeometry args={[0.42, 0.52, 0.46]} />
-            <meshStandardMaterial color="#121212" roughness={0.5} metalness={0.15} />
-          </mesh>
-          {/* Drip area highlight */}
-          <mesh position={[-0.35, 0.52, 0.28]} castShadow>
-            <boxGeometry args={[0.28, 0.08, 0.08]} />
-            <meshStandardMaterial color="#0a0a0a" />
-          </mesh>
-          {/* Cup on counter */}
-          <mesh position={[0.55, 0.52, 0.1]} castShadow>
-            <cylinderGeometry args={[0.05, 0.045, 0.1, 10]} />
-            <meshStandardMaterial color="#1f1f1f" roughness={0.7} />
-          </mesh>
-        </group>
+        {/* Central Operations Table — product center, not decorative geometry */}
+        <CentralOperationsTable items={opsItems} />
 
         {/* Subtle wall clock (quiet liveliness) */}
         <WallClock position={[-9.2, 2.15, -3.8]} rotation={[0, 1.05, 0]} />
-
-        {HQ_MODELS.props ? (
-          <Suspense fallback={null}>
-            <OfficeProps url={HQ_MODELS.props} />
-          </Suspense>
-        ) : null}
 
         {employees.map((employee) => (
           <OfficeEmployee key={employee.id} employee={employee} allEmployees={employees} />

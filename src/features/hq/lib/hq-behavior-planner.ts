@@ -91,9 +91,9 @@ export function planHqBehavior(input: HqBehaviorPlannerInput): HqBehaviorPlan {
 
   return {
     intent: "idle",
-    anchor: "room",
-    animation: "idle",
-    movement: "wander",
+    anchor: "desk",
+    animation: "sit",
+    movement: "none",
     speechText: null,
   };
 }
@@ -112,8 +112,12 @@ export function behaviorFromPlan(
   if (plan.movement === "wander") {
     return "lofi";
   }
-  if (plan.anchor === "desk" || plan.anchor === "meeting") {
+  if (
+    plan.anchor === "desk" ||
+    plan.anchor === "meeting" ||
+    plan.movement === "none"
+  ) {
     return "desk";
   }
-  return "lofi";
+  return "desk";
 }

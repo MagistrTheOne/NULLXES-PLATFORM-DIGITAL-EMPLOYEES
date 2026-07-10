@@ -1,4 +1,5 @@
 import type { RoomDef } from "../../lib/office-layout";
+import type { AgentOfficeState } from "../../lib/agent-office-state";
 import type { HqBehaviorPlan } from "../../lib/hq-behavior-types";
 import type { HqRuntimeStatus } from "../../types";
 
@@ -16,15 +17,17 @@ export type SceneEmployee = {
   /** Interior bounds the employee roams within (keeps them inside the room). */
   roam: { minX: number; maxX: number; minZ: number; maxZ: number };
   /**
-   * Legacy motion bucket (compat). Prefer `plan.movement` + `plan.animation`.
-   *  - "desk"  anchored at seat — talk / type / queue
-   *  - "lofi"  idle wander within room
-   *  - "roam"  path walk (floor errand)
+   * Legacy motion bucket (compat). Prefer `officeState` + `plan`.
+   *  - "desk"  anchored at seat — talk / type / queue / idle monitor
+   *  - "lofi"  unused for idle (kept for compat)
+   *  - "roam"  path walk (floor errand / ops table)
    *  - "still" offline — frozen at desk
    */
   behavior: "roam" | "lofi" | "still" | "desk";
   /** Semantic simulation plan from HQBehaviorPlanner. */
   plan: HqBehaviorPlan;
+  /** Deterministic office contract: status + zone + action → motion. */
+  officeState: AgentOfficeState;
   /** Real focus text for speech bubbles (overrides lofi when set). */
   speechText: string | null;
   /** Curated lofi thought lines (resolved i18n) shown periodically in a bubble. */
@@ -47,6 +50,12 @@ export type SceneEmployee = {
   meetingTarget: [number, number] | null;
   /** Localized standup badge label (e.g. "Standup"). */
   meetingLabel: string;
+  /** Soft desk highlight when working. */
+  deskHighlight: boolean;
+  /** Soft audio pulse when talking. */
+  audioPulse: boolean;
+  /** Red desk marker when blocked. */
+  blocked: boolean;
 };
 
 export type SceneRoom = {

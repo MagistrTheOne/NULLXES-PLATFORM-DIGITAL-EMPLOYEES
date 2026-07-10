@@ -81,8 +81,13 @@ export const STATUS_COLORS: Record<HqRuntimeStatus, string> = {
 };
 
 export const FLOOR_HALF = 22;
-export const WALL_HEIGHT = 1.5;
-export const WALL_THICKNESS = 0.16;
+/** Low partition height — floor-plan language, not Sims room walls. */
+export const WALL_HEIGHT = 0.42;
+export const WALL_THICKNESS = 0.1;
+/** Central Operations Table footprint (XZ). */
+export const OPS_TABLE_POINT: [number, number] = [0, 0.2];
+export const OPS_TABLE_HALF_W = 2.5;
+export const OPS_TABLE_HALF_D = 2.5;
 
 /** Simple axis-aligned box obstacle for collision (center + half extents on XZ). */
 export type Obstacle = {
@@ -131,11 +136,13 @@ export function getStaticObstacles(): Obstacle[] {
     }
   }
 
-  // Rough bounding box for the central props cluster (the big OfficeProps GLB)
-  obstacles.push({ x: 0, z: 0.8, halfW: 3.2, halfD: 2.8 });
-
-  // Coffee station counter (near the back of atrium)
-  obstacles.push({ x: -1.8, z: -7.2, halfW: 0.95, halfD: 0.4 });
+  // Central Operations Table
+  obstacles.push({
+    x: OPS_TABLE_POINT[0],
+    z: OPS_TABLE_POINT[1],
+    halfW: OPS_TABLE_HALF_W,
+    halfD: OPS_TABLE_HALF_D,
+  });
 
   return obstacles;
 }

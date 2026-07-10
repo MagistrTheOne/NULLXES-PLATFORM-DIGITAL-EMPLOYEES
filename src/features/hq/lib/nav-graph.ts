@@ -35,8 +35,8 @@ export const ROOM_DOORS: Record<HqDepartment, NavPoint> = {
   ],
 };
 
-/** Central atrium hub every door connects to (a simple, wall-free star graph). */
-export const ATRIUM_HUB: NavPoint = [0, 0.5];
+/** Central atrium hub — approaches the Operations Table without clipping it. */
+export const ATRIUM_HUB: NavPoint = [0, 3.2];
 
 /**
  * Build an invisible polyline from the employee's home room to a destination

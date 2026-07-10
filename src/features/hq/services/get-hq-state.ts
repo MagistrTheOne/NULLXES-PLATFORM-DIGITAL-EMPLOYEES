@@ -18,6 +18,7 @@ import {
   emptyTaskSnapshot,
   getEmployeeTaskSnapshots,
 } from "../queries/get-employee-task-snapshots";
+import { getHqMissionSnapshot } from "../queries/get-hq-mission-snapshot";
 import type {
   HqDepartmentGroup,
   HqDepartmentMetrics,
@@ -40,6 +41,7 @@ export async function getHqState(organizationId: string): Promise<HqState> {
       taskSnapshots,
       performance,
       activeTasks,
+      missionSnapshot,
     ] = await Promise.all([
       listOrganizationEmployees(organizationId).then((page) => page.items),
       getEmployeeSessionSummaries(organizationId, range),
@@ -47,6 +49,7 @@ export async function getHqState(organizationId: string): Promise<HqState> {
       getEmployeeTaskSnapshots(organizationId),
       getEmployeePerformance(organizationId, range),
       getActiveHqTasks(organizationId),
+      getHqMissionSnapshot(organizationId),
     ]);
 
     const summaryByEmployeeId = new Map(
@@ -64,6 +67,7 @@ export async function getHqState(organizationId: string): Promise<HqState> {
       const perf = performance.get(employee.id) ?? emptyPerformance();
       const activeTask = activeTasks.get(employee.id) ?? null;
       const activityInput = { isLive, status: employee.status, tasks };
+      const missionHint = missionSnapshot.missionByEmployeeId.get(employee.id);
 
       return {
         id: employee.id,
@@ -90,6 +94,15 @@ export async function getHqState(organizationId: string): Promise<HqState> {
         createdAt: employee.createdAt,
         isLive,
         canTalk: employee.canTalk,
+        mission: missionHint
+          ? {
+              missionId: missionHint.missionId,
+              title: missionHint.title,
+              status: missionHint.status,
+              stage: missionHint.stage,
+              lastAction: missionHint.lastAction,
+            }
+          : null,
       };
     });
 
@@ -148,6 +161,8 @@ export async function getHqState(organizationId: string): Promise<HqState> {
       departments,
       departmentMetrics,
       liveCount: liveEmployeeIds.size,
+      opsItems: missionSnapshot.opsItems,
+      recentTimeline: missionSnapshot.recentTimeline,
     };
   });
 }

@@ -1,16 +1,24 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { ArrowRight, MessageSquare, Settings2, UserRound } from "lucide-react";
+import { useState, useTransition } from "react";
+import {
+  ArrowRight,
+  ClipboardList,
+  MessageSquare,
+  Pause,
+  UserRound,
+} from "lucide-react";
 import type { BrainProvider } from "@/entities/digital-employee";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AvatarIdlePreview } from "@/features/employees/components/avatar-idle-preview";
-import { formatDurationSeconds } from "@/features/analytics/lib/format-duration";
+import { cn } from "@/lib/utils";
+import { pauseHqEmployeeAction } from "../actions/pause-hq-employee";
 import { STATUS_COLORS } from "../lib/office-layout";
 import { resolveActivityBadgeLabel } from "../lib/resolve-activity-label";
 import { useOfficeStore } from "../store/use-office-store";
-import type { HqEmployee } from "../types";
+import type { HqEmployee, HqMissionStage } from "../types";
 
 const BRAIN_LABELS: Record<BrainProvider, string> = {
   openai: "OpenAI",
@@ -19,25 +27,51 @@ const BRAIN_LABELS: Record<BrainProvider, string> = {
   nullxes: "NULLXES Brain",
 };
 
-function formatRuntime(createdAt: Date | string): string {
-  const created = new Date(createdAt).getTime();
-  const diff = Math.max(0, Date.now() - created);
-  const days = Math.floor(diff / 86_400_000);
-  const hours = Math.floor((diff % 86_400_000) / 3_600_000);
-  return days > 0 ? `${days}d ${hours}h` : `${hours}h`;
-}
+const STAGE_ORDER: HqMissionStage[] = [
+  "research",
+  "draft",
+  "awaiting_approval",
+  "sent",
+];
 
-function formatLastSession(value: Date | string | null, fallback: string): string {
-  if (!value) {
-    return fallback;
-  }
-  return new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    timeZone: "UTC",
-  }).format(new Date(value));
+function StageRail({
+  stage,
+  labels,
+}: {
+  stage: HqMissionStage | null;
+  labels: Record<HqMissionStage, string>;
+}) {
+  const activeIndex = stage ? STAGE_ORDER.indexOf(stage) : -1;
+
+  return (
+    <div className="flex flex-wrap items-center gap-1.5">
+      {STAGE_ORDER.map((key, index) => {
+        const reached = activeIndex >= 0 && index <= activeIndex;
+        const current = key === stage;
+        return (
+          <span key={key} className="flex items-center gap-1.5">
+            {index > 0 ? (
+              <span className="text-[10px] text-white/20" aria-hidden>
+                →
+              </span>
+            ) : null}
+            <span
+              className={cn(
+                "rounded-md border px-1.5 py-0.5 text-[10px] tracking-wide uppercase",
+                current
+                  ? "border-white/25 bg-white/10 text-white"
+                  : reached
+                    ? "border-white/12 text-white/55"
+                    : "border-white/8 text-white/30",
+              )}
+            >
+              {labels[key]}
+            </span>
+          </span>
+        );
+      })}
+    </div>
+  );
 }
 
 function ProfileRow({ label, value }: { label: string; value: string }) {
@@ -50,14 +84,17 @@ function ProfileRow({ label, value }: { label: string; value: string }) {
 }
 
 export function HqProfilePanel({ employees }: { employees: HqEmployee[] }) {
+  const router = useRouter();
   const t = useTranslations("hq.profile");
   const tFields = useTranslations("hq.profile.fields");
-  const tTabs = useTranslations("hq.profile.tabs");
   const tActivity = useTranslations("hq.activity");
   const tDepartments = useTranslations("hq.departments");
   const tLegend = useTranslations("hq.legend");
+  const tStages = useTranslations("hq.profile.stages");
   const selectedId = useOfficeStore((state) => state.selectedEmployeeId);
   const openTalk = useOfficeStore((state) => state.openTalk);
+  const [pauseError, setPauseError] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
 
   const employee = employees.find((item) => item.id === selectedId) ?? null;
 
@@ -78,8 +115,22 @@ export function HqProfilePanel({ employees }: { employees: HqEmployee[] }) {
     employee.activity.badge,
     tActivity,
   );
-  const currentTask = currentTaskLabel ?? tActivity("idle");
-  const hasTask = employee.tasksToday > 0 || currentTaskLabel !== null;
+  const lastAction =
+    employee.mission?.lastAction ??
+    currentTaskLabel ??
+    (employee.isLive ? tActivity("inSession") : tActivity("idle"));
+
+  function handlePause() {
+    setPauseError(null);
+    startTransition(async () => {
+      const result = await pauseHqEmployeeAction(employee!.id);
+      if (!result.ok) {
+        setPauseError(result.message);
+        return;
+      }
+      router.refresh();
+    });
+  }
 
   return (
     <aside className="relative z-10 flex h-full flex-col gap-4 rounded-3xl border border-white/10 bg-[#0B0B0B] p-5">
@@ -106,92 +157,45 @@ export function HqProfilePanel({ employees }: { employees: HqEmployee[] }) {
               style={{ backgroundColor: statusColor }}
             />
             {tLegend(employee.runtimeStatus)}
+            {employee.isLive ? (
+              <span className="text-white/40">· {tFields("live")}</span>
+            ) : null}
           </span>
         </div>
       </div>
 
-      <Tabs defaultValue="profile" className="flex min-h-0 flex-1 flex-col gap-3">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="profile">{tTabs("profile")}</TabsTrigger>
-          <TabsTrigger value="tasks">{tTabs("tasks")}</TabsTrigger>
-          <TabsTrigger value="metrics">{tTabs("metrics")}</TabsTrigger>
-          <TabsTrigger value="activity">{tTabs("activity")}</TabsTrigger>
-        </TabsList>
+      <div className="space-y-3 rounded-xl border border-white/8 bg-white/[0.02] p-3">
+        <div>
+          <p className="text-[10px] tracking-[0.14em] text-white/40 uppercase">
+            {tFields("currentMission")}
+          </p>
+          <p className="mt-1 text-sm text-white/90">
+            {employee.mission?.title ?? t("noMission")}
+          </p>
+        </div>
+        <StageRail
+          stage={employee.mission?.stage ?? null}
+          labels={{
+            research: tStages("research"),
+            draft: tStages("draft"),
+            awaiting_approval: tStages("awaitingApproval"),
+            sent: tStages("sent"),
+          }}
+        />
+        <ProfileRow label={tFields("lastAction")} value={lastAction} />
+        <ProfileRow
+          label={tFields("department")}
+          value={tDepartments(employee.department)}
+        />
+        <ProfileRow
+          label={tFields("model")}
+          value={BRAIN_LABELS[employee.brainProvider]}
+        />
+      </div>
 
-        <TabsContent value="profile" className="mt-0">
-          <ProfileRow
-            label={tFields("status")}
-            value={tLegend(employee.runtimeStatus)}
-          />
-          <ProfileRow label={tFields("currentTask")} value={currentTask} />
-          <ProfileRow
-            label={tFields("department")}
-            value={tDepartments(employee.department)}
-          />
-          <ProfileRow
-            label={tFields("model")}
-            value={BRAIN_LABELS[employee.brainProvider]}
-          />
-          <ProfileRow
-            label={tFields("runtime")}
-            value={formatRuntime(employee.createdAt)}
-          />
-        </TabsContent>
-
-        <TabsContent value="tasks" className="mt-0">
-          {hasTask ? (
-            <>
-              <ProfileRow label={tFields("currentTask")} value={currentTask} />
-              <ProfileRow
-                label={tFields("tasksToday")}
-                value={String(employee.tasksToday)}
-              />
-            </>
-          ) : (
-            <p className="py-6 text-center text-xs text-white/35">
-              {t("noTasks")}
-            </p>
-          )}
-        </TabsContent>
-
-        <TabsContent value="metrics" className="mt-0">
-          <ProfileRow
-            label={tFields("sessions")}
-            value={String(employee.sessionsInRange)}
-          />
-          <ProfileRow
-            label={tFields("conversationTime")}
-            value={formatDurationSeconds(employee.conversationSeconds)}
-          />
-          <ProfileRow
-            label={tFields("satisfaction")}
-            value={
-              employee.satisfactionAvg !== null
-                ? employee.satisfactionAvg.toFixed(1)
-                : t("none")
-            }
-          />
-          <ProfileRow
-            label={tFields("tasksToday")}
-            value={String(employee.tasksToday)}
-          />
-        </TabsContent>
-
-        <TabsContent value="activity" className="mt-0">
-          <ProfileRow
-            label={tFields("live")}
-            value={employee.isLive ? "●" : t("none")}
-          />
-          <ProfileRow
-            label={tFields("lastSession")}
-            value={formatLastSession(employee.lastSessionAt, t("none"))}
-          />
-          <ProfileRow
-            label={tFields("sessions")}
-            value={String(employee.sessionsInRange)}
-          />
-        </TabsContent>
-      </Tabs>
+      {pauseError ? (
+        <p className="text-xs text-red-300/80">{pauseError}</p>
+      ) : null}
 
       <Link
         href={`/dashboard/employees/${employee.id}`}
@@ -212,12 +216,21 @@ export function HqProfilePanel({ employees }: { employees: HqEmployee[] }) {
             {t("actions.talk")}
           </button>
         ) : null}
-        <Link
-          href={`/dashboard/employees/${employee.id}`}
-          className="flex items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-xs text-white/70 transition-colors hover:bg-white/[0.06] hover:text-white"
+        <button
+          type="button"
+          onClick={handlePause}
+          disabled={isPending || employee.status === "paused"}
+          className="flex items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-xs text-white/70 transition-colors hover:bg-white/[0.06] hover:text-white disabled:opacity-40"
         >
-          <Settings2 className="size-3.5" />
-          {t("actions.settings")}
+          <Pause className="size-3.5" />
+          {t("actions.pause")}
+        </button>
+        <Link
+          href={`/dashboard/missions/new?employeeId=${employee.id}`}
+          className="col-span-2 flex items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-xs text-white/70 transition-colors hover:bg-white/[0.06] hover:text-white"
+        >
+          <ClipboardList className="size-3.5" />
+          {t("actions.assignTask")}
         </Link>
       </div>
     </aside>

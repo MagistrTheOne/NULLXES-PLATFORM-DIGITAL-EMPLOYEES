@@ -1545,10 +1545,10 @@
     "departments": {
       "reception": "Reception",
       "sales": "Sales",
-      "support": "Customer Support",
+      "support": "Client Service",
       "hr": "HR",
-      "analytics": "Analytics",
-      "executive": "Executive Floor"
+      "analytics": "Operations",
+      "executive": "Executive"
     },
     "activity": {
       "idle": "Idle",
@@ -1612,15 +1612,24 @@
       "none": "—",
       "noTasks": "No active tasks right now.",
       "noActivity": "No recent activity.",
+      "noMission": "No active mission",
       "tabs": {
         "profile": "Profile",
         "tasks": "Tasks",
         "metrics": "Metrics",
         "activity": "Activity"
       },
+      "stages": {
+        "research": "Research",
+        "draft": "Draft",
+        "awaitingApproval": "Awaiting approval",
+        "sent": "Sent"
+      },
       "fields": {
         "status": "Status",
         "currentTask": "Current Task",
+        "currentMission": "Current mission",
+        "lastAction": "Last action",
         "department": "Department",
         "model": "Model",
         "runtime": "Runtime",
@@ -1633,8 +1642,17 @@
       },
       "actions": {
         "talk": "Talk",
-        "settings": "Settings"
+        "settings": "Settings",
+        "pause": "Pause",
+        "assignTask": "Assign task"
       }
+    },
+    "timeline": {
+      "title": "Mission Timeline",
+      "description": "Latest operational events across the floor.",
+      "empty": "No mission events yet.",
+      "openJournal": "Open journal",
+      "open": "Open"
     }
   },
   "analytics": {

@@ -44,6 +44,21 @@ export type HqActiveTask = {
   label: string;
 };
 
+export type HqMissionStage =
+  | "research"
+  | "draft"
+  | "awaiting_approval"
+  | "sent";
+
+/** Optional mission context attached to an HQ employee for Inspector / motion. */
+export type HqEmployeeMission = {
+  missionId: string;
+  title: string;
+  status: string;
+  stage: HqMissionStage | null;
+  lastAction: string | null;
+};
+
 export type HqEmployee = {
   id: string;
   name: string;
@@ -67,6 +82,8 @@ export type HqEmployee = {
   createdAt: Date;
   isLive: boolean;
   canTalk: boolean;
+  /** Active mission snapshot for Inspector + office state, if any. */
+  mission: HqEmployeeMission | null;
 };
 
 export type HqDepartmentGroup = {
@@ -89,9 +106,36 @@ export type HqDepartmentMetrics = {
   satisfactionAvg: number | null;
 };
 
+export type HqOpsItemKind = "approval" | "escalation" | "handoff" | "mission";
+
+export type HqOpsItem = {
+  id: string;
+  kind: HqOpsItemKind;
+  title: string;
+  subtitle?: string;
+  employeeId?: string;
+  missionId?: string;
+  at: string;
+};
+
+export type HqTimelineEvent = {
+  id: string;
+  missionId: string;
+  employeeId: string;
+  employeeName: string;
+  key: string;
+  label: string;
+  at: string;
+  missionTitle: string;
+};
+
 export type HqState = {
   employees: HqEmployee[];
   departments: HqDepartmentGroup[];
   departmentMetrics: HqDepartmentMetrics[];
   liveCount: number;
+  /** Cards for the Central Operations Table. */
+  opsItems: HqOpsItem[];
+  /** Last 3–5 mission timeline events for the floor journal. */
+  recentTimeline: HqTimelineEvent[];
 };
