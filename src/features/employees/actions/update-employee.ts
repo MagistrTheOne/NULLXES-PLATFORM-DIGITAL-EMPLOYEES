@@ -3,7 +3,10 @@
 import type { BrainProvider } from "@/entities/digital-employee";
 import { requireWorkspacePermissionOrThrowMessage } from "@/features/workspace";
 import type { EmployeeStatus } from "@/entities/digital-employee";
+import { planAllowsCreateEmployees } from "@/features/billing/lib/plan-capabilities";
+import { resolveBillingPlanId } from "@/features/billing/lib/resolve-billing-plan";
 import { enqueueEmployeeProvisioning } from "@/features/provider-provisioning/orchestrator/enqueue-employee-provisioning";
+import { assertNotPlatformCatalogEmployee } from "../services/platform-employee-catalog";
 import { updateEmployee } from "../services/update-employee";
 import { revalidateEmployeePaths } from "./revalidate-employee-paths";
 
@@ -33,6 +36,25 @@ export async function updateEmployeeAction(
     const workspace = await requireWorkspacePermissionOrThrowMessage(
       "canManageEmployees",
     );
+
+    if (
+      !planAllowsCreateEmployees(
+        resolveBillingPlanId(workspace.organization.billingPlan),
+      )
+    ) {
+      return {
+        ok: false,
+        message:
+          "Evaluation workspaces cannot edit digital employees. Upgrade to Studio, Team, or Scale.",
+      };
+    }
+
+    const catalogGuard = await assertNotPlatformCatalogEmployee(
+      input.employeeId,
+    );
+    if (!catalogGuard.ok) {
+      return catalogGuard;
+    }
 
     const result = await updateEmployee({
       organizationId: workspace.organization.id,

@@ -55,6 +55,8 @@ export type EmployeeListItem = {
   sessionProvisioningFailureReason: string | null;
   sessionVoiceProvider: string | null;
   canTalk: boolean;
+  /** Platform catalog (CEO beta) employees are shared read-only. */
+  source?: "organization" | "platform";
 };
 
 export type EmployeeDetailShell = EmployeeListItem & {

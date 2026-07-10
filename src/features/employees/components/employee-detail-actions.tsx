@@ -41,6 +41,8 @@ import {
 import type { BrainProviderReadinessMap } from "@/features/brain/lib/brain-provider-readiness";
 import { getDefaultBrainModelForProvider } from "@/features/settings/lib/brain-model-defaults";
 import { useWorkspacePermissions } from "@/features/workspace/components/workspace-permissions-provider";
+import { useWorkspaceBilling } from "@/features/workspace/components/workspace-billing-provider";
+import { planAllowsCreateEmployees } from "@/features/billing/lib/plan-capabilities";
 import { deleteEmployeeAction } from "../actions/delete-employee";
 import { provisionEmployeeAvatarStudio } from "../actions/provision-employee-avatar-studio";
 import { updateEmployeeAction } from "../actions/update-employee";
@@ -69,7 +71,11 @@ export function EmployeeDetailActions({
   const tCommon = useTranslations("common.actions");
   const tStatus = useTranslations("employees.status");
   const permissions = useWorkspacePermissions();
-  const canManage = permissions.canManageEmployees;
+  const { planId } = useWorkspaceBilling();
+  const canManage =
+    permissions.canManageEmployees &&
+    planAllowsCreateEmployees(planId) &&
+    employee.source !== "platform";
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);

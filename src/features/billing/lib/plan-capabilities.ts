@@ -35,3 +35,7 @@ export function planAllowsApiAccess(
   if (required === "read") return access === "read" || access === "full";
   return access === "full";
 }
+
+export function planAllowsCreateEmployees(planId: BillingPlanId): boolean {
+  return BILLING_PLANS[planId].limits.canCreateEmployees;
+}

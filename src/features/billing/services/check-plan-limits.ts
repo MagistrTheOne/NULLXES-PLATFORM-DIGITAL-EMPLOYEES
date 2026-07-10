@@ -11,6 +11,14 @@ export async function assertCanCreateEmployee(
   organizationId: string,
   billingPlan: BillingPlanId,
 ): Promise<{ ok: true } | { ok: false; message: string }> {
+  if (!BILLING_PLANS[billingPlan].limits.canCreateEmployees) {
+    return {
+      ok: false,
+      message:
+        "Evaluation includes curated NULLXES digital employees. Launch Studio, Team, or Scale to create your own.",
+    };
+  }
+
   const limit = BILLING_PLANS[billingPlan].limits.maxEmployees;
 
   if (limit == null) {

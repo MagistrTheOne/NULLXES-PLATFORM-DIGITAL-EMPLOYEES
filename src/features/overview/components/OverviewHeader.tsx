@@ -10,9 +10,11 @@ import type { AnalyticsDateRange } from "@/features/analytics/types";
 export function OverviewHeader({
   range,
   onCreateClick,
+  canCreate = true,
 }: {
   range: AnalyticsDateRange;
   onCreateClick: () => void;
+  canCreate?: boolean;
 }) {
   const t = useTranslations("common.actions");
   const tNav = useTranslations("common.nav");
@@ -28,10 +30,12 @@ export function OverviewHeader({
           {tNav("analytics")}
         </Link>
       </Button>
-      <Button type="button" onClick={onCreateClick}>
-        <Plus className="size-4" />
-        {t("createEmployee")}
-      </Button>
+      {canCreate ? (
+        <Button type="button" onClick={onCreateClick}>
+          <Plus className="size-4" />
+          {t("createEmployee")}
+        </Button>
+      ) : null}
     </div>
   );
 }

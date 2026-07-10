@@ -1,7 +1,8 @@
 import { redirect } from "next/navigation";
 import { ensureWorkspace } from "@/features/auth/services/ensure-workspace";
 import { requireAuth } from "@/features/auth/services/require-auth";
-import { listOrganizationEmployees } from "@/features/employees";
+import { planAllowsCreateEmployees } from "@/features/billing/lib/plan-capabilities";
+import { resolveBillingPlanId } from "@/features/billing/lib/resolve-billing-plan";
 import {
   listOrganizationMissions,
   MissionsScreen,
@@ -17,11 +18,16 @@ export default async function MissionsPage() {
   }
 
   const { items } = await listOrganizationMissions(workspace.organization.id);
+  const canCreateMissions =
+    workspace.permissions.canOperateEmployees &&
+    planAllowsCreateEmployees(
+      resolveBillingPlanId(workspace.organization.billingPlan),
+    );
 
   return (
     <MissionsScreen
       missions={items}
-      canCreate={workspace.permissions.canOperateEmployees}
+      canCreate={canCreateMissions}
     />
   );
 }

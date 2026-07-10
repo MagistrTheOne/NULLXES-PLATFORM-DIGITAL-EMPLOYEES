@@ -4,13 +4,17 @@ import type {
   SessionProviderConfigPayload,
 } from "@/entities/provider-config";
 import { digitalEmployee } from "@/entities/digital-employee/schema";
+import { organization } from "@/entities/organization/schema";
 import { employeeProviderConfig } from "@/entities/provider-config/schema";
 import { knowledgeSource } from "@/entities/knowledge/schema";
+import { resolveBillingPlanId } from "@/features/billing/lib/resolve-billing-plan";
+import { planAllowsCreateEmployees } from "@/features/billing/lib/plan-capabilities";
 import { db } from "@/shared/db/client";
 import { withDatabaseRetry } from "@/shared/db/with-database-retry";
 import { isAnamAvatarTalkReady } from "../lib/resolve-anam-avatar-talk-readiness";
 import { readProviderFailureReason } from "../lib/resolve-talk-readiness";
 import type { EmployeeListItem } from "../types";
+import { listPublishedPlatformCatalog } from "./platform-employee-catalog";
 
 const DEFAULT_PAGE_SIZE = 24;
 
@@ -59,59 +63,25 @@ function encodeCursor(createdAt: Date, id: string): string {
   );
 }
 
-export async function listOrganizationEmployees(
-  organizationId: string,
-  options?: { cursor?: string; limit?: number },
-): Promise<EmployeeListPage> {
-  return withDatabaseRetry(() =>
-    loadOrganizationEmployeesPage(organizationId, options),
-  );
-}
-
-async function loadOrganizationEmployeesPage(
-  organizationId: string,
-  options?: { cursor?: string; limit?: number },
-): Promise<EmployeeListPage> {
-  const limit = Math.min(Math.max(options?.limit ?? DEFAULT_PAGE_SIZE, 1), 100);
-  const cursor = options?.cursor ? decodeCursor(options.cursor) : null;
-
-  const employees = await db
-    .select()
-    .from(digitalEmployee)
-    .where(
-      and(
-        eq(digitalEmployee.organizationId, organizationId),
-        cursor
-          ? or(
-              lt(digitalEmployee.createdAt, cursor.createdAt),
-              and(
-                eq(digitalEmployee.createdAt, cursor.createdAt),
-                lt(digitalEmployee.id, cursor.id),
-              ),
-            )
-          : undefined,
-      ),
-    )
-    .orderBy(desc(digitalEmployee.createdAt), desc(digitalEmployee.id))
-    .limit(limit + 1);
-
-  const pageRows = employees.slice(0, limit);
-  const hasMore = employees.length > limit;
-
+async function hydrateEmployeeListItems(
+  pageRows: Array<typeof digitalEmployee.$inferSelect>,
+  source: "organization" | "platform",
+): Promise<EmployeeListItem[]> {
   if (pageRows.length === 0) {
-    return { items: [], nextCursor: null };
+    return [];
   }
 
   const employeeIds = pageRows.map((employee) => employee.id);
 
-  // Secondary data (knowledge counts + provider configs) is best-effort.
-  // During transient DB outages we still return the employee list with
-  // sensible defaults so the UI can render instead of a hard failure.
   let knowledgeCounts: Array<{
     employeeId: string;
     knowledgeSourcesCount: number;
   }> = [];
-  let providerConfigs: Array<any> = [];
+  let providerConfigs: Array<{
+    employeeId: string;
+    providerType: string;
+    config: unknown;
+  }> = [];
 
   try {
     [knowledgeCounts, providerConfigs] = await withDatabaseRetry(() =>
@@ -133,7 +103,7 @@ async function loadOrganizationEmployeesPage(
       ]),
     );
   } catch {
-    // Ignore transient failures for augmentation data. Defaults will be used.
+    // Ignore transient failures for augmentation data.
   }
 
   const countByEmployeeId = new Map(
@@ -141,7 +111,10 @@ async function loadOrganizationEmployeesPage(
   );
 
   const avatarConfigByEmployee = new Map<string, AvatarProviderConfigPayload>();
-  const sessionConfigByEmployee = new Map<string, SessionProviderConfigPayload>();
+  const sessionConfigByEmployee = new Map<
+    string,
+    SessionProviderConfigPayload
+  >();
 
   for (const row of providerConfigs) {
     if (row.providerType === "avatar") {
@@ -159,7 +132,7 @@ async function loadOrganizationEmployeesPage(
     }
   }
 
-  const items = pageRows.map((employee) => {
+  return pageRows.map((employee) => {
     const avatarConfig = avatarConfigByEmployee.get(employee.id);
     const sessionConfig = sessionConfigByEmployee.get(employee.id);
     const avatarProvisioningStatus = readProvisioningStatus(
@@ -192,15 +165,95 @@ async function loadOrganizationEmployeesPage(
       ),
       sessionVoiceProvider: sessionConfig?.voiceProvider ?? null,
       canTalk: avatarReady && sessionReady,
+      source,
     };
   });
+}
 
+export async function listOrganizationEmployees(
+  organizationId: string,
+  options?: { cursor?: string; limit?: number },
+): Promise<EmployeeListPage> {
+  return withDatabaseRetry(() =>
+    loadOrganizationEmployeesPage(organizationId, options),
+  );
+}
+
+async function loadOrganizationEmployeesPage(
+  organizationId: string,
+  options?: { cursor?: string; limit?: number },
+): Promise<EmployeeListPage> {
+  const limit = Math.min(Math.max(options?.limit ?? DEFAULT_PAGE_SIZE, 1), 100);
+  const cursor = options?.cursor ? decodeCursor(options.cursor) : null;
+
+  const [org] = await db
+    .select({ billingPlan: organization.billingPlan })
+    .from(organization)
+    .where(eq(organization.id, organizationId))
+    .limit(1);
+
+  const planId = resolveBillingPlanId(org?.billingPlan ?? "free");
+  const includePlatformCatalog = !planAllowsCreateEmployees(planId);
+
+  const employees = await db
+    .select()
+    .from(digitalEmployee)
+    .where(
+      and(
+        eq(digitalEmployee.organizationId, organizationId),
+        cursor
+          ? or(
+              lt(digitalEmployee.createdAt, cursor.createdAt),
+              and(
+                eq(digitalEmployee.createdAt, cursor.createdAt),
+                lt(digitalEmployee.id, cursor.id),
+              ),
+            )
+          : undefined,
+      ),
+    )
+    .orderBy(desc(digitalEmployee.createdAt), desc(digitalEmployee.id))
+    .limit(limit + 1);
+
+  const pageRows = employees.slice(0, limit);
+  const hasMore = employees.length > limit;
+
+  const orgItems = await hydrateEmployeeListItems(pageRows, "organization");
+
+  // First page only: prepend published platform catalog for Evaluation orgs.
+  let catalogItems: EmployeeListItem[] = [];
+  if (includePlatformCatalog && !cursor) {
+    const catalog = await listPublishedPlatformCatalog();
+    if (catalog.length > 0) {
+      const catalogEmployees = await db
+        .select()
+        .from(digitalEmployee)
+        .where(
+          inArray(
+            digitalEmployee.id,
+            catalog.map((entry) => entry.employeeId),
+          ),
+        );
+
+      const byId = new Map(
+        catalogEmployees.map((employee) => [employee.id, employee]),
+      );
+      const ordered = catalog
+        .map((entry) => byId.get(entry.employeeId))
+        .filter((employee): employee is NonNullable<typeof employee> =>
+          Boolean(employee),
+        );
+
+      catalogItems = await hydrateEmployeeListItems(ordered, "platform");
+    }
+  }
+
+  const items = [...catalogItems, ...orgItems];
   const last = pageRows[pageRows.length - 1];
 
   return {
     items,
-    nextCursor: hasMore
-      ? encodeCursor(last.createdAt, last.id)
-      : null,
+    nextCursor:
+      hasMore && last ? encodeCursor(last.createdAt, last.id) : null,
   };
 }

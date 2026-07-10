@@ -6,8 +6,11 @@ import type {
   SessionProviderConfigPayload,
 } from "@/entities/provider-config";
 import { digitalEmployee } from "@/entities/digital-employee/schema";
+import { organization } from "@/entities/organization/schema";
 import { employeeProviderConfig } from "@/entities/provider-config/schema";
 import { employeeRuntime } from "@/entities/runtime/schema";
+import { planAllowsCreateEmployees } from "@/features/billing/lib/plan-capabilities";
+import { resolveBillingPlanId } from "@/features/billing/lib/resolve-billing-plan";
 import { db } from "@/shared/db/client";
 import { withDatabaseRetry } from "@/shared/db/with-database-retry";
 import {
@@ -15,6 +18,7 @@ import {
   resolveAnamPersonaVoiceId,
 } from "@/features/employees/lib/resolve-anam-avatar-talk-readiness";
 import { getEmployeeBlueprint } from "@/features/agent-blueprint/queries/get-employee-blueprint";
+import { isPublishedPlatformCatalogEmployee } from "@/features/employees/services/platform-employee-catalog";
 import { resolveXaiVoiceConfigForEmployee } from "@/features/xai-voice/services/resolve-xai-voice-config";
 import type { EmployeeTalkContext } from "../types/employee-talk-context";
 
@@ -52,9 +56,27 @@ async function queryEmployeeTalkContext(
     .where(eq(digitalEmployee.id, employeeId))
     .limit(1);
 
-  if (!employee || employee.organizationId !== organizationId) {
+  if (!employee) {
     return null;
   }
+
+  const isHomeOrg = employee.organizationId === organizationId;
+  if (!isHomeOrg) {
+    const [callerOrg] = await db
+      .select({ billingPlan: organization.billingPlan })
+      .from(organization)
+      .where(eq(organization.id, organizationId))
+      .limit(1);
+    const callerPlan = resolveBillingPlanId(callerOrg?.billingPlan ?? "free");
+    const catalogAllowed =
+      !planAllowsCreateEmployees(callerPlan) &&
+      (await isPublishedPlatformCatalogEmployee(employeeId));
+    if (!catalogAllowed) {
+      return null;
+    }
+  }
+
+  const blueprintOrgId = employee.organizationId;
 
   const [runtime, configs, blueprint, xaiVoiceConfig] = await Promise.all([
     db
@@ -67,7 +89,7 @@ async function queryEmployeeTalkContext(
       .select()
       .from(employeeProviderConfig)
       .where(eq(employeeProviderConfig.employeeId, employeeId)),
-    getEmployeeBlueprint({ organizationId, employeeId }),
+    getEmployeeBlueprint({ organizationId: blueprintOrgId, employeeId }),
     resolveXaiVoiceConfigForEmployee(employeeId),
   ]);
 

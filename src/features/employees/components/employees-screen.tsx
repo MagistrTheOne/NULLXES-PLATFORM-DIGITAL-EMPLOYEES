@@ -91,7 +91,7 @@ export function EmployeesScreen({
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [loadedEmployees, setLoadedEmployees] = useState(employees);
   const [loadedNextCursor, setLoadedNextCursor] = useState(nextCursor ?? null);
-  const { isAtEmployeeLimit } = useEmployeeCreateEligibility(
+  const { isAtEmployeeLimit, canCreateEmployee } = useEmployeeCreateEligibility(
     loadedEmployees.length,
   );
   const [page, setPage] = useState(1);
@@ -228,7 +228,7 @@ export function EmployeesScreen({
   }
 
   function handleCreateClick(): void {
-    if (isAtEmployeeLimit) {
+    if (!canCreateEmployee || isAtEmployeeLimit) {
       setUpgradeDialogOpen(true);
       return;
     }
@@ -268,7 +268,9 @@ export function EmployeesScreen({
               onStatusFilterChange={setStatusFilter}
               onViewModeChange={handleViewModeChange}
               onCreateClick={handleCreateClick}
-              canCreate={permissions.canManageEmployees}
+              canCreate={
+                permissions.canManageEmployees && canCreateEmployee
+              }
             />
             <div ref={listTopRef} className="scroll-mt-4" />
             {filteredEmployees.length > 0 ? (
@@ -300,7 +302,9 @@ export function EmployeesScreen({
         ) : (
           <EmployeeEmptyState
             onCreateClick={handleCreateClick}
-            canCreate={permissions.canManageEmployees}
+            canCreate={
+              permissions.canManageEmployees && canCreateEmployee
+            }
           />
         )}
       </div>

@@ -1,6 +1,10 @@
 import { and, count, desc, eq, inArray, sql } from "drizzle-orm";
 import { digitalEmployee } from "@/entities/digital-employee/schema";
+import { organization } from "@/entities/organization/schema";
 import { employeeSession } from "@/entities/session/schema";
+import { planAllowsCreateEmployees } from "@/features/billing/lib/plan-capabilities";
+import { resolveBillingPlanId } from "@/features/billing/lib/resolve-billing-plan";
+import { isPublishedPlatformCatalogEmployee } from "@/features/employees/services/platform-employee-catalog";
 import { db } from "@/shared/db/client";
 import { dbWithTransactions } from "@/shared/db/pool-client";
 import { applySessionDurationLimit } from "./enforce-session-limit";
@@ -8,12 +12,34 @@ import { getEmployeeSessionLimitSeconds } from "./get-employee-session-limit";
 import {
   EmployeeSessionLimitError,
   MAX_OPEN_SESSIONS_PER_USER,
+  MAX_OPEN_SESSIONS_PER_CATALOG_EMPLOYEE,
 } from "../lib/employee-session-limit";
 
 function assertValidSatisfactionRating(rating: number): void {
   if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
     throw new Error("Satisfaction rating must be an integer from 1 to 5");
   }
+}
+
+async function callerCanAccessEmployeeSession(input: {
+  employeeOrganizationId: string;
+  callerOrganizationId: string;
+  employeeId: string;
+}): Promise<boolean> {
+  if (input.employeeOrganizationId === input.callerOrganizationId) {
+    return true;
+  }
+
+  const [callerOrg] = await db
+    .select({ billingPlan: organization.billingPlan })
+    .from(organization)
+    .where(eq(organization.id, input.callerOrganizationId))
+    .limit(1);
+  const callerPlan = resolveBillingPlanId(callerOrg?.billingPlan ?? "free");
+  return (
+    !planAllowsCreateEmployees(callerPlan) &&
+    (await isPublishedPlatformCatalogEmployee(input.employeeId))
+  );
 }
 
 async function assertSessionOwnership(
@@ -26,7 +52,16 @@ async function assertSessionOwnership(
     with: { employee: true },
   });
 
-  if (!row?.employee || row.employee.organizationId !== organizationId) {
+  if (!row?.employee) {
+    throw new Error("Session not found");
+  }
+
+  const allowed = await callerCanAccessEmployeeSession({
+    employeeOrganizationId: row.employee.organizationId,
+    callerOrganizationId: organizationId,
+    employeeId: row.employeeId,
+  });
+  if (!allowed) {
     throw new Error("Session not found");
   }
 
@@ -133,6 +168,26 @@ export async function startEmployeeSession(input: {
 
     if (Number(openCountRow?.total ?? 0) >= MAX_OPEN_SESSIONS_PER_USER) {
       throw new EmployeeSessionLimitError();
+    }
+
+    if (await isPublishedPlatformCatalogEmployee(input.employeeId)) {
+      const [catalogOpenRow] = await tx
+        .select({ total: count() })
+        .from(employeeSession)
+        .where(
+          and(
+            eq(employeeSession.employeeId, input.employeeId),
+            inArray(employeeSession.status, ["created", "active"]),
+          ),
+        );
+      if (
+        Number(catalogOpenRow?.total ?? 0) >=
+        MAX_OPEN_SESSIONS_PER_CATALOG_EMPLOYEE
+      ) {
+        throw new EmployeeSessionLimitError(
+          "This NULLXES beta employee is at capacity. Try again shortly or pick another employee.",
+        );
+      }
     }
 
     // Partial unique index (employee_id+user_id where open) makes same-employee

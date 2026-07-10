@@ -2,7 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import { requireWorkspacePermissionOrThrowMessage } from "@/features/workspace";
+import { planAllowsCreateEmployees } from "@/features/billing/lib/plan-capabilities";
+import { resolveBillingPlanId } from "@/features/billing/lib/resolve-billing-plan";
 import { recordAuditEvent } from "@/features/security/services/record-audit-event";
+import { assertNotPlatformCatalogEmployee } from "../services/platform-employee-catalog";
 import { deleteEmployee } from "../services/delete-employee";
 
 export type DeleteEmployeeActionResult =
@@ -16,6 +19,23 @@ export async function deleteEmployeeAction(
     const workspace = await requireWorkspacePermissionOrThrowMessage(
       "canManageEmployees",
     );
+
+    if (
+      !planAllowsCreateEmployees(
+        resolveBillingPlanId(workspace.organization.billingPlan),
+      )
+    ) {
+      return {
+        ok: false,
+        message:
+          "Evaluation workspaces cannot delete digital employees. Upgrade to Studio, Team, or Scale.",
+      };
+    }
+
+    const catalogGuard = await assertNotPlatformCatalogEmployee(employeeId);
+    if (!catalogGuard.ok) {
+      return catalogGuard;
+    }
 
     const result = await deleteEmployee(workspace.organization.id, employeeId);
 

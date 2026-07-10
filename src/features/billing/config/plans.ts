@@ -29,6 +29,8 @@ export type BillingPlanDefinition = {
     maxCustomAvatars: number | null;
     maxSeats: number | null;
     apiAccess: ApiAccessLevel;
+    /** Free beta: curated catalog only — no self-serve create. */
+    canCreateEmployees: boolean;
   };
   features: string[];
 };
@@ -50,12 +52,13 @@ export const BILLING_PLANS: Record<BillingPlanId, BillingPlanDefinition> = {
       maxCustomAvatars: 0,
       maxSeats: 1,
       apiAccess: "none",
+      canCreateEmployees: false,
     },
     features: [
-      "1 digital employee (NULLXES presets)",
+      "NULLXES beta digital employees (read-only)",
       "2-minute Talk sessions",
       "30 Talk minutes / month",
-      "Evaluation watermark",
+      "Upgrade to create your own workforce",
     ],
   },
   studio: {
@@ -75,6 +78,7 @@ export const BILLING_PLANS: Record<BillingPlanId, BillingPlanDefinition> = {
       maxCustomAvatars: 1,
       maxSeats: 1,
       apiAccess: "none",
+      canCreateEmployees: true,
     },
     features: [
       "1 digital employee",
@@ -100,6 +104,7 @@ export const BILLING_PLANS: Record<BillingPlanId, BillingPlanDefinition> = {
       maxCustomAvatars: 3,
       maxSeats: 3,
       apiAccess: "read",
+      canCreateEmployees: true,
     },
     features: [
       "3 digital employees",
@@ -126,6 +131,7 @@ export const BILLING_PLANS: Record<BillingPlanId, BillingPlanDefinition> = {
       maxCustomAvatars: 10,
       maxSeats: 10,
       apiAccess: "full",
+      canCreateEmployees: true,
     },
     features: [
       "10 digital employees",
@@ -151,6 +157,7 @@ export const BILLING_PLANS: Record<BillingPlanId, BillingPlanDefinition> = {
       maxCustomAvatars: null,
       maxSeats: null,
       apiAccess: "full",
+      canCreateEmployees: true,
     },
     features: [
       "Digital Department Deployment",
@@ -175,6 +182,7 @@ export const BILLING_PLANS: Record<BillingPlanId, BillingPlanDefinition> = {
       maxCustomAvatars: null,
       maxSeats: null,
       apiAccess: "full",
+      canCreateEmployees: true,
     },
     features: [
       "Air-gapped and residency options",

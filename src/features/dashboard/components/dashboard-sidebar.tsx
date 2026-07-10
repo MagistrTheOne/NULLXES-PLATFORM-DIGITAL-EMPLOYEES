@@ -152,6 +152,8 @@ export function DashboardSidebar({
                   <span>{t("billing")}</span>
                   <span className="truncate text-xs text-white/45">
                     {workspace.billing.planName}
+                    <span className="text-white/25"> · </span>
+                    {workspace.billing.priceLabel}
                   </span>
                 </span>
               </Link>

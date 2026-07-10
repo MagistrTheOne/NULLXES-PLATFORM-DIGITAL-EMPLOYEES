@@ -24,13 +24,13 @@ export function OverviewScreen({ data }: { data: DashboardOverview }) {
     employeeId: string;
     name: string;
   } | null>(null);
-  const { isAtEmployeeLimit } = useEmployeeCreateEligibility(
+  const { isAtEmployeeLimit, canCreateEmployee } = useEmployeeCreateEligibility(
     data.employees.length,
   );
   const { metrics } = data;
 
   function handleCreateClick(): void {
-    if (isAtEmployeeLimit) {
+    if (!canCreateEmployee || isAtEmployeeLimit) {
       setUpgradeDialogOpen(true);
       return;
     }
@@ -74,12 +74,14 @@ export function OverviewScreen({ data }: { data: DashboardOverview }) {
           <OverviewHeader
             range={data.range}
             onCreateClick={handleCreateClick}
+            canCreate={canCreateEmployee}
           />
         </header>
 
         <OverviewEmployeeCarousel
           employees={data.employees}
           onCreateClick={handleCreateClick}
+          canCreate={canCreateEmployee}
         />
 
         <OverviewMetricsStrip metrics={metrics} />

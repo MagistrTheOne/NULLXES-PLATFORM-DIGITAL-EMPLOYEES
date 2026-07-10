@@ -178,7 +178,8 @@
       "description": "Активный персонал в рабочем пространстве",
       "talked": "Разговор {time}",
       "noSessions": "Сессий пока нет",
-      "sessionsInPeriod": "{count} сессий за период"
+      "sessionsInPeriod": "{count} сессий за период",
+      "emptyBeta": "Здесь появятся цифровые сотрудники NULLXES beta. Обновите план, чтобы создать своих."
     },
     "activity": {
       "title": "Недавняя активность",

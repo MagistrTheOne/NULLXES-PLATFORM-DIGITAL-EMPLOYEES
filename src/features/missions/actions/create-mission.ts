@@ -5,6 +5,8 @@ import { and, eq } from "drizzle-orm";
 import { digitalEmployee } from "@/entities/digital-employee/schema";
 import { recordWorkEvent } from "@/features/work-event";
 import { requireWorkspacePermissionOrThrowMessage } from "@/features/workspace";
+import { planAllowsCreateEmployees } from "@/features/billing/lib/plan-capabilities";
+import { resolveBillingPlanId } from "@/features/billing/lib/resolve-billing-plan";
 import { parseMissionSkills } from "../lib/parse-mission-skills";
 import {
   createEmployeeMission,
@@ -16,6 +18,7 @@ import {
 } from "../lib/prospecting-defaults";
 import type { MissionType } from "../lib/mission-type";
 import { isQualifiedMissionType } from "../lib/mission-type";
+import { assertNotPlatformCatalogEmployee } from "@/features/employees/services/platform-employee-catalog";
 import { db } from "@/shared/db/client";
 
 export async function createMissionAction(input: {
@@ -32,9 +35,30 @@ export async function createMissionAction(input: {
       "canOperateEmployees",
     );
 
+    if (
+      !planAllowsCreateEmployees(
+        resolveBillingPlanId(workspace.organization.billingPlan),
+      )
+    ) {
+      return {
+        ok: false,
+        message:
+          "Missions are unavailable on Evaluation. Upgrade to Studio, Team, or Scale.",
+      };
+    }
+
     const employeeId = input.employeeId.trim();
     if (!employeeId) {
       return { ok: false, message: "Select a digital employee." };
+    }
+
+    const catalogGuard = await assertNotPlatformCatalogEmployee(employeeId);
+    if (!catalogGuard.ok) {
+      return {
+        ok: false,
+        message:
+          "Missions cannot run on NULLXES beta catalog employees. Upgrade to create your own workforce.",
+      };
     }
 
     const [employee] = await db

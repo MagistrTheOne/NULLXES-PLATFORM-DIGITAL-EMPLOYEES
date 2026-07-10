@@ -281,6 +281,13 @@
       "when": 1784300000000,
       "tag": "0039_require_admin_2fa_default",
       "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1784400000000,
+      "tag": "0040_platform_employee_catalog",
+      "breakpoints": true
     }
   ]
 }

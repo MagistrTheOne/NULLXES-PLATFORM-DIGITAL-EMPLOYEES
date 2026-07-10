@@ -178,7 +178,8 @@
       "description": "Active workforce in this workspace",
       "talked": "Talked {time}",
       "noSessions": "No sessions yet",
-      "sessionsInPeriod": "{count} sessions in period"
+      "sessionsInPeriod": "{count} sessions in period",
+      "emptyBeta": "NULLXES beta employees appear here. Upgrade to create your own."
     },
     "activity": {
       "title": "Recent Activity",

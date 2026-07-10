@@ -36,6 +36,7 @@ import * as auditRelations from "@/entities/audit/relations";
 import * as auditSchema from "@/entities/audit/schema";
 import * as digitalEmployeeRelations from "@/entities/digital-employee/relations";
 import * as digitalEmployeeSchema from "@/entities/digital-employee/schema";
+import * as platformEmployeeCatalogSchema from "@/entities/platform-employee-catalog/schema";
 import * as employeeLifecycleRelations from "@/entities/employee-lifecycle/relations";
 import * as employeeLifecycleSchema from "@/entities/employee-lifecycle/schema";
 import * as providerConfigRelations from "@/entities/provider-config/relations";
@@ -94,6 +95,7 @@ export const drizzleSchema = {
   ...membershipRelations,
   ...digitalEmployeeSchema,
   ...digitalEmployeeRelations,
+  ...platformEmployeeCatalogSchema,
   ...knowledgeSchema,
   ...knowledgeRelations,
   ...runtimeSchema,

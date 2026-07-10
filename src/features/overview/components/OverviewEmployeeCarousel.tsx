@@ -142,9 +142,11 @@ const GRID_LAYOUT_THRESHOLD = 6;
 export function OverviewEmployeeCarousel({
   employees,
   onCreateClick,
+  canCreate = true,
 }: {
   employees: OverviewEmployee[];
   onCreateClick: () => void;
+  canCreate?: boolean;
 }) {
   const t = useTranslations("dashboard.carousel");
   const activeFirst = [...employees].sort((left, right) => {
@@ -161,7 +163,13 @@ export function OverviewEmployeeCarousel({
     return (
       <OverviewCard title={t("title")} description={t("description")}>
         <div className="flex min-h-[220px] w-full items-center justify-center p-5">
-          <CreateEmployeeCard onCreateClick={onCreateClick} />
+          {canCreate ? (
+            <CreateEmployeeCard onCreateClick={onCreateClick} />
+          ) : (
+            <p className="max-w-sm text-center text-sm text-muted-foreground">
+              {t("emptyBeta")}
+            </p>
+          )}
         </div>
       </OverviewCard>
     );
@@ -176,7 +184,9 @@ export function OverviewEmployeeCarousel({
           {activeFirst.map((employee) => (
             <CarouselEmployeeCard key={employee.id} employee={employee} fullWidth />
           ))}
-          <CreateEmployeeCard onCreateClick={onCreateClick} fullWidth />
+          {canCreate ? (
+            <CreateEmployeeCard onCreateClick={onCreateClick} fullWidth />
+          ) : null}
         </div>
       ) : (
         <div className="relative px-5 py-5">
@@ -193,9 +203,11 @@ export function OverviewEmployeeCarousel({
                   <CarouselEmployeeCard employee={employee} />
                 </CarouselItem>
               ))}
-              <CarouselItem className="basis-[220px] ps-4">
-                <CreateEmployeeCard onCreateClick={onCreateClick} />
-              </CarouselItem>
+              {canCreate ? (
+                <CarouselItem className="basis-[220px] ps-4">
+                  <CreateEmployeeCard onCreateClick={onCreateClick} />
+                </CarouselItem>
+              ) : null}
             </CarouselContent>
             <CarouselPrevious className="start-2 border-border bg-background/90 backdrop-blur-sm hover:bg-background" />
             <CarouselNext className="end-2 border-border bg-background/90 backdrop-blur-sm hover:bg-background" />
