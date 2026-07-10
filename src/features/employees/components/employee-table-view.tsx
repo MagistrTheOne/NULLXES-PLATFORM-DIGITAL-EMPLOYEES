@@ -41,7 +41,7 @@ export function EmployeeTableView({
               return (
                 <tr
                   key={employee.id}
-                  className="border-b border-white/8 last:border-b-0 transition-colors hover:bg-white/[0.03]"
+                  className="border-b border-white/8 last:border-b-0 transition-colors hover:bg-white/3"
                 >
                   <td className="px-4 py-3">
                     <Link

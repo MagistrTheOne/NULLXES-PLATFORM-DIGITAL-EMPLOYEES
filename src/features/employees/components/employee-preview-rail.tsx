@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Loader2, UserRound } from "lucide-react";
+import { AudioLines, Loader2, UserRound } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -52,10 +52,15 @@ export async function EmployeePreviewRail({
   employee,
   displayPreferences,
   talkBlockers,
+  authGateHref,
+  sticky = true,
 }: {
   employee: EmployeeDetailShell;
   displayPreferences: OrganizationDisplayPreferences;
   talkBlockers: string[];
+  /** When set (e.g. `/login`), Talk / Voice / Scenario route through auth first. */
+  authGateHref?: string;
+  sticky?: boolean;
 }) {
   const t = await getTranslations("employees.detail");
   const tCommon = await getTranslations("common.actions");
@@ -66,9 +71,18 @@ export async function EmployeePreviewRail({
     employee.avatarProvisioningStatus === "provisioning";
   const showPreview =
     employee.avatarPreviewUrl && employee.avatarProvisioningStatus === "ready";
+  const talkHref = authGateHref ?? `/dashboard/employees/${employee.id}/talk`;
+  const scenarioHref =
+    authGateHref ?? `/dashboard/employees/${employee.id}/scenarios`;
+  const canActivateTalk = Boolean(authGateHref) || employee.canTalk;
 
   return (
-    <Card className="overflow-hidden border-white/10 bg-[#111111] py-0 text-white xl:sticky xl:top-6">
+    <Card
+      className={cn(
+        "overflow-hidden border-white/10 bg-[#111111] py-0 text-white",
+        sticky && "xl:sticky xl:top-6",
+      )}
+    >
       <div className="relative aspect-4/3 bg-white/3">
         {showPreview ? (
           <AvatarIdlePreview
@@ -131,41 +145,51 @@ export async function EmployeePreviewRail({
 
         <Button
           type="button"
-          disabled={!employee.canTalk}
+          disabled={!canActivateTalk}
           className="bg-white text-black hover:bg-white/90 disabled:opacity-40"
-          asChild={employee.canTalk}
+          asChild={canActivateTalk}
         >
-          {employee.canTalk ? (
-            <Link href={`/dashboard/employees/${employee.id}/talk`}>
-              {tCommon("talk")}
-            </Link>
+          {canActivateTalk ? (
+            <Link href={talkHref}>{tCommon("talk")}</Link>
           ) : (
             <span>{tCommon("talk")}</span>
           )}
         </Button>
         {employee.xaiVoiceAvailable ? (
-          <EmployeeGrokVoiceButton
-            employeeId={employee.id}
-            employeeName={employee.name}
-            avatarPreviewUrl={employee.avatarPreviewUrl}
-          />
+          authGateHref ? (
+            <Button
+              type="button"
+              variant="outline"
+              className="border-white/12 bg-transparent text-white hover:bg-white/5"
+              asChild
+            >
+              <Link href={authGateHref}>
+                <AudioLines className="mr-2 size-4" />
+                {tCommon("voice")}
+              </Link>
+            </Button>
+          ) : (
+            <EmployeeGrokVoiceButton
+              employeeId={employee.id}
+              employeeName={employee.name}
+              avatarPreviewUrl={employee.avatarPreviewUrl}
+            />
+          )
         ) : null}
         <Button
           type="button"
-          disabled={!employee.canTalk}
+          disabled={!canActivateTalk}
           variant="outline"
           className="border-white/12 bg-transparent text-white hover:bg-white/5 disabled:opacity-40"
-          asChild={employee.canTalk}
+          asChild={canActivateTalk}
         >
-          {employee.canTalk ? (
-            <Link href={`/dashboard/employees/${employee.id}/scenarios`}>
-              {tCommon("runScenario")}
-            </Link>
+          {canActivateTalk ? (
+            <Link href={scenarioHref}>{tCommon("runScenario")}</Link>
           ) : (
             <span>{tCommon("runScenario")}</span>
           )}
         </Button>
-        {!employee.canTalk ? (
+        {!employee.canTalk && !authGateHref ? (
           <div className="space-y-1 text-xs text-white/45">
             <p>{t("talkLocked")}</p>
             {talkBlockers.map((blocker) => (

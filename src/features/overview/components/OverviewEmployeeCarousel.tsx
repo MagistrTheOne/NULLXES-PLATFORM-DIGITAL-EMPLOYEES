@@ -215,8 +215,8 @@ export function OverviewEmployeeCarousel({
                 </CarouselItem>
               ) : null}
             </CarouselContent>
-            <CarouselPrevious className="start-2 border-border bg-background/90 backdrop-blur-sm hover:bg-background" />
-            <CarouselNext className="end-2 border-border bg-background/90 backdrop-blur-sm hover:bg-background" />
+            <CarouselPrevious className="inset-s-2 border-border bg-background/90 backdrop-blur-sm hover:bg-background" />
+            <CarouselNext className="inset-e-2 border-border bg-background/90 backdrop-blur-sm hover:bg-background" />
           </Carousel>
         </div>
       )}

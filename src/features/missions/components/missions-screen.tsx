@@ -132,7 +132,7 @@ function MissionRow({
 
   return (
     <li className="border-b border-white/8 last:border-b-0">
-      <div className="grid grid-cols-1 gap-3 px-4 py-3.5 transition-colors hover:bg-white/[0.03] sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center lg:grid-cols-[minmax(0,1.6fr)_7.5rem_11rem_9rem_auto] lg:gap-4">
+      <div className="grid grid-cols-1 gap-3 px-4 py-3.5 transition-colors hover:bg-white/3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center lg:grid-cols-[minmax(0,1.6fr)_7.5rem_11rem_9rem_auto] lg:gap-4">
         <div className="min-w-0">
           <p className="truncate text-sm font-medium text-white">
             {mission.title}
@@ -298,7 +298,7 @@ function MissionPagination({
         </button>
       </nav>
 
-      <p className="text-xs tabular-nums text-white/45 sm:min-w-[5.5rem] sm:text-right">
+      <p className="text-xs tabular-nums text-white/45 sm:min-w-22 sm:text-right">
         {t("pageOf", { page, total: Math.max(totalPages, 1) })}
       </p>
     </div>

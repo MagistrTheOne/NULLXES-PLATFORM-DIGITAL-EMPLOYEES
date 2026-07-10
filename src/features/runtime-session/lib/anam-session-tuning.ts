@@ -96,9 +96,16 @@ export function buildAnamVoiceDetectionOptions(): AnamVoiceDetectionOptions {
   };
 }
 
+/** Safe default for cara-3 (and common Anam stock avatars). */
+export const ANAM_CARA3_VIDEO_DIMENSIONS = {
+  videoWidth: 720,
+  videoHeight: 480,
+} as const;
+
 /**
  * Session video output for Talk. Omit width/height to use the avatar model default.
- * Set ANAM_TALK_VIDEO_WIDTH + ANAM_TALK_VIDEO_HEIGHT together (e.g. 1152 + 768).
+ * Set ANAM_TALK_VIDEO_WIDTH + ANAM_TALK_VIDEO_HEIGHT together.
+ * cara-3 supports 720×480; cara-4 landscape supports 1152×768.
  * @see https://anam.ai/docs/sessions/video-options
  */
 export function buildAnamTalkSessionVideoOptions(): AnamTalkSessionVideoOptions {
@@ -119,4 +126,22 @@ export function buildAnamTalkSessionVideoOptions(): AnamTalkSessionVideoOptions 
   }
 
   return options;
+}
+
+/** Parse `720x480` style tokens from Anam error payloads. */
+export function parseAnamSupportedVideoDimension(
+  token: string,
+): { videoWidth: number; videoHeight: number } | null {
+  const match = /^(\d+)\s*[x×]\s*(\d+)$/i.exec(token.trim());
+  if (!match) {
+    return null;
+  }
+
+  const videoWidth = Number(match[1]);
+  const videoHeight = Number(match[2]);
+  if (!Number.isFinite(videoWidth) || !Number.isFinite(videoHeight)) {
+    return null;
+  }
+
+  return { videoWidth, videoHeight };
 }

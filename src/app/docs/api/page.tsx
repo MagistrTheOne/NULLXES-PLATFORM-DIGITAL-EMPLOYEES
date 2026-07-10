@@ -83,7 +83,7 @@ export default function DocsApiPage() {
           </li>
         </ol>
         <div className="mt-4 overflow-x-auto">
-          <table className="w-full min-w-[28rem] text-left text-[13px]">
+          <table className="w-full min-w-md text-left text-[13px]">
             <thead>
               <tr className="border-b border-white/10 text-white/40">
                 <th className="py-2 pr-4 font-medium">Scope</th>
@@ -122,7 +122,7 @@ export default function DocsApiPage() {
       >
         <h3 className="font-medium text-white">3. Эндпоинты</h3>
         <div className="mt-4 overflow-x-auto">
-          <table className="w-full min-w-[32rem] text-left text-[13px]">
+          <table className="w-full min-w-lg text-left text-[13px]">
             <thead>
               <tr className="border-b border-white/10 text-white/40">
                 <th className="py-2 pr-3 font-medium">Method</th>

@@ -78,7 +78,7 @@ export default function DocsPlansPage() {
       >
         <h3 className="font-medium text-white">2. Матрица тарифов</h3>
         <div className="mt-4 overflow-x-auto">
-          <table className="w-full min-w-[40rem] text-left text-[12px]">
+          <table className="w-full min-w-160 text-left text-[12px]">
             <thead>
               <tr className="border-b border-white/10 text-white/40">
                 <th className="py-2 pr-3 font-medium">План</th>
