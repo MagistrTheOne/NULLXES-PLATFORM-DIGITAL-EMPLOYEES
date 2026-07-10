@@ -2,6 +2,7 @@
 
 **Base URL (local):** `http://localhost:3000/api/v1`  
 **OpenAPI:** `GET /api/docs` → `public/openapi.yaml`  
+**Typed client:** `npm run api:generate` → `src/features/public-api/generated/` (Orval)  
 **Auth:** `Authorization: Bearer nx_live_...`
 
 ---
