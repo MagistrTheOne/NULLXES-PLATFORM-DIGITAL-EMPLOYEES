@@ -43,6 +43,8 @@ import { CharacterModel } from "./character-model";
 import type { SceneEmployee } from "./scene-types";
 
 const WALK_SPEED = 1.4;
+/** Keep soles above the reflector floor so models don't sink. */
+const FLOOR_CLEARANCE = 0.05;
 const tmpDir = new Vector3();
 const scaleTarget = new Vector3();
 
@@ -62,26 +64,6 @@ function seededRandom(seed: number): () => number {
     state = (state * 16807) % 2147483647;
     return (state - 1) / 2147483646;
   };
-}
-
-// Very small "vision encoder" reaction quotes. Characters comment on each other when they notice.
-function pickReactionQuote(self: string, other: string): string {
-  const lines = [
-    `${other} looks focused.`,
-    `Wonder what ${other} is working on.`,
-    `${other} has that serious look again.`,
-    `Should say hi to ${other} later.`,
-    `${other} moves with purpose.`,
-    `Not interrupting ${other} right now.`,
-  ];
-  // Make it slightly personal for known pairs
-  if (self.toLowerCase().includes("somnia") && other.toLowerCase().includes("kaira")) {
-    return "Kaira seems on top of everything.";
-  }
-  if (self.toLowerCase().includes("kaira") && other.toLowerCase().includes("somnia")) {
-    return "Somnia's energy is contagious.";
-  }
-  return lines[Math.floor(Math.random() * lines.length)];
 }
 
 export function OfficeEmployee({ employee, allEmployees = [] }: { employee: SceneEmployee; allEmployees?: SceneEmployee[] }) {
@@ -184,16 +166,6 @@ export function OfficeEmployee({ employee, allEmployees = [] }: { employee: Scen
     thoughtHideAt.current = clockRef.current + 3.5;
   };
 
-  // Agents only move when officeState / task requires it — no autonomous wander.
-  const settleAtTarget = (time: number) => {
-    const [x, z] = employee.officeState?.targetCoords ?? deskPoint();
-    goal.current.set(x, 0, z);
-    if (employee.speechText && rng.current() < 0.35) {
-      emitThought(time);
-    }
-    nextDecisionAt.current = time + 10 + rng.current() * 8;
-  };
-
   // Reset the goal when behavior, plan, seat, office state, or placement changes.
   useEffect(() => {
     const target = employee.officeState?.targetCoords;
@@ -234,7 +206,7 @@ export function OfficeEmployee({ employee, allEmployees = [] }: { employee: Scen
       root.position.x = posRef.current.x;
       root.position.z = posRef.current.z;
       liftY.current += (0.45 - liftY.current) * Math.min(1, delta * 12);
-      root.position.y = liftY.current + Math.sin(time * 6) * 0.03;
+      root.position.y = FLOOR_CLEARANCE + liftY.current + Math.sin(time * 6) * 0.03;
       if (!wasDragging.current) {
         wasDragging.current = true;
         emitReaction();
@@ -251,7 +223,7 @@ export function OfficeEmployee({ employee, allEmployees = [] }: { employee: Scen
       emitReaction();
     }
     liftY.current += (0 - liftY.current) * Math.min(1, delta * 10);
-    root.position.y = liftY.current;
+    root.position.y = FLOOR_CLEARANCE + liftY.current;
 
     // An active floor errand overrides ambient behavior: follow the invisible
     // waypoint route (door → atrium → door → target) so the figure walks the
@@ -304,7 +276,7 @@ export function OfficeEmployee({ employee, allEmployees = [] }: { employee: Scen
         desiredX,
         desiredZ,
         obstacles,
-        0.30, // character radius
+        employee.task ? 0.22 : 0.28,
       );
 
       posRef.current.x = resolvedX;
@@ -323,73 +295,29 @@ export function OfficeEmployee({ employee, allEmployees = [] }: { employee: Scen
         );
         root.rotation.y += (faceYaw - root.rotation.y) * Math.min(1, delta * 6);
       } else if (!employee.task && time >= nextDecisionAt.current) {
-        if (employee.plan.movement === "wander") {
-          settleAtTarget(time);
-        } else if (employee.speechText) {
+        if (employee.speechText) {
           emitThought(time);
-          nextDecisionAt.current = time + 8 + rng.current() * 6;
+          nextDecisionAt.current = time + 10 + rng.current() * 8;
         } else {
-          nextDecisionAt.current = time + 12;
+          nextDecisionAt.current = time + 16;
         }
       }
 
-      // === Vision "encoder" simulation ===
-      // Agents "see" nearby colleagues (distance + facing) and react with quotes.
-      if (!movingRef.current && time >= nextVisionCheck.current) {
-        nextVisionCheck.current = time + 5.5 + rng.current() * 7.0;
-
-        const others = (allEmployees || []).filter((e) => e.id !== employee.id);
-        for (const other of others) {
-          const dx = other.position[0] - posRef.current.x;
-          const dz = other.position[1] - posRef.current.z;
-          const dist = Math.hypot(dx, dz);
-          if (dist > 3.2 || dist < 0.6) continue;
-
-          const toOtherYaw = Math.atan2(dx, dz);
-          const facingDiff = Math.abs(((root.rotation.y - toOtherYaw + Math.PI * 3) % (Math.PI * 2)) - Math.PI);
-          if (facingDiff > 1.15) continue;
-
-          // React: slight head turn + quote bubble
-          const lookYaw = toOtherYaw + (rng.current() - 0.5) * 0.25;
-          root.rotation.y = root.rotation.y * 0.6 + lookYaw * 0.4;
-
-          const quote = pickReactionQuote(employee.name, other.name);
-          currentQuote.current = { text: quote, until: time + 5.5 + rng.current() * 1.5 };
-          setVisionQuote(quote);
-          // auto-clear the bubble after its lifetime
-          window.setTimeout(() => setVisionQuote((q) => (q === quote ? null : q)), 5800);
-          liftY.current += 0.04;
-          break;
-        }
-      }
-
-      // Coffee station visit: linger a bit longer when we arrived (живность)
-      const distToCoffee = Math.hypot(posRef.current.x + 1.8, posRef.current.z + 7.2);
-      if (distToCoffee < 1.3 && !employee.meetingTarget && !employee.task) {
-        // pause as if grabbing a coffee
-        if (time >= nextDecisionAt.current - 1) {
-          nextDecisionAt.current = time + 8 + rng.current() * 7;
-        }
-      }
-
-      // === Idle micro-movements (живность) ===
-      // When just standing at desk, occasionally do a very slow "look around".
-      // This gives the feeling that agents are "thinking" or "resting".
+      // Quiet idle micro-motion at desk only — no wander / coffee / vision quotes.
       if (
         !employee.meetingTarget &&
         !employee.task &&
-        employee.plan.movement !== "wander" &&
+        employee.plan.movement === "none" &&
         employee.plan.anchor === "desk"
       ) {
-        // Slow breathing + very gentle periodic head turn (look left/right)
-        // Tunable via leva
-        const idleLook = Math.sin(time * 0.35 + idlePhase.current) * liveliness.lookAmp;
-        const targetIdleYaw = Math.atan2(
-          MEETING_POINT[0] - posRef.current.x,
-          MEETING_POINT[1] - posRef.current.z,
+        const idleLook =
+          Math.sin(time * 0.35 + idlePhase.current) * liveliness.lookAmp * 0.45;
+        const faceDesk = Math.atan2(
+          deskPoint()[0] - posRef.current.x + 0.01,
+          deskPoint()[1] - posRef.current.z - 0.4,
         );
-        // Blend between facing desk direction and occasional glance
-        root.rotation.y = targetIdleYaw + idleLook;
+        root.rotation.y +=
+          (faceDesk + idleLook - root.rotation.y) * Math.min(1, delta * 3);
       }
     }
 
@@ -404,13 +332,14 @@ export function OfficeEmployee({ employee, allEmployees = [] }: { employee: Scen
       posRef.current.x,
       posRef.current.z,
       finalObstacles,
-      0.30,
+      employee.task ? 0.22 : 0.28,
     );
     posRef.current.x = finalX;
     posRef.current.z = finalZ;
 
     root.position.x = posRef.current.x;
     root.position.z = posRef.current.z;
+    root.position.y = FLOOR_CLEARANCE + liftY.current;
 
     const moving = movingRef.current;
     const animation = employee.plan.animation;

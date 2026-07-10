@@ -85,8 +85,8 @@ export const WALL_HEIGHT = 1.5;
 export const WALL_THICKNESS = 0.16;
 /** Central Operations Table footprint (XZ). */
 export const OPS_TABLE_POINT: [number, number] = [0, 0.2];
-export const OPS_TABLE_HALF_W = 2.5;
-export const OPS_TABLE_HALF_D = 2.5;
+export const OPS_TABLE_HALF_W = 2.15;
+export const OPS_TABLE_HALF_D = 2.15;
 
 /** Simple axis-aligned box obstacle for collision (center + half extents on XZ). */
 export type Obstacle = {

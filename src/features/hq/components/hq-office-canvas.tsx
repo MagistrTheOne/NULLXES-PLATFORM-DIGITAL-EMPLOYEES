@@ -9,12 +9,11 @@ import type { OrthographicCamera } from "three";
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import {
   OFFICE_ROOMS,
-  OPS_TABLE_POINT,
   STATUS_COLORS,
   placeEmployeesInRoom,
 } from "../lib/office-layout";
 import { DEPARTMENT_ORDER } from "../lib/department-layout";
-import { buildErrandPath, ATRIUM_HUB, ROOM_DOORS } from "../lib/nav-graph";
+import { buildOfficeNavPath } from "../lib/hq-nav-controller";
 import { deriveActivitySignals } from "../lib/derive-employee-activity";
 import { resolveAgentOfficeState } from "../lib/agent-office-state";
 import {
@@ -171,45 +170,55 @@ export function HqOfficeCanvas({
                 ...plan,
                 speechText: officeState.label ?? plan.speechText,
               };
-      const behavior = behaviorFromPlan(effectivePlan, employee.runtimeStatus);
       const speechText = officeState.label ?? effectivePlan.speechText ?? null;
+      const deskCoords = positions[index] ?? [room.x, room.z];
+      const errandTarget = employee.task
+        ? ([
+            OFFICE_ROOMS[employee.task.destination].x,
+            OFFICE_ROOMS[employee.task.destination].z,
+          ] as [number, number])
+        : null;
+      const navPath = buildOfficeNavPath({
+        fromDepartment: employee.department,
+        officeState,
+        deskCoords,
+        errandDestination: employee.task?.destination ?? null,
+        errandTarget,
+      });
 
-      let task: SceneEmployee["task"] = null;
-      if (employee.task) {
-        const target: [number, number] = [
-          OFFICE_ROOMS[employee.task.destination].x,
-          OFFICE_ROOMS[employee.task.destination].z,
-        ];
-        task = {
-          label: employee.task.label,
-          target,
-          path: buildErrandPath(
-            employee.department,
-            employee.task.destination,
-            target,
-          ),
-        };
-      } else if (officeState.zone === "ops_table") {
-        task = {
-          label: officeState.label ?? "Review",
-          target: OPS_TABLE_POINT,
-          path: [
-            ROOM_DOORS[employee.department],
-            ATRIUM_HUB,
-            OPS_TABLE_POINT,
-          ],
-        };
-      }
+      const task: SceneEmployee["task"] = navPath
+        ? {
+            label:
+              officeState.label ??
+              employee.task?.label ??
+              speechText ??
+              "Moving",
+            target: navPath[navPath.length - 1] ?? deskCoords,
+            path: navPath,
+          }
+        : null;
+
+      // Path-following plan when nav controller issued a route.
+      const motionPlan = task
+        ? {
+            ...effectivePlan,
+            intent: "move" as const,
+            anchor: "path" as const,
+            animation: "walk" as const,
+            movement: "walk_path" as const,
+          }
+        : effectivePlan;
+      const behavior = behaviorFromPlan(motionPlan, employee.runtimeStatus);
 
       return {
         id: employee.id,
         name: employee.name,
         taskLabel: speechText,
         status: employee.runtimeStatus,
-        position: positions[index] ?? [room.x, room.z],
+        position: deskCoords,
         roam,
         behavior,
-        plan: effectivePlan,
+        plan: motionPlan,
         officeState,
         speechText,
         thoughts:

@@ -122,7 +122,7 @@ export function CharacterModel({ url }: { url: string | null }) {
     // After scaling, recenter x/z and put feet on y=0.
     // Some models (especially the textured female) have geometry slightly below the visual sole
     // or different rest pose. We add a tiny positive bias for female_base so feet sit on the floor.
-    const feetBias = url.includes("female_base") ? 0.035 : 0;
+    const feetBias = url.includes("female_base") ? 0.07 : 0.04;
     const nextOffset: [number, number, number] = [
       -center.x * nextScale,
       -box.min.y * nextScale + feetBias,

@@ -9,53 +9,13 @@ import { OFFICE_ROOMS, WALL_HEIGHT } from "../../lib/office-layout";
 /**
  * Architectural shell for the HQ: floors, ceiling and structural light system.
  *
- * Material language (strictly black / white / gray, no neon):
- *  Floors  — matte black marble (base), light-gray tech concrete (service zones),
- *            tinted glass inserts (data paths), thin white LED navigation lines.
- *  Ceiling — hidden recessed grid light system, ventilation plates, sparse LED
- *            "petals" over each zone (a quiet sense of overhead attention).
- *
- * Kept sparse so the orthographic top-down camera still reads the floor clearly.
+ * Nav graph for agent locomotion lives in `nav-graph.ts` / `hq-nav-controller.ts`
+ * and is intentionally invisible — no LED web on the floor.
  */
 
 const CEILING_Y = WALL_HEIGHT + 3.6;
 
 /* ----------------------------- Floor system ------------------------------ */
-
-/** A single thin emissive navigation line laid into the floor. */
-function LedLine({
-  from,
-  to,
-  width = 0.05,
-  intensity = 0.9,
-  y = 0.02,
-}: {
-  from: [number, number];
-  to: [number, number];
-  width?: number;
-  intensity?: number;
-  y?: number;
-}) {
-  const [x1, z1] = from;
-  const [x2, z2] = to;
-  const midX = (x1 + x2) / 2;
-  const midZ = (z1 + z2) / 2;
-  const len = Math.hypot(x2 - x1, z2 - z1);
-  const angle = Math.atan2(x2 - x1, z2 - z1);
-  return (
-    <mesh position={[midX, y, midZ]} rotation={[-Math.PI / 2, 0, -angle]}>
-      <planeGeometry args={[width, len]} />
-      <meshStandardMaterial
-        color="#ffffff"
-        emissive="#ffffff"
-        emissiveIntensity={intensity}
-        roughness={0.4}
-        metalness={0}
-        toneMapped={false}
-      />
-    </mesh>
-  );
-}
 
 /** Light-gray technical-concrete service strip. */
 function ConcreteStrip({
@@ -74,51 +34,7 @@ function ConcreteStrip({
   );
 }
 
-/** Tinted glass insert — reads as a "data path" channel in the floor. */
-function GlassInsert({
-  position,
-  size,
-}: {
-  position: [number, number];
-  size: [number, number];
-}) {
-  const [x, z] = position;
-  return (
-    <group position={[x, 0, z]}>
-      {/* Glass surface */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.016, 0]}>
-        <planeGeometry args={size} />
-        <meshStandardMaterial
-          color="#0c0e10"
-          roughness={0.08}
-          metalness={0.6}
-          transparent
-          opacity={0.55}
-        />
-      </mesh>
-      {/* Faint inner glow line down the channel */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.018, 0]}>
-        <planeGeometry args={[size[0] * 0.18, size[1] * 0.96]} />
-        <meshStandardMaterial
-          color="#ffffff"
-          emissive="#cfd2d6"
-          emissiveIntensity={0.35}
-          toneMapped={false}
-          transparent
-          opacity={0.5}
-        />
-      </mesh>
-    </group>
-  );
-}
-
 export function FloorSystem() {
-  // Build a navigation network: a central spine + spurs to each department.
-  const center: [number, number] = [0, 0];
-  const spurs = Object.values(OFFICE_ROOMS).map(
-    (room) => [room.x, room.z] as [number, number],
-  );
-
   return (
     <group>
       {/* Base — matte black marble with soft reflection */}
@@ -126,45 +42,22 @@ export function FloorSystem() {
         <planeGeometry args={[90, 90]} />
         <MeshReflectorMaterial
           color="#0a0a0b"
-          metalness={0.55}
-          roughness={0.5}
+          metalness={0.45}
+          roughness={0.55}
           blur={[300, 100]}
           resolution={1024}
           mixBlur={1.0}
-          mixStrength={1.6}
-          depthScale={0.8}
+          mixStrength={1.2}
+          depthScale={0.6}
           minDepthThreshold={0.3}
           maxDepthThreshold={1.4}
-          mirror={0.35}
+          mirror={0.22}
         />
       </mesh>
 
-      {/* Service zones — light-gray tech concrete (atrium edges + coffee/service strip) */}
+      {/* Quiet service pads — no emissive nav web */}
       <ConcreteStrip position={[-1.8, -7.2]} size={[3.0, 1.6]} />
-      <ConcreteStrip position={[0, 0]} size={[5.4, 5.4]} />
-
-      {/* Glass data-path inserts flowing toward analytics */}
-      <GlassInsert position={[-3, 3.4]} size={[0.5, 5.2]} />
-      <GlassInsert position={[3.2, 3.0]} size={[0.5, 4.4]} />
-
-      {/* === LED navigation lines (very important) === */}
-      {/* Central spine */}
-      <LedLine from={[-13, 0]} to={[12, 0]} width={0.06} intensity={1.0} />
-      <LedLine from={[0, -8]} to={[0, 8]} width={0.06} intensity={1.0} />
-      {/* Spurs from center to each department zone */}
-      {spurs.map((p, i) => (
-        <LedLine key={i} from={center} to={p} width={0.035} intensity={0.6} />
-      ))}
-      {/* Soft glow accents at the central junction */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.021, 0]}>
-        <ringGeometry args={[0.5, 0.58, 48]} />
-        <meshStandardMaterial
-          color="#ffffff"
-          emissive="#ffffff"
-          emissiveIntensity={0.8}
-          toneMapped={false}
-        />
-      </mesh>
+      <ConcreteStrip position={[0, 0.2]} size={[4.2, 4.2]} />
     </group>
   );
 }

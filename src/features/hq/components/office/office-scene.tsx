@@ -200,14 +200,13 @@ export default function OfficeScene({
       <fog attach="fog" args={["#0f0f0f", 48, 95]} />
 
       <Suspense fallback={null}>
-        {/* Softer, more even base lighting (less "black or white") */}
-        <ambientLight intensity={0.82} />
-        <hemisphereLight intensity={0.65} groundColor="#1f1f1f" color="#c8c8c8" />
+        {/* Clearer modeling light — less flat wash */}
+        <ambientLight intensity={0.55} />
+        <hemisphereLight intensity={0.45} groundColor="#141414" color="#d0d0d0" />
 
-        {/* Main key light - reduced intensity for gentler contrast */}
         <directionalLight
-          position={[14, 22, 10]}
-          intensity={0.95}
+          position={[16, 24, 12]}
+          intensity={1.25}
           castShadow
           shadow-mapSize={[2048, 2048]}
           shadow-camera-left={-30}
@@ -216,32 +215,30 @@ export default function OfficeScene({
           shadow-camera-bottom={-30}
           shadow-camera-near={1}
           shadow-camera-far={80}
-          shadow-bias={-0.0004}
+          shadow-bias={-0.00035}
         />
 
-        {/* Fill light from opposite side for softer modeling */}
-        <directionalLight position={[-18, 14, -10]} intensity={0.55} />
+        <directionalLight position={[-14, 12, -8]} intensity={0.4} />
 
-        {/* Gentle overhead ceiling wash */}
         <spotLight
-          position={[0, 24, 2]}
-          angle={0.9}
-          penumbra={1}
-          intensity={0.95}
-          distance={70}
-          decay={0}
-          color="#e8e8e8"
+          position={[0, 22, 2]}
+          angle={0.75}
+          penumbra={0.85}
+          intensity={1.15}
+          distance={65}
+          decay={1.1}
+          color="#f0f0f0"
+          castShadow
         />
 
-        {/* Subtle per-room ceiling accents (not too bright) */}
         {CEILING_LIGHTS.map(([x, z], index) => (
           <pointLight
             key={index}
-            position={[x, 5.5, z]}
-            intensity={0.38}
-            distance={15}
-            decay={1.6}
-            color="#d8d8d8"
+            position={[x, 5.2, z]}
+            intensity={0.55}
+            distance={14}
+            decay={1.4}
+            color="#e4e4e4"
           />
         ))}
 
