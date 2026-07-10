@@ -1,17 +1,18 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { generateHqThoughtsAction } from "../actions/generate-thoughts";
 import type { EmployeeThoughtsMap } from "../services/generate-employee-thoughts";
 
 /**
- * Loads LLM-generated lofi thoughts once on mount (cached server-side) and
- * exposes a manual refresh. Never throws; on failure the map stays empty and
- * the floor uses the curated fallback thoughts.
+ * Loads LLM-generated speech lines for the floor. Re-fetches when
+ * `contextKey` changes (roster status / mission fingerprint). Empty map =
+ * no bubbles — never falls back to curated simulation quotes.
  */
-export function useHqThoughts() {
+export function useHqThoughts(contextKey?: string) {
   const [thoughts, setThoughts] = useState<EmployeeThoughtsMap>({});
   const [loading, setLoading] = useState(false);
+  const lastKeyRef = useRef<string | undefined>(undefined);
 
   const load = useCallback(async (force: boolean) => {
     setLoading(true);
@@ -26,6 +27,23 @@ export function useHqThoughts() {
   useEffect(() => {
     void load(false);
   }, [load]);
+
+  // When live floor context shifts, pull a fresh LLM batch (server cache key
+  // already includes the fingerprint, so this is a real regenerate).
+  useEffect(() => {
+    if (!contextKey) {
+      return;
+    }
+    if (lastKeyRef.current === undefined) {
+      lastKeyRef.current = contextKey;
+      return;
+    }
+    if (lastKeyRef.current === contextKey) {
+      return;
+    }
+    lastKeyRef.current = contextKey;
+    void load(false);
+  }, [contextKey, load]);
 
   return {
     thoughts,

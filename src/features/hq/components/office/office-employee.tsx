@@ -143,23 +143,19 @@ export function OfficeEmployee({ employee, allEmployees = [] }: { employee: Scen
     override ?? [employee.position[0], employee.position[1]];
   const deskPoint = (): [number, number] => homePoint();
 
+  /** Speech bubbles only from LLM thoughts — never status labels or i18n pools. */
   const emitThought = (time: number) => {
-    if (employee.speechText) {
-      setBubbleKind("thought");
-      setThought(employee.speechText);
-      thoughtHideAt.current = time + 5;
+    const pool = employee.thoughts;
+    if (pool.length === 0) {
       return;
     }
-    const pool = employee.thoughts;
-    if (pool.length > 0) {
-      setBubbleKind("thought");
-      setThought(pool[Math.floor(rng.current() * pool.length)] ?? null);
-      thoughtHideAt.current = time + 4;
-    }
+    setBubbleKind("thought");
+    setThought(pool[Math.floor(rng.current() * pool.length)] ?? null);
+    thoughtHideAt.current = time + 4;
   };
 
   const emitReaction = () => {
-    const pool = employee.reactions;
+    const pool = employee.thoughts;
     if (pool.length === 0) {
       return;
     }
@@ -304,7 +300,7 @@ export function OfficeEmployee({ employee, allEmployees = [] }: { employee: Scen
         );
         root.rotation.y += (faceYaw - root.rotation.y) * Math.min(1, delta * 6);
       } else if (!employee.task && time >= nextDecisionAt.current) {
-        if (employee.speechText) {
+        if (employee.thoughts.length > 0) {
           emitThought(time);
           nextDecisionAt.current = time + 10 + rng.current() * 8;
         } else {

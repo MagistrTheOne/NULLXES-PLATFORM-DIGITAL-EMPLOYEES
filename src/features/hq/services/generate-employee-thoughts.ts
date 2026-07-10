@@ -9,6 +9,16 @@ export type EmployeeThoughtSeed = {
   role: string;
   department: string;
   status: string;
+  /** Derived floor activity badge key / label. */
+  activity?: string | null;
+  /** Active floor errand label, if any. */
+  taskLabel?: string | null;
+  /** Active mission title. */
+  missionTitle?: string | null;
+  /** Mission stage: research | draft | awaiting_approval | sent | … */
+  missionStage?: string | null;
+  /** Last mission action summary. */
+  missionLastAction?: string | null;
 };
 
 export type EmployeeThoughtsMap = Record<string, string[]>;
@@ -16,10 +26,9 @@ export type EmployeeThoughtsMap = Record<string, string[]>;
 type CacheEntry = { expires: number; map: EmployeeThoughtsMap };
 
 // In-memory soft cache (per server instance). Avoids hammering the LLM on every
-// mount; refresh bypasses it. Serverless instances each keep their own copy,
-// which is fine for ambient flavor.
+// mount; refresh bypasses it. Serverless instances each keep their own copy.
 const cache = new Map<string, CacheEntry>();
-const TTL_MS = 30 * 60 * 1000;
+const TTL_MS = 10 * 60 * 1000;
 const MAX_EMPLOYEES = 24;
 const THOUGHTS_MODEL = "gpt-4o-mini";
 
@@ -30,15 +39,35 @@ function sanitizeThoughts(value: unknown): string[] {
   return value
     .filter((item): item is string => typeof item === "string")
     .map((item) => item.trim())
-    .filter((item) => item.length > 0 && item.length <= 48)
+    .filter((item) => item.length > 0 && item.length <= 72)
     .slice(0, 5);
 }
 
+/** Fingerprint so cache invalidates when roster context shifts. */
+export function thoughtsContextFingerprint(
+  employees: EmployeeThoughtSeed[],
+): string {
+  return employees
+    .map(
+      (employee) =>
+        [
+          employee.id,
+          employee.status,
+          employee.activity ?? "",
+          employee.taskLabel ?? "",
+          employee.missionStage ?? "",
+          employee.missionTitle ?? "",
+        ].join(":"),
+    )
+    .sort()
+    .join("|");
+}
+
 /**
- * Generate short "lofi" inner thoughts per digital employee via OpenAI, aware
- * of role/department/status. One batched call for the whole roster, cached with
- * a TTL. Returns an empty map when no API key is set (callers fall back to the
- * curated pool), so this never throws into the UI.
+ * Generate short first-person speech lines per digital employee via OpenAI,
+ * grounded in role / status / mission / task. One batched call for the roster,
+ * cached with a TTL. Returns {} when no API key or on failure — callers show
+ * no bubble (never fall back to curated simulation quotes).
  */
 export async function generateEmployeeThoughts(input: {
   cacheKey: string;
@@ -67,6 +96,11 @@ export async function generateEmployeeThoughts(input: {
     role: employee.role,
     department: employee.department,
     status: employee.status,
+    activity: employee.activity ?? null,
+    taskLabel: employee.taskLabel ?? null,
+    missionTitle: employee.missionTitle ?? null,
+    missionStage: employee.missionStage ?? null,
+    missionLastAction: employee.missionLastAction ?? null,
   }));
 
   const language = input.locale === "ru" ? "Russian" : "English";
@@ -80,17 +114,23 @@ export async function generateEmployeeThoughts(input: {
       },
       body: JSON.stringify({
         model: THOUGHTS_MODEL,
-        temperature: 0.9,
+        temperature: 0.85,
         response_format: { type: "json_object" },
         messages: [
           {
             role: "system",
             content: [
-              "You write short, calm 'lofi' inner thoughts for digital office",
-              "employees as they go about their day. Tone: cozy, professional,",
-              "lightly human. Each thought is first-person, max 5 words, no",
-              `quotes. Write in ${language}. Make them reflect the employee's`,
-              "role, department and current status.",
+              "You write short spoken lines for digital employees on an",
+              "enterprise operations floor. These appear in speech bubbles.",
+              "Tone: calm, professional, operational — like a focused colleague",
+              "thinking out loud about their real work. First-person.",
+              "Max 10 words each. No quotes. No memes. No fantasy lore.",
+              "No 'Magistr', no roleplay catchphrases, no cozy lofi filler.",
+              "Ground every line in the employee's role, status, activity,",
+              "mission title/stage/lastAction, and task when present.",
+              "Idle employees: quiet monitoring / readiness lines.",
+              "Busy / mission-active: concrete work in progress.",
+              `Write in ${language}.`,
               'Return JSON: { "items": [ { "id": "<copy id exactly>",',
               '"thoughts": ["...", "..."] } ] } with 4-5 thoughts each.',
             ].join(" "),

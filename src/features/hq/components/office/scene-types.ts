@@ -28,12 +28,10 @@ export type SceneEmployee = {
   plan: HqBehaviorPlan;
   /** Deterministic office contract: status + zone + action → motion. */
   officeState: AgentOfficeState;
-  /** Real focus text for speech bubbles (overrides lofi when set). */
+  /** Operational label for the nameplate (not used for speech bubbles). */
   speechText: string | null;
-  /** Curated lofi thought lines (resolved i18n) shown periodically in a bubble. */
+  /** LLM-generated speech lines for bubbles (drag + idle). Empty = quiet. */
   thoughts: string[];
-  /** NULLXES/kavka-style one-liners shown when the user grabs/drops the figure. */
-  reactions: string[];
   /** GLB character model, or null to use the procedural figure. */
   modelUrl: string | null;
   /**

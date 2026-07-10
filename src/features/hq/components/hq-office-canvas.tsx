@@ -66,8 +66,6 @@ export function HqOfficeCanvas({
   const tActivity = useTranslations("hq.activity");
   const tLegend = useTranslations("hq.legend");
   const tLofi = useTranslations("hq.lofi");
-
-  const reactions = tLofi.raw("reactions") as string[];
   const meetingLabel = tLofi("meeting");
 
   // Preload GLTF models from within a React component context.
@@ -225,7 +223,6 @@ export function HqOfficeCanvas({
           llmThoughts[employee.id] && llmThoughts[employee.id].length > 0
             ? llmThoughts[employee.id]
             : [],
-        reactions,
         meetingTarget: null,
         meetingLabel,
         modelUrl: pickCharacterModel(employee.name),

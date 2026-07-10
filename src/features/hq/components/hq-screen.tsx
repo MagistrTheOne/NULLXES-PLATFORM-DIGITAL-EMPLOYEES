@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useHqRealtime } from "../lib/use-hq-realtime";
@@ -25,8 +25,19 @@ export function HqScreen({
 }) {
   const t = useTranslations("hq");
   const state = useHqRealtime(initialState);
+  const thoughtsContextKey = useMemo(
+    () =>
+      state.employees
+        .map(
+          (employee) =>
+            `${employee.id}:${employee.runtimeStatus}:${employee.activity.badge?.key ?? employee.activity.badge?.text ?? ""}:${employee.task?.label ?? ""}:${employee.mission?.stage ?? ""}:${employee.mission?.title ?? ""}`,
+        )
+        .sort()
+        .join("|"),
+    [state.employees],
+  );
   const { thoughts, loading: thoughtsLoading, refresh: refreshThoughts } =
-    useHqThoughts();
+    useHqThoughts(thoughtsContextKey);
   const selectedId = useOfficeStore((store) => store.selectedEmployeeId);
   const selectEmployee = useOfficeStore((store) => store.selectEmployee);
 
