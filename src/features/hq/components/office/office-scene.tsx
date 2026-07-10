@@ -77,8 +77,7 @@ function CameraRig({
   const focusing = useRef(false);
 
   useEffect(() => {
-    // Keep the whole floor readable — only nudge target, never dive into a desk.
-    desired.current.set(px * 0.35, 0.5, pz * 0.35);
+    desired.current.set(px, 0.5, pz);
     focusing.current = true;
   }, [px, pz]);
 
@@ -184,7 +183,7 @@ export default function OfficeScene({
       <Canvas
         shadows
         orthographic
-        camera={{ position: [26, 22, 26], zoom: 28, near: 1, far: 240 }}
+        camera={{ position: [22, 18, 22], zoom: 34, near: 1, far: 240 }}
         gl={{ antialias: true, preserveDrawingBuffer: false }}
         // Explicitly set a non-deprecated shadow map type via onCreated.
         // Passing shadowMap inside gl is not valid (gl only takes WebGLRendererParameters).
@@ -254,14 +253,48 @@ export default function OfficeScene({
           <OfficeRoom key={room.def.department} room={room} />
         ))}
 
-        {/* Quiet atrium plants — kept sparse */}
+        {/* Extra ambient plants around the central atrium */}
         <Plant position={[-6.5, -3.8]} phase={1.7} />
         <Plant position={[7.2, 4.1]} phase={4.2} />
 
-        {/* Central Operations Table — product center, not decorative geometry */}
+        {/* Scattered floor papers in the open atrium */}
+        <group position={[-3.5, 0.015, -1.2]} rotation={[0, 0.7, 0]}>
+          <mesh>
+            <planeGeometry args={[0.2, 0.15]} />
+            <meshStandardMaterial color="#1c1c1c" roughness={0.95} side={2} />
+          </mesh>
+        </group>
+        <group position={[4.1, 0.015, 2.8]} rotation={[0, -1.1, 0]}>
+          <mesh>
+            <planeGeometry args={[0.17, 0.12]} />
+            <meshStandardMaterial color="#222222" roughness={0.95} side={2} />
+          </mesh>
+        </group>
+
+        {/* Coffee station in the atrium */}
+        <group position={[-1.8, 0, -7.2]}>
+          <mesh position={[0, 0.42, 0]} castShadow receiveShadow>
+            <boxGeometry args={[1.8, 0.08, 0.7]} />
+            <meshStandardMaterial color="#181818" roughness={0.6} />
+          </mesh>
+          <mesh position={[-0.35, 0.72, 0]} castShadow>
+            <boxGeometry args={[0.42, 0.52, 0.46]} />
+            <meshStandardMaterial color="#121212" roughness={0.5} metalness={0.15} />
+          </mesh>
+          <mesh position={[-0.35, 0.52, 0.28]} castShadow>
+            <boxGeometry args={[0.28, 0.08, 0.08]} />
+            <meshStandardMaterial color="#0a0a0a" />
+          </mesh>
+          <mesh position={[0.55, 0.52, 0.1]} castShadow>
+            <cylinderGeometry args={[0.05, 0.045, 0.1, 10]} />
+            <meshStandardMaterial color="#1f1f1f" roughness={0.7} />
+          </mesh>
+        </group>
+
+        {/* Central Operations Table — product center */}
         <CentralOperationsTable items={opsItems} />
 
-        {/* Subtle wall clock (quiet liveliness) */}
+        {/* Subtle wall clock */}
         <WallClock position={[-9.2, 2.15, -3.8]} rotation={[0, 1.05, 0]} />
 
         {employees.map((employee) => (
@@ -281,10 +314,10 @@ export default function OfficeScene({
         enableZoom
         enableRotate
         target={[0, 0.5, 0]}
-        minZoom={18}
-        maxZoom={70}
-        minPolarAngle={0.65}
-        maxPolarAngle={1.2}
+        minZoom={24}
+        maxZoom={110}
+        minPolarAngle={0.55}
+        maxPolarAngle={1.15}
         enableDamping
         dampingFactor={0.12}
       />

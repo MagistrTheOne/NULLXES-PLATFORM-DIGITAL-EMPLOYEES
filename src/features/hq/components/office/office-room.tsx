@@ -13,14 +13,16 @@ import {
 } from "../../lib/office-layout";
 import type { SceneRoom } from "./scene-types";
 
-const DESK_COLOR = "#1a1a1c";
-const CHAIR_COLOR = "#262628";
+const DESK_COLOR = "#141414";
+const CHAIR_COLOR = "#1f1f1f";
 
 type WallVariant = "concrete" | "accent" | "glass";
 
 /**
- * Architectural walls — light concrete / dark accent so the floor plan reads
- * clearly against black marble. Labels stay as thin metallic plaques.
+ * Architectural wall with three material languages:
+ *  concrete — white/gray architectural concrete (default, most zones)
+ *  accent   — black panels for executive / critical zones
+ *  glass    — lightly tinted glass for open-space dividers
  */
 function Wall({
   position,
@@ -34,6 +36,7 @@ function Wall({
   if (variant === "glass") {
     return (
       <group position={position}>
+        {/* Tinted glass pane */}
         <mesh castShadow receiveShadow>
           <boxGeometry args={args} />
           <meshStandardMaterial
@@ -44,6 +47,7 @@ function Wall({
             opacity={0.34}
           />
         </mesh>
+        {/* Thin frame top edge for definition */}
         <mesh position={[0, args[1] / 2 - 0.02, 0]}>
           <boxGeometry args={[args[0], 0.04, args[2] + 0.01]} />
           <meshStandardMaterial color="#0c0c0c" roughness={0.6} metalness={0.2} />
@@ -55,16 +59,18 @@ function Wall({
   if (variant === "accent") {
     return (
       <group position={position}>
+        {/* Black accent panel */}
         <mesh castShadow receiveShadow>
           <boxGeometry args={args} />
-          <meshStandardMaterial color="#121214" roughness={0.55} metalness={0.22} />
+          <meshStandardMaterial color="#0b0b0c" roughness={0.5} metalness={0.18} />
         </mesh>
-        <mesh position={[0, args[1] / 2 - 0.1, 0]}>
-          <boxGeometry args={[args[0] * 0.96, 0.02, args[2] + 0.01]} />
+        {/* Subtle recessed light reveal near the top (premium exec feel) */}
+        <mesh position={[0, args[1] / 2 - 0.12, 0]}>
+          <boxGeometry args={[args[0] * 0.96, 0.015, args[2] + 0.01]} />
           <meshStandardMaterial
             color="#ffffff"
             emissive="#ffffff"
-            emissiveIntensity={0.35}
+            emissiveIntensity={0.5}
             toneMapped={false}
           />
         </mesh>
@@ -72,18 +78,12 @@ function Wall({
     );
   }
 
-  // Light architectural concrete — must contrast with black floor
+  // concrete (default)
   return (
-    <group position={position}>
-      <mesh castShadow receiveShadow>
-        <boxGeometry args={args} />
-        <meshStandardMaterial color="#c8cacd" roughness={0.88} metalness={0.04} />
-      </mesh>
-      <mesh position={[0, args[1] / 2 + 0.01, 0]}>
-        <boxGeometry args={[args[0] + 0.02, 0.025, args[2] + 0.02]} />
-        <meshStandardMaterial color="#8a8c90" roughness={0.4} metalness={0.55} />
-      </mesh>
-    </group>
+    <mesh position={position} castShadow receiveShadow>
+      <boxGeometry args={args} />
+      <meshStandardMaterial color="#dadcdd" roughness={0.9} metalness={0.02} />
+    </mesh>
   );
 }
 
@@ -422,9 +422,9 @@ export function OfficeRoom({ room }: { room: SceneRoom }) {
       >
         <planeGeometry args={[def.w - 0.1, def.d - 0.1]} />
         <meshStandardMaterial
-          color="#161618"
-          roughness={0.4}
-          metalness={0.35}
+          color="#0c0c0c"
+          roughness={0.35}
+          metalness={0.5}
         />
       </mesh>
 
@@ -435,7 +435,7 @@ export function OfficeRoom({ room }: { room: SceneRoom }) {
         receiveShadow
       >
         <planeGeometry args={[def.w * 0.78, def.d * 0.58]} />
-        <meshStandardMaterial color="#1c1c1e" roughness={0.7} metalness={0.08} />
+        <meshStandardMaterial color="#121212" roughness={0.65} metalness={0.1} />
       </mesh>
 
       {def.walls.north ? (
@@ -518,14 +518,13 @@ export function OfficeRoom({ room }: { room: SceneRoom }) {
       )}
 
       <Html
-        position={[def.x, WALL_HEIGHT + 0.18, labelZ]}
+        position={[def.x, WALL_HEIGHT + 0.22, labelZ]}
         center
         zIndexRange={[10, 0]}
         wrapperClass="pointer-events-none"
       >
-        <div className="pointer-events-none flex select-none items-center gap-1.5 whitespace-nowrap rounded-sm border border-white/12 bg-[#161616]/95 px-2.5 py-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
-          <span className="size-1 rounded-full bg-white/35" aria-hidden />
-          <span className="text-[9px] font-medium tracking-[0.18em] text-white/55 uppercase">
+        <div className="pointer-events-none flex select-none whitespace-nowrap rounded-md border border-white/10 bg-white/90 px-2.5 py-1">
+          <span className="text-[11px] font-semibold tracking-[0.12em] text-black uppercase">
             {label}
           </span>
         </div>
