@@ -143,6 +143,9 @@ export function getStaticObstacles(): Obstacle[] {
     halfD: OPS_TABLE_HALF_D,
   });
 
+  // Coffee station counter (near the back of atrium)
+  obstacles.push({ x: -1.8, z: -7.2, halfW: 0.95, halfD: 0.4 });
+
   return obstacles;
 }
 
