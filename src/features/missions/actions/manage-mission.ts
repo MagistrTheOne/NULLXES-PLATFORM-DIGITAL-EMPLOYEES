@@ -370,3 +370,112 @@ export async function restartMissionAction(input: {
   }
 }
 
+export async function updateMissionLeadProposalAction(input: {
+  missionId: string;
+  leadIndex: number;
+  proposalDraft: string;
+}): Promise<{ ok: true } | { ok: false; message: string }> {
+  try {
+    const workspace = await requireWorkspacePermissionOrThrowMessage(
+      "canOperateEmployees",
+    );
+
+    const missionId = input.missionId.trim();
+    const proposalDraft = input.proposalDraft.trim();
+    if (!missionId) {
+      return { ok: false, message: "Mission not found." };
+    }
+    if (!proposalDraft) {
+      return { ok: false, message: "Proposal draft cannot be empty." };
+    }
+    if (proposalDraft.length > 12_000) {
+      return { ok: false, message: "Proposal draft is too long." };
+    }
+    if (!Number.isInteger(input.leadIndex) || input.leadIndex < 0) {
+      return { ok: false, message: "Invalid lead." };
+    }
+
+    const [mission] = await db
+      .select({
+        id: employeeMission.id,
+        status: employeeMission.status,
+        leads: employeeMission.leads,
+        timeline: employeeMission.timeline,
+        brief: employeeMission.brief,
+        goal: employeeMission.goal,
+      })
+      .from(employeeMission)
+      .where(
+        and(
+          eq(employeeMission.id, missionId),
+          eq(employeeMission.organizationId, workspace.organization.id),
+        ),
+      )
+      .limit(1);
+
+    if (!mission) {
+      return { ok: false, message: "Mission not found." };
+    }
+
+    if (mission.status !== "waiting_approval") {
+      return {
+        ok: false,
+        message: "Proposals can only be edited while waiting for approval.",
+      };
+    }
+
+    const leads = [...(mission.leads ?? [])];
+    if (input.leadIndex >= leads.length) {
+      return { ok: false, message: "Lead not found." };
+    }
+
+    const lead = leads[input.leadIndex];
+    if (!lead || lead.sentAt) {
+      return {
+        ok: false,
+        message: "Cannot edit a proposal that was already sent.",
+      };
+    }
+
+    const { detectMissionLanguage } = await import(
+      "../lib/detect-mission-language"
+    );
+    const { normalizeProposalDraft } = await import(
+      "../lib/normalize-proposal-draft"
+    );
+
+    const language = detectMissionLanguage(
+      `${mission.brief} ${mission.goal ?? ""} ${proposalDraft}`,
+    );
+
+    leads[input.leadIndex] = {
+      ...lead,
+      proposalDraft: normalizeProposalDraft(proposalDraft, language),
+    };
+
+    await db
+      .update(employeeMission)
+      .set({
+        leads,
+        timeline: appendMissionTimelineStep(mission.timeline ?? [], {
+          key: "proposal_edited",
+          label: `Proposal draft edited · ${lead.companyName}`,
+        }),
+      })
+      .where(eq(employeeMission.id, missionId));
+
+    revalidatePath(`/dashboard/missions/${missionId}`);
+    revalidatePath("/dashboard/missions");
+
+    return { ok: true };
+  } catch (error: unknown) {
+    return {
+      ok: false,
+      message:
+        error instanceof Error
+          ? error.message
+          : "Failed to update proposal draft.",
+    };
+  }
+}
+

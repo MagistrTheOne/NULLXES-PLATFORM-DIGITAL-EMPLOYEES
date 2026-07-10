@@ -14,6 +14,8 @@ import {
   defaultProspectingTitle,
 } from "../lib/prospecting-defaults";
 import { db } from "@/shared/db/client";
+import { normalizeProposalDraft } from "../lib/normalize-proposal-draft";
+import { detectMissionLanguage } from "../lib/detect-mission-language";
 
 export { defaultProspectingBrief, defaultProspectingTitle };
 
@@ -248,12 +250,16 @@ export function parseMissionLeadsFromModelOutput(raw: string): MissionLeadItem[]
             ? String(lead.sourceUrl).trim()
             : undefined,
         agentPlan: agentPlan || undefined,
-        proposalDraft:
+        proposalDraft: normalizeProposalDraft(
           proposalDraft ||
-          agentPlan ||
-          (companyName
-            ? `Proposal: deploy NULLXES Digital Employees to support ${companyName}.`
-            : ""),
+            agentPlan ||
+            (companyName
+              ? `Proposal: deploy NULLXES Digital Employees to support ${companyName}.`
+              : ""),
+          detectMissionLanguage(
+            `${proposalDraft} ${agentPlan} ${companyName} ${whyFit}`,
+          ),
+        ),
       };
     })
     .filter((lead) => lead.companyName.length > 0)

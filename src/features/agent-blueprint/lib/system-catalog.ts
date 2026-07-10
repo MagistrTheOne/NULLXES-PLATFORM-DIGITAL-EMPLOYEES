@@ -238,6 +238,8 @@ export const SYSTEM_SKILLS: SystemSkillSeed[] = [
 6. **agentPlan** — план захода от имени digital employee (3–5 шагов):
    - угол, гипотеза боли, предложение NULLXES Digital Employees, следующий шаг.
    - proposalDraft — короткое outbound-письмо на основе agentPlan.
+   - Подпись письма ТОЛЬКО: «С уважением,» + новая строка «NULLXES».
+   - ЗАПРЕЩЕНО: [Ваше имя], [Your name], любые плейсхолдеры имени человека.
 
 Правила: не включай компании не из РФ. Не угадывай email, выручку, сектор.`,
     triggers: {
@@ -270,6 +272,8 @@ For each company in leads:
    - **No verified contact → skip company.**
 
 6. **agentPlan** — 3–5 outreach steps from digital employee. proposalDraft — short email.
+   Sign off ONLY with "Best regards," then a new line "NULLXES".
+   NEVER use [Your name] or any personal name placeholder.
 
 Rules: EN/international markets only. Never guess email, revenue, or sector.`,
     triggers: {

@@ -5,6 +5,7 @@ import type { MissionDetail } from "../queries/get-mission-detail";
 import type { MissionPendingApproval } from "../queries/get-pending-mission-approval";
 import { MissionApprovalPanel } from "./mission-approval-panel";
 import { MissionDetailActions } from "./mission-detail-actions";
+import { MissionProposalEditor } from "./mission-proposal-editor";
 
 const EDITABLE_STATUSES = new Set(["planned", "failed", "cancelled"]);
 
@@ -40,6 +41,9 @@ export function MissionDetailScreen({
 }) {
   const canEdit =
     canOperateEmployees && EDITABLE_STATUSES.has(mission.status);
+  const canEditProposals =
+    canOperateEmployees &&
+    mission.status === "waiting_approval";
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 py-8">
@@ -164,9 +168,9 @@ export function MissionDetailScreen({
         <section className="rounded-2xl border border-white/8 bg-[#111111] p-5">
           <h2 className="text-sm font-medium text-white">Proposal drafts</h2>
           <div className="mt-4 grid gap-4">
-            {mission.leads.map((lead) => (
+            {mission.leads.map((lead, index) => (
               <article
-                key={`${lead.companyName}-${lead.domain ?? "lead"}`}
+                key={`${lead.companyName}-${lead.domain ?? "lead"}-${index}`}
                 className="rounded-xl border border-white/6 bg-black/20 p-4"
               >
                 <div className="flex flex-wrap items-center gap-2">
@@ -230,14 +234,12 @@ export function MissionDetailScreen({
                 {lead.sendError ? (
                   <p className="mt-2 text-xs text-white/60">{lead.sendError}</p>
                 ) : null}
-                <div className="mt-4 rounded-lg border border-white/6 bg-[#0a0a0a] p-3">
-                  <p className="text-xs uppercase tracking-[0.2em] text-white/40">
-                    Proposal draft
-                  </p>
-                  <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-white/75">
-                    {lead.proposalDraft}
-                  </p>
-                </div>
+                <MissionProposalEditor
+                  missionId={mission.id}
+                  leadIndex={index}
+                  initialDraft={lead.proposalDraft}
+                  canEdit={canEditProposals && !lead.sentAt}
+                />
               </article>
             ))}
           </div>

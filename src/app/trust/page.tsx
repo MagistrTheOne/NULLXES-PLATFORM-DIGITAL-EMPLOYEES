@@ -62,11 +62,11 @@ export default function TrustPage() {
           <Link href="/docs" className="text-white hover:underline">
             /docs
           </Link>
-          . Personal data (152-FZ):{" "}
+          . Соответствие ФЗ:{" "}
           <Link href="/docs/personal-data" className="text-white hover:underline">
             /docs/personal-data
           </Link>
-          . Documentation assistant (GPT-4o):{" "}
+          . Ассистент:{" "}
           <Link href="/docs/assistant" className="text-white hover:underline">
             /docs/assistant
           </Link>

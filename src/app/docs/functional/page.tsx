@@ -10,8 +10,8 @@ export default function DocsFunctionalPage() {
           <strong className="font-medium text-white">
             NULLXES Digital Employees
           </strong>{" "}
-          предназначено для создания, настройки, развёртывания и эксплуатации
-          цифровых сотрудников (Digital Employees) в корпоративной среде.
+          — корпоративная платформа для создания, управления и эксплуатации
+          цифровых сотрудников в бизнес-процессах организации.
         </p>
       </header>
 
@@ -19,131 +19,140 @@ export default function DocsFunctionalPage() {
         id="purpose"
         className="scroll-mt-24 rounded-2xl border border-white/10 bg-[#111111] p-6"
       >
-        <h3 className="font-medium text-white">1. Назначение</h3>
+        <h3 className="font-medium text-white">1. Назначение платформы</h3>
         <p className="mt-3">
-          Платформа обеспечивает единую операционную среду для управления
-          цифровой рабочей силой: постановка задач, проведение диалогов,
-          контроль выполнения, аналитика и интеграция с внешними системами
-          через API.
+          NULLXES позволяет организациям внедрять цифровых сотрудников для
+          работы с клиентскими обращениями, внутренними знаниями, задачами,
+          коммуникациями и операционными сценариями. Платформа объединяет
+          настройку ролей, контроль действий, аналитику и интеграции в едином
+          рабочем контуре.
         </p>
       </section>
 
       <section
-        id="modules"
+        id="capabilities"
         className="scroll-mt-24 rounded-2xl border border-white/10 bg-[#111111] p-6"
       >
-        <h3 className="font-medium text-white">2. Состав функциональных модулей</h3>
+        <h3 className="font-medium text-white">2. Функциональные возможности</h3>
+
         <ul className="mt-4 list-disc space-y-2 pl-5">
           <li>
-            <strong className="text-white">Аутентификация и рабочее пространство</strong>{" "}
-            — регистрация, вход, управление организацией, ролями и приглашениями
-            участников.
+            <strong className="text-white">Управление цифровыми сотрудниками</strong>{" "}
+            — создание профилей, определение должности, зоны ответственности,
+            правил работы, делового тона и сценариев взаимодействия.
           </li>
           <li>
-            <strong className="text-white">Цифровые сотрудники</strong> — создание
-            профиля, настройка роли, системного промпта, аватара (Anam), голоса
-            (ElevenLabs), мозга (Brain provider).
+            <strong className="text-white">Диалоги и обработка обращений</strong>{" "}
+            — ведение текстовых и голосовых сессий, сохранение истории
+            взаимодействий и контроль качества коммуникации.
           </li>
           <li>
-            <strong className="text-white">Talk / Conversations</strong> — текстовые
-            и голосовые сессии с цифровым сотрудником, история диалогов, лимиты
-            сессий по тарифу.
+            <strong className="text-white">Корпоративные знания</strong> — подключение
+            документов и материалов организации для использования сотрудником в
+            рамках разрешённого рабочего контекста.
           </li>
           <li>
-            <strong className="text-white">Knowledge</strong> — загрузка и
-            индексация базы знаний сотрудника, семантический поиск (RAG) при
-            ответах.
+            <strong className="text-white">Задачи и рабочие процессы</strong> —
+            постановка задач цифровым сотрудникам, отслеживание статусов,
+            маршрутизация результатов и передача задач ответственным
+            специалистам.
           </li>
           <li>
-            <strong className="text-white">Mission Control</strong> — постановка
-            миссий (prospecting/custom), веб-исследование, генерация лидов и
-            коммерческих предложений, очередь согласования, исходящая отправка
-            писем, workforce handoff между сотрудниками.
+            <strong className="text-white">Контроль и согласование</strong> —
+            проверка действий, требующих участия человека, а также управление
+            исходящими коммуникациями и правилами исполнения.
           </li>
           <li>
-            <strong className="text-white">NULLXES HQ</strong> — операционный
-            центр задач и активности цифровой рабочей силы.
+            <strong className="text-white">Операционный центр</strong> — единое
+            пространство для мониторинга активности цифровой рабочей силы,
+            текущих задач и ключевых событий.
           </li>
           <li>
-            <strong className="text-white">Analytics</strong> — метрики сессий,
-            сообщений, знаний и активности сотрудников.
+            <strong className="text-white">Аналитика</strong> — показатели
+            использования, активности, диалогов, задач и базы знаний для оценки
+            эффективности внедрения.
           </li>
           <li>
-            <strong className="text-white">Settings</strong> — профиль
-            организации, команда, биллинг, безопасность (2FA, API keys, IP
-            allowlist), AI-провайдеры, уведомления, экспорт данных.
-          </li>
-          <li>
-            <strong className="text-white">Public API v1</strong> — REST API для
-            управления сотрудниками, сессиями и задачами; документация{" "}
-            <a href="/docs/api" className="text-white underline">
-              /docs/api
-            </a>
-            , OpenAPI на{" "}
-            <span className="font-mono text-white">/api/docs</span>.
-          </li>
-          <li>
-            <strong className="text-white">Фоновые процессы (Inngest)</strong>{" "}
-            — ingestion знаний, суммаризация сессий, retention, уведомления,
-            обработка миссий и cron-расписаний.
+            <strong className="text-white">Интеграции</strong> — подключение к
+            корпоративным системам и внешним сервисам через API в соответствии с
+            политиками организации.
           </li>
         </ul>
       </section>
 
       <section
-        id="nlp"
+        id="governance"
         className="scroll-mt-24 rounded-2xl border border-white/10 bg-[#111111] p-6"
       >
-        <h3 className="font-medium text-white">3. Обработка естественного языка</h3>
+        <h3 className="font-medium text-white">3. Управление и контроль</h3>
         <p className="mt-3">
-          Для генерации и анализа текстов (диалоги, миссии, структурирование
-          данных из веб-поиска) применяется{" "}
-          <strong className="text-white">OpenAI GPT</strong> через официальный
-          API. Организация может использовать платформенный ключ или собственный
-          ключ OpenAI (Settings → AI → Provider API keys). Для модуля Mission
-          Control парсинг и структурирование результатов выполняется только
-          через GPT-модели OpenAI.
+          Платформа предоставляет инструменты для управления организациями,
+          рабочими пространствами, участниками и правами доступа. Настройки
+          цифровых сотрудников, правила обработки данных и сценарии
+          взаимодействия контролируются на уровне организации.
+        </p>
+        <p className="mt-3">
+          Для критичных операций может применяться механизм участия человека:
+          согласование результата, подтверждение действия или передача задачи
+          профильному сотруднику.
         </p>
       </section>
 
       <section
-        id="stack"
+        id="security"
         className="scroll-mt-24 rounded-2xl border border-white/10 bg-[#111111] p-6"
       >
-        <h3 className="font-medium text-white">4. Технологический стек</h3>
+        <h3 className="font-medium text-white">4. Безопасность</h3>
         <ul className="mt-4 list-disc space-y-2 pl-5">
-          <li>Next.js 16 (App Router), React 19, TypeScript</li>
-          <li>PostgreSQL (Neon), Drizzle ORM</li>
-          <li>Better Auth — аутентификация</li>
-          <li>Inngest — очереди и cron</li>
-          <li>Resend — транзакционная и исходящая почта</li>
-          <li>shadcn/ui, Tailwind CSS v4 — интерфейс</li>
+          <li>Разграничение доступа пользователей в рамках организации.</li>
+          <li>Управление ключами доступа и интеграционными подключениями.</li>
+          <li>Контроль событий и активности в рабочем пространстве.</li>
+          <li>
+            Настройка политик доступа и ограничений сетевого взаимодействия.
+          </li>
+          <li>
+            Экспорт данных и управление их хранением в рамках доступной
+            конфигурации.
+          </li>
         </ul>
+      </section>
+
+      <section
+        id="deployment"
+        className="scroll-mt-24 rounded-2xl border border-white/10 bg-[#111111] p-6"
+      >
+        <h3 className="font-medium text-white">5. Варианты внедрения</h3>
+        <p className="mt-3">
+          NULLXES поддерживает поэтапное внедрение: от оценки одного сценария
+          до масштабирования цифровых сотрудников на функции клиентского
+          сервиса, продаж, HR, поддержки и внутренних операций.
+        </p>
+        <p className="mt-3">
+          Состав интеграций, требования к безопасности, порядок доступа и
+          параметры сопровождения определяются в рамках выбранного
+          корпоративного контура. Для генерации и анализа текстов организация
+          может подключать различных LLM-провайдеров (в том числе OpenAI,
+          Anthropic, Google и платформенный NULLXES brain) через Settings → AI.
+        </p>
       </section>
 
       <section
         id="roles"
         className="scroll-mt-24 rounded-2xl border border-white/10 bg-[#111111] p-6"
       >
-        <h3 className="font-medium text-white">5. Роли пользователей</h3>
+        <h3 className="font-medium text-white">6. Роли пользователей</h3>
         <ul className="mt-4 list-disc space-y-2 pl-5">
           <li>
-            <strong className="text-white">Owner / Administrator</strong> —
-            полное управление организацией, настройками, ключами, согласованиями.
+            <strong className="text-white">Администратор</strong> — управляет
+            организацией, участниками, политиками доступа, настройками и
+            интеграциями.
           </li>
           <li>
-            <strong className="text-white">Member</strong> — работа с
-            сотрудниками, миссиями и диалогами в рамках выданных прав.
+            <strong className="text-white">Пользователь</strong> — работает с
+            цифровыми сотрудниками, диалогами, задачами и доступными рабочими
+            материалами в рамках выданных прав.
           </li>
         </ul>
-        <p className="mt-4 text-xs text-white/40">
-          Роли membership не путать с тарифами Evaluation / Studio / Team /
-          Scale. См.{" "}
-          <a href="/docs/plans" className="text-white underline">
-            /docs/plans
-          </a>
-          .
-        </p>
       </section>
     </article>
   );

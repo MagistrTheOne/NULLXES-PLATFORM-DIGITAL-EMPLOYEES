@@ -40,6 +40,7 @@ export function buildLeadExtractionRules(
       "estimatedRevenueRub only if verbatim in research; revenueSourceUrl required when revenue set.",
       "contactEmail verbatim from research. No contact → skip company.",
       "agentPlan: 3–5 outreach steps. proposalDraft: short email from plan.",
+      "proposalDraft MUST end with 'С уважением,\\nNULLXES' (RU) or 'Best regards,\\nNULLXES' (EN). NEVER write [Ваше имя], [Your name], or any name placeholder.",
       "Return up to 10 qualified leads.",
     ];
   }
@@ -51,6 +52,7 @@ export function buildLeadExtractionRules(
       "estimatedRevenueUsd only if verbatim in research; revenueSourceUrl when revenue set.",
       "contactEmail verbatim from research. No contact → skip company.",
       "agentPlan in English: 3–5 steps. proposalDraft: short outbound email.",
+      "proposalDraft MUST end with 'Best regards,\\nNULLXES'. NEVER write [Your name] or any name placeholder.",
       "Return up to 10 qualified leads.",
     ];
   }
@@ -63,6 +65,7 @@ export function buildLeadExtractionRules(
       "contactName = partner/analyst with published email verbatim from research.",
       "No verified contact → skip fund.",
       "agentPlan: pitch plan (angle, traction hook, ask, next step). proposalDraft: intro email.",
+      "proposalDraft MUST end with 'Best regards,\\nNULLXES' (or RU sign-off if brief is Russian). NEVER use name placeholders.",
       "Return up to 10 qualified investors.",
     ];
   }
@@ -70,6 +73,7 @@ export function buildLeadExtractionRules(
   if (language === "ru") {
     return [
       "Пиши proposalDraft только на русском.",
+      "В конце proposalDraft всегда: «С уважением,» и на следующей строке «NULLXES». Запрещено: [Ваше имя], плейсхолдеры имени.",
       "contactEmail — только если email дословно есть в research.",
       "Без подтверждённого email — не включай lead.",
       "Верни до 10 leads.",
@@ -78,6 +82,7 @@ export function buildLeadExtractionRules(
 
   return [
     "Write proposalDraft in English only.",
+    "proposalDraft MUST end with 'Best regards,\\nNULLXES'. Never use [Your name] or placeholders.",
     "contactEmail only when verbatim in research.",
     "If no verified email, do not include the lead.",
     "Return up to 10 leads with verified contacts.",

@@ -2,6 +2,7 @@ import { and, eq } from "drizzle-orm";
 import { employeeMission, type MissionLeadItem } from "@/entities/employee-mission";
 import { digitalEmployee } from "@/entities/digital-employee/schema";
 import { detectMissionLanguage } from "@/features/missions/lib/detect-mission-language";
+import { normalizeProposalDraft } from "@/features/missions/lib/normalize-proposal-draft";
 import { extractMissionResearchCorpus } from "@/features/missions/lib/mission-research-evidence";
 import { isVerifiedLeadContact } from "@/features/missions/lib/verify-lead-contact";
 import { appendMissionTimelineStep } from "@/features/missions/lib/append-mission-timeline-step";
@@ -89,7 +90,7 @@ export async function executeMissionOutbound(input: {
       to: recipient,
       companyName: lead.companyName,
       employeeName: mission.employeeName,
-      proposalDraft: lead.proposalDraft,
+      proposalDraft: normalizeProposalDraft(lead.proposalDraft, language),
       language,
     });
 

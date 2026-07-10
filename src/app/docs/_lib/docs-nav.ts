@@ -114,10 +114,11 @@ export const DOCS_NAV: DocsNavGroup[] = [
         breadcrumb: "Функциональные характеристики",
         toc: [
           { id: "purpose", label: "Назначение" },
-          { id: "modules", label: "Состав модулей" },
-          { id: "nlp", label: "Обработка языка" },
-          { id: "stack", label: "Технологический стек" },
-          { id: "roles", label: "Роли пользователей" },
+          { id: "capabilities", label: "Возможности" },
+          { id: "governance", label: "Управление" },
+          { id: "security", label: "Безопасность" },
+          { id: "deployment", label: "Внедрение" },
+          { id: "roles", label: "Роли" },
         ],
       },
       {
