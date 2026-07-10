@@ -106,8 +106,9 @@
 
 .employee-anam-video {
   height: 100%;
-  object-fit: contain;
-  object-position: center center;
+  /* Fill the Talk stage (720×480 / 16:9) — no pillarbox letterboxing. */
+  object-fit: cover;
+  object-position: center 18%;
   width: 100%;
   background: #000;
 }

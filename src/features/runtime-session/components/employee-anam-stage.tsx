@@ -235,7 +235,7 @@ export function EmployeeAnamStage({
               src={avatarPreviewUrl!}
               alt={employeeName}
               sizes="(max-width: 960px) 100vw, 1200px"
-              fit="contain"
+              fit="cover"
               className="h-full w-full"
             />
           </div>

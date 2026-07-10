@@ -85,7 +85,7 @@ type AvatarIdlePreviewProps = {
   className?: string;
   sizes?: string;
   priority?: boolean;
-  /** cover fills the frame (cards); contain letterboxes (Talk stage). */
+  /** cover fills the frame (cards + Talk stage); contain letterboxes. */
   fit?: "cover" | "contain";
 };
 
@@ -189,19 +189,37 @@ export function AvatarIdlePreview({
       gl.clear(gl.COLOR_BUFFER_BIT);
 
       let quad = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
-      if (
-        fit === "contain" &&
-        image.naturalWidth > 0 &&
-        image.naturalHeight > 0
-      ) {
+      if (image.naturalWidth > 0 && image.naturalHeight > 0) {
         const canvasAspect = canvas.width / Math.max(canvas.height, 1);
         const imageAspect = image.naturalWidth / image.naturalHeight;
-        if (imageAspect > canvasAspect) {
-          const y = canvasAspect / imageAspect;
-          quad = new Float32Array([-1, -y, 1, -y, -1, y, 1, y]);
-        } else {
-          const x = imageAspect / canvasAspect;
-          quad = new Float32Array([-x, -1, x, -1, -x, 1, x, 1]);
+        if (fit === "contain") {
+          if (imageAspect > canvasAspect) {
+            const y = canvasAspect / imageAspect;
+            quad = new Float32Array([-1, -y, 1, -y, -1, y, 1, y]);
+          } else {
+            const x = imageAspect / canvasAspect;
+            quad = new Float32Array([-x, -1, x, -1, -x, 1, x, 1]);
+          }
+        } else if (fit === "cover") {
+          // Crop to fill stage (Talk metrics) — no pillarbox / letterbox.
+          if (imageAspect > canvasAspect) {
+            const x = imageAspect / canvasAspect;
+            quad = new Float32Array([-x, -1, x, -1, -x, 1, x, 1]);
+          } else {
+            const y = canvasAspect / imageAspect;
+            // Bias slightly upward so faces stay in frame on wide stages.
+            const bias = 0.12;
+            quad = new Float32Array([
+              -1,
+              -y + bias,
+              1,
+              -y + bias,
+              -1,
+              y + bias,
+              1,
+              y + bias,
+            ]);
+          }
         }
       }
       gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
@@ -271,7 +289,9 @@ export function AvatarIdlePreview({
         unoptimized
         priority={priority}
         className={cn(
-          fit === "contain" ? "object-contain" : "object-cover",
+          fit === "contain"
+            ? "object-contain object-center"
+            : "object-cover object-[center_18%]",
           className,
         )}
         sizes={sizes}
