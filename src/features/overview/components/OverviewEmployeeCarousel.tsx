@@ -89,19 +89,21 @@ function CarouselEmployeeCard({
           </div>
         )}
       </div>
-      <div className="flex flex-1 flex-col gap-2 px-4 py-3">
+      <div className="flex flex-1 flex-col gap-2.5 px-4 py-3.5">
         <div className="flex min-w-0 items-start justify-between gap-2">
           <div className="min-w-0">
-            <p className="truncate text-sm font-medium text-foreground group-hover:text-foreground/80">
+            <p className="truncate text-sm font-semibold tracking-tight text-foreground group-hover:text-foreground/85">
               {employee.name}
             </p>
-            <p className="truncate text-xs text-muted-foreground">{employee.role}</p>
+            <p className="mt-0.5 truncate text-xs text-muted-foreground">
+              {employee.role}
+            </p>
           </div>
           <EmployeeStatusIcon status={employee.status} />
         </div>
         <div className="mt-auto space-y-0.5 text-xs text-muted-foreground">
-          <p>{talkedLabel}</p>
-          <p className="tabular-nums text-foreground/80">
+          <p className="truncate">{talkedLabel}</p>
+          <p className="tabular-nums text-foreground/75">
             {t("sessionsInPeriod", { count: employee.sessionsInRange })}
           </p>
         </div>
@@ -180,12 +182,16 @@ export function OverviewEmployeeCarousel({
   return (
     <OverviewCard title={t("title")} description={t("description")}>
       {useGrid ? (
-        <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-4 p-5">
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-4 p-5 max-sm:flex max-sm:overflow-x-auto max-sm:pb-5">
           {activeFirst.map((employee) => (
-            <CarouselEmployeeCard key={employee.id} employee={employee} fullWidth />
+            <div key={employee.id} className="min-w-0 max-sm:w-[200px] max-sm:shrink-0">
+              <CarouselEmployeeCard employee={employee} fullWidth />
+            </div>
           ))}
           {canCreate ? (
-            <CreateEmployeeCard onCreateClick={onCreateClick} fullWidth />
+            <div className="min-w-0 max-sm:w-[200px] max-sm:shrink-0">
+              <CreateEmployeeCard onCreateClick={onCreateClick} fullWidth />
+            </div>
           ) : null}
         </div>
       ) : (

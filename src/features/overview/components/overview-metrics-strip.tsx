@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { Radio, Users } from "lucide-react";
 import { formatDurationSeconds } from "@/features/analytics/lib/format-duration";
@@ -10,22 +11,27 @@ function MetricItem({
   label,
   value,
   detail,
+  icon,
 }: {
   label: string;
   value: string;
   detail?: string;
+  icon?: ReactNode;
 }) {
   return (
-    <div className="flex min-w-0 flex-col gap-0.5 px-5 py-3">
-      <span className="text-[11px] tracking-wide text-muted-foreground uppercase">
-        {label}
-      </span>
-      <span className="text-lg font-medium tabular-nums text-foreground">
-        {value}
-      </span>
-      {detail ? (
-        <span className="truncate text-xs text-muted-foreground">{detail}</span>
-      ) : null}
+    <div className="flex min-w-0 items-start gap-3 px-4 py-3.5 sm:px-5">
+      {icon}
+      <div className="flex min-w-0 flex-col gap-0.5">
+        <span className="text-[10px] font-medium tracking-[0.08em] text-muted-foreground uppercase">
+          {label}
+        </span>
+        <span className="text-xl font-semibold tracking-tight tabular-nums text-foreground">
+          {value}
+        </span>
+        {detail ? (
+          <span className="truncate text-xs text-muted-foreground">{detail}</span>
+        ) : null}
+      </div>
     </div>
   );
 }
@@ -43,43 +49,35 @@ export function OverviewMetricsStrip({
       : "—";
 
   return (
-    <section className="grid grid-cols-2 divide-x divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card text-card-foreground sm:grid-cols-3 sm:divide-y-0 xl:grid-cols-5">
-      <div className="relative flex items-center gap-3 px-5 py-3">
-        <Users className="size-4 shrink-0 stroke-[1.5] text-muted-foreground" />
-        <div className="flex min-w-0 flex-col gap-0.5">
-          <span className="text-[11px] tracking-wide text-muted-foreground uppercase">
-            {t("metrics.workforce")}
-          </span>
-          <span className="text-lg font-medium tabular-nums text-foreground">
-            {metrics.employees.total}
-          </span>
-          <span className="truncate text-xs text-muted-foreground">
-            {t("kpi.active", { count: metrics.employees.active })}
-          </span>
-        </div>
-      </div>
+    <section className="grid grid-cols-2 divide-x divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card text-card-foreground sm:grid-cols-3 xl:grid-cols-5 xl:divide-y-0">
+      <MetricItem
+        label={t("metrics.workforce")}
+        value={String(metrics.employees.total)}
+        detail={t("kpi.active", { count: metrics.employees.active })}
+        icon={
+          <Users className="mt-0.5 size-4 shrink-0 stroke-[1.5] text-muted-foreground" />
+        }
+      />
 
-      <div className="flex items-center gap-3 px-5 py-3">
-        <Radio
-          className={cn(
-            "size-4 shrink-0 stroke-[1.5]",
-            metrics.activeNow > 0 ? "text-foreground" : "text-muted-foreground opacity-60",
-          )}
-        />
-        <div className="flex min-w-0 flex-col gap-0.5">
-          <span className="text-[11px] tracking-wide text-muted-foreground uppercase">
-            {t("metrics.activeNow")}
-          </span>
-          <span className="text-lg font-medium tabular-nums text-foreground">
-            {metrics.activeNow}
-          </span>
-          <span className="truncate text-xs text-muted-foreground">
-            {metrics.activeNow > 0
-              ? t("kpi.inConversations")
-              : t("kpi.noLiveConversations")}
-          </span>
-        </div>
-      </div>
+      <MetricItem
+        label={t("metrics.activeNow")}
+        value={String(metrics.activeNow)}
+        detail={
+          metrics.activeNow > 0
+            ? t("kpi.inConversations")
+            : t("kpi.noLiveConversations")
+        }
+        icon={
+          <Radio
+            className={cn(
+              "mt-0.5 size-4 shrink-0 stroke-[1.5]",
+              metrics.activeNow > 0
+                ? "text-foreground"
+                : "text-muted-foreground opacity-60",
+            )}
+          />
+        }
+      />
 
       <MetricItem
         label={t("metrics.sessions")}

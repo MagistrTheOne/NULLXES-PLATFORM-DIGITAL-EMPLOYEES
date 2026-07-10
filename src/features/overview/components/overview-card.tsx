@@ -19,8 +19,10 @@ export function OverviewCard({
       )}
     >
       {title ? (
-        <div className="border-b border-border px-5 py-4">
-          <h2 className="text-sm font-medium text-foreground">{title}</h2>
+        <div className="border-b border-border px-5 py-3.5">
+          <h2 className="text-sm font-semibold tracking-tight text-foreground">
+            {title}
+          </h2>
           {description ? (
             <p className="mt-1 text-xs text-muted-foreground">{description}</p>
           ) : null}
