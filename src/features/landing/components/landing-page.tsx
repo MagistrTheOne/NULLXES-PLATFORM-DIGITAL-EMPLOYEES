@@ -41,15 +41,15 @@ export function LandingPage({
       </div>
 
       <div className="relative">
-        <UseCaseSection signedIn={signedIn} plaque={plaque} />
+        <UseCaseSection signedIn={signedIn} />
       </div>
 
       <div className="relative">
-        <EnterpriseSection signedIn={signedIn} plaque={plaque} />
+        <EnterpriseSection signedIn={signedIn} />
       </div>
 
       <div className="relative">
-        <SecuritySection signedIn={signedIn} plaque={plaque} />
+        <SecuritySection signedIn={signedIn} />
       </div>
 
       <div className="relative">

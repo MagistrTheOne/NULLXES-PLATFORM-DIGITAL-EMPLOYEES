@@ -86,13 +86,13 @@ export function PricingSection({ signedIn }: { signedIn: boolean }) {
   return (
     <section
       id="pricing"
-      className="relative flex min-h-dvh flex-col justify-center border-t border-white/10 px-6 py-16 md:px-10 lg:px-14 lg:py-20"
+      className="relative flex min-h-dvh flex-col justify-center border-t border-white/10 px-6 py-16 md:px-10 lg:px-14 lg:py-0"
     >
       <div className="mx-auto w-full max-w-6xl">
         <p className="text-[11px] tracking-[0.28em] text-(--landing-gold) uppercase">
           Pricing
         </p>
-        <h2 className="mt-4 max-w-2xl font-(family-name:--font-landing-serif) text-3xl leading-[1.12] tracking-tight text-white sm:text-4xl lg:text-[2.75rem]">
+        <h2 className="mt-4 max-w-xl font-(family-name:--font-landing-serif) text-3xl leading-[1.12] tracking-tight text-white sm:text-4xl lg:text-[2.75rem]">
           Engagements sized for enterprise outcomes.
         </h2>
         <p className="mt-4 max-w-xl text-sm leading-relaxed text-white/45">
