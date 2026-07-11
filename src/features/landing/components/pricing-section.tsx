@@ -1,5 +1,3 @@
-import Link from "next/link";
-
 type PricingLine = {
   id: string;
   service: string;
@@ -82,7 +80,7 @@ const STAGES: readonly PricingStage[] = [
   },
 ] as const;
 
-export function PricingSection({ signedIn }: { signedIn: boolean }) {
+export function PricingSection() {
   return (
     <section
       id="pricing"
@@ -93,11 +91,11 @@ export function PricingSection({ signedIn }: { signedIn: boolean }) {
           Pricing
         </p>
         <h2 className="mt-4 max-w-xl font-(family-name:--font-landing-serif) text-3xl leading-[1.12] tracking-tight text-white sm:text-4xl lg:text-[2.75rem]">
-          Engagements sized for enterprise outcomes.
+          Corporate implementation pricing.
         </h2>
         <p className="mt-4 max-w-xl text-sm leading-relaxed text-white/45">
-          Indicative USD ranges for NULLXES professional services and platform
-          licensing. Final scope is scoped per organization.
+          Enterprise rates for NULLXES deployments — from discovery to full
+          production.
         </p>
 
         <div className="mt-12 grid gap-4 lg:grid-cols-3 lg:gap-5">
@@ -142,15 +140,6 @@ export function PricingSection({ signedIn }: { signedIn: boolean }) {
               </ul>
             </article>
           ))}
-        </div>
-
-        <div className="mt-10">
-          <Link
-            href={signedIn ? "/dashboard" : "/register"}
-            className="inline-flex text-sm text-(--landing-gold) transition-opacity hover:opacity-80"
-          >
-            {signedIn ? "Go to dashboard →" : "Talk to sales →"}
-          </Link>
         </div>
       </div>
     </section>

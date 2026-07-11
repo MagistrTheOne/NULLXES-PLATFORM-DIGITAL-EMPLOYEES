@@ -49,11 +49,11 @@ export function LandingPage({
       </div>
 
       <div className="relative">
-        <SecuritySection signedIn={signedIn} />
+        <SecuritySection />
       </div>
 
       <div className="relative">
-        <PricingSection signedIn={signedIn} />
+        <PricingSection />
       </div>
 
       <style>{`
