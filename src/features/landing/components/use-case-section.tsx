@@ -4,22 +4,22 @@ import { LandingRowsSection } from "./landing-rows-section";
 
 const CASES = [
   {
-    id: "client-operations",
+    id: "customer-support",
     number: "01",
-    title: "Client Operations",
-    body: "A digital employee handles incoming conversations across your approved channels.",
+    title: "Customer Support",
+    body: "Digital employees answer customer requests, resolve routine cases, and escalate complex conversations when required.",
   },
   {
-    id: "knowledge-access",
+    id: "internal-operations",
     number: "02",
-    title: "Knowledge Access",
-    body: "Policies, services and operational context are available in one accountable interaction.",
+    title: "Internal Operations",
+    body: "Provide employees with instant access to internal knowledge, policies, documentation, and operational procedures.",
   },
   {
-    id: "executive-presence",
+    id: "public-services",
     number: "03",
-    title: "Executive Presence",
-    body: "A visible digital representative for high-stakes conversations and public-facing work.",
+    title: "Public Services",
+    body: "Deploy digital employees for government services, public reception, enterprise front desks, and information centers.",
   },
 ] as const;
 
@@ -27,14 +27,18 @@ export function UseCaseSection({ signedIn }: { signedIn: boolean }) {
   return (
     <LandingRowsSection
       id="use-case"
-      label="Use cases"
+      label="Use Cases"
       headlineLines={[
-        "The digital frontline.",
-        "Built for real operations.",
+        "Digital employees.",
+        "Ready for enterprise deployment.",
       ]}
       rows={CASES}
       ctaHref={signedIn ? "/dashboard" : "/register"}
-      ctaLabel={signedIn ? "Go to dashboard →" : "Talk to sales →"}
+      ctaLabel={
+        signedIn
+          ? "Go to dashboard →"
+          : "Request enterprise access →"
+      }
     />
   );
 }

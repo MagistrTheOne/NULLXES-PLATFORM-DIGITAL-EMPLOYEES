@@ -17,16 +17,19 @@ export function AdelineHero({
     >
       <div className="relative z-10 max-w-xl">
         <p className="inline-block border-b border-(--landing-gold) pb-1 text-[11px] font-medium tracking-[0.28em] text-(--landing-gold) uppercase">
-          Digital Employees
+          Enterprise Digital Employees
         </p>
 
         <h1 className="mt-6 font-(family-name:--font-landing-serif) text-[2.4rem] leading-[1.08] tracking-tight text-white sm:text-5xl lg:text-[3.25rem]">
-          The workforce, built for your enterprise.
+          One platform.
+          <br />
+          Every digital employee.
         </h1>
 
-        <p className="mt-5 max-w-md text-[15px] leading-relaxed text-white/55">
-          Deploy digital employees that speak, reason, and operate inside your
-          business.
+        <p className="mt-5 max-w-lg text-[15px] leading-relaxed text-white/55">
+          Create, deploy, and manage digital employees for customer support,
+          operations, HR, and public services — with enterprise-grade security,
+          governance, and complete organizational control.
         </p>
 
         <div className="mt-8 flex flex-wrap items-center gap-3">
@@ -44,14 +47,15 @@ export function AdelineHero({
                 href="/register"
                 className="inline-flex items-center gap-2 rounded-xl bg-(--landing-gold) px-5 py-3 text-sm font-medium text-black transition-opacity hover:opacity-90"
               >
-                Book a private demo
+                Request enterprise access
                 <ArrowRight className="size-4" />
               </Link>
+
               <a
                 href="#use-case"
                 className="inline-flex items-center gap-2 rounded-xl border border-white/20 px-5 py-3 text-sm text-white/80 transition-colors hover:border-white/35 hover:text-white"
               >
-                Explore platform
+                Explore capabilities
                 <ArrowRight className="size-4 opacity-70" />
               </a>
             </>

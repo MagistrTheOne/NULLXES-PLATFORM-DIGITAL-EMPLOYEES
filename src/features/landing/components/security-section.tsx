@@ -1,25 +1,27 @@
+import Link from "next/link";
+
 const CARDS = [
   {
     id: "identity-access",
     number: "01",
     title: "Identity & access",
-    body: "Workspace roles, invites, and step-up auth keep the floor gated.",
+    body: "Role-based permissions, secure authentication, and controlled workspace access for every team.",
   },
   {
-    id: "keys-boundaries",
+    id: "infrastructure-control",
     number: "02",
-    title: "Keys & boundaries",
-    body: "API keys, IP allowlists, and outbound webhooks stay under org control.",
+    title: "Infrastructure control",
+    body: "Manage API keys, IP allowlists, webhooks, and external integrations from a single control layer.",
   },
   {
-    id: "session-discipline",
+    id: "session-governance",
     number: "03",
-    title: "Session discipline",
-    body: "Talk limits, plan budgets, and auditable session lifecycle — not an open mic to the model.",
+    title: "Session governance",
+    body: "Control session limits, usage budgets, and maintain a complete audit trail for every digital employee.",
   },
 ] as const;
 
-export function SecuritySection() {
+export function SecuritySection({ signedIn }: { signedIn: boolean }) {
   return (
     <section
       id="security"
@@ -30,7 +32,7 @@ export function SecuritySection() {
           Security
         </p>
         <h2 className="mt-4 max-w-xl font-(family-name:--font-landing-serif) text-3xl leading-[1.12] tracking-tight text-white sm:text-4xl lg:text-[2.75rem]">
-          Trust is the product surface.
+          Control every digital employee.
         </h2>
 
         <div className="mt-12 grid gap-4 lg:grid-cols-3 lg:gap-5">
@@ -59,6 +61,17 @@ export function SecuritySection() {
               </div>
             </article>
           ))}
+        </div>
+
+        <div className="mt-10">
+          <Link
+            href={signedIn ? "/dashboard" : "/register"}
+            className="inline-flex text-sm text-(--landing-gold) transition-opacity hover:opacity-80"
+          >
+            {signedIn
+              ? "Go to dashboard →"
+              : "Request enterprise access →"}
+          </Link>
         </div>
       </div>
     </section>
