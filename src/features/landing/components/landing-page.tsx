@@ -35,8 +35,9 @@ export function LandingPage({
         <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.03)_0%,transparent_42%)]" />
       </div>
 
-      <div className="relative flex min-h-dvh flex-col lg:h-dvh lg:min-h-0 lg:overflow-hidden">
-        <LandingNav signedIn={signedIn} />
+      <LandingNav signedIn={signedIn} />
+
+      <div className="relative flex min-h-dvh flex-col pt-[4.25rem] lg:h-dvh lg:min-h-0 lg:overflow-hidden">
         <AdelineHero signedIn={signedIn} plaque={plaque} />
       </div>
 

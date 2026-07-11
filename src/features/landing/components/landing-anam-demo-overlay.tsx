@@ -389,7 +389,7 @@ export function LandingAnamDemoOverlay({
               alt={employeeName}
               fill
               className={cn(
-                "object-cover object-[center_18%] transition-opacity duration-500",
+                "object-cover object-[50%_12%] transition-opacity duration-500",
                 isLive ? "opacity-0" : "opacity-100",
               )}
               sizes="100vw"
@@ -401,7 +401,7 @@ export function LandingAnamDemoOverlay({
             autoPlay
             playsInline
             className={cn(
-              "absolute inset-0 size-full object-cover object-[center_18%] transition-opacity duration-500",
+              "absolute inset-0 size-full object-cover object-[50%_12%] transition-opacity duration-500",
               isLive ? "opacity-100" : "opacity-0",
             )}
           />

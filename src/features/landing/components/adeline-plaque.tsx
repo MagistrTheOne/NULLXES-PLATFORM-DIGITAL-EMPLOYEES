@@ -59,10 +59,10 @@ export function AdelinePlaque({
             alt={plaque.name}
             fill
             priority
-            className="object-cover object-[center_18%]"
+            className="object-cover object-[50%_12%] scale-[1.08]"
             sizes="(max-width: 1024px) 320px, 360px"
           />
-          <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-black/85 via-transparent to-transparent" />
+          <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-black/90 via-black/15 to-transparent" />
         </div>
 
         <div className="flex items-end justify-between gap-4 border-t border-white/5 px-5 py-4">
