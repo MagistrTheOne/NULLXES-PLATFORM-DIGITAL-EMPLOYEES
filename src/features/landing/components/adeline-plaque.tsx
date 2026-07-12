@@ -96,9 +96,6 @@ export function AdelinePlaque({
             <AudioLines className="size-4" />
             Voice · 1 min
           </button>
-          <p className="text-center text-[11px] text-white/40">
-            1 minute public demo — no account required
-          </p>
         </div>
       </article>
 
