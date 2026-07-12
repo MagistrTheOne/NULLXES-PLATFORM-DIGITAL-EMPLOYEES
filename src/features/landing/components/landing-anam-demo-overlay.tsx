@@ -354,7 +354,7 @@ export function LandingAnamDemoOverlay({
               {employeeName}
             </DialogTitle>
             <DialogDescription className="text-xs text-white/45">
-              Avatar Talk · 1 minute public demo
+              Avatar Talk · live demo
             </DialogDescription>
             {isLive ? (
               <>

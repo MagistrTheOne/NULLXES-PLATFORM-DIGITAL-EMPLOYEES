@@ -23,15 +23,13 @@ const ROWS = [
   },
 ] as const;
 
-export function EnterpriseSection({ signedIn }: { signedIn: boolean }) {
+export function EnterpriseSection() {
   return (
     <LandingRowsSection
       id="enterprise"
       label="Enterprise"
       headline="Built for institutions that cannot afford a wrong answer."
       rows={ROWS}
-      ctaHref={signedIn ? "/dashboard" : "/register"}
-      ctaLabel={signedIn ? "Go to dashboard →" : "Talk to sales →"}
     />
   );
 }

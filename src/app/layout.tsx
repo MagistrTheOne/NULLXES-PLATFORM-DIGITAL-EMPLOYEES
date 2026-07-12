@@ -28,8 +28,59 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "NULLXES Digital Employees",
-  description: "Digital Workforce Operating System",
+  metadataBase: new URL("https://www.nullxesdai.online"),
+  title: {
+    default: "NULLXES — Цифровые сотрудники | Digital Employees",
+    template: "%s | NULLXES",
+  },
+  description:
+    "NULLXES — Цифровые сотрудники для enterprise. Digital Employees: create, deploy, and manage a digital workforce with Talk, governance, and security.",
+  keywords: [
+    "NULLXES",
+    "Цифровые сотрудники",
+    "Digital Employees",
+    "digital workforce",
+    "enterprise AI",
+    "цифровая рабочая сила",
+  ],
+  authors: [{ name: "NULLXES" }],
+  openGraph: {
+    type: "website",
+    locale: "ru_RU",
+    alternateLocale: ["en_US"],
+    url: "https://www.nullxesdai.online",
+    siteName: "NULLXES",
+    title: "NULLXES — Цифровые сотрудники | Digital Employees",
+    description:
+      "Платформа цифровых сотрудников / Digital Employees operating system for enterprise.",
+    images: [
+      {
+        url: "/ADEINA.jpg",
+        width: 1024,
+        height: 1024,
+        alt: "NULLXES Digital Employee — Adeline Kalen",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "NULLXES — Цифровые сотрудники | Digital Employees",
+    description:
+      "NULLXES — Цифровые сотрудники. Digital Employees for enterprise operations.",
+    images: ["/ADEINA.jpg"],
+  },
+  alternates: {
+    canonical: "https://www.nullxesdai.online",
+    languages: {
+      ru: "https://www.nullxesdai.online",
+      en: "https://www.nullxesdai.online",
+      "x-default": "https://www.nullxesdai.online",
+    },
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default async function RootLayout({

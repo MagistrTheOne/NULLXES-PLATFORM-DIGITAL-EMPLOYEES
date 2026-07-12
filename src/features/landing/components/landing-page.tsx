@@ -9,7 +9,7 @@ import { PricingSection } from "./pricing-section";
 import type { AdelineLandingPlaque } from "../services/get-adeline-landing-plaque";
 
 const landingSerif = Cormorant_Garamond({
-  subsets: ["latin"],
+  subsets: ["latin", "cyrillic"],
   weight: ["400", "500", "600"],
   variable: "--font-landing-serif",
 });
@@ -37,20 +37,20 @@ export function LandingPage({
 
       <LandingNav signedIn={signedIn} />
 
-      <div className="relative flex min-h-dvh flex-col pt-[4.25rem] lg:h-dvh lg:min-h-0 lg:overflow-hidden">
+      <div className="relative flex min-h-[100svh] flex-col pt-[3.75rem] sm:pt-[4.25rem] lg:h-dvh lg:min-h-0 lg:overflow-hidden">
         <AdelineHero signedIn={signedIn} plaque={plaque} />
       </div>
 
       <div className="relative">
-        <UseCaseSection signedIn={signedIn} />
+        <UseCaseSection />
       </div>
 
       <div className="relative">
-        <EnterpriseSection signedIn={signedIn} />
+        <EnterpriseSection />
       </div>
 
       <div className="relative">
-        <SecuritySection signedIn={signedIn} />
+        <SecuritySection />
       </div>
 
       <div className="relative">

@@ -23,7 +23,7 @@ const CASES = [
   },
 ] as const;
 
-export function UseCaseSection({ signedIn }: { signedIn: boolean }) {
+export function UseCaseSection() {
   return (
     <LandingRowsSection
       id="use-case"
@@ -33,12 +33,6 @@ export function UseCaseSection({ signedIn }: { signedIn: boolean }) {
         "Ready for enterprise deployment.",
       ]}
       rows={CASES}
-      ctaHref={signedIn ? "/dashboard" : "/register"}
-      ctaLabel={
-        signedIn
-          ? "Go to dashboard →"
-          : "Request enterprise access →"
-      }
     />
   );
 }
