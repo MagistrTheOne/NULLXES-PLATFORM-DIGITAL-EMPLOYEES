@@ -24,7 +24,7 @@ export default function DocsOperationPage() {
             Откройте{" "}
             <span className="font-mono text-white">/login</span>
           </li>
-          <li>Введите email и пароль или зарегистрируйтесь на /register</li>
+          <li>Введите email и пароль на /login (публичная регистрация временно закрыта)</li>
           <li>
             При включённой 2FA подтвердите код (Settings → Security)
           </li>

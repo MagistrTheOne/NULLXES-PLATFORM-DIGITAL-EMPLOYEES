@@ -79,10 +79,10 @@ export function LandingNav({ signedIn }: { signedIn: boolean }) {
             </Link>
           ) : (
             <Link
-              href="/register"
+              href="/login"
               className="rounded-full border border-(--landing-gold)/70 bg-black/30 px-3 py-2 text-[11px] tracking-wide text-(--landing-gold) transition-colors hover:bg-(--landing-gold)/10 sm:px-4 sm:text-xs"
             >
-              Request access
+              Sign in
             </Link>
           )}
 

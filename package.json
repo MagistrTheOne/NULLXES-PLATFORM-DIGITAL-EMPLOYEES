@@ -50,6 +50,7 @@
     "polar:setup": "node --env-file=.env --import tsx scripts/setup-polar-products.ts",
     "polar:webhook": "node --env-file=.env --import tsx scripts/setup-polar-webhook.ts",
     "beta:seed": "node --env-file=.env -r ./scripts/mock-server-only.cjs --import tsx scripts/seed-beta-platform.ts",
+    "auth:seed-acquiring": "node --env-file=.env -r ./scripts/mock-server-only.cjs --import tsx scripts/seed-acquiring-auditor.ts",
     "anam:audit-slots": "node --env-file=.env --import tsx scripts/audit-anam-one-shot-slots.ts",
     "crypto:keygen": "node --import tsx scripts/generate-data-encryption-key.ts",
     "secrets:migrate": "node --env-file=.env --import tsx scripts/migrate-encrypt-secrets.ts",
