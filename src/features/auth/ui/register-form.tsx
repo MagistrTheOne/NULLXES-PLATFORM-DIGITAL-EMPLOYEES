@@ -18,7 +18,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { acceptInviteForNewUserAction } from "@/features/team/actions/accept-invite-for-new-user";
 import type { OrganizationInvitePreview } from "@/features/team/services/lookup-organization-invite";
 import type { OAuthProviderId } from "../lib/oauth-providers";
-import { INVITE_TOKEN_HEADER } from "../lib/public-registration";
 import { authClient } from "../client";
 import { provisionDefaultWorkspace } from "../services/provision-default-workspace";
 import { InviteAuthBanner } from "./invite-auth-banner";
@@ -30,13 +29,11 @@ export function RegisterForm({
   invite,
   oauthProviders,
   requireEmailVerification,
-  accessHint,
 }: {
   inviteToken: string | null;
   invite: OrganizationInvitePreview | null;
   oauthProviders: OAuthProviderId[];
   requireEmailVerification: boolean;
-  accessHint?: string | null;
 }) {
   const t = useTranslations("auth.register");
   const tFields = useTranslations("auth.fields");
@@ -69,20 +66,11 @@ export function RegisterForm({
     setIsSubmitting(true);
 
     try {
-      const { data, error: signUpError } = await authClient.signUp.email(
-        {
-          name,
-          email,
-          password,
-        },
-        inviteToken
-          ? {
-              headers: {
-                [INVITE_TOKEN_HEADER]: inviteToken,
-              },
-            }
-          : undefined,
-      );
+      const { data, error: signUpError } = await authClient.signUp.email({
+        name,
+        email,
+        password,
+      });
 
       if (signUpError) {
         setError(signUpError.message ?? t("signUpFailed"));
@@ -149,9 +137,6 @@ export function RegisterForm({
         <CardDescription className="text-white/60">
           {invite ? t("inviteDescription") : t("description")}
         </CardDescription>
-        {accessHint ? (
-          <p className="mt-2 text-xs text-white/45">{accessHint}</p>
-        ) : null}
       </CardHeader>
       <CardContent>
         {invite ? (

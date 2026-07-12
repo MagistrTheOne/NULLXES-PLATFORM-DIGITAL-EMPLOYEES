@@ -28,16 +28,12 @@ export function LoginForm({
   oauthProviders,
   verified,
   reset,
-  registrationEnabled = true,
-  registrationClosedHint,
 }: {
   inviteToken: string | null;
   invite: OrganizationInvitePreview | null;
   oauthProviders: OAuthProviderId[];
   verified?: boolean;
   reset?: boolean;
-  registrationEnabled?: boolean;
-  registrationClosedHint?: string | null;
 }) {
   const t = useTranslations("auth.login");
   const tFields = useTranslations("auth.fields");
@@ -169,22 +165,15 @@ export function LoginForm({
           </Button>
         </form>
         <OAuthSignInButtons providers={oauthProviders} inviteToken={inviteToken} />
-        {registrationEnabled ? (
-          <p className="mt-6 text-sm text-white/60">
-            {t("noAccount")}{" "}
-            <Link
-              href={inviteToken ? `/register?invite=${inviteToken}` : "/register"}
-              className="text-white hover:underline"
-            >
-              {t("createOne")}
-            </Link>
-          </p>
-        ) : (
-          <p className="mt-6 text-sm text-white/45">
-            {registrationClosedHint ??
-              "Public registration is temporarily closed."}
-          </p>
-        )}
+        <p className="mt-6 text-sm text-white/60">
+          {t("noAccount")}{" "}
+          <Link
+            href={inviteToken ? `/register?invite=${inviteToken}` : "/register"}
+            className="text-white hover:underline"
+          >
+            {t("createOne")}
+          </Link>
+        </p>
       </CardContent>
     </Card>
   );

@@ -36,10 +36,10 @@ export function AdelineHero({
           {!signedIn ? (
             <>
               <Link
-                href="/login"
+                href="/register"
                 className="inline-flex items-center gap-2 rounded-xl bg-(--landing-gold) px-5 py-3 text-sm font-medium text-black transition-opacity hover:opacity-90"
               >
-                Sign in
+                Request enterprise access
                 <ArrowRight className="size-4" />
               </Link>
 
