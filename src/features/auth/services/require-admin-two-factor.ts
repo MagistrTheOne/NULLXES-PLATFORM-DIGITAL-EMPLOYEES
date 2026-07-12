@@ -7,13 +7,19 @@ import { redirect } from "next/navigation";
 import { ensureOrganizationSettings } from "@/entities/organization-settings";
 import { user } from "@/entities/user/schema";
 import { db } from "@/shared/db/client";
-import { getCurrentSession } from "./get-current-session";
 import { resolveWorkspace } from "@/features/workspace/services/resolve-workspace";
+import { shouldBypassAdminTwoFactorGate } from "../lib/two-factor-gate-bypass";
+import { getCurrentSession } from "./get-current-session";
 
 async function loadAdminTwoFactorGate(): Promise<void> {
   const session = await getCurrentSession();
   if (!session) {
     redirect("/login");
+  }
+
+  // Temporary auditor bypass — 2FA feature code stays enabled for everyone else.
+  if (shouldBypassAdminTwoFactorGate(session.user.email)) {
+    return;
   }
 
   const [userRow] = await db
