@@ -5,6 +5,7 @@ import type { MissionDetail } from "../queries/get-mission-detail";
 import type { MissionPendingApproval } from "../queries/get-pending-mission-approval";
 import { MissionApprovalPanel } from "./mission-approval-panel";
 import { MissionDetailActions } from "./mission-detail-actions";
+import { MissionEvidencePanel } from "./mission-evidence-panel";
 import { MissionProposalEditor } from "./mission-proposal-editor";
 
 const EDITABLE_STATUSES = new Set(["planned", "failed", "cancelled"]);
@@ -139,29 +140,7 @@ export function MissionDetailScreen({
       ) : null}
 
       {mission.evidence.length > 0 ? (
-        <section className="rounded-2xl border border-white/8 bg-[#111111] p-5">
-          <h2 className="text-sm font-medium text-white">Evidence</h2>
-          <ul className="mt-4 space-y-4">
-            {mission.evidence.map((item, index) => (
-              <li key={`${item.source}-${index}`}>
-                <p className="text-sm text-white/80">{item.source}</p>
-                {item.url ? (
-                  <a
-                    href={item.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="mt-1 block truncate text-xs text-white/60 hover:text-white hover:underline"
-                  >
-                    {item.url}
-                  </a>
-                ) : null}
-                <p className="mt-2 text-sm leading-6 text-white/50">
-                  {item.snippet}
-                </p>
-              </li>
-            ))}
-          </ul>
-        </section>
+        <MissionEvidencePanel evidence={mission.evidence} />
       ) : null}
 
       {mission.leads.length > 0 ? (
