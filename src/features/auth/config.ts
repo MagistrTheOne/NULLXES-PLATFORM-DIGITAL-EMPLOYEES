@@ -21,7 +21,6 @@ import {
   getEnabledOAuthProviders,
 } from "./lib/oauth-providers";
 import { isRequireEmailVerificationEnabled } from "./lib/require-email-verification";
-import { isPublicRegistrationEnabled } from "./lib/public-registration";
 
 export function createAuthConfig(): BetterAuthOptions {
   const baseURL = getBetterAuthUrl();
@@ -70,7 +69,7 @@ export function createAuthConfig(): BetterAuthOptions {
     },
     emailAndPassword: {
       enabled: true,
-      disableSignUp: !isPublicRegistrationEnabled(),
+      // Access gate is enforced in auth API handler (public / allowlist / invite).
       requireEmailVerification,
       revokeSessionsOnPasswordReset: true,
       customSyntheticUser: ({ coreFields, additionalFields, id }) => ({

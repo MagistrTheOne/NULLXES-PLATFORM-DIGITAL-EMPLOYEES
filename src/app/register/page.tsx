@@ -2,7 +2,11 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentSession } from "@/features/auth/services/get-current-session";
 import { getEnabledOAuthProviders } from "@/features/auth/lib/oauth-providers";
-import { isPublicRegistrationEnabled } from "@/features/auth/lib/public-registration";
+import {
+  canShowRegisterForm,
+  hasRegistrationAllowlist,
+  isPublicRegistrationEnabled,
+} from "@/features/auth/lib/public-registration";
 import { isRequireEmailVerificationEnabled } from "@/features/auth/lib/require-email-verification";
 import { RegisterForm } from "@/features/auth/ui/register-form";
 import { AuthPageShell } from "@/features/auth/ui/auth-page-shell";
@@ -33,7 +37,32 @@ export default async function RegisterPage({
     redirect("/dashboard");
   }
 
-  if (!isPublicRegistrationEnabled()) {
+  const invite = inviteToken
+    ? await lookupOrganizationInviteByToken(inviteToken)
+    : null;
+
+  if (inviteToken && !invite) {
+    return (
+      <AuthPageShell>
+        <Card className={AUTH_CARD_CLASS}>
+          <CardHeader>
+            <CardTitle className="text-white">Invite unavailable</CardTitle>
+            <CardDescription className="text-white/60">
+              This invitation is invalid or expired. Sign in if you already have
+              an account, or ask your admin for a new invite.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button asChild className="bg-white text-black hover:bg-white/90">
+              <Link href="/login">Go to sign in</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      </AuthPageShell>
+    );
+  }
+
+  if (!canShowRegisterForm({ inviteToken })) {
     return (
       <AuthPageShell>
         <Card className={AUTH_CARD_CLASS}>
@@ -41,8 +70,8 @@ export default async function RegisterPage({
             <CardTitle className="text-white">Registration paused</CardTitle>
             <CardDescription className="text-white/60">
               Public sign-up is temporarily closed while acquiring is being
-              connected. Existing accounts (CEO, team, auditors) can still sign
-              in.
+              connected. Existing accounts can still sign in. Access is by
+              invite or approved email only.
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-3">
@@ -65,17 +94,24 @@ export default async function RegisterPage({
     );
   }
 
-  const invite = inviteToken
-    ? await lookupOrganizationInviteByToken(inviteToken)
-    : null;
+  const accessHint = isPublicRegistrationEnabled()
+    ? null
+    : invite
+      ? "You are joining via organization invite."
+      : hasRegistrationAllowlist()
+        ? "Registration is limited to approved emails."
+        : null;
 
   return (
     <AuthPageShell>
       <RegisterForm
         inviteToken={inviteToken ?? null}
         invite={invite}
-        oauthProviders={getEnabledOAuthProviders()}
+        oauthProviders={
+          isPublicRegistrationEnabled() ? getEnabledOAuthProviders() : []
+        }
         requireEmailVerification={isRequireEmailVerificationEnabled()}
+        accessHint={accessHint}
       />
     </AuthPageShell>
   );

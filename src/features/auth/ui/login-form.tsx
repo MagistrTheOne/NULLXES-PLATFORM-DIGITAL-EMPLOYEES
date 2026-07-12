@@ -29,6 +29,7 @@ export function LoginForm({
   verified,
   reset,
   registrationEnabled = true,
+  registrationClosedHint,
 }: {
   inviteToken: string | null;
   invite: OrganizationInvitePreview | null;
@@ -36,6 +37,7 @@ export function LoginForm({
   verified?: boolean;
   reset?: boolean;
   registrationEnabled?: boolean;
+  registrationClosedHint?: string | null;
 }) {
   const t = useTranslations("auth.login");
   const tFields = useTranslations("auth.fields");
@@ -179,7 +181,8 @@ export function LoginForm({
           </p>
         ) : (
           <p className="mt-6 text-sm text-white/45">
-            Public registration is temporarily closed.
+            {registrationClosedHint ??
+              "Public registration is temporarily closed."}
           </p>
         )}
       </CardContent>
