@@ -22,7 +22,7 @@ type ChatMessage = {
 };
 
 const WELCOME =
-  "Привет! Я Yuki Nakora — документационный ассистент NULLXES. Отвечаю через OpenAI GPT-4o по корпусу /docs (тарифы, Talk, API, 152-ФЗ). Выберите тему или задайте вопрос.";
+  "Привет! Я Yuki Nakora — ассистент документации NULLXES. Спросите, если есть вопросы по документации.";
 
 function createMessage(
   role: ChatMessage["role"],

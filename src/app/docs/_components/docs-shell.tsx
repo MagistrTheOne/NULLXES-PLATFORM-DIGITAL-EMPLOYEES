@@ -248,7 +248,8 @@ export function DocsShell({ children }: { children: ReactNode }) {
                   Нужна помощь?
                 </p>
                 <p className="mt-1 text-xs leading-relaxed text-white/50">
-                  Yuki Nakora отвечает через OpenAI GPT-4o по корпусу /docs.
+                  Ассистент Yuki Nakora — спросите, если есть вопросы по
+                  документации.
                 </p>
                 <div className="mt-3 flex flex-col gap-2 text-xs">
                   <Link
