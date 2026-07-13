@@ -24,8 +24,8 @@ export const DOCS_FAQ: DocsFaqEntry[] = [
     id: "source",
     question: "Где получить исходный код?",
     answer:
-      "Публичный репозиторий: https://github.com/MagistrTheOne/NULLXES-PLATFORM-DIGITAL-EMPLOYEES.git\n\ngit clone https://github.com/MagistrTheOne/NULLXES-PLATFORM-DIGITAL-EMPLOYEES.git\ncd NULLXES-PLATFORM-DIGITAL-EMPLOYEES\nnpm install",
-    keywords: ["исходный", "git", "clone", "репозиторий", "github"],
+      "Исходный код платформы не публикуется. Доступ предоставляется только по запросу правообладателю: ceo@nullxes.com · Telegram @MagistrTheOne.",
+    keywords: ["исходный", "git", "clone", "репозиторий", "github", "source"],
   },
   {
     id: "install",

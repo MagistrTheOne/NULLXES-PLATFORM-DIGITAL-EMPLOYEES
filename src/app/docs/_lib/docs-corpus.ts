@@ -110,7 +110,7 @@ Settings: General, Team, AI, Security (2FA, API keys), Advanced (export).`,
 Ключевые env: DATABASE_URL, BETTER_AUTH_SECRET, BETTER_AUTH_URL, OPENAI_API_KEY,
 INNGEST_*, DATA_ENCRYPTION_KEY, API_KEY_PEPPER.
 npm run db:migrate; npm run inngest:sync.
-Репозиторий: github.com/MagistrTheOne/NULLXES-PLATFORM-DIGITAL-EMPLOYEES`,
+Исходный код не публикуется — доступ только по запросу (ceo@nullxes.com).`,
   },
   {
     id: "pdn",

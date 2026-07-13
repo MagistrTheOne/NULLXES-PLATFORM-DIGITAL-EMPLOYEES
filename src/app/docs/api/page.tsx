@@ -230,7 +230,7 @@ export default function DocsApiPage() {
       >
         <h3 className="font-medium text-white">6. Typed SDK (Orval)</h3>
         <p className="mt-3">
-          В репозитории платформы клиент генерируется из{" "}
+          При доступе к исходникам (по запросу) клиент генерируется из{" "}
           <span className="font-mono text-white">public/openapi.yaml</span>:
         </p>
         <pre className="mt-2 overflow-x-auto rounded-lg border border-white/10 bg-black/50 p-4 font-mono text-[12px] text-white/80">{`npm run api:generate`}</pre>
@@ -239,9 +239,8 @@ export default function DocsApiPage() {
           <span className="font-mono text-white">
             @/features/public-api/sdk
           </span>
-          . Полное ТЗ и probe-скрипты —{" "}
-          <span className="font-mono text-white">docs/PUBLIC_API.md</span> в
-          репозитории.
+          . Спека OpenAPI также доступна публично:{" "}
+          <span className="font-mono text-white">GET /api/docs</span>.
         </p>
       </section>
 

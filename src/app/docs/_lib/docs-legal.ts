@@ -3,9 +3,9 @@ export {
   NULLXES_LEGAL_ENTITY,
 } from "@/shared/legal/nullxes-entity";
 
-export const DOCS_REPOSITORY_URL =
-  "https://github.com/MagistrTheOne/NULLXES-PLATFORM-DIGITAL-EMPLOYEES.git";
+/** Source is not published publicly — access only on request to ceo@. */
+export const DOCS_SOURCE_ACCESS_POLICY =
+  "Исходный код платформы не публикуется. Доступ предоставляется только по запросу правообладателю.";
 
-export const DOCS_REPOSITORY_CLONE = `git clone ${DOCS_REPOSITORY_URL}
-cd NULLXES-PLATFORM-DIGITAL-EMPLOYEES
-npm install`;
+export const DOCS_SOURCE_ACCESS_POLICY_EN =
+  "Platform source code is not publicly available. Access is granted only upon request to the rights holder.";

@@ -33,6 +33,7 @@ export const DOCS_NAV: DocsNavGroup[] = [
         breadcrumb: "Быстрый старт",
         toc: [
           { id: "requirements", label: "Требования" },
+          { id: "source", label: "Исходный код" },
           { id: "env", label: "Окружение" },
           { id: "verify", label: "Проверка" },
         ],

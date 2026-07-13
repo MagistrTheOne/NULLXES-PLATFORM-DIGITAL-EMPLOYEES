@@ -1,11 +1,14 @@
-import { DOCS_LEGAL_ENTITY, DOCS_REPOSITORY_CLONE, DOCS_REPOSITORY_URL } from "../_lib/docs-legal";
+import {
+  DOCS_LEGAL_ENTITY,
+  DOCS_SOURCE_ACCESS_POLICY,
+} from "../_lib/docs-legal";
 
 export default function DocsInstallationPage() {
   return (
     <article className="flex flex-col gap-8 text-sm leading-relaxed text-white/60">
       <header>
         <h2 className="text-2xl font-medium tracking-tight text-white">
-          Информация для установки
+          Быстрый старт
         </h2>
         <p className="mt-4">
           Программное обеспечение развёртывается как веб-приложение (SaaS).
@@ -19,7 +22,7 @@ export default function DocsInstallationPage() {
         id="requirements"
         className="scroll-mt-24 rounded-2xl border border-white/10 bg-[#111111] p-6"
       >
-        <h3 className="font-medium text-white">1. Системные требования</h3>
+        <h3 className="font-medium text-white">Требования</h3>
         <ul className="mt-4 list-disc space-y-2 pl-5">
           <li>Node.js 20+ (сборка и локальная разработка)</li>
           <li>PostgreSQL 15+ (рекомендуется Neon serverless)</li>
@@ -33,70 +36,33 @@ export default function DocsInstallationPage() {
         id="source"
         className="scroll-mt-24 rounded-2xl border border-white/10 bg-[#111111] p-6"
       >
-        <h3 className="font-medium text-white">2. Получение исходного кода</h3>
+        <h3 className="font-medium text-white">Исходный код</h3>
+        <p className="mt-3">{DOCS_SOURCE_ACCESS_POLICY}</p>
         <p className="mt-3">
-          Публичный репозиторий:{" "}
+          Запрос:{" "}
           <a
-            href={DOCS_REPOSITORY_URL}
-            className="font-mono text-white underline"
+            href={`mailto:${DOCS_LEGAL_ENTITY.email}`}
+            className="text-white underline"
+          >
+            {DOCS_LEGAL_ENTITY.email}
+          </a>
+          {" · "}
+          <a
+            href="https://t.me/MagistrTheOne"
+            className="text-white underline"
             target="_blank"
             rel="noreferrer"
           >
-            {DOCS_REPOSITORY_URL}
+            {DOCS_LEGAL_ENTITY.telegram}
           </a>
         </p>
-        <pre className="mt-4 overflow-x-auto rounded-xl border border-white/10 bg-black p-4 font-mono text-xs text-white/80">
-{DOCS_REPOSITORY_CLONE}
-        </pre>
-      </section>
-
-      <section
-        id="contacts"
-        className="scroll-mt-24 rounded-2xl border border-white/10 bg-[#111111] p-6"
-      >
-        <h3 className="font-medium text-white">Контакты разработчика</h3>
-        <dl className="mt-4 grid gap-3 text-sm">
-          <div>
-            <dt className="text-white/40">Создатель / руководитель</dt>
-            <dd className="mt-1 text-white">
-              {DOCS_LEGAL_ENTITY.director} ({DOCS_LEGAL_ENTITY.directorEn})
-            </dd>
-          </div>
-          <div>
-            <dt className="text-white/40">Email</dt>
-            <dd className="mt-1">
-              <a href={`mailto:${DOCS_LEGAL_ENTITY.email}`} className="text-white underline">
-                {DOCS_LEGAL_ENTITY.email}
-              </a>
-            </dd>
-          </div>
-          <div>
-            <dt className="text-white/40">Telegram</dt>
-            <dd className="mt-1">
-              <a
-                href="https://t.me/MagistrTheOne"
-                className="text-white underline"
-                target="_blank"
-                rel="noreferrer"
-              >
-                {DOCS_LEGAL_ENTITY.telegram}
-              </a>
-            </dd>
-          </div>
-          <div>
-            <dt className="text-white/40">Организация</dt>
-            <dd className="mt-1 text-white">{DOCS_LEGAL_ENTITY.fullName}</dd>
-          </div>
-        </dl>
       </section>
 
       <section
         id="env"
         className="scroll-mt-24 rounded-2xl border border-white/10 bg-[#111111] p-6"
       >
-        <h3 className="font-medium text-white">
-          4. Переменные окружения (обязательные для production)
-        </h3>
+        <h3 className="font-medium text-white">Окружение</h3>
         <div className="mt-4 overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead>
@@ -146,48 +112,16 @@ export default function DocsInstallationPage() {
           </table>
         </div>
         <p className="mt-4">
-          Полный перечень — в репозитории:{" "}
-          <span className="font-mono text-white">docs/DEPLOYMENT_RF.md</span>
+          Полный перечень переменных передаётся вместе с доступом к исходникам
+          (по запросу).
         </p>
-      </section>
-
-      <section
-        id="migrations"
-        className="scroll-mt-24 rounded-2xl border border-white/10 bg-[#111111] p-6"
-      >
-        <h3 className="font-medium text-white">5. Миграции базы данных</h3>
-        <pre className="mt-4 overflow-x-auto rounded-xl border border-white/10 bg-black p-4 font-mono text-xs text-white/80">
-{`npm run db:migrate
-npm run db:verify`}
-        </pre>
-        <p className="mt-4">
-          На Vercel миграции могут выполняться автоматически на этапе build
-          (auto-migrate on build).
-        </p>
-      </section>
-
-      <section
-        id="inngest"
-        className="scroll-mt-24 rounded-2xl border border-white/10 bg-[#111111] p-6"
-      >
-        <h3 className="font-medium text-white">6. Регистрация Inngest</h3>
-        <ol className="mt-4 list-decimal space-y-2 pl-5">
-          <li>
-            В Inngest Dashboard → Apps → Sync URL:{" "}
-            <span className="font-mono text-white">
-              https://www.nullxesdai.online/api/inngest
-            </span>
-          </li>
-          <li>Указать INNGEST_SIGNING_KEY и INNGEST_EVENT_KEY в Vercel</li>
-          <li>Redeploy и проверить: 16 functions found</li>
-        </ol>
       </section>
 
       <section
         id="verify"
         className="scroll-mt-24 rounded-2xl border border-white/10 bg-[#111111] p-6"
       >
-        <h3 className="font-medium text-white">7. Проверка после установки</h3>
+        <h3 className="font-medium text-white">Проверка</h3>
         <ol className="mt-4 list-decimal space-y-2 pl-5">
           <li>
             <span className="font-mono text-white">GET /api/health/db</span> →{" "}
