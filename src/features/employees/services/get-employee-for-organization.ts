@@ -1,10 +1,9 @@
 import { eq } from "drizzle-orm";
 import { digitalEmployee } from "@/entities/digital-employee/schema";
 import { organization } from "@/entities/organization/schema";
-import { planAllowsCreateEmployees } from "@/features/billing/lib/plan-capabilities";
 import { resolveBillingPlanId } from "@/features/billing/lib/resolve-billing-plan";
 import { db } from "@/shared/db/client";
-import { isPublishedPlatformCatalogEmployee } from "./platform-employee-catalog";
+import { isPlatformCatalogEmployeeVisibleToPlan } from "./platform-employee-catalog";
 
 export async function getEmployeeForOrganization(
   organizationId: string,
@@ -30,10 +29,8 @@ export async function getEmployeeForOrganization(
     .where(eq(organization.id, organizationId))
     .limit(1);
   const callerPlan = resolveBillingPlanId(callerOrg?.billingPlan ?? "free");
-  if (
-    !planAllowsCreateEmployees(callerPlan) &&
-    (await isPublishedPlatformCatalogEmployee(employeeId))
-  ) {
+
+  if (await isPlatformCatalogEmployeeVisibleToPlan(employeeId, callerPlan)) {
     return employee;
   }
 

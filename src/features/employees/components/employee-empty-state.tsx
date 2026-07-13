@@ -6,16 +6,18 @@ import { Button } from "@/components/ui/button";
 export function EmployeeEmptyState({
   onCreateClick,
   canCreate = true,
+  emptyLabel,
 }: {
   onCreateClick: () => void;
   canCreate?: boolean;
+  emptyLabel?: string;
 }) {
   const t = useTranslations("employees.list");
   const tCommon = useTranslations("common.actions");
 
   return (
     <div className="flex flex-col items-center gap-3 py-10 text-center">
-      <p className="text-sm text-white/60">{t("empty")}</p>
+      <p className="text-sm text-white/60">{emptyLabel ?? t("empty")}</p>
       {canCreate ? (
         <Button
           type="button"

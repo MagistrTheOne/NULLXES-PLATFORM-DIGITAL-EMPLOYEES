@@ -20,9 +20,20 @@ Partner orgs: `enterprise` plan, `dataRegion=ru`, no memberships yet. Invite own
 
 - Create / Edit / Delete employees: hidden + server denied
 - Missions: create disabled
-- Employee list: org employees + published platform catalog
-- Talk / chat: allowed on catalog employees; minutes count against caller org
+- Employee list: NULLXES catalog section (Adeline + Yuki) + empty custom section
+- Catalog never counts toward plan seats; paid plans also see catalog by access tier
+- Talk / chat: allowed on catalog employees visible to the plan; minutes count against caller org
 - Soft concurrent cap: 12 open sessions per catalog employee
+
+## Plan seats (custom only)
+
+| Plan | Catalog | Custom seats |
+|------|---------|--------------|
+| Free | Adeline + Yuki | 0 |
+| Starter | Adeline + Yuki | 2 |
+| Studio | Starter catalog | 5 |
+| Team | Extended | 10 |
+| Scale | Full | 20+ |
 
 ## Sidebar billing
 

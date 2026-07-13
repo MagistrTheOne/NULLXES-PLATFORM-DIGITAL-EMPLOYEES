@@ -12,7 +12,6 @@ import { employeeProviderConfig } from "@/entities/provider-config/schema";
 import { knowledgeChunk, knowledgeSource } from "@/entities/knowledge/schema";
 import { employeeRuntime } from "@/entities/runtime/schema";
 import { user } from "@/entities/user/schema";
-import { planAllowsCreateEmployees } from "@/features/billing/lib/plan-capabilities";
 import { resolveBillingPlanId } from "@/features/billing/lib/resolve-billing-plan";
 import { db } from "@/shared/db/client";
 import {
@@ -22,7 +21,7 @@ import {
 import { readProviderFailureReason } from "../lib/resolve-talk-readiness";
 import { isXaiVoiceConfigured } from "@/shared/config/xai-voice-env";
 import { resolveXaiVoiceConfigForEmployee } from "@/features/xai-voice/services/resolve-xai-voice-config";
-import { isPublishedPlatformCatalogEmployee } from "./platform-employee-catalog";
+import { isPlatformCatalogEmployeeVisibleToPlan } from "./platform-employee-catalog";
 import type {
   EmployeeDetail,
   EmployeeDetailShell,
@@ -69,10 +68,7 @@ export async function getEmployeeDetailShell(
       .where(eq(organization.id, organizationId))
       .limit(1);
     const callerPlan = resolveBillingPlanId(callerOrg?.billingPlan ?? "free");
-    const catalogAllowed =
-      !planAllowsCreateEmployees(callerPlan) &&
-      (await isPublishedPlatformCatalogEmployee(employeeId));
-    if (!catalogAllowed) {
+    if (!(await isPlatformCatalogEmployeeVisibleToPlan(employeeId, callerPlan))) {
       return null;
     }
     source = "platform";

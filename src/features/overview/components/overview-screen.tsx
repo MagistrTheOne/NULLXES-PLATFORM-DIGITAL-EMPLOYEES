@@ -25,7 +25,7 @@ export function OverviewScreen({ data }: { data: DashboardOverview }) {
     name: string;
   } | null>(null);
   const { isAtEmployeeLimit, canCreateEmployee } = useEmployeeCreateEligibility(
-    data.employees.length,
+    data.employees,
   );
   const { metrics } = data;
 

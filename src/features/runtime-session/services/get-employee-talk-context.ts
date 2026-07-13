@@ -9,7 +9,6 @@ import { digitalEmployee } from "@/entities/digital-employee/schema";
 import { organization } from "@/entities/organization/schema";
 import { employeeProviderConfig } from "@/entities/provider-config/schema";
 import { employeeRuntime } from "@/entities/runtime/schema";
-import { planAllowsCreateEmployees } from "@/features/billing/lib/plan-capabilities";
 import { resolveBillingPlanId } from "@/features/billing/lib/resolve-billing-plan";
 import { db } from "@/shared/db/client";
 import { withDatabaseRetry } from "@/shared/db/with-database-retry";
@@ -18,7 +17,7 @@ import {
   resolveAnamPersonaVoiceId,
 } from "@/features/employees/lib/resolve-anam-avatar-talk-readiness";
 import { getEmployeeBlueprint } from "@/features/agent-blueprint/queries/get-employee-blueprint";
-import { isPublishedPlatformCatalogEmployee } from "@/features/employees/services/platform-employee-catalog";
+import { isPlatformCatalogEmployeeVisibleToPlan } from "@/features/employees/services/platform-employee-catalog";
 import { resolveXaiVoiceConfigForEmployee } from "@/features/xai-voice/services/resolve-xai-voice-config";
 import type { EmployeeTalkContext } from "../types/employee-talk-context";
 
@@ -68,10 +67,7 @@ async function queryEmployeeTalkContext(
       .where(eq(organization.id, organizationId))
       .limit(1);
     const callerPlan = resolveBillingPlanId(callerOrg?.billingPlan ?? "free");
-    const catalogAllowed =
-      !planAllowsCreateEmployees(callerPlan) &&
-      (await isPublishedPlatformCatalogEmployee(employeeId));
-    if (!catalogAllowed) {
+    if (!(await isPlatformCatalogEmployeeVisibleToPlan(employeeId, callerPlan))) {
       return null;
     }
   }

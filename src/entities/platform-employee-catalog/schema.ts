@@ -9,8 +9,8 @@ import {
 import { digitalEmployee } from "@/entities/digital-employee/schema";
 
 /**
- * Published CEO / platform digital employees shared with Evaluation (free) orgs.
- * Rows reference a real digital_employee; free users Talk/chat but cannot edit.
+ * NULLXES Platform Catalog — shared read-only digital employees.
+ * Visible by plan (starter pack vs extended/full); never counts toward custom seats.
  */
 export const platformEmployeeCatalog = pgTable(
   "platform_employee_catalog",

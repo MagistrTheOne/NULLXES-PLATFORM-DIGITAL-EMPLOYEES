@@ -2,9 +2,11 @@ import { and, count, desc, eq, inArray, sql } from "drizzle-orm";
 import { digitalEmployee } from "@/entities/digital-employee/schema";
 import { organization } from "@/entities/organization/schema";
 import { employeeSession } from "@/entities/session/schema";
-import { planAllowsCreateEmployees } from "@/features/billing/lib/plan-capabilities";
 import { resolveBillingPlanId } from "@/features/billing/lib/resolve-billing-plan";
-import { isPublishedPlatformCatalogEmployee } from "@/features/employees/services/platform-employee-catalog";
+import {
+  isPlatformCatalogEmployeeVisibleToPlan,
+  isPublishedPlatformCatalogEmployee,
+} from "@/features/employees/services/platform-employee-catalog";
 import { db } from "@/shared/db/client";
 import { dbWithTransactions } from "@/shared/db/pool-client";
 import { applySessionDurationLimit } from "./enforce-session-limit";
@@ -36,10 +38,7 @@ async function callerCanAccessEmployeeSession(input: {
     .where(eq(organization.id, input.callerOrganizationId))
     .limit(1);
   const callerPlan = resolveBillingPlanId(callerOrg?.billingPlan ?? "free");
-  return (
-    !planAllowsCreateEmployees(callerPlan) &&
-    (await isPublishedPlatformCatalogEmployee(input.employeeId))
-  );
+  return isPlatformCatalogEmployeeVisibleToPlan(input.employeeId, callerPlan);
 }
 
 async function assertSessionOwnership(

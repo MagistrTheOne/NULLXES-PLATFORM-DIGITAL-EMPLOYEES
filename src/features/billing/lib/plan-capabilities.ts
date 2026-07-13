@@ -39,3 +39,7 @@ export function planAllowsApiAccess(
 export function planAllowsCreateEmployees(planId: BillingPlanId): boolean {
   return BILLING_PLANS[planId].limits.canCreateEmployees;
 }
+
+export function planMaxCustomEmployees(planId: BillingPlanId): number | null {
+  return BILLING_PLANS[planId].limits.maxEmployees;
+}

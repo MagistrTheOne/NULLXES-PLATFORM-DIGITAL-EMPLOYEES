@@ -15,7 +15,7 @@ export async function assertCanCreateEmployee(
     return {
       ok: false,
       message:
-        "Evaluation includes curated NULLXES digital employees. Launch Studio, Team, or Scale to create your own.",
+        "Free includes the NULLXES catalog (Adeline + Yuki). Subscribe to Starter or higher to create custom digital employees.",
     };
   }
 
@@ -25,6 +25,7 @@ export async function assertCanCreateEmployee(
     return { ok: true };
   }
 
+  // Platform catalog employees live in the NULLXES org — never count toward seats.
   const [row] = await db
     .select({ total: count() })
     .from(digitalEmployee)
@@ -35,7 +36,7 @@ export async function assertCanCreateEmployee(
   if (total >= limit) {
     return {
       ok: false,
-      message: `Your plan allows ${limit} digital employee${limit === 1 ? "" : "s"}. Launch Studio, Team, or Scale — or contact sales for Digital Department Deployment.`,
+      message: `Your plan allows ${limit} custom digital employee${limit === 1 ? "" : "s"} (NULLXES catalog does not count). Upgrade Team or Scale — or contact sales.`,
     };
   }
 

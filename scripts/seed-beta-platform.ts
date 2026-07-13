@@ -1,7 +1,8 @@
 /**
  * Seed beta platform catalog + partner shell orgs.
  *
- * - Publishes active digital employees from ceo@nullxes.com org into platform_employee_catalog
+ * - Publishes active digital employees from ceo@nullxes.com org (or PLATFORM_CATALOG_ORG_ID)
+ *   into platform_employee_catalog; Adeline + Yuki get starter-pack sort order
  * - Creates Yandex / Tinkoff enterprise shell orgs (idempotent by slug)
  *
  * Usage: npm run beta:seed
@@ -12,6 +13,7 @@ import { membership } from "../src/entities/membership/schema";
 import { organization } from "../src/entities/organization/schema";
 import { platformEmployeeCatalog } from "../src/entities/platform-employee-catalog/schema";
 import { user } from "../src/entities/user/schema";
+import { STARTER_PLATFORM_CATALOG_EMPLOYEE_IDS } from "../src/features/billing/lib/platform-catalog-access";
 import { db } from "../src/shared/db/client";
 
 const CEO_EMAIL = "ceo@nullxes.com";
@@ -32,6 +34,13 @@ const PARTNER_ORGS = [
     note: "Business analytics and B2B department shell",
   },
 ] as const;
+
+function starterSortOrder(employeeId: string, fallback: number): number {
+  const index = STARTER_PLATFORM_CATALOG_EMPLOYEE_IDS.findIndex(
+    (id) => id === employeeId,
+  );
+  return index >= 0 ? index : 100 + fallback;
+}
 
 async function resolveCeoOrganizationId(): Promise<string> {
   const fromEnv = process.env.PLATFORM_CATALOG_ORG_ID?.trim();
@@ -74,13 +83,14 @@ async function seedPlatformCatalog(ceoOrgId: string): Promise<number> {
     .orderBy(asc(digitalEmployee.createdAt));
 
   if (employees.length === 0) {
-    console.log("No CEO employees to publish.");
+    console.log("No platform employees to publish.");
     return 0;
   }
 
   let published = 0;
   for (let index = 0; index < employees.length; index += 1) {
     const employee = employees[index]!;
+    const sortOrder = starterSortOrder(employee.id, index);
     const [existing] = await db
       .select({ id: platformEmployeeCatalog.id })
       .from(platformEmployeeCatalog)
@@ -92,7 +102,7 @@ async function seedPlatformCatalog(ceoOrgId: string): Promise<number> {
         .update(platformEmployeeCatalog)
         .set({
           isPublished: true,
-          sortOrder: index,
+          sortOrder,
         })
         .where(eq(platformEmployeeCatalog.id, existing.id));
       console.log(`  updated catalog: ${employee.name} (${employee.id})`);
@@ -100,7 +110,7 @@ async function seedPlatformCatalog(ceoOrgId: string): Promise<number> {
       await db.insert(platformEmployeeCatalog).values({
         employeeId: employee.id,
         isPublished: true,
-        sortOrder: index,
+        sortOrder,
       });
       console.log(`  published: ${employee.name} (${employee.id})`);
     }
@@ -157,7 +167,7 @@ async function main(): Promise<void> {
   console.log("Seeding beta platform catalog + partner orgs…\n");
 
   const ceoOrgId = await resolveCeoOrganizationId();
-  console.log(`CEO catalog org: ${ceoOrgId}`);
+  console.log(`Platform catalog org: ${ceoOrgId}`);
 
   console.log("\nPlatform catalog:");
   const count = await seedPlatformCatalog(ceoOrgId);

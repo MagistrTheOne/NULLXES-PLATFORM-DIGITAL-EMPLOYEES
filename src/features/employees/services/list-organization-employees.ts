@@ -8,13 +8,12 @@ import { organization } from "@/entities/organization/schema";
 import { employeeProviderConfig } from "@/entities/provider-config/schema";
 import { knowledgeSource } from "@/entities/knowledge/schema";
 import { resolveBillingPlanId } from "@/features/billing/lib/resolve-billing-plan";
-import { planAllowsCreateEmployees } from "@/features/billing/lib/plan-capabilities";
 import { db } from "@/shared/db/client";
 import { withDatabaseRetry } from "@/shared/db/with-database-retry";
 import { isAnamAvatarTalkReady } from "../lib/resolve-anam-avatar-talk-readiness";
 import { readProviderFailureReason } from "../lib/resolve-talk-readiness";
 import type { EmployeeListItem } from "../types";
-import { listPublishedPlatformCatalog } from "./platform-employee-catalog";
+import { listPublishedPlatformCatalogForPlan } from "./platform-employee-catalog";
 
 const DEFAULT_PAGE_SIZE = 24;
 
@@ -179,14 +178,10 @@ export async function listOrganizationEmployees(
   );
 }
 
-/** Cursor that yields the full org list (desc) after a catalog-only first page. */
-const ORG_LIST_START_CURSOR = encodeCursor(
-  new Date("9999-12-31T23:59:59.999Z"),
-  "ffffffff-ffff-ffff-ffff-ffffffffffff",
-);
-
-async function loadPublishedCatalogItems(): Promise<EmployeeListItem[]> {
-  const catalog = await listPublishedPlatformCatalog();
+async function loadPublishedCatalogItemsForPlan(
+  planId: ReturnType<typeof resolveBillingPlanId>,
+): Promise<EmployeeListItem[]> {
+  const catalog = await listPublishedPlatformCatalogForPlan(planId);
   if (catalog.length === 0) {
     return [];
   }
@@ -227,28 +222,11 @@ async function loadOrganizationEmployeesPage(
     .limit(1);
 
   const planId = resolveBillingPlanId(org?.billingPlan ?? "free");
-  const includePlatformCatalog = !planAllowsCreateEmployees(planId);
 
-  // First page only: catalog occupies slots first so total items never exceed limit.
+  // Catalog is additive — never consumes custom-employee page slots.
   let catalogItems: EmployeeListItem[] = [];
-  if (includePlatformCatalog && !cursor) {
-    const allCatalog = await loadPublishedCatalogItems();
-    catalogItems = allCatalog.slice(0, limit);
-  }
-
-  const orgSlots = limit - catalogItems.length;
-
-  if (orgSlots === 0) {
-    const [orgHead] = await db
-      .select({ id: digitalEmployee.id })
-      .from(digitalEmployee)
-      .where(eq(digitalEmployee.organizationId, organizationId))
-      .limit(1);
-
-    return {
-      items: catalogItems,
-      nextCursor: orgHead ? ORG_LIST_START_CURSOR : null,
-    };
+  if (!cursor) {
+    catalogItems = await loadPublishedCatalogItemsForPlan(planId);
   }
 
   const employees = await db
@@ -269,10 +247,10 @@ async function loadOrganizationEmployeesPage(
       ),
     )
     .orderBy(desc(digitalEmployee.createdAt), desc(digitalEmployee.id))
-    .limit(orgSlots + 1);
+    .limit(limit + 1);
 
-  const pageRows = employees.slice(0, orgSlots);
-  const hasMore = employees.length > orgSlots;
+  const pageRows = employees.slice(0, limit);
+  const hasMore = employees.length > limit;
   const orgItems = await hydrateEmployeeListItems(pageRows, "organization");
   const items = [...catalogItems, ...orgItems];
   const last = pageRows[pageRows.length - 1];

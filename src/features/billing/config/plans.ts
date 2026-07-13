@@ -30,7 +30,10 @@ export type BillingPlanDefinition = {
     maxCustomAvatars: number | null;
     maxSeats: number | null;
     apiAccess: ApiAccessLevel;
-    /** Free beta: curated catalog only — no self-serve create. */
+    /**
+     * Custom (org-owned) employees only. Platform catalog never counts.
+     * Free: catalog Talk only — no self-serve create.
+     */
     canCreateEmployees: boolean;
   };
   features: string[];
@@ -41,10 +44,10 @@ export const BILLING_PLANS: Record<BillingPlanId, BillingPlanDefinition> = {
     id: "free",
     name: "Free",
     priceLabel: "0 ₽",
-    description: "Try a digital employee on NULLXES presets.",
+    description: "Talk with NULLXES catalog employees. Build your own on paid plans.",
     checkoutEnabled: false,
     limits: {
-      maxEmployees: 1,
+      maxEmployees: 0,
       maxOrganizations: 1,
       maxSessionSeconds: 120,
       maxTalkMinutesPerMonth: 30,
@@ -56,10 +59,10 @@ export const BILLING_PLANS: Record<BillingPlanId, BillingPlanDefinition> = {
       canCreateEmployees: false,
     },
     features: [
-      "1 digital employee (presets)",
+      "NULLXES catalog: Adeline + Yuki",
       "30 Talk minutes / month",
       "Web chat",
-      "No API",
+      "No custom employees",
     ],
   },
   starter: {
@@ -67,10 +70,10 @@ export const BILLING_PLANS: Record<BillingPlanId, BillingPlanDefinition> = {
     name: "Starter",
     priceLabel: "599 ₽ / mo",
     priceLabelAnnual: "5 759 ₽ / yr",
-    description: "Your first digital employee for everyday work.",
+    description: "NULLXES catalog plus your first custom digital employees.",
     checkoutEnabled: true,
     limits: {
-      maxEmployees: 1,
+      maxEmployees: 2,
       maxOrganizations: 1,
       maxSessionSeconds: 600,
       maxTalkMinutesPerMonth: 60,
@@ -82,12 +85,12 @@ export const BILLING_PLANS: Record<BillingPlanId, BillingPlanDefinition> = {
       canCreateEmployees: true,
     },
     features: [
-      "1 digital employee",
+      "NULLXES catalog: Adeline + Yuki",
+      "2 custom digital employees",
       "Up to 60 Talk minutes / month",
       "Up to 10 knowledge sources",
       "1 personal avatar",
       "Dialog history",
-      "Web interface",
     ],
   },
   studio: {
@@ -95,10 +98,10 @@ export const BILLING_PLANS: Record<BillingPlanId, BillingPlanDefinition> = {
     name: "Studio",
     priceLabel: "4 999 ₽ / mo",
     priceLabelAnnual: "47 999 ₽ / yr",
-    description: "For specialists, founders, and individual work.",
+    description: "Starter catalog access with room for a personal digital team.",
     checkoutEnabled: true,
     limits: {
-      maxEmployees: 1,
+      maxEmployees: 5,
       maxOrganizations: 1,
       maxSessionSeconds: 600,
       maxTalkMinutesPerMonth: 180,
@@ -110,12 +113,12 @@ export const BILLING_PLANS: Record<BillingPlanId, BillingPlanDefinition> = {
       canCreateEmployees: true,
     },
     features: [
-      "1 digital employee",
+      "NULLXES starter catalog",
+      "5 custom digital employees",
       "Up to 180 Talk minutes / month",
       "Expanded knowledge base",
       "Unrestricted personal avatar",
       "History and dialog search",
-      "Priority request handling",
     ],
   },
   operator: {
@@ -123,10 +126,10 @@ export const BILLING_PLANS: Record<BillingPlanId, BillingPlanDefinition> = {
     name: "Team",
     priceLabel: "19 999 ₽ / mo",
     priceLabelAnnual: "191 999 ₽ / yr",
-    description: "A digital team for collaboration and first integrations.",
+    description: "A digital team with extended catalog and first integrations.",
     checkoutEnabled: true,
     limits: {
-      maxEmployees: 3,
+      maxEmployees: 10,
       maxOrganizations: 1,
       maxSessionSeconds: 1_200,
       maxTalkMinutesPerMonth: 600,
@@ -138,12 +141,12 @@ export const BILLING_PLANS: Record<BillingPlanId, BillingPlanDefinition> = {
       canCreateEmployees: true,
     },
     features: [
-      "Up to 3 digital employees",
+      "Extended NULLXES catalog",
+      "10 custom digital employees",
       "Up to 600 Talk minutes / month",
       "Shared workspace",
       "Shared knowledge base",
       "Read API",
-      "Member management",
     ],
   },
   scale: {
@@ -152,10 +155,10 @@ export const BILLING_PLANS: Record<BillingPlanId, BillingPlanDefinition> = {
     priceLabel: "59 999 ₽ / mo",
     priceLabelAnnual: "575 999 ₽ / yr",
     description:
-      "For companies growing a digital team before enterprise deployment.",
+      "Full catalog access for companies growing a digital workforce.",
     checkoutEnabled: true,
     limits: {
-      maxEmployees: 10,
+      maxEmployees: 20,
       maxOrganizations: 1,
       maxSessionSeconds: 1_800,
       maxTalkMinutesPerMonth: 2_000,
@@ -167,11 +170,11 @@ export const BILLING_PLANS: Record<BillingPlanId, BillingPlanDefinition> = {
       canCreateEmployees: true,
     },
     features: [
-      "Up to 10 digital employees",
+      "Full NULLXES catalog",
+      "20+ custom digital employees",
       "Up to 2 000 Talk minutes / month",
       "Full API",
       "Multiple avatars and roles",
-      "Expanded knowledge base",
       "Priority support",
     ],
   },
