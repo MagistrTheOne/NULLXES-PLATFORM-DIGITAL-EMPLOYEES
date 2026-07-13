@@ -4,6 +4,7 @@ import { toolDefinition } from "@/entities/tool-definition/schema";
 import { orgOrSystemScope } from "@/features/agent-blueprint/lib/org-blueprint-scope";
 import { digitalEmployee } from "@/entities/digital-employee/schema";
 import { db } from "@/shared/db/client";
+import { forbidCatalogMutation } from "@/features/employees/services/platform-employee-catalog";
 
 export async function syncEmployeeTool(input: {
   organizationId: string;
@@ -11,6 +12,8 @@ export async function syncEmployeeTool(input: {
   toolDefinitionId: string;
   isEnabled: boolean;
 }): Promise<void> {
+  await forbidCatalogMutation(input.employeeId);
+
   const [employee] = await db
     .select({ id: digitalEmployee.id })
     .from(digitalEmployee)

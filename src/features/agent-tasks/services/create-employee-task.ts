@@ -1,5 +1,6 @@
 import { employeeTask } from "@/entities/task/schema";
 import type { EmployeeTaskSource } from "@/entities/task";
+import { forbidCatalogMutation } from "@/features/employees/services/platform-employee-catalog";
 import { db } from "@/shared/db/client";
 import { inngest, isInngestEnabledForSend } from "@/inngest/client";
 
@@ -13,6 +14,8 @@ export async function createEmployeeTask(input: {
   dueAt?: Date;
   callbackUrl?: string;
 }): Promise<string> {
+  await forbidCatalogMutation(input.employeeId);
+
   const [task] = await db
     .insert(employeeTask)
     .values({

@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { digitalEmployee } from "@/entities/digital-employee/schema";
 import type { EmployeeStatus } from "@/entities/digital-employee";
+import { forbidCatalogMutation } from "@/features/employees/services/platform-employee-catalog";
 import { dbWithTransactions } from "@/shared/db/pool-client";
 import { recordLifecycleEvent } from "../services/record-lifecycle-event";
 import type {
@@ -20,6 +21,8 @@ function assertCanPause(status: EmployeeStatus): void {
 export async function pauseDigitalEmployee(
   input: PauseDigitalEmployeeInput,
 ): Promise<EmployeeStatusChangeResult> {
+  await forbidCatalogMutation(input.employeeId);
+
   return dbWithTransactions.transaction(async (tx) => {
     const [existing] = await tx
       .select()

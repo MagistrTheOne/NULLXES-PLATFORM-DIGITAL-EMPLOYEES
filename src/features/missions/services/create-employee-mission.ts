@@ -16,6 +16,7 @@ import {
 import { db } from "@/shared/db/client";
 import { normalizeProposalDraft } from "../lib/normalize-proposal-draft";
 import { detectMissionLanguage } from "../lib/detect-mission-language";
+import { forbidCatalogMutation } from "@/features/employees/services/platform-employee-catalog";
 
 export { defaultProspectingBrief, defaultProspectingTitle };
 
@@ -32,6 +33,8 @@ export async function createEmployeeMission(input: {
   source?: MissionSource;
   scheduleId?: string;
 }): Promise<string> {
+  await forbidCatalogMutation(input.employeeId);
+
   const [employee] = await db
     .select({ id: digitalEmployee.id })
     .from(digitalEmployee)

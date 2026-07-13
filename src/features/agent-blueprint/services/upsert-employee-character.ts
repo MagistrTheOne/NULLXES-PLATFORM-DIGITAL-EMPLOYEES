@@ -9,8 +9,11 @@ import {
 import { orgOrSystemScope } from "@/features/agent-blueprint/lib/org-blueprint-scope";
 import { digitalEmployee } from "@/entities/digital-employee/schema";
 import { db } from "@/shared/db/client";
+import { forbidCatalogMutation } from "@/features/employees/services/platform-employee-catalog";
 
 async function assertEmployeeInOrg(organizationId: string, employeeId: string) {
+  await forbidCatalogMutation(employeeId);
+
   const [employee] = await db
     .select({ id: digitalEmployee.id })
     .from(digitalEmployee)

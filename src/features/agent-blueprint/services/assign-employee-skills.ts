@@ -5,6 +5,7 @@ import { skill } from "@/entities/skill/schema";
 import { orgOrSystemScope } from "@/features/agent-blueprint/lib/org-blueprint-scope";
 import { digitalEmployee } from "@/entities/digital-employee/schema";
 import { db } from "@/shared/db/client";
+import { forbidCatalogMutation } from "@/features/employees/services/platform-employee-catalog";
 
 export type EmployeeSkillAssignment = {
   skillId: string;
@@ -18,6 +19,8 @@ export async function assignEmployeeSkills(input: {
   employeeId: string;
   assignments: EmployeeSkillAssignment[];
 }): Promise<void> {
+  await forbidCatalogMutation(input.employeeId);
+
   const [employee] = await db
     .select({ id: digitalEmployee.id })
     .from(digitalEmployee)
@@ -82,6 +85,8 @@ export async function removeEmployeeSkill(input: {
   employeeId: string;
   skillId: string;
 }): Promise<void> {
+  await forbidCatalogMutation(input.employeeId);
+
   await db
     .delete(employeeSkill)
     .where(

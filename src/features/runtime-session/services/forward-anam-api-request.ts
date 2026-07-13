@@ -33,7 +33,7 @@ function corsHeadersForOrigin(origin: string | null): HeadersInit {
   const headers: Record<string, string> = {
     "Access-Control-Allow-Methods": "GET, POST, HEAD, OPTIONS",
     "Access-Control-Allow-Headers":
-      "Authorization, Content-Type, X-Anam-Target-Url",
+      "Authorization, Content-Type, X-Anam-Target-Url, X-Nullxes-Demo-Token",
     "Access-Control-Max-Age": "86400",
     Vary: "Origin",
   };

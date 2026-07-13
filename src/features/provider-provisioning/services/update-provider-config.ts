@@ -1,6 +1,7 @@
 import { and, eq } from "drizzle-orm";
 import type { ProviderConfigType } from "@/entities/provider-config";
 import { employeeProviderConfig } from "@/entities/provider-config/schema";
+import { forbidCatalogMutation } from "@/features/employees/services/platform-employee-catalog";
 import { db } from "@/shared/db/client";
 
 export async function getProviderConfigRow(
@@ -25,7 +26,12 @@ export async function mergeProviderConfig(
   employeeId: string,
   providerType: ProviderConfigType,
   patch: Record<string, unknown>,
+  options?: { allowCatalogMutation?: boolean },
 ): Promise<Record<string, unknown>> {
+  if (!options?.allowCatalogMutation) {
+    await forbidCatalogMutation(employeeId);
+  }
+
   const row = await getProviderConfigRow(employeeId, providerType);
   if (!row) {
     throw new Error(`Provider config missing for type ${providerType}`);

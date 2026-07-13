@@ -68,29 +68,39 @@ export async function repointEmployeeAnamSlot(input: {
     throw new Error("Employee not found");
   }
 
-  await mergeProviderConfig(input.employeeId, "avatar", {
-    provisioningStatus: "pending",
-    personaId: undefined,
-    avatarId: undefined,
-    previewUrl: undefined,
-    failureReason: undefined,
-    providerMetadata: {
-      ...metadata,
-      anamApiKeySlot: slot,
-      repointedAt: new Date().toISOString(),
-      repointedFromSlot: previousSlot,
-      repointReason: "admin_slot_pin",
+  await mergeProviderConfig(
+    input.employeeId,
+    "avatar",
+    {
+      provisioningStatus: "pending",
+      personaId: undefined,
+      avatarId: undefined,
+      previewUrl: undefined,
+      failureReason: undefined,
+      providerMetadata: {
+        ...metadata,
+        anamApiKeySlot: slot,
+        repointedAt: new Date().toISOString(),
+        repointedFromSlot: previousSlot,
+        repointReason: "admin_slot_pin",
+      },
     },
-  });
+    { allowCatalogMutation: true },
+  );
 
   const sessionRow = await getProviderConfigRow(input.employeeId, "session");
   if (sessionRow) {
     const sessionConfig = sessionRow.config as SessionProviderConfigPayload;
     if (sessionConfig.provisioningStatus === "failed") {
-      await mergeProviderConfig(input.employeeId, "session", {
-        provisioningStatus: "pending",
-        failureReason: undefined,
-      });
+      await mergeProviderConfig(
+        input.employeeId,
+        "session",
+        {
+          provisioningStatus: "pending",
+          failureReason: undefined,
+        },
+        { allowCatalogMutation: true },
+      );
     }
   }
 

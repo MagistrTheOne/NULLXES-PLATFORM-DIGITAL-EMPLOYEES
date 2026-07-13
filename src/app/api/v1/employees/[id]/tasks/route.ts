@@ -3,6 +3,10 @@ import {
   enqueueEmployeeTask,
 } from "@/features/agent-tasks";
 import { getEmployeeDetail } from "@/features/employees/services/get-employee-detail";
+import {
+  CATALOG_IMMUTABLE_MESSAGE,
+  CatalogEmployeeImmutableError,
+} from "@/features/employees/services/platform-employee-catalog";
 import { authenticateApiKeyRequest } from "@/features/public-api/middleware/authenticate-api-key";
 import { apiError, apiSuccess } from "@/features/public-api/lib/api-response";
 import { recordWorkEvent } from "@/features/work-event";
@@ -61,15 +65,28 @@ export async function POST(
     });
   }
 
-  const taskId = await createEmployeeTask({
-    organizationId: auth.organizationId,
-    employeeId,
-    title,
-    description: message,
-    source: "api",
-    dueAt,
-    callbackUrl,
-  });
+  let taskId: string;
+  try {
+    taskId = await createEmployeeTask({
+      organizationId: auth.organizationId,
+      employeeId,
+      title,
+      description: message,
+      source: "api",
+      dueAt,
+      callbackUrl,
+    });
+  } catch (error: unknown) {
+    if (
+      error instanceof CatalogEmployeeImmutableError ||
+      (error instanceof Error && error.message === CATALOG_IMMUTABLE_MESSAGE)
+    ) {
+      return apiError(CATALOG_IMMUTABLE_MESSAGE, 403, {
+        requestId: auth.requestId,
+      });
+    }
+    throw error;
+  }
 
   await enqueueEmployeeTask({
     taskId,

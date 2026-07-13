@@ -2,12 +2,23 @@ import type { BrainProvider, EmployeeStatus } from "@/entities/digital-employee"
 import { deleteEmployee } from "@/features/employees/services/delete-employee";
 import { getEmployeeDetail } from "@/features/employees/services/get-employee-detail";
 import { updateEmployee } from "@/features/employees/services/update-employee";
+import { CATALOG_IMMUTABLE_MESSAGE } from "@/features/employees/services/platform-employee-catalog";
 import { authenticateApiKeyRequest } from "@/features/public-api/middleware/authenticate-api-key";
 import { apiError, apiSuccess } from "@/features/public-api/lib/api-response";
 import { dispatchOrganizationWebhook } from "@/features/public-api/services/dispatch-outbound-webhook";
 import { recordAuditEvent } from "@/features/security/services/record-audit-event";
 
 type RouteContext = { params: Promise<{ id: string }> };
+
+function mutationErrorStatus(message: string): number {
+  if (message === CATALOG_IMMUTABLE_MESSAGE) {
+    return 403;
+  }
+  if (message === "Employee not found") {
+    return 404;
+  }
+  return 400;
+}
 
 export async function GET(
   request: Request,
@@ -90,7 +101,9 @@ export async function PATCH(
   });
 
   if (!result.ok) {
-    return apiError(result.message, 400, { requestId: auth.requestId });
+    return apiError(result.message, mutationErrorStatus(result.message), {
+      requestId: auth.requestId,
+    });
   }
 
   recordAuditEvent({
@@ -122,7 +135,9 @@ export async function DELETE(
   const result = await deleteEmployee(auth.organizationId, id);
 
   if (!result.ok) {
-    return apiError(result.message, 404, { requestId: auth.requestId });
+    return apiError(result.message, mutationErrorStatus(result.message), {
+      requestId: auth.requestId,
+    });
   }
 
   recordAuditEvent({

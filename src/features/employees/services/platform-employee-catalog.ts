@@ -70,15 +70,72 @@ export async function isPublishedPlatformCatalogEmployee(
   return Boolean(row);
 }
 
-export async function assertNotPlatformCatalogEmployee(
+export const CATALOG_IMMUTABLE_MESSAGE =
+  "NULLXES catalog employees are read-only. Create a custom digital employee to edit your own workforce.";
+
+/**
+ * Domain-layer immutability for published Platform Catalog employees.
+ * Use on every definition write (CRUD, blueprint, knowledge, missions, tasks, providers).
+ * Talk/sessions are intentionally not gated here.
+ */
+export async function assertCatalogEmployeeImmutable(
   employeeId: string,
 ): Promise<{ ok: true } | { ok: false; message: string }> {
   if (await isPublishedPlatformCatalogEmployee(employeeId)) {
-    return {
-      ok: false,
-      message:
-        "NULLXES catalog employees are read-only. Create a custom digital employee to edit your own workforce.",
-    };
+    return { ok: false, message: CATALOG_IMMUTABLE_MESSAGE };
+  }
+
+  return { ok: true };
+}
+
+/** Alias kept for existing action call sites. */
+export async function assertNotPlatformCatalogEmployee(
+  employeeId: string,
+): Promise<{ ok: true } | { ok: false; message: string }> {
+  return assertCatalogEmployeeImmutable(employeeId);
+}
+
+export class CatalogEmployeeImmutableError extends Error {
+  readonly status = 403;
+
+  constructor(message = CATALOG_IMMUTABLE_MESSAGE) {
+    super(message);
+    this.name = "CatalogEmployeeImmutableError";
+  }
+}
+
+export async function forbidCatalogMutation(employeeId: string): Promise<void> {
+  const guard = await assertCatalogEmployeeImmutable(employeeId);
+  if (!guard.ok) {
+    throw new CatalogEmployeeImmutableError(guard.message);
+  }
+}
+
+/**
+ * Custom employees only: must belong to organizationId and not be catalog.
+ */
+export async function assertEmployeeWritableInOrg(
+  organizationId: string,
+  employeeId: string,
+): Promise<{ ok: true } | { ok: false; message: string }> {
+  const catalogGuard = await assertCatalogEmployeeImmutable(employeeId);
+  if (!catalogGuard.ok) {
+    return catalogGuard;
+  }
+
+  const [row] = await db
+    .select({ id: digitalEmployee.id })
+    .from(digitalEmployee)
+    .where(
+      and(
+        eq(digitalEmployee.id, employeeId),
+        eq(digitalEmployee.organizationId, organizationId),
+      ),
+    )
+    .limit(1);
+
+  if (!row) {
+    return { ok: false, message: "Employee not found" };
   }
 
   return { ok: true };

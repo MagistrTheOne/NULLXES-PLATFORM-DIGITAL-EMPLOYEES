@@ -1,19 +1,18 @@
 import { getCurrentSession } from "@/features/auth/services/get-current-session";
 import {
+  LANDING_DEMO_TOKEN_HEADER,
+  verifyLandingDemoToken,
+} from "@/features/landing/lib/landing-demo-token";
+import {
+  consumeAnamProxyQuota,
+  consumePlatformAnamQuota,
+} from "@/features/runtime-session/lib/anam-proxy-quota";
+import {
   anamProxyPreflightResponse,
   forwardAnamApiRequest,
 } from "@/features/runtime-session/services/forward-anam-api-request";
-import { checkRateLimit } from "@/shared/security/rate-limit";
 
 export const runtime = "nodejs";
-
-function clientIp(request: Request): string {
-  const forwarded = request.headers.get("x-forwarded-for");
-  if (forwarded) {
-    return forwarded.split(",")[0]?.trim() || "unknown";
-  }
-  return request.headers.get("x-real-ip")?.trim() || "unknown";
-}
 
 async function handleProxy(request: Request): Promise<Response> {
   if (request.method === "OPTIONS") {
@@ -21,17 +20,37 @@ async function handleProxy(request: Request): Promise<Response> {
   }
 
   const session = await getCurrentSession();
-  if (!session) {
-    // Landing Adeline Talk demo uses the same proxy without a workspace session.
-    const rate = await checkRateLimit({
-      name: "anam-proxy-public",
-      key: clientIp(request),
-      limit: 180,
-      windowMs: 60 * 1000,
-    });
-    if (!rate.ok) {
-      return Response.json({ error: "Too many requests" }, { status: 429 });
-    }
+  const demoToken = request.headers.get(LANDING_DEMO_TOKEN_HEADER);
+  const demoOk = verifyLandingDemoToken(demoToken);
+
+  if (!session && !demoOk) {
+    return Response.json(
+      { error: "Authentication required for Anam proxy." },
+      { status: 401 },
+    );
+  }
+
+  const subject = session
+    ? `user:${session.user.id}`
+    : "demo:landing-adeline";
+
+  const platform = await consumePlatformAnamQuota();
+  if (!platform.ok) {
+    return Response.json(
+      { error: "Platform Anam quota exceeded. Try again shortly." },
+      { status: 429 },
+    );
+  }
+
+  const bucket = await consumeAnamProxyQuota({
+    subject,
+    perMinute: session ? 90 : 30,
+  });
+  if (!bucket.ok) {
+    return Response.json(
+      { error: "Too many Anam proxy requests." },
+      { status: 429 },
+    );
   }
 
   return forwardAnamApiRequest(request);

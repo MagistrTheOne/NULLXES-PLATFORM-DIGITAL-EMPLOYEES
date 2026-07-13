@@ -9,6 +9,7 @@ import {
   enqueueEmployeeMission,
 } from "@/features/missions/services/create-employee-mission";
 import { requireWorkspacePermissionOrThrowMessage } from "@/features/workspace";
+import { assertCatalogEmployeeImmutable } from "@/features/employees/services/platform-employee-catalog";
 import { db } from "@/shared/db/client";
 
 import { parseMissionSkills } from "../lib/parse-mission-skills";
@@ -30,6 +31,11 @@ export async function updateMissionAction(input: {
     const workspace = await requireWorkspacePermissionOrThrowMessage(
       "canOperateEmployees",
     );
+
+    const catalogGuard = await assertCatalogEmployeeImmutable(input.employeeId);
+    if (!catalogGuard.ok) {
+      return catalogGuard;
+    }
 
     const missionId = input.missionId.trim();
     const title = input.title.trim();

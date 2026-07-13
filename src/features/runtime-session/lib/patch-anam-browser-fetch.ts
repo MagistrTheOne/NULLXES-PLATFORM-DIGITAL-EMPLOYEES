@@ -4,8 +4,27 @@ import {
 } from "./anam-proxy-target";
 
 const ANAM_CLIENT_METRICS_SUFFIX = "/v1/metrics/client";
+const DEMO_TOKEN_STORAGE_KEY = "nullxes:landing-demo-token";
 
 let installed = false;
+
+export function setLandingDemoProxyToken(token: string | null): void {
+  if (typeof window === "undefined") {
+    return;
+  }
+  if (!token) {
+    window.sessionStorage.removeItem(DEMO_TOKEN_STORAGE_KEY);
+    return;
+  }
+  window.sessionStorage.setItem(DEMO_TOKEN_STORAGE_KEY, token);
+}
+
+function readLandingDemoProxyToken(): string | null {
+  if (typeof window === "undefined") {
+    return null;
+  }
+  return window.sessionStorage.getItem(DEMO_TOKEN_STORAGE_KEY);
+}
 
 function resolveFetchUrl(input: RequestInfo | URL): string {
   if (typeof input === "string") {
@@ -45,6 +64,10 @@ export function patchAnamBrowserFetch(): void {
     if (shouldProxyAnamBrowserFetch(url)) {
       const headers = new Headers(init?.headers);
       headers.set("X-Anam-Target-Url", url);
+      const demoToken = readLandingDemoProxyToken();
+      if (demoToken) {
+        headers.set("X-Nullxes-Demo-Token", demoToken);
+      }
 
       return nativeFetch(buildAnamProxyUrl(url, window.location.origin), {
         ...init,

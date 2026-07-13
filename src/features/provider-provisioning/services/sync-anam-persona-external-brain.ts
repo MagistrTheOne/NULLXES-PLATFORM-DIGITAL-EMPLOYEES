@@ -102,13 +102,18 @@ export async function syncAnamPersonaExternalBrain(input: {
             .providerMetadata ?? {})
         : {};
 
-    await mergeProviderConfig(employeeId, "avatar", {
-      providerMetadata: {
-        ...existingMetadata,
-        externalBrainSyncedAt: new Date().toISOString(),
-        externalBrainLlmId: ANAM_EXTERNAL_LLM_ID,
+    await mergeProviderConfig(
+      employeeId,
+      "avatar",
+      {
+        providerMetadata: {
+          ...existingMetadata,
+          externalBrainSyncedAt: new Date().toISOString(),
+          externalBrainLlmId: ANAM_EXTERNAL_LLM_ID,
+        },
       },
-    });
+      { allowCatalogMutation: true },
+    );
   } catch {
     // Best-effort metadata persistence; talk start can retry sync later.
   }

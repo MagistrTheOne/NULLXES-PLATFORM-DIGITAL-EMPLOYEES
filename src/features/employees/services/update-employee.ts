@@ -17,8 +17,9 @@ import {
 } from "@/features/settings/lib/brain-model-defaults";
 import { isBrainProviderSelectable } from "@/features/brain/lib/brain-provider-readiness";
 import { getBrainProviderReadinessMap } from "@/features/brain/lib/brain-provider-readiness";
-import { dbWithTransactions } from "@/shared/db/pool-client";
-import { getEmployeeForOrganization } from "./get-employee-for-organization";
+import { db } from "@/shared/db/client";
+import { withTenantContext } from "@/shared/db/with-tenant-context";
+import { assertEmployeeWritableInOrg } from "./platform-employee-catalog";
 import { getProviderConfigRow } from "@/features/provider-provisioning/services/update-provider-config";
 import { provisionXaiVoiceForEmployee } from "@/features/xai-voice/services/provision-xai-voice-for-employee";
 import { isXaiVoiceConfigured } from "@/shared/config/xai-voice-env";
@@ -98,10 +99,24 @@ export async function updateEmployee(
     };
   }
 
-  const existing = await getEmployeeForOrganization(
+  const writable = await assertEmployeeWritableInOrg(
     input.organizationId,
     input.employeeId,
   );
+  if (!writable.ok) {
+    return writable;
+  }
+
+  const [existing] = await db
+    .select()
+    .from(digitalEmployee)
+    .where(
+      and(
+        eq(digitalEmployee.id, input.employeeId),
+        eq(digitalEmployee.organizationId, input.organizationId),
+      ),
+    )
+    .limit(1);
 
   if (!existing) {
     return { ok: false, message: "Employee not found" };
@@ -125,7 +140,7 @@ export async function updateEmployee(
     input.xaiVoiceAgentId !== undefined;
 
   try {
-    await dbWithTransactions.transaction(async (tx) => {
+    await withTenantContext(input.organizationId, async (tx) => {
       const [runtime] = await tx
         .select()
         .from(employeeRuntime)
@@ -141,7 +156,12 @@ export async function updateEmployee(
           status: input.status,
           brainProvider: input.brainProvider,
         })
-        .where(eq(digitalEmployee.id, input.employeeId));
+        .where(
+          and(
+            eq(digitalEmployee.id, input.employeeId),
+            eq(digitalEmployee.organizationId, input.organizationId),
+          ),
+        );
 
       if (runtime) {
         await tx

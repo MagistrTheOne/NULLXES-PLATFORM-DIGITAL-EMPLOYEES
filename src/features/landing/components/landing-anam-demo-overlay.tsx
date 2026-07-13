@@ -18,6 +18,7 @@ import {
   releaseAnamInputAudioStream,
 } from "@/features/runtime-session/lib/acquire-anam-input-audio-stream";
 import { attachTalkVoicePipeline } from "@/features/runtime-session/lib/attach-talk-voice-pipeline";
+import { setLandingDemoProxyToken } from "@/features/runtime-session/lib/patch-anam-browser-fetch";
 import type { TalkPipelineState } from "@/features/runtime-session/context/talk-anam-context";
 import { ADELINE_KALEN_EMPLOYEE_ID } from "@/shared/config/xai-voice-env";
 import { cn } from "@/lib/utils";
@@ -48,6 +49,7 @@ function pipelineLabel(state: TalkPipelineState): string {
 
 type DemoPayload = {
   sessionToken: string;
+  demoProxyToken?: string;
   maxDurationSec?: number;
   employeeId?: string;
   employeeName?: string;
@@ -156,6 +158,7 @@ export function LandingAnamDemoOverlay({
     if (client) {
       await client.stopStreaming().catch(() => undefined);
     }
+    setLandingDemoProxyToken(null);
     setPipelineState("idle");
     setMicPermission("unknown");
     setMicMuted(false);
@@ -182,6 +185,8 @@ export function LandingAnamDemoOverlay({
       if (!response.ok || !payload.sessionToken) {
         throw new Error(payload.error ?? "Failed to start Talk demo");
       }
+
+      setLandingDemoProxyToken(payload.demoProxyToken ?? null);
 
       const maxSec =
         typeof payload.maxDurationSec === "number" && payload.maxDurationSec > 0

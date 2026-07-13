@@ -38,3 +38,10 @@ Partner orgs: `enterprise` plan, `dataRegion=ru`, no memberships yet. Invite own
 ## Sidebar billing
 
 Shows live Polar price when subscribed; Evaluation shows `$0`; manual enterprise shows `Contact sales` (no “Assigned by NULLXES” in sidebar).
+
+## Security (P0–P2)
+
+- Published catalog employees are immutable at the domain layer (Public API returns 403 on definition writes).
+- Tenant RLS: see `docs/RLS.md` (`0042_tenant_rls`).
+- `/api/anam` requires Better Auth session or short-lived landing demo token; Anam API keys stay server-side.
+- **No RU data-residency claim** until a dedicated RU database contour exists (VK Managed PG + object storage). `dataRegion=ru` on beta orgs is a product flag only until cutover.

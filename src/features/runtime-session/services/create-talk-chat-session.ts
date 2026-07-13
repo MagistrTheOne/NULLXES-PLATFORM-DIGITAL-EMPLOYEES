@@ -124,12 +124,17 @@ export async function createTalkChatSession(
           ? employee.sessionProviderMetadata
           : {};
 
-      await mergeProviderConfig(employeeId, "session", {
-        providerMetadata: {
-          ...existingSessionMetadata,
-          streamChatProvisionedAt: new Date().toISOString(),
-        },
-      } satisfies Partial<SessionProviderConfigPayload>);
+      await mergeProviderConfig(
+        employeeId,
+        "session",
+        {
+          providerMetadata: {
+            ...existingSessionMetadata,
+            streamChatProvisionedAt: new Date().toISOString(),
+          },
+        } satisfies Partial<SessionProviderConfigPayload>,
+        { allowCatalogMutation: true },
+      );
     }
   }
 
