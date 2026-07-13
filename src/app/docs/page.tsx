@@ -135,6 +135,16 @@ export default function DocsOverviewPage() {
             </dd>
           </div>
           <div>
+            <dt className="text-white/40">Юридический адрес</dt>
+            <dd className="mt-1 text-white">{DOCS_LEGAL_ENTITY.address}</dd>
+          </div>
+          <div>
+            <dt className="text-white/40">
+              {DOCS_LEGAL_ENTITY.directorTitle}
+            </dt>
+            <dd className="mt-1 text-white">{DOCS_LEGAL_ENTITY.director}</dd>
+          </div>
+          <div>
             <dt className="text-white/40">Email</dt>
             <dd className="mt-1">
               <a

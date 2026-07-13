@@ -1,9 +1,8 @@
-import type { BillingInterval } from "./plans";
+import type { BillingInterval, BillingPlanId } from "./plans";
 import type { PricingTierId } from "./pricing-tiers";
 
 /**
  * Provisional RUB presentment for T-Bank checkout (same merchant for en + ru).
- * Exact commercial RUB list can replace these without touching Polar USD catalog.
  */
 const RUB_MONTHLY: Partial<Record<PricingTierId, number>> = {
   free: 0,
@@ -18,6 +17,26 @@ const RUB_ANNUAL: Partial<Record<PricingTierId, number>> = {
   scale: 575_000,
 };
 
+export type SelfServeCheckoutPlanId = "studio" | "operator" | "scale";
+
+export function getRubAmountRubles(
+  planId: SelfServeCheckoutPlanId,
+  interval: BillingInterval,
+): number | null {
+  if (interval === "year") {
+    return RUB_ANNUAL[planId] ?? null;
+  }
+  return RUB_MONTHLY[planId] ?? null;
+}
+
+export function getRubAmountKopecks(
+  planId: SelfServeCheckoutPlanId,
+  interval: BillingInterval,
+): number | null {
+  const rubles = getRubAmountRubles(planId, interval);
+  return rubles == null ? null : rubles * 100;
+}
+
 export function formatRubAmount(amount: number, locale: string): string {
   return `${amount.toLocaleString(locale === "ru" ? "ru-RU" : "en-US")} ₽`;
 }
@@ -26,7 +45,10 @@ export function getRubTierPrice(
   tierId: PricingTierId,
   interval: BillingInterval,
   locale: string,
-): { priceLabel: string; priceNoteKey: "rfNoCard" | "perMonth" | "perYear" | "sales" } | null {
+): {
+  priceLabel: string;
+  priceNoteKey: "rfNoCard" | "perMonth" | "perYear" | "sales";
+} | null {
   if (tierId === "free") {
     return { priceLabel: formatRubAmount(0, locale), priceNoteKey: "rfNoCard" };
   }
@@ -56,4 +78,39 @@ export function getRubTierPrice(
     priceLabel: formatRubAmount(monthly, locale),
     priceNoteKey: "perMonth",
   };
+}
+
+/** Encode plan into OrderId (≤50 chars). Example: nx-studio-m-1720000000-a1b2c3d4 */
+export function buildTbankOrderId(input: {
+  planId: SelfServeCheckoutPlanId | "test";
+  interval?: BillingInterval;
+  suffix: string;
+}): string {
+  const intervalCode =
+    input.planId === "test" ? "t" : input.interval === "year" ? "y" : "m";
+  return `nx-${input.planId}-${intervalCode}-${input.suffix}`.slice(0, 50);
+}
+
+export function parseTbankOrderId(orderId: string): {
+  planId: SelfServeCheckoutPlanId | "test" | null;
+  interval: BillingInterval | null;
+} {
+  const match = orderId.match(/^nx-(studio|operator|scale|test)-([myt])-/);
+  if (!match) {
+    return { planId: null, interval: null };
+  }
+  const planId = match[1] as SelfServeCheckoutPlanId | "test";
+  if (planId === "test") {
+    return { planId: "test", interval: null };
+  }
+  return {
+    planId,
+    interval: match[2] === "y" ? "year" : "month",
+  };
+}
+
+export function toBillingPlanId(
+  planId: SelfServeCheckoutPlanId,
+): BillingPlanId {
+  return planId;
 }

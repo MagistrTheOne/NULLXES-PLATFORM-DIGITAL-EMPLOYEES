@@ -41,6 +41,10 @@ export default function DocsPersonalDataPage() {
             </dd>
           </div>
           <div>
+            <dt className="text-white/40">Юридический адрес</dt>
+            <dd className="mt-1 text-white">{DOCS_LEGAL_ENTITY.address}</dd>
+          </div>
+          <div>
             <dt className="text-white/40">Руководитель</dt>
             <dd className="mt-1 text-white">{DOCS_LEGAL_ENTITY.director}</dd>
           </div>

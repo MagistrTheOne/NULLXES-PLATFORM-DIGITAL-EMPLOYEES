@@ -2,13 +2,21 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import type { BillingInterval } from "@/features/billing/config/plans";
+import type { SelfServeCheckoutPlanId } from "@/features/billing/config/rub-pricing";
 
 export function TbankPayButton({
   label,
   className,
+  planId,
+  interval = "month",
+  pendingLabel,
 }: {
   label: string;
   className?: string;
+  planId?: SelfServeCheckoutPlanId | "test";
+  interval?: BillingInterval;
+  pendingLabel?: string;
 }) {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -19,6 +27,11 @@ export function TbankPayButton({
     try {
       const response = await fetch("/api/billing/tbank/init", {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          planId: planId === "test" ? undefined : planId,
+          interval,
+        }),
       });
       const data = (await response.json()) as {
         paymentUrl?: string;
@@ -28,14 +41,14 @@ export function TbankPayButton({
       if (!response.ok || !data.paymentUrl) {
         setError(
           [data.error, data.details].filter(Boolean).join(" — ") ||
-            "Не удалось создать платёж",
+            "Payment failed",
         );
         setPending(false);
         return;
       }
       window.location.assign(data.paymentUrl);
     } catch {
-      setError("Сеть: не удалось создать платёж");
+      setError("Network error");
       setPending(false);
     }
   }
@@ -49,7 +62,7 @@ export function TbankPayButton({
         disabled={pending}
         onClick={() => void startPayment()}
       >
-        {pending ? "Переход…" : label}
+        {pending ? (pendingLabel ?? "…") : label}
       </Button>
       {error ? (
         <p className="max-w-sm text-left text-xs text-muted-foreground sm:text-right">

@@ -147,10 +147,19 @@ export function SettingsBillingTab({
     }
 
     if (tier.engagement === "self_serve") {
-      if (canManageOrganization && tbankReady) {
+      if (
+        canManageOrganization &&
+        tbankReady &&
+        (tier.id === "studio" ||
+          tier.id === "operator" ||
+          tier.id === "scale")
+      ) {
         return (
           <TbankPayButton
-            label={t("payWithTbank")}
+            label={t("subscribe")}
+            planId={tier.id}
+            interval={billingInterval}
+            pendingLabel={t("subscribePending")}
             className="w-full justify-center border-border bg-foreground text-background hover:bg-foreground/90"
           />
         );
@@ -273,7 +282,7 @@ export function SettingsBillingTab({
               ) : null}
             </div>
             <p className="mt-1 text-sm text-muted-foreground">
-              {t("currentPlanPriceHint")} · {currentPlanDisplay.description}
+              {currentPlanDisplay.description}
             </p>
             {billing.subscription ? (
               <p className="mt-2 text-xs text-muted-foreground">
@@ -302,11 +311,6 @@ export function SettingsBillingTab({
       </SettingsCard>
 
       <SettingsCard title={t("selfServe")} description={t("selfServeDesc")}>
-        <div className="mb-4 space-y-2">
-          <p className="text-sm text-muted-foreground">{t("tbankCheckoutNote")}</p>
-          <p className="text-xs text-muted-foreground">{t("rfFiscalNote")}</p>
-        </div>
-
         <div
           className="mb-4 inline-flex rounded-full border border-border bg-background/40 p-1"
           role="group"
@@ -381,17 +385,13 @@ export function SettingsBillingTab({
                 <p className="mt-1 text-sm text-muted-foreground">
                   {t("paymentTestBody")}
                 </p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {t("tbankReceiptMeta", {
-                    taxation: billing.tbank.taxation,
-                    vat: billing.tbank.vat,
-                  })}
-                </p>
               </div>
               <div className="flex shrink-0 flex-col gap-2 sm:items-end">
                 {tbankReady ? (
                   <TbankPayButton
                     label={t("paymentTestCta")}
+                    planId="test"
+                    pendingLabel={t("subscribePending")}
                     className="border-border bg-foreground text-background hover:bg-foreground/90"
                   />
                 ) : (

@@ -180,6 +180,28 @@ export const DOCS_NAV: DocsNavGroup[] = [
           { id: "liability", label: "Ответственность" },
         ],
       },
+      {
+        href: "/docs/offer",
+        label: "Публичная оферта",
+        breadcrumb: "Публичная оферта",
+        toc: [
+          { id: "seller", label: "Исполнитель" },
+          { id: "subject", label: "Предмет" },
+          { id: "prices", label: "Цены и срок" },
+          { id: "order", label: "Оформление и оплата" },
+          { id: "refund", label: "Возврат и претензии" },
+          { id: "personal-data", label: "Персональные данные" },
+        ],
+      },
+      {
+        href: "/docs/company",
+        label: "Реквизиты",
+        breadcrumb: "Реквизиты",
+        toc: [
+          { id: "requisites", label: "Юридические реквизиты" },
+          { id: "contacts", label: "Контакты" },
+        ],
+      },
     ],
   },
 ];

@@ -4,6 +4,7 @@ import {
   isTbankConfigured,
 } from "@/features/billing/tbank/config";
 import { verifyTbankToken } from "@/features/billing/tbank/token";
+import { applyTbankPaymentConfirmation } from "@/features/billing/tbank/apply-tbank-payment";
 
 /**
  * T-Bank NotificationURL handler.
@@ -41,13 +42,32 @@ export async function POST(request: Request): Promise<Response> {
     return new NextResponse("INVALID_TOKEN", { status: 403 });
   }
 
-  // C1: acknowledge only. Plan upgrade lands in a later iteration.
-  console.info("[tbank/notification]", {
-    status: payload.Status,
-    orderId: payload.OrderId,
-    paymentId: payload.PaymentId,
-    success: payload.Success,
-  });
+  const orderId = String(payload.OrderId ?? "");
+  const customerKey =
+    typeof payload.CustomerKey === "string"
+      ? payload.CustomerKey
+      : typeof payload.customerKey === "string"
+        ? payload.customerKey
+        : undefined;
+
+  try {
+    const result = await applyTbankPaymentConfirmation({
+      orderId,
+      customerKey,
+      status: String(payload.Status ?? ""),
+      success: payload.Success as boolean | string | undefined,
+    });
+    console.info("[tbank/notification]", {
+      status: payload.Status,
+      orderId,
+      paymentId: payload.PaymentId,
+      success: payload.Success,
+      ...result,
+    });
+  } catch (error) {
+    console.error("[tbank/notification] apply failed", error);
+    // Still ACK — bank retries otherwise; ops can reconcile via GetState.
+  }
 
   return new NextResponse("OK", {
     status: 200,
