@@ -327,35 +327,40 @@ export function SettingsBillingTab({
       </SettingsCard>
 
       <SettingsCard title={t("selfServe")} description={t("selfServeDesc")}>
-        <div
-          className="mb-4 inline-flex rounded-full border border-border bg-background/40 p-1"
-          role="group"
-          aria-label={t("billingInterval")}
-        >
-          <button
-            type="button"
-            onClick={() => setBillingInterval("month")}
-            className={cn(
-              "rounded-full px-3 py-1.5 text-xs font-medium transition-colors",
-              billingInterval === "month"
-                ? "bg-foreground text-background"
-                : "text-muted-foreground hover:text-foreground",
-            )}
+        <div className="mb-4 flex flex-wrap items-center gap-3">
+          <div
+            className="inline-flex rounded-full border border-border bg-background/40 p-1"
+            role="group"
+            aria-label={t("billingInterval")}
           >
-            {t("billingIntervalMonthly")}
-          </button>
-          <button
-            type="button"
-            onClick={() => setBillingInterval("year")}
-            className={cn(
-              "rounded-full px-3 py-1.5 text-xs font-medium transition-colors",
-              billingInterval === "year"
-                ? "bg-foreground text-background"
-                : "text-muted-foreground hover:text-foreground",
-            )}
-          >
-            {t("billingIntervalAnnual")}
-          </button>
+            <button
+              type="button"
+              onClick={() => setBillingInterval("month")}
+              className={cn(
+                "rounded-full px-3 py-1.5 text-xs font-medium transition-colors",
+                billingInterval === "month"
+                  ? "bg-foreground text-background"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              {t("billingIntervalMonthly")}
+            </button>
+            <button
+              type="button"
+              onClick={() => setBillingInterval("year")}
+              className={cn(
+                "rounded-full px-3 py-1.5 text-xs font-medium transition-colors",
+                billingInterval === "year"
+                  ? "bg-foreground text-background"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              {t("billingIntervalAnnual")}
+            </button>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {t("billingIntervalAnnualSave")}
+          </p>
         </div>
 
         {renderTierGrid(selfServeTiers, "self_serve")}
