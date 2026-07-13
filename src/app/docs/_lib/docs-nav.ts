@@ -44,7 +44,10 @@ export const DOCS_NAV: DocsNavGroup[] = [
         breadcrumb: "Архитектура",
         toc: [
           { id: "stack", label: "Стек" },
-          { id: "flow", label: "Поток данных" },
+          { id: "c4", label: "C4 Containers" },
+          { id: "flow", label: "Talk sequence" },
+          { id: "missions", label: "Missions" },
+          { id: "erd", label: "ERD" },
         ],
       },
       {

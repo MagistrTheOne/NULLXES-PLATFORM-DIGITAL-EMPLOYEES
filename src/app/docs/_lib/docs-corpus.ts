@@ -23,6 +23,18 @@ export const DOCS_CORPUS: DocsCorpusChunk[] = [
 Для миссий и парсинга используется OpenAI GPT через официальный API.`,
   },
   {
+    id: "architecture",
+    href: "/docs/architecture",
+    title: "Архитектура",
+    keywords: ["архитектура", "mermaid", "c4", "erd", "talk", "inngest", "схема"],
+    body: `Архитектура: /docs/architecture (Mermaid).
+Слои: Next.js App + Route Handlers + Inngest workers + Neon PostgreSQL.
+Talk: brain-stream с live missions/tasks snapshot и read-tools.
+Missions: Assign → Inngest → waiting_approval → Approvals → outbound.
+Catalog: platform_employee_catalog; home-org не дублирует catalog IDs в org-списке.
+Agent markdown: docs/ARCHITECTURE.md.`,
+  },
+  {
     id: "plans",
     href: "/docs/plans",
     title: "Тарифы и лимиты",
