@@ -67,7 +67,7 @@ export const BILLING_PLANS: Record<BillingPlanId, BillingPlanDefinition> = {
     name: "Starter",
     priceLabel: "599 ₽ / mo",
     priceLabelAnnual: "5 759 ₽ / yr",
-    description: "First working scenarios with one digital employee.",
+    description: "Your first digital employee for everyday work.",
     checkoutEnabled: true,
     limits: {
       maxEmployees: 1,
@@ -83,11 +83,11 @@ export const BILLING_PLANS: Record<BillingPlanId, BillingPlanDefinition> = {
     },
     features: [
       "1 digital employee",
-      "60 Talk minutes / month",
-      "Up to 10 knowledge documents",
-      "1 custom avatar",
+      "Up to 60 Talk minutes / month",
+      "Up to 10 knowledge sources",
+      "1 personal avatar",
       "Dialog history",
-      "Web chat",
+      "Web interface",
     ],
   },
   studio: {
@@ -95,7 +95,7 @@ export const BILLING_PLANS: Record<BillingPlanId, BillingPlanDefinition> = {
     name: "Studio",
     priceLabel: "4 999 ₽ / mo",
     priceLabelAnnual: "47 999 ₽ / yr",
-    description: "One digital employee for solo operators and founders.",
+    description: "For specialists, founders, and individual work.",
     checkoutEnabled: true,
     limits: {
       maxEmployees: 1,
@@ -111,11 +111,11 @@ export const BILLING_PLANS: Record<BillingPlanId, BillingPlanDefinition> = {
     },
     features: [
       "1 digital employee",
-      "180 Talk minutes / month",
+      "Up to 180 Talk minutes / month",
       "Expanded knowledge base",
-      "1 custom avatar",
-      "Dialog history",
-      "Web chat",
+      "Unrestricted personal avatar",
+      "History and dialog search",
+      "Priority request handling",
     ],
   },
   operator: {
@@ -123,7 +123,7 @@ export const BILLING_PLANS: Record<BillingPlanId, BillingPlanDefinition> = {
     name: "Team",
     priceLabel: "19 999 ₽ / mo",
     priceLabelAnnual: "191 999 ₽ / yr",
-    description: "A small digital team for shared workloads.",
+    description: "A digital team for collaboration and first integrations.",
     checkoutEnabled: true,
     limits: {
       maxEmployees: 3,
@@ -138,12 +138,12 @@ export const BILLING_PLANS: Record<BillingPlanId, BillingPlanDefinition> = {
       canCreateEmployees: true,
     },
     features: [
-      "3 digital employees",
-      "600 Talk minutes / month",
-      "Team seats",
-      "API read access",
-      "Shared knowledge",
-      "Web chat",
+      "Up to 3 digital employees",
+      "Up to 600 Talk minutes / month",
+      "Shared workspace",
+      "Shared knowledge base",
+      "Read API",
+      "Member management",
     ],
   },
   scale: {
@@ -151,7 +151,8 @@ export const BILLING_PLANS: Record<BillingPlanId, BillingPlanDefinition> = {
     name: "Scale",
     priceLabel: "59 999 ₽ / mo",
     priceLabelAnnual: "575 999 ₽ / yr",
-    description: "Grow a digital team before enterprise deployment.",
+    description:
+      "For companies growing a digital team before enterprise deployment.",
     checkoutEnabled: true,
     limits: {
       maxEmployees: 10,
@@ -166,12 +167,12 @@ export const BILLING_PLANS: Record<BillingPlanId, BillingPlanDefinition> = {
       canCreateEmployees: true,
     },
     features: [
-      "10 digital employees",
-      "2 000 Talk minutes / month",
-      "Full API access",
-      "More seats and avatars",
-      "Shared knowledge",
-      "Web chat",
+      "Up to 10 digital employees",
+      "Up to 2 000 Talk minutes / month",
+      "Full API",
+      "Multiple avatars and roles",
+      "Expanded knowledge base",
+      "Priority support",
     ],
   },
   enterprise: {

@@ -359,6 +359,100 @@ export function SettingsBillingTab({
         </div>
 
         {renderTierGrid(selfServeTiers, "self_serve")}
+
+        <div className="mt-6 overflow-x-auto rounded-2xl border border-border">
+          <table className="w-full min-w-[36rem] border-collapse text-left text-sm">
+            <caption className="sr-only">{t("planLadder")}</caption>
+            <thead>
+              <tr className="border-b border-border bg-background/60">
+                <th className="px-4 py-3 text-xs font-medium text-muted-foreground">
+                  {t("planLadderCapability")}
+                </th>
+                {(["starter", "studio", "operator", "scale"] as const).map(
+                  (id) => (
+                    <th
+                      key={id}
+                      className="px-3 py-3 text-xs font-medium text-foreground"
+                    >
+                      {tierName(id, id)}
+                    </th>
+                  ),
+                )}
+              </tr>
+            </thead>
+            <tbody className="text-muted-foreground">
+              {(
+                [
+                  {
+                    label: t("planLadderAvatar"),
+                    cells: [
+                      t("planLadderYes"),
+                      t("planLadderYes"),
+                      t("planLadderYes"),
+                      t("planLadderYes"),
+                    ],
+                  },
+                  {
+                    label: t("planLadderKnowledge"),
+                    cells: [
+                      t("planLadderKnowledgeBasic"),
+                      t("planLadderKnowledgeExpanded"),
+                      t("planLadderKnowledgeShared"),
+                      t("planLadderKnowledgeExpanded"),
+                    ],
+                  },
+                  {
+                    label: t("planLadderCollab"),
+                    cells: [
+                      t("planLadderNo"),
+                      t("planLadderNo"),
+                      t("planLadderYes"),
+                      t("planLadderYes"),
+                    ],
+                  },
+                  {
+                    label: t("planLadderApi"),
+                    cells: [
+                      t("planLadderNo"),
+                      t("planLadderNo"),
+                      t("planLadderApiRead"),
+                      t("planLadderApiFull"),
+                    ],
+                  },
+                  {
+                    label: t("planLadderRoles"),
+                    cells: [
+                      t("planLadderNo"),
+                      t("planLadderNo"),
+                      t("planLadderNo"),
+                      t("planLadderYes"),
+                    ],
+                  },
+                  {
+                    label: t("planLadderSupport"),
+                    cells: [
+                      t("planLadderNo"),
+                      t("planLadderNo"),
+                      t("planLadderNo"),
+                      t("planLadderYes"),
+                    ],
+                  },
+                ] as const
+              ).map((row) => (
+                <tr key={row.label} className="border-b border-border/70">
+                  <th className="px-4 py-2.5 text-xs font-medium text-foreground/80">
+                    {row.label}
+                  </th>
+                  {row.cells.map((cell, index) => (
+                    <td key={`${row.label}-${index}`} className="px-3 py-2.5 text-xs">
+                      {cell}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </SettingsCard>
 
       <SettingsCard
