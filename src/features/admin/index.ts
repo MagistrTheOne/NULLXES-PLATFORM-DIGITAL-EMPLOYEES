@@ -1,5 +1,8 @@
 export { AnamAdminScreen } from "./components/anam-admin-screen";
-export { isPlatformAdminEmail } from "./lib/is-platform-admin";
+export {
+  getPlatformAdminEmails,
+  isPlatformAdminEmail,
+} from "./lib/is-platform-admin";
 export {
   getAnamPoolStatus,
   type AnamPoolStatus,

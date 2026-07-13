@@ -11,7 +11,8 @@
       "billing": "Биллинг",
       "anamAdmin": "Key",
       "documentation": "Документация",
-      "navigation": "Навигация"
+      "navigation": "Навигация",
+      "platformAdmin": "Платформа"
     },
     "brand": {
       "name": "NULLXES",
@@ -407,7 +408,7 @@
         "brainModel": "Модель",
         "reprovisionHint": "При смене модели повторно запускается provisioning провайдеров.",
         "avatarPhoto": "Фото портрета",
-        "avatarPhotoHint": "Загрузите фото для создания или замены Anam-аватара. Используется закреплённый слот API-ключа, если он задан.",
+        "avatarPhotoHint": "Загрузите фото для создания или замены аватара.",
         "avatarPinnedSlot": "Закреплённый Anam-ключ: {slot}",
         "xaiVoiceTitle": "Grok voice-агент (xAI)",
         "xaiVoiceHint": "Голосовые звонки NULLXES в Conversations. Промпт уходит в realtime WebSocket, если не привязан console-агент.",

@@ -4,6 +4,8 @@ import { ArrowLeft } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { isPlatformAdminEmail } from "@/features/admin";
+import { getCurrentSession } from "@/features/auth/services/get-current-session";
 import { getBrainProviderReadinessMap } from "@/features/brain/lib/brain-provider-readiness";
 import type { OrganizationDisplayPreferences } from "@/features/workspace/types/display-preferences";
 import { resolveTalkReadinessBlockers } from "../lib/resolve-talk-readiness";
@@ -61,6 +63,8 @@ export async function EmployeeDetailScreen({
 }) {
   const t = await getTranslations("employees.detail");
   const tCommon = await getTranslations("common.actions");
+  const session = await getCurrentSession();
+  const isPlatformAdmin = isPlatformAdminEmail(session?.user.email);
   const empty = "—";
   const brainProviderReadiness = getBrainProviderReadinessMap();
 
@@ -78,6 +82,22 @@ export async function EmployeeDetailScreen({
       avatarId: employee.avatarId ?? undefined,
     }),
   });
+
+  const employeeForClient: EmployeeDetailShell = isPlatformAdmin
+    ? employee
+    : {
+        ...employee,
+        anamApiKeySlot: null,
+        avatarId: null,
+        personaId: null,
+        anamVoiceId: null,
+        voiceId: null,
+        studioVoiceId: null,
+        voiceBinding: null,
+        avatarProvisioningFailureReason: null,
+        sessionProvisioningFailureReason: null,
+        brainProvisioningFailureReason: null,
+      };
 
   return (
     <div className="flex flex-col gap-6">
@@ -101,8 +121,9 @@ export async function EmployeeDetailScreen({
           </div>
         </div>
         <EmployeeDetailActions
-          employee={employee}
+          employee={employeeForClient}
           brainProviderReadiness={brainProviderReadiness}
+          isPlatformAdmin={isPlatformAdmin}
         />
       </div>
 
@@ -112,21 +133,21 @@ export async function EmployeeDetailScreen({
           role="alert"
         >
           <p>{t("provisioningFailedBanner")}</p>
-          {employee.avatarProvisioningFailureReason ? (
+          {isPlatformAdmin && employee.avatarProvisioningFailureReason ? (
             <p className="mt-1 text-xs text-white/50">
               {t("avatarFailure", {
                 reason: employee.avatarProvisioningFailureReason,
               })}
             </p>
           ) : null}
-          {employee.sessionProvisioningFailureReason ? (
+          {isPlatformAdmin && employee.sessionProvisioningFailureReason ? (
             <p className="mt-1 text-xs text-white/50">
               {t("sessionFailure", {
                 reason: employee.sessionProvisioningFailureReason,
               })}
             </p>
           ) : null}
-          {employee.brainProvisioningFailureReason ? (
+          {isPlatformAdmin && employee.brainProvisioningFailureReason ? (
             <p className="mt-1 text-xs text-white/50">
               {t("brainFailure", {
                 reason: employee.brainProvisioningFailureReason,
@@ -138,7 +159,7 @@ export async function EmployeeDetailScreen({
 
       <div className="grid gap-6 lg:grid-cols-[minmax(260px,320px)_1fr] xl:items-start">
         <EmployeePreviewRail
-          employee={employee}
+          employee={employeeForClient}
           displayPreferences={displayPreferences}
           talkBlockers={talkBlockers}
         />
@@ -147,7 +168,7 @@ export async function EmployeeDetailScreen({
           <TabsContent value="overview">
             <Suspense fallback={<TabPanelSkeleton />}>
               <EmployeeOverviewTab
-                employee={employee}
+                employee={employeeForClient}
                 organizationId={organizationId}
                 displayPreferences={displayPreferences}
               />
@@ -160,21 +181,24 @@ export async function EmployeeDetailScreen({
                 label={t("provisioning")}
                 value={employee.avatarProvisioningStatus}
               />
-              <DetailRow
-                label={t("avatarId")}
-                value={employee.avatarId ?? empty}
-              />
-              <DetailRow
-                label={t("personaId")}
-                value={employee.personaId ?? empty}
-              />
-              <DetailRow
-                label={t("anamKeySlot")}
-                value={
-                  employee.anamApiKeySlot ??
-                  t("anamKeySlotDefault")
-                }
-              />
+              {isPlatformAdmin ? (
+                <>
+                  <DetailRow
+                    label={t("avatarId")}
+                    value={employee.avatarId ?? empty}
+                  />
+                  <DetailRow
+                    label={t("personaId")}
+                    value={employee.personaId ?? empty}
+                  />
+                  <DetailRow
+                    label={t("anamKeySlot")}
+                    value={
+                      employee.anamApiKeySlot ?? t("anamKeySlotDefault")
+                    }
+                  />
+                </>
+              ) : null}
             </SectionCard>
           </TabsContent>
 
@@ -184,22 +208,26 @@ export async function EmployeeDetailScreen({
                 label={t("provisioning")}
                 value={employee.sessionProvisioningStatus}
               />
-              <DetailRow
-                label={t("voiceBinding")}
-                value={employee.voiceBinding ?? empty}
-              />
-              <DetailRow
-                label={t("studioVoice")}
-                value={employee.studioVoiceId ?? empty}
-              />
-              <DetailRow
-                label={t("voiceId")}
-                value={employee.voiceId ?? empty}
-              />
-              <DetailRow
-                label={t("anamPersonaVoiceId")}
-                value={employee.anamVoiceId ?? empty}
-              />
+              {isPlatformAdmin ? (
+                <>
+                  <DetailRow
+                    label={t("voiceBinding")}
+                    value={employee.voiceBinding ?? empty}
+                  />
+                  <DetailRow
+                    label={t("studioVoice")}
+                    value={employee.studioVoiceId ?? empty}
+                  />
+                  <DetailRow
+                    label={t("voiceId")}
+                    value={employee.voiceId ?? empty}
+                  />
+                  <DetailRow
+                    label={t("anamPersonaVoiceId")}
+                    value={employee.anamVoiceId ?? empty}
+                  />
+                </>
+              ) : null}
             </SectionCard>
           </TabsContent>
 

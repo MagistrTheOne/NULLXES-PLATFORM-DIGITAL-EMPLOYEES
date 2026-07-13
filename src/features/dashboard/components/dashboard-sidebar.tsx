@@ -102,24 +102,6 @@ export function DashboardSidebar({
                   </SidebarMenuItem>
                 );
               })}
-              {isPlatformAdmin ? (
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={isNavItemActive(
-                      pathname,
-                      "/dashboard/admin/anam",
-                    )}
-                    tooltip={t("anamAdmin")}
-                    className="text-white/80 transition-none hover:bg-white/5 hover:text-white data-active:bg-white/10 data-active:text-white"
-                  >
-                    <Link href="/dashboard/admin/anam">
-                      <KeyRound />
-                      <span>{t("anamAdmin")}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ) : null}
               <SidebarMenuItem>
                 <SidebarMenuButton
                   asChild
@@ -136,6 +118,33 @@ export function DashboardSidebar({
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+        {isPlatformAdmin ? (
+          <SidebarGroup>
+            <SidebarGroupLabel className="text-white/50 group-data-[collapsible=icon]:hidden">
+              {t("platformAdmin")}
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={isNavItemActive(
+                      pathname,
+                      "/dashboard/admin/anam",
+                    )}
+                    tooltip={t("anamAdmin")}
+                    className="text-white/80 transition-none hover:bg-white/5 hover:text-white data-active:bg-white/10 data-active:text-white"
+                  >
+                    <Link href="/dashboard/admin/anam">
+                      <KeyRound />
+                      <span>{t("anamAdmin")}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ) : null}
       </SidebarContent>
       <SidebarFooter className="mt-auto border-t border-white/10 px-2 py-3">
         <SidebarMenu>

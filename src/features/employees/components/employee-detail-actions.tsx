@@ -61,9 +61,11 @@ function resolveEditStudioVoiceId(employee: EmployeeDetailShell): string {
 export function EmployeeDetailActions({
   employee,
   brainProviderReadiness,
+  isPlatformAdmin = false,
 }: {
   employee: EmployeeDetailShell;
   brainProviderReadiness: BrainProviderReadinessMap;
+  isPlatformAdmin?: boolean;
 }) {
   const router = useRouter();
   const t = useTranslations("employees.detail.actions");
@@ -463,7 +465,7 @@ export function EmployeeDetailActions({
               <div className="space-y-2">
                 <Label className="text-white/80">{t("avatarPhoto")}</Label>
                 <p className="text-xs text-white/45">{t("avatarPhotoHint")}</p>
-                {employee.anamApiKeySlot ? (
+                {isPlatformAdmin && employee.anamApiKeySlot ? (
                   <p className="text-xs text-white/45">
                     {t("avatarPinnedSlot", { slot: employee.anamApiKeySlot })}
                   </p>

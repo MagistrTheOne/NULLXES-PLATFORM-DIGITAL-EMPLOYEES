@@ -11,7 +11,8 @@
       "billing": "Billing",
       "anamAdmin": "Key",
       "documentation": "Documentation",
-      "navigation": "Navigation"
+      "navigation": "Navigation",
+      "platformAdmin": "Platform"
     },
     "brand": {
       "name": "NULLXES",
@@ -407,7 +408,7 @@
         "brainModel": "Brain model",
         "reprovisionHint": "Changing the brain model re-runs provider provisioning.",
         "avatarPhoto": "Portrait photo",
-        "avatarPhotoHint": "Upload a photo to provision or replace the Anam avatar. Provisioning uses the pinned API key slot when set.",
+        "avatarPhotoHint": "Upload a photo to provision or replace the avatar.",
         "avatarPinnedSlot": "Pinned Anam key: {slot}",
         "xaiVoiceTitle": "Grok voice agent (xAI)",
         "xaiVoiceHint": "NULLXES-managed voice calls in Conversations. Instructions are sent over the realtime WebSocket unless a console agent is bound.",
