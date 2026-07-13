@@ -7,17 +7,23 @@ export function TbankResultShell({
   titleRu,
   titleEn,
   locale,
+  eyebrowRu,
+  eyebrowEn,
   children,
   actions,
 }: {
   /** Exact bank-auditor string (must stay Russian). */
   titleRu: string;
-  titleEn: string;
+  /** Optional EN gloss under the Russian H1 (EN locale only). */
+  titleEn?: string;
   locale: string;
+  eyebrowRu?: string;
+  eyebrowEn?: string;
   children?: ReactNode;
   actions: ReactNode;
 }) {
   const isRu = locale === "ru";
+  const eyebrow = isRu ? eyebrowRu : eyebrowEn;
 
   return (
     <main className="relative flex min-h-svh items-center justify-center overflow-hidden bg-black px-6 py-16 text-white">
@@ -32,13 +38,23 @@ export function TbankResultShell({
         </p>
 
         <div className="mt-10 rounded-3xl border border-white/8 bg-white/3 px-8 py-12 text-center shadow-[0_0_0_1px_rgba(255,255,255,0.02)_inset]">
+          {eyebrow ? (
+            <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-white/40">
+              {eyebrow}
+            </p>
+          ) : null}
           <h1
-            className="text-[2rem] font-medium tracking-tight text-white sm:text-[2.35rem]"
+            className={cn(
+              "font-medium tracking-tight text-white",
+              eyebrow
+                ? "mt-3 text-[1.85rem] sm:text-[2.1rem]"
+                : "text-[2rem] sm:text-[2.35rem]",
+            )}
             lang="ru"
           >
             {titleRu}
           </h1>
-          {!isRu ? (
+          {!isRu && titleEn ? (
             <p className="mt-2 text-sm text-white/40">{titleEn}</p>
           ) : null}
 
@@ -56,12 +72,6 @@ export function TbankResultShell({
             {actions}
           </div>
         </div>
-
-        <p className="mt-8 text-center text-[11px] text-white/25">
-          <Link href="/" className="transition hover:text-white/45">
-            nullxesdai.online
-          </Link>
-        </p>
       </div>
     </main>
   );

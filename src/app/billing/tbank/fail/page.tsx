@@ -11,11 +11,12 @@ export default async function TbankFailPage() {
   return (
     <TbankResultShell
       titleRu="Не получилось оплатить"
-      titleEn="Payment failed"
+      eyebrowRu="Ошибка платежа"
+      eyebrowEn="Payment failed"
       locale={locale}
       actions={
         <TbankResultPrimaryButton href="/billing/tbank">
-          {isRu ? "Повторить" : "Try again"}
+          {isRu ? "Повторить оплату" : "Retry payment"}
         </TbankResultPrimaryButton>
       }
     />
