@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Check } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { formatDurationSeconds } from "@/features/analytics/lib/format-duration";
@@ -31,6 +31,7 @@ import type {
   SettingsUsageSnapshot,
 } from "../types";
 import { SettingsCard } from "./settings-card";
+import { TbankPayButton } from "@/features/billing/tbank/tbank-pay-button";
 
 const SALES_CONTACT = "mailto:ceo@nullxes.com";
 const FOUNDERS_CONTACT = "mailto:founders@nullxes.com";
@@ -43,8 +44,8 @@ const TIER_TO_CHECKOUT_PLAN: Partial<
   scale: "scale",
 };
 
-function formatRenewalDate(isoDate: string): string {
-  return new Intl.DateTimeFormat(undefined, {
+function formatRenewalDate(isoDate: string, locale: string): string {
+  return new Intl.DateTimeFormat(locale, {
     dateStyle: "medium",
   }).format(new Date(isoDate));
 }
@@ -61,6 +62,8 @@ export function SettingsBillingTab({
   billing: BillingSnapshot;
 }) {
   const t = useTranslations("settings.billing");
+  const locale = useLocale();
+  const isRuBilling = locale === "ru";
   const [billingInterval, setBillingInterval] =
     useState<BillingInterval>("month");
 
@@ -72,6 +75,7 @@ export function SettingsBillingTab({
   const activePlan = BILLING_PLANS[planId];
   const currentTierId = resolvePricingTierIdForPlan(planId);
   const polarReady = billing.polarReady;
+  const showPolarCheckout = polarReady && !isRuBilling;
 
   const polarCatalogProduct = billing.polarCatalog.find(
     (product) =>
@@ -140,7 +144,7 @@ export function SettingsBillingTab({
 
     if (tier.engagement === "self_serve") {
       const checkoutUrl = checkoutUrlForTier(tier);
-      if (canManageOrganization && polarReady && checkoutUrl) {
+      if (canManageOrganization && showPolarCheckout && checkoutUrl) {
         return (
           <Button
             type="button"
@@ -180,17 +184,29 @@ export function SettingsBillingTab({
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {tiers.map((tier) => {
           const isCurrent = tier.id === currentTierId;
-          const price = withInterval
-            ? resolveTierPriceDisplay({
-                catalog: billing.polarCatalog,
-                tierId: tier.id,
-                interval: billingInterval,
-                fallbackTier: tier,
-              })
-            : {
-                priceLabel: tier.priceLabel,
-                priceNote: tier.priceNote,
-              };
+          const price = isRuBilling
+            ? tier.id === "free"
+              ? { priceLabel: "0 ₽", priceNote: t("rfNoCard") }
+              : tier.engagement === "self_serve"
+                ? {
+                    priceLabel: t("rfPriceSoon"),
+                    priceNote: t("rfPriceNote"),
+                  }
+                : {
+                    priceLabel: t("contactSales"),
+                    priceNote: t("rfSalesPriceNote"),
+                  }
+            : withInterval
+              ? resolveTierPriceDisplay({
+                  catalog: billing.polarCatalog,
+                  tierId: tier.id,
+                  interval: billingInterval,
+                  fallbackTier: tier,
+                })
+              : {
+                  priceLabel: tier.priceLabel,
+                  priceNote: tier.priceNote,
+                };
 
           return (
             <div
@@ -286,16 +302,18 @@ export function SettingsBillingTab({
               ) : null}
               {billing.planSource === "polar" ? (
                 <span className="rounded-full border border-foreground/20 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-foreground/70">
-                  {t("polarSubscription")}
+                  {isRuBilling ? t("subscriptionLabel") : t("polarSubscription")}
                 </span>
               ) : null}
             </div>
             <p className="mt-1 text-sm text-muted-foreground">
-              {currentPlanDisplay.priceLabel}
-              {billing.subscription?.priceNote
-                ? ` · ${billing.subscription.priceNote}`
-                : null}{" "}
-              · {currentPlanDisplay.description}
+              {isRuBilling && !billing.subscription
+                ? `${t("rfPriceSoon")} · ${t("rfPriceNote")} · ${currentPlanDisplay.description}`
+                : `${currentPlanDisplay.priceLabel}${
+                    billing.subscription?.priceNote
+                      ? ` · ${billing.subscription.priceNote}`
+                      : ""
+                  } · ${currentPlanDisplay.description}`}
             </p>
             {billing.subscription ? (
               <p className="mt-2 text-xs text-muted-foreground">
@@ -303,11 +321,13 @@ export function SettingsBillingTab({
                   ? t("cancelsOn", {
                       date: formatRenewalDate(
                         billing.subscription.currentPeriodEnd,
+                        locale,
                       ),
                     })
                   : t("renewsOn", {
                       date: formatRenewalDate(
                         billing.subscription.currentPeriodEnd,
+                        locale,
                       ),
                     })}
               </p>
@@ -322,7 +342,14 @@ export function SettingsBillingTab({
       </SettingsCard>
 
       <SettingsCard title={t("selfServe")} description={t("selfServeDesc")}>
-        {!polarReady ? (
+        {isRuBilling ? (
+          <div className="mb-4 space-y-2">
+            <p className="text-sm text-muted-foreground">
+              {t("rfCheckoutPending")}
+            </p>
+            <p className="text-xs text-muted-foreground">{t("rfFiscalNote")}</p>
+          </div>
+        ) : !polarReady ? (
           <p className="mb-4 text-sm text-muted-foreground">
             {t("polarNotConfigured")}
           </p>
@@ -369,10 +396,12 @@ export function SettingsBillingTab({
           </button>
         </div>
 
-        {renderTierGrid(selfServeTiers, true)}
+        {renderTierGrid(selfServeTiers, !isRuBilling)}
       </SettingsCard>
 
-      {canManageOrganization && billing.verificationCheckoutUrl ? (
+      {canManageOrganization &&
+      billing.verificationCheckoutUrl &&
+      !isRuBilling ? (
         <SettingsCard
           title={t("paymentTest")}
           description={t("paymentTestDesc")}
@@ -396,6 +425,81 @@ export function SettingsBillingTab({
                 {t("paymentTestCta")}
               </Link>
             </Button>
+          </div>
+        </SettingsCard>
+      ) : null}
+
+      {canManageOrganization && isRuBilling ? (
+        <SettingsCard
+          title={t("paymentTest")}
+          description={t("paymentTestDesc")}
+        >
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-wrap items-center gap-2">
+              <span
+                className={cn(
+                  "rounded-full border px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide",
+                  billing.tbank.ready
+                    ? "border-foreground/30 text-foreground/80"
+                    : "border-border text-muted-foreground",
+                )}
+              >
+                {billing.tbank.ready
+                  ? t("tbankStatusReady")
+                  : t("tbankStatusMissing")}
+              </span>
+              {billing.tbank.terminalLabel ? (
+                <span className="rounded-full border border-border px-2 py-0.5 font-mono text-[10px] text-muted-foreground">
+                  {billing.tbank.terminalLabel}
+                </span>
+              ) : null}
+              {billing.tbank.receiptEnabled ? (
+                <span className="rounded-full border border-border px-2 py-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
+                  {t("tbankReceiptOn")}
+                </span>
+              ) : null}
+            </div>
+
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0">
+                <p className="text-2xl font-medium tracking-tight text-foreground">
+                  {(billing.tbank.testAmountKopecks / 100).toLocaleString("ru-RU")}{" "}
+                  ₽
+                </p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {t("paymentTestBody")}
+                </p>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  {t("rfFiscalNote")}
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {t("tbankReceiptMeta", {
+                    taxation: billing.tbank.taxation,
+                    vat: billing.tbank.vat,
+                  })}
+                </p>
+              </div>
+              <div className="flex shrink-0 flex-col gap-2 sm:items-end">
+                {billing.tbank.ready ? (
+                  <TbankPayButton
+                    label={t("paymentTestCta")}
+                    className="border-border bg-foreground text-background hover:bg-foreground/90"
+                  />
+                ) : (
+                  <Button type="button" variant="outline" disabled>
+                    {t("tbankStatusMissing")}
+                  </Button>
+                )}
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="border-border bg-transparent text-foreground hover:bg-accent"
+                  asChild
+                >
+                  <Link href={billing.tbank.payPath}>{t("tbankOpenPayPage")}</Link>
+                </Button>
+              </div>
+            </div>
           </div>
         </SettingsCard>
       ) : null}
@@ -426,10 +530,10 @@ export function SettingsBillingTab({
             </div>
             <div className="flex shrink-0 flex-col items-start gap-2 md:items-end">
               <p className="text-2xl font-medium tracking-tight text-foreground">
-                {flagshipTier.priceLabel}
+                {isRuBilling ? t("contactSales") : flagshipTier.priceLabel}
               </p>
               <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
-                {flagshipTier.priceNote}
+                {isRuBilling ? t("rfSalesPriceNote") : flagshipTier.priceNote}
               </p>
               <Button
                 type="button"
@@ -476,18 +580,29 @@ export function SettingsBillingTab({
         <p className="mb-4 text-sm text-muted-foreground">
           {t("customerPortalDesc")}
         </p>
-        <Button
-          type="button"
-          variant="outline"
-          disabled={!billing.portalEnabled}
-          asChild={billing.portalEnabled}
-        >
-          {billing.portalEnabled ? (
-            <Link href="/api/portal">{t("openPortal")}</Link>
-          ) : (
-            <span>{t("openPortal")}</span>
-          )}
-        </Button>
+        {isRuBilling ? (
+          <Button
+            type="button"
+            variant="outline"
+            disabled
+            className="border-border bg-transparent text-muted-foreground"
+          >
+            {t("openPortal")}
+          </Button>
+        ) : (
+          <Button
+            type="button"
+            variant="outline"
+            disabled={!billing.portalEnabled}
+            asChild={billing.portalEnabled}
+          >
+            {billing.portalEnabled ? (
+              <Link href="/api/portal">{t("openPortal")}</Link>
+            ) : (
+              <span>{t("openPortal")}</span>
+            )}
+          </Button>
+        )}
       </SettingsCard>
     </div>
   );

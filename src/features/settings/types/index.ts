@@ -129,6 +129,7 @@ import type {
   PolarSubscriptionSnapshot,
   SelfServeCheckoutUrls,
 } from "@/features/billing/types/polar-catalog";
+import type { TbankBillingSnapshot } from "@/features/billing/services/get-organization-billing-snapshot";
 
 export type BillingSnapshot = {
   polarReady: boolean;
@@ -142,6 +143,7 @@ export type BillingSnapshot = {
   verificationCheckoutUrl: string | null;
   selfServeLiveCount: number;
   portalEnabled: boolean;
+  tbank: TbankBillingSnapshot;
 };
 
 export type SettingsPageData = {

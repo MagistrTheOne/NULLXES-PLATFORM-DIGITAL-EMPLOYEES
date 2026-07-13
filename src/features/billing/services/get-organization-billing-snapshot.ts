@@ -27,6 +27,24 @@ import { isManualBillingPlan } from "../lib/billing-plan-helpers";
 import { isPolarConfigured } from "./polar-config";
 import { tryGetPolarClient } from "./polar-client";
 import { isSelfServeCheckoutPlan } from "../lib/resolve-plan-from-polar-product";
+import {
+  getTbankTaxation,
+  getTbankTerminalDisplay,
+  getTbankTestAmountKopecks,
+  getTbankVat,
+  isTbankConfigured,
+  isTbankReceiptEnabled,
+} from "../tbank/config";
+
+export type TbankBillingSnapshot = {
+  ready: boolean;
+  receiptEnabled: boolean;
+  terminalLabel: string | null;
+  taxation: string;
+  vat: string;
+  testAmountKopecks: number;
+  payPath: string;
+};
 
 export type OrganizationBillingSnapshot = {
   polarReady: boolean;
@@ -44,6 +62,7 @@ export type OrganizationBillingSnapshot = {
   /** Count of priced Studio/Team/Scale Polar products ready for checkout. */
   selfServeLiveCount: number;
   portalEnabled: boolean;
+  tbank: TbankBillingSnapshot;
 };
 
 const BILLING_INTERVALS: BillingInterval[] = ["month", "year"];
@@ -205,5 +224,14 @@ export async function getOrganizationBillingSnapshot(input: {
     verificationCheckoutUrl,
     selfServeLiveCount: countSelfServeCheckoutProducts(catalog),
     portalEnabled,
+    tbank: {
+      ready: isTbankConfigured(),
+      receiptEnabled: isTbankReceiptEnabled(),
+      terminalLabel: getTbankTerminalDisplay(),
+      taxation: getTbankTaxation(),
+      vat: getTbankVat(),
+      testAmountKopecks: getTbankTestAmountKopecks(),
+      payPath: "/billing/tbank",
+    },
   };
 }
