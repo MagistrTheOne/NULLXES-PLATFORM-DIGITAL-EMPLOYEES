@@ -497,24 +497,6 @@ export function SettingsBillingTab({
         ) : null}
       </SettingsCard>
 
-      <SettingsCard
-        title={t("designPartners")}
-        description={t("designPartnersDesc")}
-      >
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <p className="max-w-2xl text-sm text-muted-foreground">
-            {t("designPartnersBody")}
-          </p>
-          <Button
-            type="button"
-            className="shrink-0 bg-foreground text-background hover:bg-foreground/90"
-            asChild
-          >
-            <a href={SALES_CONTACT}>{t("applyDesignPartner")}</a>
-          </Button>
-        </div>
-      </SettingsCard>
-
       <SettingsCard title={t("usageMeters")} description={t("usageMetersDesc")}>
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="rounded-xl border border-border bg-background/40 px-4 py-3">
