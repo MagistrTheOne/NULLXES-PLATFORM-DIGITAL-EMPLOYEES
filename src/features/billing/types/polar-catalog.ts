@@ -33,5 +33,8 @@ export type BillingPlanSource = "polar" | "manual" | "free";
 
 /** Checkout URLs keyed by billing interval for a self-serve plan. */
 export type SelfServeCheckoutUrls = Partial<
-  Record<"studio" | "operator" | "scale", Partial<Record<BillingInterval, string>>>
+  Record<
+    "starter" | "studio" | "operator" | "scale",
+    Partial<Record<BillingInterval, string>>
+  >
 >;

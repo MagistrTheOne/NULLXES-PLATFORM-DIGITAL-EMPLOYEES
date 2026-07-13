@@ -35,12 +35,16 @@ function resolvePlanIdForProduct(input: {
   }
 
   const metadataTier = readMetadataTier(input.metadata);
+  if (metadataTier === "starter") return "starter";
   if (metadataTier === "studio") return "studio";
   if (metadataTier === "operator") return "operator";
   if (metadataTier === "scale") return "scale";
   if (metadataTier === "free") return "free";
 
   const normalized = input.name.toLowerCase();
+  if (normalized.includes("starter") || normalized.includes("start")) {
+    return "starter";
+  }
   if (normalized.includes("studio")) return "studio";
   if (normalized.includes("operator") || normalized.includes("team")) {
     return "operator";

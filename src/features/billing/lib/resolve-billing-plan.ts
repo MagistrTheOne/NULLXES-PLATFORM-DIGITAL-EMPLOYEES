@@ -13,6 +13,7 @@ export function resolveBillingPlanId(billingPlan: string): BillingPlanId {
 
   if (
     billingPlan === "free" ||
+    billingPlan === "starter" ||
     billingPlan === "studio" ||
     billingPlan === "operator" ||
     billingPlan === "scale" ||

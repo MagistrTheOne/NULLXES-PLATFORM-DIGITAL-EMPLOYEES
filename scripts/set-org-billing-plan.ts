@@ -19,6 +19,7 @@ loadEnvFiles();
 
 const ALLOWED = new Set([
   "free",
+  "starter",
   "studio",
   "operator",
   "scale",
@@ -26,7 +27,14 @@ const ALLOWED = new Set([
   "government",
 ] as const);
 
-type PlanId = "free" | "studio" | "operator" | "scale" | "enterprise" | "government";
+type PlanId =
+  | "free"
+  | "starter"
+  | "studio"
+  | "operator"
+  | "scale"
+  | "enterprise"
+  | "government";
 
 async function main(): Promise<void> {
   const rawPlan = (process.env.BILLING_PLAN ?? process.argv[2] ?? "").trim();

@@ -81,6 +81,7 @@ function buildSelfServeCheckoutUrls(input: {
   const urls: SelfServeCheckoutUrls = {};
   for (const planId of SELF_SERVE_CHECKOUT_PLAN_IDS) {
     if (
+      planId !== "starter" &&
       planId !== "studio" &&
       planId !== "operator" &&
       planId !== "scale"
@@ -112,7 +113,7 @@ function buildSelfServeCheckoutUrls(input: {
 
 function firstCheckoutUrl(
   urls: SelfServeCheckoutUrls,
-  planId: "studio" | "operator" | "scale",
+  planId: "starter" | "studio" | "operator" | "scale",
 ): string | null {
   return urls[planId]?.month ?? urls[planId]?.year ?? null;
 }

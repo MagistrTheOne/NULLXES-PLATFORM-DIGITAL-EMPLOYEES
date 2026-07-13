@@ -1,5 +1,6 @@
 export type BillingPlanId =
   | "free"
+  | "starter"
   | "studio"
   | "operator"
   | "scale"
@@ -38,9 +39,9 @@ export type BillingPlanDefinition = {
 export const BILLING_PLANS: Record<BillingPlanId, BillingPlanDefinition> = {
   free: {
     id: "free",
-    name: "Evaluation",
-    priceLabel: "$0",
-    description: "Evaluate a digital employee with curated NULLXES presets.",
+    name: "Free",
+    priceLabel: "0 ₽",
+    description: "Try a digital employee on NULLXES presets.",
     checkoutEnabled: false,
     limits: {
       maxEmployees: 1,
@@ -55,18 +56,46 @@ export const BILLING_PLANS: Record<BillingPlanId, BillingPlanDefinition> = {
       canCreateEmployees: false,
     },
     features: [
-      "NULLXES beta digital employees (read-only)",
-      "2-minute Talk sessions",
+      "1 digital employee (presets)",
       "30 Talk minutes / month",
-      "Upgrade to create your own workforce",
+      "Web chat",
+      "No API",
+    ],
+  },
+  starter: {
+    id: "starter",
+    name: "Starter",
+    priceLabel: "599 ₽ / mo",
+    priceLabelAnnual: "5 759 ₽ / yr",
+    description: "First working scenarios with one digital employee.",
+    checkoutEnabled: true,
+    limits: {
+      maxEmployees: 1,
+      maxOrganizations: 1,
+      maxSessionSeconds: 600,
+      maxTalkMinutesPerMonth: 60,
+      maxKnowledgeChunks: 2_500,
+      allowCustomAvatars: true,
+      maxCustomAvatars: 1,
+      maxSeats: 1,
+      apiAccess: "none",
+      canCreateEmployees: true,
+    },
+    features: [
+      "1 digital employee",
+      "60 Talk minutes / month",
+      "Up to 10 knowledge documents",
+      "1 custom avatar",
+      "Dialog history",
+      "Web chat",
     ],
   },
   studio: {
     id: "studio",
     name: "Studio",
-    priceLabel: "$49 / mo",
-    priceLabelAnnual: "$470 / yr",
-    description: "Launch one digital employee for founders and innovation labs.",
+    priceLabel: "4 999 ₽ / mo",
+    priceLabelAnnual: "47 999 ₽ / yr",
+    description: "One digital employee for solo operators and founders.",
     checkoutEnabled: true,
     limits: {
       maxEmployees: 1,
@@ -82,17 +111,19 @@ export const BILLING_PLANS: Record<BillingPlanId, BillingPlanDefinition> = {
     },
     features: [
       "1 digital employee",
-      "10-minute Talk sessions",
       "180 Talk minutes / month",
+      "Expanded knowledge base",
       "1 custom avatar",
+      "Dialog history",
+      "Web chat",
     ],
   },
   operator: {
     id: "operator",
     name: "Team",
-    priceLabel: "$200 / mo",
-    priceLabelAnnual: "$1,920 / yr",
-    description: "Small digital workforce for teams running real workloads.",
+    priceLabel: "19 999 ₽ / mo",
+    priceLabelAnnual: "191 999 ₽ / yr",
+    description: "A small digital team for shared workloads.",
     checkoutEnabled: true,
     limits: {
       maxEmployees: 3,
@@ -102,23 +133,24 @@ export const BILLING_PLANS: Record<BillingPlanId, BillingPlanDefinition> = {
       maxKnowledgeChunks: 50_000,
       allowCustomAvatars: true,
       maxCustomAvatars: 3,
-      maxSeats: 3,
+      maxSeats: 5,
       apiAccess: "read",
       canCreateEmployees: true,
     },
     features: [
       "3 digital employees",
-      "20-minute Talk sessions",
       "600 Talk minutes / month",
-      "3 custom avatars",
+      "Team seats",
       "API read access",
+      "Shared knowledge",
+      "Web chat",
     ],
   },
   scale: {
     id: "scale",
     name: "Scale",
-    priceLabel: "$600 / mo",
-    priceLabelAnnual: "$5,760 / yr",
+    priceLabel: "59 999 ₽ / mo",
+    priceLabelAnnual: "575 999 ₽ / yr",
     description: "Grow a digital team before enterprise deployment.",
     checkoutEnabled: true,
     limits: {
@@ -135,17 +167,18 @@ export const BILLING_PLANS: Record<BillingPlanId, BillingPlanDefinition> = {
     },
     features: [
       "10 digital employees",
-      "30-minute Talk sessions",
       "2 000 Talk minutes / month",
-      "10 custom avatars",
       "Full API access",
+      "More seats and avatars",
+      "Shared knowledge",
+      "Web chat",
     ],
   },
   enterprise: {
     id: "enterprise",
     name: "Enterprise",
     priceLabel: "Contact sales",
-    description: "Digital Department Deployment — custom security and SLA.",
+    description: "Digital department under unified management.",
     checkoutEnabled: false,
     limits: {
       maxEmployees: null,
@@ -160,17 +193,17 @@ export const BILLING_PLANS: Record<BillingPlanId, BillingPlanDefinition> = {
       canCreateEmployees: true,
     },
     features: [
-      "Digital Department Deployment",
-      "Unlimited custom avatars",
-      "Governance, SSO, and SLA",
-      "Dedicated support",
+      "Department automation",
+      "Role and access control",
+      "Analytics and activity log",
+      "SSO and priority support",
     ],
   },
   government: {
     id: "government",
     name: "Holding",
     priceLabel: "Contact sales",
-    description: "Coordinate digital workforces across many organizations.",
+    description: "Manage digital employees across organizations.",
     checkoutEnabled: false,
     limits: {
       maxEmployees: null,
@@ -185,27 +218,29 @@ export const BILLING_PLANS: Record<BillingPlanId, BillingPlanDefinition> = {
       canCreateEmployees: true,
     },
     features: [
-      "Multi-organization workforce",
+      "Multiple organizations",
       "Hundreds of digital employees",
-      "Compliance & data residency",
-      "SLA & dedicated engineering",
+      "Data security requirements",
+      "Dedicated engineering and SLA",
     ],
   },
 };
 
-/** Self-serve paid plans eligible for Polar checkout when products exist. */
+/** Self-serve paid plans eligible for Polar/T-Bank checkout when products exist. */
 export const SELF_SERVE_CHECKOUT_PLAN_IDS: BillingPlanId[] = [
+  "starter",
   "studio",
   "operator",
   "scale",
 ];
 
-/** USD cents for Polar fixed prices (monthly / annual −20%). */
+/** USD cents for Polar fixed prices (monthly / annual −20%). Legacy USD path. */
 export const SELF_SERVE_PRICE_CENTS: Record<
-  "studio" | "operator" | "scale",
+  "starter" | "studio" | "operator" | "scale",
   Record<BillingInterval, number>
 > = {
-  studio: { month: 4_900, year: 47_000 },
-  operator: { month: 20_000, year: 192_000 },
-  scale: { month: 60_000, year: 576_000 },
+  starter: { month: 700, year: 6_700 },
+  studio: { month: 6_200, year: 59_500 },
+  operator: { month: 25_000, year: 240_000 },
+  scale: { month: 75_000, year: 720_000 },
 };

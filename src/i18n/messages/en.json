@@ -1066,7 +1066,7 @@
       "currentPlanDesc": "Digital workforce plan for this organization",
       "currentPlanPriceHint": "Billed in ₽",
       "selfServe": "Plans",
-      "selfServeDesc": "Evaluation → Studio → Team → Scale. Annual saves 20%.",
+      "selfServeDesc": "Free → Starter → Studio → Team → Scale. Annual saves 20%.",
       "enterpriseLadder": "Deployment stages",
       "enterpriseLadderDesc": "From pilot to digital corporation.",
       "plans": "Plans",
@@ -1081,11 +1081,11 @@
       "flagship": "Flagship",
       "digitalCorporation": "Digital corporation",
       "talkToFounders": "Contact sales",
-      "launchEmployee": "Pay",
-      "upgrade": "Pay",
-      "subscribe": "Pay",
+      "launchEmployee": "Subscribe",
+      "upgrade": "Subscribe",
+      "subscribe": "Subscribe",
       "subscribePending": "…",
-      "payWithTbank": "Pay",
+      "payWithTbank": "Subscribe",
       "contactSales": "Contact sales",
       "usageMeters": "Usage",
       "usageMetersDesc": "Workspace activity",
@@ -1109,7 +1109,7 @@
       "polarPricesPending": "{count}/6 products ready.",
       "tbankCheckoutNote": "",
       "rfCheckoutPending": "",
-      "rfCheckoutCta": "Pay",
+      "rfCheckoutCta": "Subscribe",
       "rfFiscalNote": "",
       "rfPriceSoon": "₽",
       "rfPriceNote": "RUB",
@@ -1128,24 +1128,29 @@
       "tbankOpenPayPage": "Checkout page",
       "tier": {
         "free": {
-          "name": "Evaluation",
-          "description": "Evaluate a digital employee with curated NULLXES presets and hard Talk limits.",
-          "features": "1 digital employee (presets)|2-minute Talk sessions · 30 min / month|Evaluation watermark"
+          "name": "Free",
+          "description": "Try a digital employee on NULLXES presets.",
+          "features": "1 digital employee (presets)|30 Talk minutes / month|Web chat|No API"
+        },
+        "starter": {
+          "name": "Starter",
+          "description": "First working scenarios with one digital employee.",
+          "features": "1 digital employee|60 Talk minutes / month|Up to 10 knowledge documents|1 custom avatar|Dialog history|Web chat"
         },
         "studio": {
           "name": "Studio",
-          "description": "Launch one digital employee for founders and innovation labs.",
-          "features": "1 digital employee|10-minute Talk · 180 min / month|1 custom avatar"
+          "description": "One digital employee for solo operators and founders.",
+          "features": "1 digital employee|180 Talk minutes / month|Expanded knowledge base|1 custom avatar|Dialog history|Web chat"
         },
         "operator": {
           "name": "Team",
-          "description": "A small digital workforce for teams running real workloads.",
-          "features": "3 digital employees|20-minute Talk · 600 min / month|API read access"
+          "description": "A small digital team for shared workloads.",
+          "features": "3 digital employees|600 Talk minutes / month|Team seats|API read access|Shared knowledge|Web chat"
         },
         "scale": {
           "name": "Scale",
-          "description": "Grow a digital team before enterprise Design Partner deployment.",
-          "features": "10 digital employees|30-minute Talk · 2 000 min / month|Full API access"
+          "description": "Grow a digital team before enterprise deployment.",
+          "features": "10 digital employees|2 000 Talk minutes / month|Full API access|More seats and avatars|Shared knowledge|Web chat"
         },
         "discovery": {
           "name": "Discovery",

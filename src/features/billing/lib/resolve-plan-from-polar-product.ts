@@ -24,6 +24,9 @@ export function resolveBillingPlanFromPolarProduct(
   if (normalized.includes("government") || normalized.includes("gov")) {
     return "government";
   }
+  if (normalized.includes("starter") || normalized.includes("start")) {
+    return "starter";
+  }
   if (normalized.includes("studio")) {
     return "studio";
   }

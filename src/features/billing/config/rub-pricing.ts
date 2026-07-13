@@ -3,21 +3,28 @@ import type { PricingTierId } from "./pricing-tiers";
 
 /**
  * Provisional RUB presentment for T-Bank checkout (same merchant for en + ru).
+ * Charm pricing; annual ≈ −20%.
  */
 const RUB_MONTHLY: Partial<Record<PricingTierId, number>> = {
   free: 0,
-  studio: 4_900,
-  operator: 19_900,
-  scale: 59_900,
+  starter: 599,
+  studio: 4_999,
+  operator: 19_999,
+  scale: 59_999,
 };
 
 const RUB_ANNUAL: Partial<Record<PricingTierId, number>> = {
-  studio: 47_000,
-  operator: 191_000,
-  scale: 575_000,
+  starter: 5_759,
+  studio: 47_999,
+  operator: 191_999,
+  scale: 575_999,
 };
 
-export type SelfServeCheckoutPlanId = "studio" | "operator" | "scale";
+export type SelfServeCheckoutPlanId =
+  | "starter"
+  | "studio"
+  | "operator"
+  | "scale";
 
 export function getRubAmountRubles(
   planId: SelfServeCheckoutPlanId,
@@ -80,7 +87,7 @@ export function getRubTierPrice(
   };
 }
 
-/** Encode plan into OrderId (≤50 chars). Example: nx-studio-m-1720000000-a1b2c3d4 */
+/** Encode plan into OrderId (≤50 chars). Example: nx-starter-m-1720000000-a1b2c3d4 */
 export function buildTbankOrderId(input: {
   planId: SelfServeCheckoutPlanId | "test";
   interval?: BillingInterval;
@@ -95,7 +102,9 @@ export function parseTbankOrderId(orderId: string): {
   planId: SelfServeCheckoutPlanId | "test" | null;
   interval: BillingInterval | null;
 } {
-  const match = orderId.match(/^nx-(studio|operator|scale|test)-([myt])-/);
+  const match = orderId.match(
+    /^nx-(starter|studio|operator|scale|test)-([myt])-/,
+  );
   if (!match) {
     return { planId: null, interval: null };
   }

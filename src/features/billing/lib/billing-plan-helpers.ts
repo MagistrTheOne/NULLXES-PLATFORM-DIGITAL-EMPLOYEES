@@ -13,6 +13,7 @@ import type {
 } from "../types/polar-catalog";
 
 const SELF_SERVE_TIER_TO_PLAN: Partial<Record<PricingTierId, BillingPlanId>> = {
+  starter: "starter",
   studio: "studio",
   operator: "operator",
   scale: "scale",

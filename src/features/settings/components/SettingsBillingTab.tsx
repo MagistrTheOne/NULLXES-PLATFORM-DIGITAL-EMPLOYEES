@@ -157,7 +157,8 @@ export function SettingsBillingTab({
       if (
         canManageOrganization &&
         tbankReady &&
-        (tier.id === "studio" ||
+        (tier.id === "starter" ||
+          tier.id === "studio" ||
           tier.id === "operator" ||
           tier.id === "scale")
       ) {
@@ -195,9 +196,17 @@ export function SettingsBillingTab({
     );
   }
 
-  function renderTierGrid(tiers: PricingTier[]) {
+  function renderTierGrid(
+    tiers: PricingTier[],
+    columns: "self_serve" | "sales" = "sales",
+  ) {
     return (
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div
+        className={cn(
+          "grid gap-3 sm:grid-cols-2",
+          columns === "self_serve" ? "lg:grid-cols-5" : "lg:grid-cols-4",
+        )}
+      >
         {tiers.map((tier) => {
           const isCurrent = tier.id === currentTierId;
           const showPrice = tier.engagement !== "sales";
@@ -349,14 +358,14 @@ export function SettingsBillingTab({
           </button>
         </div>
 
-        {renderTierGrid(selfServeTiers)}
+        {renderTierGrid(selfServeTiers, "self_serve")}
       </SettingsCard>
 
       <SettingsCard
         title={t("enterpriseLadder")}
         description={t("enterpriseLadderDesc")}
       >
-        {renderTierGrid(salesTiers)}
+        {renderTierGrid(salesTiers, "sales")}
 
         {flagshipTier ? (
           <div className="mt-3 flex flex-col gap-5 rounded-2xl border border-foreground/20 bg-background/40 p-6 md:flex-row md:items-center md:justify-between">

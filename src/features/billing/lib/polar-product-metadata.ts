@@ -17,6 +17,7 @@ export function isPolarVerificationMetadata(
 
 export const BILLING_PLAN_IDS: BillingPlanId[] = [
   "free",
+  "starter",
   "studio",
   "operator",
   "scale",
@@ -26,6 +27,7 @@ export const BILLING_PLAN_IDS: BillingPlanId[] = [
 
 export const PRICING_TIER_IDS: PricingTierId[] = [
   "free",
+  "starter",
   "studio",
   "operator",
   "scale",

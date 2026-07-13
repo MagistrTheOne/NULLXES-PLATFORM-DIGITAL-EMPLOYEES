@@ -14,7 +14,12 @@ import {
 } from "@/features/billing/tbank/config";
 import { initTbankPayment } from "@/features/billing/tbank/client";
 
-const PLAN_IDS: SelfServeCheckoutPlanId[] = ["studio", "operator", "scale"];
+const PLAN_IDS: SelfServeCheckoutPlanId[] = [
+  "starter",
+  "studio",
+  "operator",
+  "scale",
+];
 
 function parsePlan(
   planIdRaw: string | null,

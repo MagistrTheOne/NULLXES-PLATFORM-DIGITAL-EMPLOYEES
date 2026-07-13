@@ -14,6 +14,7 @@ export const organizationStatusEnum = pgEnum("organization_status", [
 
 export const organizationBillingPlanEnum = pgEnum("organization_billing_plan", [
   "free",
+  "starter",
   "studio",
   "operator",
   "scale",
