@@ -317,3 +317,30 @@ export async function failEmployeeSession(input: {
     })
     .where(eq(employeeSession.id, input.sessionId));
 }
+
+/**
+ * Close abandoned/open Talk sessions for this operator+employee before minting
+ * a new Anam token. Prevents stacking Anam concurrent engine sessions on retry.
+ */
+export async function failOpenEmployeeSessionsForTalkStart(input: {
+  employeeId: string;
+  userId: string;
+}): Promise<number> {
+  const endedAt = new Date();
+  const closed = await db
+    .update(employeeSession)
+    .set({
+      status: "failed",
+      endedAt,
+    })
+    .where(
+      and(
+        eq(employeeSession.employeeId, input.employeeId),
+        eq(employeeSession.userId, input.userId),
+        inArray(employeeSession.status, ["created", "active"]),
+      ),
+    )
+    .returning({ id: employeeSession.id });
+
+  return closed.length;
+}

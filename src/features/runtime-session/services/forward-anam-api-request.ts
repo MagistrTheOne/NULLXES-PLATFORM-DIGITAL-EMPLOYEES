@@ -77,11 +77,24 @@ export async function forwardAnamApiRequest(
   const hasBody = method !== "GET" && method !== "HEAD";
   const body = hasBody ? await request.arrayBuffer() : undefined;
 
-  const upstream = await fetch(targetUrl, {
-    method,
-    headers,
-    body: hasBody ? body : undefined,
-  });
+  let upstream: Response;
+  try {
+    upstream = await fetch(targetUrl, {
+      method,
+      headers,
+      body: hasBody ? body : undefined,
+    });
+  } catch (error: unknown) {
+    const message =
+      error instanceof Error ? error.message : "Upstream Anam request failed";
+    return Response.json(
+      { error: "anam_upstream_unreachable", message },
+      {
+        status: 502,
+        headers: corsHeadersForOrigin(request.headers.get("origin")),
+      },
+    );
+  }
 
   const responseHeaders = new Headers(
     corsHeadersForOrigin(request.headers.get("origin")),

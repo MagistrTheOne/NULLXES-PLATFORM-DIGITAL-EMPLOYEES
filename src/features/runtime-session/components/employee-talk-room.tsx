@@ -137,21 +137,21 @@ function TalkStageControls({
 
   return (
     <>
-      {/* Subtle status / error messages above the bar */}
+      {/* Status / errors sit above the docked call bar */}
       {startError ? (
-        <p className="absolute inset-x-0 bottom-20 z-30 flex justify-center text-center text-[11px] text-white/55">
+        <p className="talk-stage-dock-error text-center text-[11px] text-white/55">
           {startError}
         </p>
       ) : null}
       {activeSession && micPermission === "denied" ? (
-        <p className="absolute inset-x-0 bottom-20 z-30 flex justify-center text-center text-[11px] text-red-300/80">
+        <p className="talk-stage-dock-error text-center text-[11px] text-red-300/80">
           {t("stage.micPermissionDenied")}
         </p>
       ) : null}
 
-      {/* Floating call controls — video-call style, centered over the stage (concept match) */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-30 flex justify-center sm:bottom-16 lg:bottom-14">
-        <div className="pointer-events-auto flex items-center gap-2 rounded-2xl border border-white/12 bg-black/70 px-2 py-1.5 backdrop-blur-md">
+      {/* Docked stage controls — chrome only; Anam video crop stays frozen */}
+      <div className="talk-stage-dock">
+        <div className="talk-stage-dock-inner gap-2">
           {!activeSession ? (
             <>
               <Button
@@ -289,7 +289,6 @@ function TalkStageControls({
                 {sessionBusy ? t("stopping") : t("stopSession")}
               </Button>
 
-              {/* Subtle quality badge like the reference */}
               <div className="ml-1 hidden items-center gap-1 rounded-lg border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] tabular-nums text-white/50 sm:flex">
                 HD
               </div>
@@ -390,14 +389,12 @@ export function EmployeeTalkRoom({
       />
 
       {/* Video-first Talk layout:
-          - Stage is a cinematic 16:9 frame (full content width, height from ratio)
-            so cover shows shoulders/environment without a super-tall crop.
-          - Layout stays inside SidebarInset (no viewport w-screen bleed).
-          - Floating call controls overlaid on the stage.
+          - Player (Anam video crop) is frozen — see AVATAR_RENDERING_SPEC.md
+          - Stage chrome only: frame, docked controls, HUD, overlays
           - Details rail is opt-in (collapsed by default). */}
       <div className="flex min-h-0 flex-1 overflow-hidden border-t border-white/8 bg-black">
         <div className="talk-stage-frame relative flex min-h-0 min-w-0 flex-1 px-3 py-3 xl:px-4">
-          <div className="talk-workspace-stage relative overflow-hidden bg-black">
+          <div className="talk-workspace-stage relative bg-black">
             <EmployeeAnamStage
               employeeId={employeeId}
               employeeName={employeeName}

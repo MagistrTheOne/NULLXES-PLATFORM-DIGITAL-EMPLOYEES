@@ -16,6 +16,7 @@ import {
   acquireAnamInputAudioStream,
   releaseAnamInputAudioStream,
 } from "@/features/runtime-session/lib/acquire-anam-input-audio-stream";
+import { formatAnamClientError } from "@/features/runtime-session/lib/format-anam-client-error";
 import type { TalkVoiceMode } from "@/features/runtime-session/services/resolve-talk-voice-mode";
 import { AvatarIdlePreview } from "@/features/employees/components/avatar-idle-preview";
 import { TalkStageHud } from "./talk-stage-hud";
@@ -177,7 +178,7 @@ export function EmployeeAnamStage({
           setIsLive(false);
           setErrorMessage(
             error instanceof Error
-              ? error.message
+              ? formatAnamClientError(error, translationsRef.current.anamStreamFailed)
               : translationsRef.current.anamStreamFailed,
           );
           void failTalkSessionAction(employeeSessionId);

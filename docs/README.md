@@ -3,6 +3,7 @@
 | Document | Audience | Description |
 |----------|----------|-------------|
 | [ARCHITECTURE.md](./ARCHITECTURE.md) | **AI agents / architecture** | Mermaid C4 / Talk / Missions / ERD (live: `/docs/architecture`) |
+| [AVATAR_RENDERING_SPEC.md](./AVATAR_RENDERING_SPEC.md) | **AI agents / Studio** | Avatar capture + Talk player freeze (Camera Standard v1.0) |
 | [AGENT_REFERENCE_2026-06-26.md](./AGENT_REFERENCE_2026-06-26.md) | **AI agents / Cursor** | Technical reference (refreshed 2026-07-09): API, schema, env, migrate, billing |
 | [AGENT_MOBILE_CLIENT_2026-07-04.md](./AGENT_MOBILE_CLIENT_2026-07-04.md) | **AI agents / mobile** | Mobile client brief: features, style, APIs, Talk SLA |
 | [AGENT_BLUEPRINT_2026-07-05.md](./AGENT_BLUEPRINT_2026-07-05.md) | **AI agents / blueprint** | Character, Skills, Tools: schema, CRUD, runtime composition |

@@ -6,6 +6,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 **Technical reference (refreshed 2026-07-09):** [`docs/AGENT_REFERENCE_2026-06-26.md`](docs/AGENT_REFERENCE_2026-06-26.md) — API routes, schema, env, Neon HTTP migrate, billing plans.  
 **Architecture (Mermaid):** [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — C4 / Talk / Missions / ERD · live `/docs/architecture`.  
+**Avatar rendering (frozen player):** [`docs/AVATAR_RENDERING_SPEC.md`](docs/AVATAR_RENDERING_SPEC.md) — Camera Standard; do not change Anam `object-fit` per employee.  
 **Platform scope (2026-07-09):** [`docs/PLATFORM_SCOPE.md`](docs/PLATFORM_SCOPE.md) — module status matrix.  
 **Mobile client brief (2026-07-04):** [`docs/AGENT_MOBILE_CLIENT_2026-07-04.md`](docs/AGENT_MOBILE_CLIENT_2026-07-04.md) — features, style, platform APIs, Talk SLA (stack chosen by implementer).  
 **Scaling guide (2026-07-04):** [`docs/SCALING_2026-07-04.md`](docs/SCALING_2026-07-04.md) — 10 → 100 → 1000+ users, plan limits, ops checklist.  

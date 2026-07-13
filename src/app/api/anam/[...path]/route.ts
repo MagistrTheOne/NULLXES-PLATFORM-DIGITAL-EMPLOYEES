@@ -25,7 +25,10 @@ async function handleProxy(request: Request): Promise<Response> {
 
   if (!session && !demoOk) {
     return Response.json(
-      { error: "Authentication required for Anam proxy." },
+      {
+        error: "authentication_required",
+        message: "Authentication required for Anam proxy. Sign in and retry.",
+      },
       { status: 401 },
     );
   }
@@ -37,7 +40,10 @@ async function handleProxy(request: Request): Promise<Response> {
   const platform = await consumePlatformAnamQuota();
   if (!platform.ok) {
     return Response.json(
-      { error: "Platform Anam quota exceeded. Try again shortly." },
+      {
+        error: "platform_quota_exceeded",
+        message: "Platform Anam quota exceeded. Try again shortly.",
+      },
       { status: 429 },
     );
   }
@@ -48,7 +54,10 @@ async function handleProxy(request: Request): Promise<Response> {
   });
   if (!bucket.ok) {
     return Response.json(
-      { error: "Too many Anam proxy requests." },
+      {
+        error: "proxy_rate_limited",
+        message: "Too many Anam proxy requests. Try again shortly.",
+      },
       { status: 429 },
     );
   }

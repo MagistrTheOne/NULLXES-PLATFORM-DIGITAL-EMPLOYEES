@@ -18,6 +18,7 @@ import {
   activateEmployeeSession,
   completeEmployeeSession,
   failEmployeeSession,
+  failOpenEmployeeSessionsForTalkStart,
   startEmployeeSession,
 } from "../services/record-employee-session";
 
@@ -180,6 +181,10 @@ export async function startTalkSessionAction(
     return measureTalkPerf(
       "talk.session.start",
       async () => {
+        // Drop prior open DB sessions so retries do not reuse a half-dead
+        // row while still minting a fresh Anam engine session (concurrent cap).
+        await failOpenEmployeeSessionsForTalkStart({ employeeId, userId });
+
         const sessionId = await startEmployeeSession({
           organizationId,
           employeeId,

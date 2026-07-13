@@ -134,24 +134,38 @@ export function TalkStageHud({ employeeName }: { employeeName: string }) {
     ? t(`pipeline.${pipelineState}`)
     : employeeName.toUpperCase();
 
+  /* Right HUD breathes with conversation — quiet when idle, full when speaking */
+  const rightHudOpacity = speaking
+    ? "opacity-100"
+    : listening
+      ? "opacity-55"
+      : isLive
+        ? "opacity-35"
+        : "opacity-20";
+
   return (
     <>
       <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-start justify-between p-4">
         <div className="space-y-1">
-          <p className="text-[10px] font-semibold tracking-[0.28em] text-white/90 uppercase">
+          <p className="mix-blend-soft-light text-[10px] font-semibold tracking-[0.28em] text-white/40 uppercase">
             NULLXES
           </p>
-          <p className="text-[9px] tracking-[0.22em] text-white/45 uppercase">
+          <p className="text-[9px] tracking-[0.22em] text-white/30 uppercase">
             {t("tagline")}
           </p>
         </div>
 
-        <div className="hidden items-start gap-3 sm:flex">
+        <div
+          className={cn(
+            "hidden items-start gap-3 transition-opacity duration-500 sm:flex",
+            rightHudOpacity,
+          )}
+        >
           <div className="space-y-1 text-right">
-            <p className="text-[9px] tracking-[0.18em] text-white/35 uppercase">
+            <p className="text-[9px] tracking-[0.18em] text-white/50 uppercase">
               {t("hudEvolutionary")}
             </p>
-            <p className="text-[9px] tracking-[0.18em] text-white/35 uppercase">
+            <p className="text-[9px] tracking-[0.18em] text-white/50 uppercase">
               {t("hudQuantum")}
             </p>
           </div>
@@ -159,7 +173,8 @@ export function TalkStageHud({ employeeName }: { employeeName: string }) {
         </div>
       </div>
 
-      <div className="pointer-events-none absolute bottom-4 left-4 z-20 flex items-center gap-3 rounded-xl border border-white/10 bg-black/55 px-3 py-2 backdrop-blur-sm">
+      {/* Sit above the docked call bar */}
+      <div className="pointer-events-none absolute bottom-16 left-4 z-20 flex items-center gap-3 rounded-xl border border-white/10 bg-black/55 px-3 py-2 backdrop-blur-sm sm:bottom-[4.25rem]">
         <AudioBars active={speaking || listening} level={speakingLevel / 100} />
         <div className="min-w-0">
           <p className="text-[11px] font-medium text-white/90">
@@ -174,7 +189,12 @@ export function TalkStageHud({ employeeName }: { employeeName: string }) {
         </div>
       </div>
 
-      <div className="pointer-events-none absolute right-4 bottom-4 z-20 flex items-center gap-2 rounded-lg border border-white/10 bg-black/55 px-2.5 py-1.5 text-[10px] font-medium tracking-wide text-white/75 backdrop-blur-sm">
+      <div
+        className={cn(
+          "pointer-events-none absolute right-4 bottom-16 z-20 flex items-center gap-2 rounded-lg border border-white/10 bg-black/55 px-2.5 py-1.5 text-[10px] font-medium tracking-wide text-white/75 backdrop-blur-sm transition-opacity duration-500 sm:bottom-[4.25rem]",
+          rightHudOpacity,
+        )}
+      >
         <span>1080p HD</span>
         <Signal className="size-3.5 stroke-[1.5] text-white/60" aria-hidden />
       </div>
@@ -192,7 +212,12 @@ export function TalkStageHud({ employeeName }: { employeeName: string }) {
         </div>
       ) : null}
 
-      <div className="pointer-events-none absolute right-4 bottom-14 hidden sm:block">
+      <div
+        className={cn(
+          "pointer-events-none absolute right-4 bottom-28 hidden transition-opacity duration-500 sm:block sm:bottom-[6.5rem]",
+          rightHudOpacity,
+        )}
+      >
         <Sparkline seed={employeeName.length * 11} className="w-24 text-white/25" />
       </div>
     </>
