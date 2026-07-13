@@ -200,7 +200,8 @@ export function SettingsBillingTab({
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {tiers.map((tier) => {
           const isCurrent = tier.id === currentTierId;
-          const price = resolveDisplayPrice(tier);
+          const showPrice = tier.engagement !== "sales";
+          const price = showPrice ? resolveDisplayPrice(tier) : null;
           const features = tierFeatures(tier.id, tier.features);
 
           return (
@@ -233,18 +234,25 @@ export function SettingsBillingTab({
                 </div>
               </div>
 
-              <div className="mt-4">
-                <p className="text-2xl font-medium tracking-tight text-foreground">
-                  {price.priceLabel}
-                </p>
-                {price.priceNote ? (
-                  <p className="mt-1 text-[11px] uppercase tracking-wide text-muted-foreground">
-                    {price.priceNote}
+              {price ? (
+                <div className="mt-4">
+                  <p className="text-2xl font-medium tracking-tight text-foreground">
+                    {price.priceLabel}
                   </p>
-                ) : null}
-              </div>
+                  {price.priceNote ? (
+                    <p className="mt-1 text-[11px] uppercase tracking-wide text-muted-foreground">
+                      {price.priceNote}
+                    </p>
+                  ) : null}
+                </div>
+              ) : null}
 
-              <p className="mt-3 text-sm text-muted-foreground">
+              <p
+                className={cn(
+                  "text-sm text-muted-foreground",
+                  price ? "mt-3" : "mt-4",
+                )}
+              >
                 {tierDescription(tier.id, tier.description)}
               </p>
 
@@ -374,9 +382,6 @@ export function SettingsBillingTab({
               </ul>
             </div>
             <div className="flex shrink-0 flex-col items-start gap-2 md:items-end">
-              <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
-                {t("rfSalesPriceNote")}
-              </p>
               <Button
                 type="button"
                 className="bg-foreground text-background hover:bg-foreground/90"

@@ -1068,7 +1068,7 @@
       "selfServe": "Plans",
       "selfServeDesc": "Evaluation → Studio → Team → Scale. Annual saves 20%.",
       "enterpriseLadder": "Deployment stages",
-      "enterpriseLadderDesc": "From the first pilot to a digital corporation.",
+      "enterpriseLadderDesc": "From pilot to digital corporation.",
       "plans": "Plans",
       "plansDesc": "Self-serve launch and deployment stages",
       "billingInterval": "Billing interval",
@@ -1149,28 +1149,28 @@
         },
         "discovery": {
           "name": "Discovery",
-          "description": "Map processes, prepare architecture, and form a digital employee deployment plan.",
+          "description": "Processes, architecture, and a digital employee deployment plan.",
           "features": "Business process analysis|Automation map|1–2 working prototypes|NULLXES deployment architect"
         },
         "pilot": {
           "name": "Pilot",
-          "description": "Launch the first digital employees in the company’s live operating environment.",
-          "features": "3–10 digital employees|Custom avatars and voices|Corporate systems integration|Performance metrics and reporting"
+          "description": "First digital employees in the company’s operating environment.",
+          "features": "3–10 digital employees|Custom avatars and voices|Corporate systems integration|Metrics and reporting"
         },
         "department": {
           "name": "Digital department",
-          "description": "A fully automated unit under unified management.",
-          "features": "Unit automation|Role and access control|Analytics and audit|SSO and priority support"
+          "description": "A business unit run by digital employees under unified control.",
+          "features": "Unit automation|Role and access control|Analytics and activity log|SSO and priority support"
         },
         "holding": {
           "name": "Digital holding",
-          "description": "One platform to manage digital employees across multiple organizations.",
-          "features": "Multiple organizations|Hundreds of digital employees|Security and compliance requirements|Dedicated engineering team and SLA"
+          "description": "Manage digital employees across multiple organizations.",
+          "features": "Multiple organizations|Hundreds of digital employees|Data security requirements|Dedicated engineering team and SLA"
         },
         "flagship": {
           "name": "Digital corporation",
-          "description": "Full NULLXES platform deployment with private infrastructure and custom architecture.",
-          "features": "Sovereign digital corporation|Private infrastructure|Custom AI models and services|Dedicated NULLXES team"
+          "description": "NULLXES platform on private infrastructure.",
+          "features": "Private digital corporation|Private infrastructure|Custom AI models and services|Dedicated NULLXES team"
         }
       }
     },
