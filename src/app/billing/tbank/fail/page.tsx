@@ -15,7 +15,7 @@ export default async function TbankFailPage() {
       eyebrowEn="Payment failed"
       locale={locale}
       actions={
-        <TbankResultPrimaryButton href="/billing/tbank">
+        <TbankResultPrimaryButton href="/settings?tab=billing">
           {isRu ? "Повторить оплату" : "Retry payment"}
         </TbankResultPrimaryButton>
       }

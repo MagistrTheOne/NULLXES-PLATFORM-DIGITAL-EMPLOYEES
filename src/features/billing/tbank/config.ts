@@ -22,7 +22,7 @@ export function getTbankApiBase(): string {
 }
 
 export function getTbankEnv(): "test" | "production" {
-  return process.env.TBANK_ENV === "production" ? "production" : "test";
+  return process.env.TBANK_ENV === "test" ? "test" : "production";
 }
 
 export function isTbankConfigured(): boolean {
@@ -50,7 +50,7 @@ export function getTbankNotificationUrl(): string {
   );
 }
 
-/** When set (e.g. osn / usn_income), used in Receipt. Default usn_income for DEMO. */
+/** When set (e.g. osn / usn_income), used in Receipt. Default usn_income. */
 export function getTbankTaxation(): string {
   return readOptionalEnv("TBANK_TAXATION") ?? "usn_income";
 }
@@ -60,7 +60,7 @@ export function getTbankVat(): string {
   return readOptionalEnv("TBANK_VAT") ?? "none";
 }
 
-/** Receipt is on by default (bank fiscalization tests). Set TBANK_RECEIPT=0 to disable. */
+/** Receipt on by default (54-ФЗ). Set TBANK_RECEIPT=0 to disable. */
 export function isTbankReceiptEnabled(): boolean {
   const raw = readOptionalEnv("TBANK_RECEIPT");
   if (raw === "0" || raw === "false" || raw === "off") {
@@ -69,16 +69,9 @@ export function isTbankReceiptEnabled(): boolean {
   return true;
 }
 
-/** Public label for auditors (never expose password). */
+/** Public label for operators (never expose password). */
 export function getTbankTerminalDisplay(): string | null {
   const key = getTbankTerminalKey();
   if (!key) return null;
   return key.includes("DEMO") ? `${key} · DEMO` : key;
-}
-
-/** Verification charge in kopecks (default 10 ₽). */
-export function getTbankTestAmountKopecks(): number {
-  const raw = readOptionalEnv("TBANK_TEST_AMOUNT_KOPECKS");
-  const parsed = raw ? Number.parseInt(raw, 10) : 1000;
-  return Number.isFinite(parsed) && parsed >= 100 ? parsed : 1000;
 }

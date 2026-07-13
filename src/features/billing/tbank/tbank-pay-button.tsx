@@ -15,7 +15,7 @@ export function TbankPayButton({
 }: {
   label: string;
   className?: string;
-  planId?: SelfServeCheckoutPlanId | "test";
+  planId: SelfServeCheckoutPlanId;
   interval?: BillingInterval;
   pendingLabel?: string;
 }) {
@@ -30,7 +30,7 @@ export function TbankPayButton({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          planId: planId === "test" ? undefined : planId,
+          planId,
           interval,
         }),
       });

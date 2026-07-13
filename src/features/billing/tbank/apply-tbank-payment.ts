@@ -11,7 +11,6 @@ import {
 /**
  * Apply T-Bank CONFIRMED notification to organization billing_plan.
  * CustomerKey = organization.id; OrderId encodes plan (nx-studio-m-…).
- * Test orders (nx-test-…) do not change the plan.
  */
 export async function applyTbankPaymentConfirmation(input: {
   orderId: string;
@@ -30,8 +29,8 @@ export async function applyTbankPaymentConfirmation(input: {
   }
 
   const parsed = parseTbankOrderId(input.orderId);
-  if (!parsed.planId || parsed.planId === "test") {
-    return { updated: false, reason: "test_or_unknown_order" };
+  if (!parsed.planId) {
+    return { updated: false, reason: "unknown_order" };
   }
 
   const organizationId = input.customerKey?.trim();

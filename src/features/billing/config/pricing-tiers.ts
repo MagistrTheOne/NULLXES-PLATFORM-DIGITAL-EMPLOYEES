@@ -35,7 +35,7 @@ export type PricingTier = {
 export const PRICING_TIERS: PricingTier[] = [
   {
     id: "free",
-    name: "Free",
+    name: "Evaluation",
     priceLabel: "0 ₽",
     priceNote: "No credit card",
     description: "Talk with NULLXES catalog employees. Build your own on paid plans.",

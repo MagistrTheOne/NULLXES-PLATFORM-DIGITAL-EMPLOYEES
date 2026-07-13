@@ -89,31 +89,24 @@ export function getRubTierPrice(
 
 /** Encode plan into OrderId (≤50 chars). Example: nx-starter-m-1720000000-a1b2c3d4 */
 export function buildTbankOrderId(input: {
-  planId: SelfServeCheckoutPlanId | "test";
-  interval?: BillingInterval;
+  planId: SelfServeCheckoutPlanId;
+  interval: BillingInterval;
   suffix: string;
 }): string {
-  const intervalCode =
-    input.planId === "test" ? "t" : input.interval === "year" ? "y" : "m";
+  const intervalCode = input.interval === "year" ? "y" : "m";
   return `nx-${input.planId}-${intervalCode}-${input.suffix}`.slice(0, 50);
 }
 
 export function parseTbankOrderId(orderId: string): {
-  planId: SelfServeCheckoutPlanId | "test" | null;
+  planId: SelfServeCheckoutPlanId | null;
   interval: BillingInterval | null;
 } {
-  const match = orderId.match(
-    /^nx-(starter|studio|operator|scale|test)-([myt])-/,
-  );
+  const match = orderId.match(/^nx-(starter|studio|operator|scale)-([my])-/);
   if (!match) {
     return { planId: null, interval: null };
   }
-  const planId = match[1] as SelfServeCheckoutPlanId | "test";
-  if (planId === "test") {
-    return { planId: "test", interval: null };
-  }
   return {
-    planId,
+    planId: match[1] as SelfServeCheckoutPlanId,
     interval: match[2] === "y" ? "year" : "month",
   };
 }

@@ -1142,12 +1142,12 @@
       "paymentTest": "Тест оплаты",
       "paymentTestDesc": "Проверка терминала",
       "paymentTestBody": "Не меняет план.",
-      "paymentTestCta": "Тестовая оплата",
+      "paymentTestCta": "Оплатить",
       "tbankStatusReady": "Оплата подключена",
       "tbankStatusMissing": "Оплата не настроена",
       "tbankReceiptOn": "Чек",
       "tbankReceiptMeta": "{taxation} · {vat}",
-      "tbankOpenPayPage": "Оформление",
+      "tbankOpenPayPage": "Биллинг",
       "tier": {
         "free": {
           "name": "Бесплатный",

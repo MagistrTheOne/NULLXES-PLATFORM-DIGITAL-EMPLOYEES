@@ -1,8 +1,23 @@
 import Link from "next/link";
-import { BILLING_PLANS, type BillingPlanId } from "@/features/billing/config/plans";
+import {
+  BILLING_PLANS,
+  type BillingPlanId,
+} from "@/features/billing/config/plans";
+
+/** Product-facing names (id → label). Source of truth for limits: BILLING_PLANS. */
+const DISPLAY_NAME: Record<BillingPlanId, string> = {
+  free: "Evaluation",
+  starter: "Starter",
+  studio: "Studio",
+  operator: "Team",
+  scale: "Scale",
+  enterprise: "Enterprise",
+  government: "Holding",
+};
 
 const PLAN_ORDER: BillingPlanId[] = [
   "free",
+  "starter",
   "studio",
   "operator",
   "scale",
@@ -31,11 +46,12 @@ export default function DocsPlansPage() {
           Тарифы и лимиты
         </h2>
         <p className="mt-4">
-          Единый справочник планов из{" "}
+          Справочник из{" "}
           <span className="font-mono text-white">
             src/features/billing/config/plans.ts
           </span>
-          . Имена в UI: Evaluation, Studio, Team, Scale, Enterprise, Government.
+          . Self-serve: Evaluation → Starter → Studio → Team → Scale. Sales:
+          Enterprise, Holding.
         </p>
       </header>
 
@@ -45,30 +61,22 @@ export default function DocsPlansPage() {
       >
         <h3 className="font-medium text-white">1. Имена планов</h3>
         <ul className="mt-4 list-disc space-y-2 pl-5">
-          <li>
-            <span className="font-mono text-white">free</span> →{" "}
-            <strong className="text-white">Evaluation</strong>
-          </li>
-          <li>
-            <span className="font-mono text-white">studio</span> →{" "}
-            <strong className="text-white">Studio</strong>
-          </li>
-          <li>
-            <span className="font-mono text-white">operator</span> →{" "}
-            <strong className="text-white">Team</strong>
-          </li>
-          <li>
-            <span className="font-mono text-white">scale</span> →{" "}
-            <strong className="text-white">Scale</strong>
-          </li>
-          <li>
-            <span className="font-mono text-white">enterprise</span> →{" "}
-            <strong className="text-white">Enterprise</strong>
-          </li>
-          <li>
-            <span className="font-mono text-white">government</span> →{" "}
-            <strong className="text-white">Government</strong>
-          </li>
+          {(
+            [
+              ["free", "Evaluation"],
+              ["starter", "Starter"],
+              ["studio", "Studio"],
+              ["operator", "Team"],
+              ["scale", "Scale"],
+              ["enterprise", "Enterprise"],
+              ["government", "Holding"],
+            ] as const
+          ).map(([id, label]) => (
+            <li key={id}>
+              <span className="font-mono text-white">{id}</span> →{" "}
+              <strong className="text-white">{label}</strong>
+            </li>
+          ))}
         </ul>
       </section>
 
@@ -95,7 +103,7 @@ export default function DocsPlansPage() {
                 const plan = BILLING_PLANS[id];
                 return (
                   <tr key={id} className="border-b border-white/5">
-                    <td className="py-2 pr-3 text-white">{plan.name}</td>
+                    <td className="py-2 pr-3 text-white">{DISPLAY_NAME[id]}</td>
                     <td className="py-2 pr-3 font-mono">{plan.priceLabel}</td>
                     <td className="py-2 pr-3">
                       {formatLimit(plan.limits.maxEmployees)}
@@ -120,8 +128,8 @@ export default function DocsPlansPage() {
           </table>
         </div>
         <p className="mt-3 text-xs text-white/40">
-          * Evaluation: создание своих сотрудников отключено — доступен
-          curated catalog NULLXES beta (Talk разрешён).
+          * Evaluation: создание своих сотрудников отключено — curated catalog
+          NULLXES (Talk разрешён). Каталог не считается в maxEmployees.
         </p>
       </section>
 
@@ -131,15 +139,20 @@ export default function DocsPlansPage() {
       >
         <h3 className="font-medium text-white">3. Доступ к Public API</h3>
         <ul className="mt-4 list-disc space-y-2 pl-5">
-          <li>Evaluation / Studio — ключи не создаются</li>
+          <li>Evaluation / Starter / Studio — ключи не создаются</li>
           <li>Team — scopes чтения (employees:read, sessions:read)</li>
-          <li>Scale / Enterprise / Government — полный доступ</li>
+          <li>Scale / Enterprise / Holding — полный доступ</li>
         </ul>
         <p className="mt-4">
           Подробнее:{" "}
           <Link href="/docs/api" className="text-white underline">
             /docs/api
           </Link>
+          . Лимиты enforcement:{" "}
+          <Link href="/docs/limits" className="text-white underline">
+            /docs/limits
+          </Link>
+          .
         </p>
       </section>
     </article>

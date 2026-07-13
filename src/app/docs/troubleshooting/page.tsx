@@ -41,7 +41,7 @@ export default function DocsTroubleshootingPage() {
         <h3 className="font-medium text-white">Public API</h3>
         <ul className="mt-4 list-disc space-y-2 pl-5">
           <li>401 — неверный или отозванный ключ</li>
-          <li>403 — не хватает scopes или тариф без API (Evaluation/Studio)</li>
+          <li>403 — не хватает scopes или тариф без API (Evaluation/Starter/Studio)</li>
           <li>
             Спека:{" "}
             <Link href="/docs/api" className="text-white underline">
@@ -73,7 +73,7 @@ export default function DocsTroubleshootingPage() {
             Нет кнопки Create на Evaluation — ожидаемо (catalog only)
           </li>
           <li>
-            Checkout — Studio / Team / Scale; Enterprise — Contact sales
+            Checkout — Starter / Studio / Team / Scale; Enterprise — Contact sales
           </li>
         </ul>
       </section>

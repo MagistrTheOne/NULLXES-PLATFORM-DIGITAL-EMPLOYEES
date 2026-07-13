@@ -157,7 +157,7 @@ export default function DocsOperationPage() {
             </span>
           </li>
           <li>
-            Тариф: Evaluation/Studio — без API; Team — чтение; Scale+ —
+            Тариф: Evaluation/Starter/Studio — без API; Team — чтение; Scale+ —
             полный доступ
           </li>
         </ul>

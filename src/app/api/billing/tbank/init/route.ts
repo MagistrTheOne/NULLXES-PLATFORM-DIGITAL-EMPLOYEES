@@ -8,10 +8,7 @@ import {
   type SelfServeCheckoutPlanId,
 } from "@/features/billing/config/rub-pricing";
 import type { BillingInterval } from "@/features/billing/config/plans";
-import {
-  getTbankTestAmountKopecks,
-  isTbankConfigured,
-} from "@/features/billing/tbank/config";
+import { isTbankConfigured } from "@/features/billing/tbank/config";
 import { initTbankPayment } from "@/features/billing/tbank/client";
 
 const PLAN_IDS: SelfServeCheckoutPlanId[] = [
@@ -25,19 +22,19 @@ function parsePlan(
   planIdRaw: string | null,
   intervalRaw: string | null,
 ): {
-  planId: SelfServeCheckoutPlanId | "test";
+  planId: SelfServeCheckoutPlanId | null;
   interval: BillingInterval;
 } {
   const planId = PLAN_IDS.includes(planIdRaw as SelfServeCheckoutPlanId)
     ? (planIdRaw as SelfServeCheckoutPlanId)
-    : "test";
+    : null;
   const interval: BillingInterval =
     intervalRaw === "year" ? "year" : "month";
   return { planId, interval };
 }
 
 async function createPayment(input: {
-  planId: SelfServeCheckoutPlanId | "test";
+  planId: SelfServeCheckoutPlanId;
   interval: BillingInterval;
 }): Promise<Response> {
   if (!isTbankConfigured()) {
@@ -57,11 +54,7 @@ async function createPayment(input: {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const amountKopecks =
-    input.planId === "test"
-      ? getTbankTestAmountKopecks()
-      : getRubAmountKopecks(input.planId, input.interval);
-
+  const amountKopecks = getRubAmountKopecks(input.planId, input.interval);
   if (amountKopecks == null || amountKopecks < 100) {
     return NextResponse.json({ error: "Invalid plan amount" }, { status: 400 });
   }
@@ -73,10 +66,7 @@ async function createPayment(input: {
     suffix,
   });
 
-  const description =
-    input.planId === "test"
-      ? "NULLXES — тестовая оплата"
-      : `NULLXES — ${input.planId} (${input.interval === "year" ? "год" : "месяц"})`;
+  const description = `NULLXES — ${input.planId} (${input.interval === "year" ? "год" : "месяц"})`;
 
   try {
     const result = await initTbankPayment({
@@ -122,17 +112,34 @@ export async function POST(request: Request): Promise<Response> {
     planId?: string;
     interval?: string;
   };
-  return createPayment(
-    parsePlan(raw.planId ?? null, raw.interval ?? null),
-  );
+  const parsed = parsePlan(raw.planId ?? null, raw.interval ?? null);
+  if (!parsed.planId) {
+    return NextResponse.json(
+      { error: "planId required (starter|studio|operator|scale)" },
+      { status: 400 },
+    );
+  }
+  return createPayment({ planId: parsed.planId, interval: parsed.interval });
 }
 
-/** GET ?planId=&interval= → redirect to PaymentURL (auditors / deep links). */
+/** GET ?planId=&interval= → redirect to PaymentURL. */
 export async function GET(request: Request): Promise<Response> {
   const url = new URL(request.url);
-  const init = await createPayment(
-    parsePlan(url.searchParams.get("planId"), url.searchParams.get("interval")),
+  const parsed = parsePlan(
+    url.searchParams.get("planId"),
+    url.searchParams.get("interval"),
   );
+  if (!parsed.planId) {
+    return NextResponse.json(
+      { error: "planId required (starter|studio|operator|scale)" },
+      { status: 400 },
+    );
+  }
+
+  const init = await createPayment({
+    planId: parsed.planId,
+    interval: parsed.interval,
+  });
   if (!init.ok) {
     const body = await init.text();
     return new NextResponse(body, {

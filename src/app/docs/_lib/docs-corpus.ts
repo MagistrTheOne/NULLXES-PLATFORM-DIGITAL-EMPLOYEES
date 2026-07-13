@@ -38,14 +38,15 @@ export const DOCS_CORPUS: DocsCorpusChunk[] = [
       "лимит",
       "api",
     ],
-    body: `Тарифы (id → имя):
-- free → Evaluation ($0): каталог NULLXES beta read-only, без create; Talk 2 мин/сессия, 30 мин/мес; API none; seats 1
-- studio → Studio ($49/mo): 1 employee, Talk 10 мин, 180 мин/мес, 1 custom avatar, API none
-- operator → Team ($200/mo): 3 employees, Talk 20 мин, 600 мин/мес, API read
-- scale → Scale ($600/mo): 10 employees, Talk 30 мин, 2000 мин/мес, API full
-- enterprise → Enterprise (Contact sales): unlimited employees/Talk, API full, SSO/SLA
-- government → Government (Contact sales): residency, 152-FZ controls
-Evaluation/Studio не создают API keys. Team = read API. Scale+ = full API.`,
+    body: `Тарифы (id → имя), лимиты из plans.ts:
+- free → Evaluation (0 ₽): catalog only, без create; Talk 2 мин/сессия, 30 мин/мес; chunks 5000; API none
+- starter → Starter (599 ₽/mo): 2 employees; Talk 10 мин/сессия, 60 мин/мес; chunks 2500; API none
+- studio → Studio (4 999 ₽/mo): 5 employees; Talk 10 мин, 180 мин/мес; chunks 15000; API none
+- operator → Team (19 999 ₽/mo): 10 employees; Talk 20 мин, 600 мин/мес; chunks 50000; API read
+- scale → Scale (59 999 ₽/mo): 20 employees; Talk 30 мин, 2000 мин/мес; chunks 150000; API full
+- enterprise → Enterprise (Contact sales): unlimited employees/Talk; chunks 100000; API full
+- government → Holding (Contact sales): unlimited; API full
+API keys: Evaluation/Starter/Studio — нет; Team — read; Scale/Enterprise/Holding — full.`,
   },
   {
     id: "api",
@@ -127,7 +128,7 @@ npm run db:migrate; npm run inngest:sync.
     keywords: ["роль", "owner", "admin", "member", "права"],
     body: `Owner / Administrator — полное управление организацией, ключами, approvals.
 Member — работа с сотрудниками, миссиями и Talk в рамках выданных прав.
-Не путать с тарифами Evaluation/Studio/Team/Scale.`,
+Не путать с тарифами Evaluation/Starter/Studio/Team/Scale.`,
   },
   {
     id: "troubleshooting",
@@ -135,7 +136,7 @@ Member — работа с сотрудниками, миссиями и Talk в
     title: "Устранение неполадок",
     keywords: ["ошибка", "не работает", "talk", "provisioning", "429", "ключ"],
     body: `Talk не стартует: проверьте Talk Ready (avatar+session), лимиты минут тарифа.
-API 401/403: ключ, scopes, тариф (Evaluation/Studio без API).
+API 401/403: ключ, scopes, тариф (Evaluation/Starter/Studio без API).
 Provisioning failed: Settings → AI keys, повторный provision.
 Brain-stream 429: rate limit — подождите.
 Миссии «зависли»: Inngest dashboard, обновите страницу миссии.`,

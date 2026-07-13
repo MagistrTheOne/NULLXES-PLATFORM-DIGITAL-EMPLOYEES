@@ -30,7 +30,6 @@ import { isSelfServeCheckoutPlan } from "../lib/resolve-plan-from-polar-product"
 import {
   getTbankTaxation,
   getTbankTerminalDisplay,
-  getTbankTestAmountKopecks,
   getTbankVat,
   isTbankConfigured,
   isTbankReceiptEnabled,
@@ -42,8 +41,6 @@ export type TbankBillingSnapshot = {
   terminalLabel: string | null;
   taxation: string;
   vat: string;
-  testAmountKopecks: number;
-  payPath: string;
 };
 
 export type OrganizationBillingSnapshot = {
@@ -231,8 +228,6 @@ export async function getOrganizationBillingSnapshot(input: {
       terminalLabel: getTbankTerminalDisplay(),
       taxation: getTbankTaxation(),
       vat: getTbankVat(),
-      testAmountKopecks: getTbankTestAmountKopecks(),
-      payPath: "/billing/tbank",
     },
   };
 }

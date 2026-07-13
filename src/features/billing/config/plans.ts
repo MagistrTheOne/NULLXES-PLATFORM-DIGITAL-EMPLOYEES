@@ -42,7 +42,7 @@ export type BillingPlanDefinition = {
 export const BILLING_PLANS: Record<BillingPlanId, BillingPlanDefinition> = {
   free: {
     id: "free",
-    name: "Free",
+    name: "Evaluation",
     priceLabel: "0 ₽",
     description: "Talk with NULLXES catalog employees. Build your own on paid plans.",
     checkoutEnabled: false,

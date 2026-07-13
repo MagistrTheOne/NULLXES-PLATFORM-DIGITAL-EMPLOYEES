@@ -38,7 +38,7 @@ export const DOCS_FAQ: DocsFaqEntry[] = [
     id: "plans",
     question: "Какие тарифы и лимиты?",
     answer:
-      "Evaluation (free), Studio, Team (operator), Scale, Enterprise, Government. Матрица лимитов: /docs/plans. Evaluation — catalog only без create; API с Team (read) и Scale+ (full).",
+      "Evaluation (free), Starter, Studio, Team (operator), Scale, Enterprise, Holding (government). Матрица: /docs/plans. Evaluation — catalog only; API с Team (read) и Scale+ (full).",
     keywords: ["тариф", "план", "лимит", "evaluation", "studio", "billing"],
   },
   {
@@ -59,7 +59,7 @@ export const DOCS_FAQ: DocsFaqEntry[] = [
     id: "api",
     question: "Как пользоваться Public API?",
     answer:
-      "Base /api/v1, Authorization: Bearer nx_live_…. Ключи — Settings → Security. Документация: /docs/api. OpenAPI: GET /api/docs. Evaluation/Studio без API; Team — read; Scale+ — full.",
+      "Base /api/v1, Authorization: Bearer nx_live_…. Ключи — Settings → Security. Документация: /docs/api. OpenAPI: GET /api/docs. Evaluation/Starter/Studio без API; Team — read; Scale+ — full.",
     keywords: ["api", "openapi", "ключ", "nx_live", "интеграц", "rest", "scopes"],
   },
   {

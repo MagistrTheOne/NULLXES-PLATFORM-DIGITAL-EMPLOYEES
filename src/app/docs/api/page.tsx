@@ -111,8 +111,8 @@ export default function DocsApiPage() {
           </table>
         </div>
         <p className="mt-4">
-          Доступ к API зависит от тарифа: Evaluation / Studio — без ключей;
-          Operator — чтение; Scale / Enterprise / Government — полный доступ.
+          Доступ к API зависит от тарифа: Evaluation / Starter / Studio — без
+          ключей; Team — чтение; Scale / Enterprise / Holding — полный доступ.
         </p>
       </section>
 

@@ -1142,12 +1142,12 @@
       "paymentTest": "Payment test",
       "paymentTestDesc": "DEMO terminal verification",
       "paymentTestBody": "Does not change the plan. Test cards only.",
-      "paymentTestCta": "Pay test",
+      "paymentTestCta": "Subscribe",
       "tbankStatusReady": "Payments ready",
       "tbankStatusMissing": "Payments not configured",
       "tbankReceiptOn": "Receipt",
       "tbankReceiptMeta": "{taxation} · {vat}",
-      "tbankOpenPayPage": "Checkout page",
+      "tbankOpenPayPage": "Billing",
       "tier": {
         "free": {
           "name": "Free",
