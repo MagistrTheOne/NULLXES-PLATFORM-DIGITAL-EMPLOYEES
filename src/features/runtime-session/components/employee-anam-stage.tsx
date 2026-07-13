@@ -234,7 +234,7 @@ export function EmployeeAnamStage({
             <AvatarIdlePreview
               src={avatarPreviewUrl!}
               alt={employeeName}
-              sizes="(max-width: 960px) 100vw, 1200px"
+              sizes="(max-width: 960px) 100vw, 100vw"
               fit="cover"
               className="h-full w-full"
             />

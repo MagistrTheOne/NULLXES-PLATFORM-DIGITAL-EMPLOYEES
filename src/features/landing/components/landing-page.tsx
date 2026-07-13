@@ -38,7 +38,7 @@ export function LandingPage({
 
       <LandingNav signedIn={signedIn} />
 
-      <div className="relative flex min-h-[100svh] flex-col pt-[3.75rem] sm:pt-[4.25rem] lg:h-dvh lg:min-h-0 lg:overflow-hidden">
+      <div className="relative flex min-h-svh flex-col pt-15 sm:pt-17 lg:h-dvh lg:min-h-0 lg:overflow-hidden">
         <AdelineHero signedIn={signedIn} plaque={plaque} />
       </div>
 

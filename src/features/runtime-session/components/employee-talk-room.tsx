@@ -390,19 +390,12 @@ export function EmployeeTalkRoom({
       />
 
       {/* Video-first Talk layout:
-          - Immersive stage is the hero.
+          - Immersive stage is the hero — nearly full workspace width so
+            16:9 media shows more shoulders/environment at the same height.
           - Floating call controls overlaid on the stage.
-          - Details rail is opt-in (collapsed by default).
-          - When Details is closed, keep the previous stage width so the
-            portrait frame does not become an ultra-wide crop. */}
+          - Details rail is opt-in (collapsed by default). */}
       <div className="flex min-h-0 flex-1 overflow-hidden border-t border-white/8">
-        <div
-          className={cn(
-            "relative flex min-h-0 min-w-0 flex-1 flex-col bg-black",
-            !showDetailsRail &&
-              "lg:mx-auto lg:max-w-[calc(100%-300px)] xl:max-w-[calc(100%-340px)]",
-          )}
-        >
+        <div className="relative flex min-h-0 min-w-0 flex-1 flex-col bg-black lg:px-3 xl:px-4">
           <div className="talk-workspace-stage relative min-h-0 flex-1 overflow-hidden bg-black">
             <EmployeeAnamStage
               employeeId={employeeId}

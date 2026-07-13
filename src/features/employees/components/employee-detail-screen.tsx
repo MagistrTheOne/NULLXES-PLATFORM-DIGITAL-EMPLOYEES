@@ -76,11 +76,21 @@ export async function EmployeeDetailScreen({
   const talkBlockers = resolveTalkReadinessBlockers({
     avatarProvisioningStatus: employee.avatarProvisioningStatus,
     sessionProvisioningStatus: employee.sessionProvisioningStatus,
-    avatarReady: isAnamAvatarTalkReady({
-      provisioningStatus: employee.avatarProvisioningStatus,
-      personaId: employee.personaId ?? undefined,
-      avatarId: employee.avatarId ?? undefined,
-    }),
+    // Operators receive redacted avatar/persona IDs — readiness uses status + preview.
+    avatarReady: isPlatformAdmin
+      ? isAnamAvatarTalkReady({
+          provisioningStatus: employee.avatarProvisioningStatus,
+          personaId: employee.personaId ?? undefined,
+          avatarId: employee.avatarId ?? undefined,
+          previewUrl: employee.avatarPreviewUrl ?? undefined,
+          providerMetadata: {
+            anamPersonaVoiceId:
+              employee.anamVoiceId ?? employee.voiceId ?? undefined,
+            voiceId: employee.voiceId ?? undefined,
+          },
+        })
+      : employee.avatarProvisioningStatus === "ready" &&
+        Boolean(employee.avatarPreviewUrl),
   });
 
   const employeeForClient: EmployeeDetailShell = isPlatformAdmin

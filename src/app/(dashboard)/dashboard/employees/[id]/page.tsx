@@ -53,7 +53,7 @@ export default async function EmployeeDetailPage({
   return (
     <EmployeeDetailMaterializationHost employee={employeeForClient}>
       <EmployeeDetailScreen
-        employee={employee}
+        employee={employeeForClient}
         organizationId={workspace.organization.id}
         displayPreferences={displayPreferences}
       />

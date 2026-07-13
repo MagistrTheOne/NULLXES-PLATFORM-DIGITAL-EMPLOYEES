@@ -366,7 +366,7 @@ export function SettingsBillingTab({
         {renderTierGrid(selfServeTiers, "self_serve")}
 
         <div className="mt-6 overflow-x-auto rounded-2xl border border-border">
-          <table className="w-full min-w-[36rem] border-collapse text-left text-sm">
+          <table className="w-full min-w-xl border-collapse text-left text-sm">
             <caption className="sr-only">{t("planLadder")}</caption>
             <thead>
               <tr className="border-b border-border bg-background/60">

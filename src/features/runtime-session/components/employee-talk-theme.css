@@ -3,7 +3,7 @@
 }
 
 .employee-talk-shell {
-  max-width: 1440px;
+  max-width: none;
 }
 
 .talk-workforce-panel {
@@ -17,12 +17,6 @@
 .talk-workforce-strip .talk-workforce-card:hover {
   border-color: rgba(255, 255, 255, 0.14);
   background: rgba(255, 255, 255, 0.035);
-}
-
-@media (min-width: 1280px) {
-  .employee-talk-shell {
-    max-width: 1560px;
-  }
 }
 
 .talk-workspace-shell {

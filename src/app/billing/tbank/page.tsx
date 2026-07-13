@@ -25,7 +25,7 @@ export default async function TbankPayPage() {
       <h1 className="text-3xl font-medium tracking-tight text-white">
         Оформление
       </h1>
-      <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 text-left">
+      <div className="rounded-2xl border border-white/10 bg-white/3 p-5 text-left">
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-sm font-medium text-white">
