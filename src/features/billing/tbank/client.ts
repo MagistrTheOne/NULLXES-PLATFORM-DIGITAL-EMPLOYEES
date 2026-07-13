@@ -117,8 +117,8 @@ export async function initTbankPayment(
     OrderId: input.orderId,
     Description: input.description.slice(0, 140),
     Language: input.language ?? "ru",
-    SuccessURL: getTbankSuccessUrl(),
-    FailURL: getTbankFailUrl(),
+    SuccessURL: buildTbankReturnUrl(getTbankSuccessUrl(), input.orderId),
+    FailURL: buildTbankReturnUrl(getTbankFailUrl(), input.orderId),
     NotificationURL: getTbankNotificationUrl(),
     PayType: "O",
   };
@@ -164,4 +164,28 @@ export async function cancelTbankPayment(
     TerminalKey: terminalKey,
     PaymentId: paymentId,
   });
+}
+
+/** Resolve PaymentId from OrderId when SuccessURL lost PaymentId. */
+export async function checkTbankOrder(
+  orderId: string,
+): Promise<TbankApiResponse & { Payments?: Array<{ PaymentId?: string | number; Status?: string }> }> {
+  const { terminalKey } = requireCredentials();
+  return postTbank("CheckOrder", {
+    TerminalKey: terminalKey,
+    OrderId: orderId,
+  }) as Promise<
+    TbankApiResponse & {
+      Payments?: Array<{ PaymentId?: string | number; Status?: string }>;
+    }
+  >;
+}
+
+export function buildTbankReturnUrl(
+  baseUrl: string,
+  orderId: string,
+): string {
+  const url = new URL(baseUrl);
+  url.searchParams.set("OrderId", orderId);
+  return url.toString();
 }

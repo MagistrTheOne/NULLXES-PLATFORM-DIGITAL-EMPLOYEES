@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import type { BillingInterval } from "@/features/billing/config/plans";
 import type { SelfServeCheckoutPlanId } from "@/features/billing/config/rub-pricing";
+import { stashTbankPendingPayment } from "./pending-payment";
 
 export function TbankPayButton({
   label,
@@ -35,6 +36,8 @@ export function TbankPayButton({
       });
       const data = (await response.json()) as {
         paymentUrl?: string;
+        paymentId?: string | number;
+        orderId?: string;
         error?: string;
         details?: string;
       };
@@ -45,6 +48,12 @@ export function TbankPayButton({
         );
         setPending(false);
         return;
+      }
+      if (data.paymentId != null) {
+        stashTbankPendingPayment({
+          paymentId: data.paymentId,
+          orderId: data.orderId,
+        });
       }
       window.location.assign(data.paymentUrl);
     } catch {
