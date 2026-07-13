@@ -111,6 +111,13 @@ export function SettingsBillingTab({
       return { priceLabel: rub.priceLabel, priceNote: note };
     }
 
+    if (tier.engagement === "sales") {
+      return {
+        priceLabel: t("rfSalesPriceNote"),
+        priceNote: "",
+      };
+    }
+
     return {
       priceLabel: t("contactSales"),
       priceNote: t("rfSalesPriceNote"),
@@ -230,9 +237,11 @@ export function SettingsBillingTab({
                 <p className="text-2xl font-medium tracking-tight text-foreground">
                   {price.priceLabel}
                 </p>
-                <p className="mt-1 text-[11px] uppercase tracking-wide text-muted-foreground">
-                  {price.priceNote}
-                </p>
+                {price.priceNote ? (
+                  <p className="mt-1 text-[11px] uppercase tracking-wide text-muted-foreground">
+                    {price.priceNote}
+                  </p>
+                ) : null}
               </div>
 
               <p className="mt-3 text-sm text-muted-foreground">
@@ -335,74 +344,6 @@ export function SettingsBillingTab({
         {renderTierGrid(selfServeTiers)}
       </SettingsCard>
 
-      {canManageOrganization ? (
-        <SettingsCard
-          title={t("paymentTest")}
-          description={t("paymentTestDesc")}
-        >
-          <div className="flex flex-col gap-4">
-            <div className="flex flex-wrap items-center gap-2">
-              <span
-                className={cn(
-                  "rounded-full border px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide",
-                  tbankReady
-                    ? "border-foreground/30 text-foreground/80"
-                    : "border-border text-muted-foreground",
-                )}
-              >
-                {tbankReady ? t("tbankStatusReady") : t("tbankStatusMissing")}
-              </span>
-              {billing.tbank.terminalLabel ? (
-                <span className="rounded-full border border-border px-2 py-0.5 font-mono text-[10px] text-muted-foreground">
-                  {billing.tbank.terminalLabel}
-                </span>
-              ) : null}
-              {billing.tbank.receiptEnabled ? (
-                <span className="rounded-full border border-border px-2 py-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
-                  {t("tbankReceiptOn")}
-                </span>
-              ) : null}
-            </div>
-
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="min-w-0">
-                <p className="text-2xl font-medium tracking-tight text-foreground">
-                  {(billing.tbank.testAmountKopecks / 100).toLocaleString(
-                    locale === "ru" ? "ru-RU" : "en-US",
-                  )}{" "}
-                  ₽
-                </p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {t("paymentTestBody")}
-                </p>
-              </div>
-              <div className="flex shrink-0 flex-col gap-2 sm:items-end">
-                {tbankReady ? (
-                  <TbankPayButton
-                    label={t("paymentTestCta")}
-                    planId="test"
-                    pendingLabel={t("subscribePending")}
-                    className="border-border bg-foreground text-background hover:bg-foreground/90"
-                  />
-                ) : (
-                  <Button type="button" variant="outline" disabled>
-                    {t("tbankStatusMissing")}
-                  </Button>
-                )}
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="border-border bg-transparent text-foreground hover:bg-accent"
-                  asChild
-                >
-                  <Link href={billing.tbank.payPath}>{t("tbankOpenPayPage")}</Link>
-                </Button>
-              </div>
-            </div>
-          </div>
-        </SettingsCard>
-      ) : null}
-
       <SettingsCard
         title={t("enterpriseLadder")}
         description={t("enterpriseLadderDesc")}
@@ -416,8 +357,7 @@ export function SettingsBillingTab({
                 {t("flagship")}
               </p>
               <p className="mt-2 text-xl font-medium tracking-tight text-foreground">
-                {tierName("flagship", flagshipTier.name)} ·{" "}
-                {t("digitalCorporation")}
+                {tierName("flagship", flagshipTier.name)}
               </p>
               <p className="mt-1 max-w-xl text-sm text-muted-foreground">
                 {tierDescription("flagship", flagshipTier.description)}
@@ -434,9 +374,6 @@ export function SettingsBillingTab({
               </ul>
             </div>
             <div className="flex shrink-0 flex-col items-start gap-2 md:items-end">
-              <p className="text-2xl font-medium tracking-tight text-foreground">
-                {t("contactSales")}
-              </p>
               <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
                 {t("rfSalesPriceNote")}
               </p>
@@ -445,7 +382,7 @@ export function SettingsBillingTab({
                 className="bg-foreground text-background hover:bg-foreground/90"
                 asChild
               >
-                <a href={FOUNDERS_CONTACT}>{t("talkToFounders")}</a>
+                <a href={FOUNDERS_CONTACT}>{t("contactSales")}</a>
               </Button>
             </div>
           </div>
