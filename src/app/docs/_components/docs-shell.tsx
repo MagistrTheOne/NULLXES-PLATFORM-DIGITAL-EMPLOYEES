@@ -15,7 +15,7 @@ import {
 import { DOCS_NAV, DOCS_NAV_FLAT, findDocsNavItem } from "../_lib/docs-nav";
 import { DOCS_CORPUS } from "../_lib/docs-corpus";
 
-const DOCS_VERSION = "2.0.0";
+const DOCS_VERSION = "2.1.0";
 const DOCS_UPDATED = "10 июл. 2026 г.";
 
 function NavList({
@@ -195,7 +195,7 @@ export function DocsShell({ children }: { children: ReactNode }) {
                 href="/docs/assistant"
                 className="hidden items-center gap-1.5 text-[13px] text-white/60 transition-colors hover:text-white md:inline-flex"
               >
-                GPT-4o
+                Yuki
               </Link>
               <Link
                 href="/dashboard"
@@ -248,27 +248,26 @@ export function DocsShell({ children }: { children: ReactNode }) {
                   Нужна помощь?
                 </p>
                 <p className="mt-1 text-xs leading-relaxed text-white/50">
-                  Ассистент Yuki Nakora — спросите, если есть вопросы по
-                  документации.
+                  Помощник по документации — Yuki Nakora.
                 </p>
                 <div className="mt-3 flex flex-col gap-2 text-xs">
                   <Link
                     href="/docs/assistant"
                     className="text-white underline underline-offset-4"
                   >
-                    Ассистент GPT-4o
+                    Yuki Nakora
                   </Link>
                   <Link
-                    href="/docs/plans"
+                    href="/docs/enterprise"
                     className="text-white underline underline-offset-4"
                   >
-                    Тарифы и лимиты
+                    Enterprise
                   </Link>
                   <Link
-                    href="/docs/troubleshooting"
+                    href="/docs/limits"
                     className="text-white underline underline-offset-4"
                   >
-                    Устранение неполадок
+                    Лимиты
                   </Link>
                   <a
                     href="mailto:ceo@nullxes.com"

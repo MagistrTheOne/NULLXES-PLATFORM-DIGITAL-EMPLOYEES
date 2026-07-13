@@ -8,7 +8,7 @@ export function GET(): Response {
   const lines = [
     `# NULLXES Digital Employees`,
     ``,
-    `> Digital Workforce Operating System. Human docs: ${origin}/docs. Assistant: GPT-4o at ${origin}/docs/assistant.`,
+    `> Digital Workforce Operating System. Human docs: ${origin}/docs. Docs assistant (Yuki Nakora): ${origin}/docs/assistant.`,
     ``,
     `## Documentation`,
     ...DOCS_CORPUS.map(

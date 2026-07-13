@@ -14,7 +14,7 @@ export default function DocsTroubleshootingPage() {
           </a>{" "}
           или{" "}
           <Link href="/docs/assistant" className="text-white underline">
-            ассистент GPT-4o
+            помощник Yuki Nakora
           </Link>
           .
         </p>

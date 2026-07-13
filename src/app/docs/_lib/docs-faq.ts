@@ -10,7 +10,7 @@ export const DOCS_FAQ: DocsFaqEntry[] = [
     id: "overview",
     question: "Что такое NULLXES Digital Employees?",
     answer:
-      "NULLXES Digital Employees — платформа управления цифровой рабочей силой: digital employees, Talk, миссии, аналитика и Public API. Документация: nullxesdai.online/docs. Ассистент: /docs/assistant (GPT-4o).",
+      "NULLXES Digital Employees — платформа управления цифровой рабочей силой: digital employees, Talk, миссии, аналитика и Public API. Документация: /docs. Помощник: /docs/assistant (Yuki Nakora).",
     keywords: ["что такое", "обзор", "платформа", "назначение"],
   },
   {
@@ -45,8 +45,8 @@ export const DOCS_FAQ: DocsFaqEntry[] = [
     id: "llm",
     question: "Какой LLM используется?",
     answer:
-      "Миссии/парсинг: OpenAI GPT. Ассистент документации: OpenAI GPT-4o с RAG по /docs. Организация может указать свой ключ OpenAI в Settings → AI.",
-    keywords: ["gpt", "openai", "llm", "gpt-4o", "ассистент"],
+      "Когниция Talk и миссий идёт через настроенный LLM provider организации (Settings → AI). Помощник документации: Yuki Nakora (/docs/assistant) по корпусу /docs.",
+    keywords: ["gpt", "openai", "llm", "ассистент", "yuki"],
   },
   {
     id: "missions",
@@ -73,7 +73,7 @@ export const DOCS_FAQ: DocsFaqEntry[] = [
     id: "support",
     question: "Как связаться с поддержкой?",
     answer:
-      "Ассистент: /docs/assistant (Yuki Nakora, GPT-4o).\nEmail: ceo@nullxes.com\nTelegram: @MagistrTheOne\nРуководитель: Онюшко Максим Олегович (Maxim Onyushko).",
+      "Помощник: /docs/assistant (Yuki Nakora).\nEmail: ceo@nullxes.com\nTelegram: @MagistrTheOne\nРуководитель: Онюшко Максим Олегович (Maxim Onyushko).",
     keywords: ["поддержка", "контакт", "email", "telegram", "ceo"],
   },
   {

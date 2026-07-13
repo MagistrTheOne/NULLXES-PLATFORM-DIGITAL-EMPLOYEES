@@ -13,9 +13,12 @@ export const platformPagePaddingClass =
 export const platformCompactPagePaddingClass =
   "gap-3 p-3 sm:gap-4 sm:p-4 md:gap-4 md:p-5 2xl:px-6";
 
-/** Break out of a centered max-width parent (e.g. talk workspace). */
-export const platformFullBleedClass =
-  "relative left-1/2 w-screen max-w-none -translate-x-1/2 px-4 sm:px-5 md:px-6 2xl:px-8";
+/** Break out of page padding only — stays inside SidebarInset (never w-screen). */
+export const platformInsetBleedClass =
+  "relative -mx-4 max-w-none sm:-mx-5 md:-mx-6 2xl:-mx-8";
+
+/** @deprecated Prefer platformInsetBleedClass — w-screen overlaps the sidebar. */
+export const platformFullBleedClass = platformInsetBleedClass;
 
 /** Standard responsive metric strip grid. */
 export const platformMetricGridClass =

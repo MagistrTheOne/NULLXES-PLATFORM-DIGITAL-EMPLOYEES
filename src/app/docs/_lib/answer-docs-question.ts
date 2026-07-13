@@ -134,7 +134,7 @@ export async function answerDocsQuestionAction(input: {
   const systemPrompt = buildDocsAssistantSystemPrompt(retrieved);
   const citationFallback = retrieved.map((chunk) => chunk.href);
 
-  // Prefer real OpenAI GPT-4o for the documentation portal.
+  // Docs portal assistant (Yuki Nakora).
   const llmAttempts: Array<{ provider: BrainProvider; model: string }> = [];
   if (hasOpenAiCredentials()) {
     llmAttempts.push({ provider: "openai", model: DOCS_PRIMARY_MODEL });
@@ -179,6 +179,6 @@ export async function answerDocsQuestionAction(input: {
   return {
     ok: false,
     answer:
-      "Сейчас не удалось получить ответ GPT-4o. Откройте /docs/troubleshooting или напишите ceo@nullxes.com · Telegram @MagistrTheOne.",
+      "Сейчас не удалось получить ответ. Откройте /docs или напишите ceo@nullxes.com · Telegram @MagistrTheOne.",
   };
 }

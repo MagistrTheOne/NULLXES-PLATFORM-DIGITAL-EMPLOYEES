@@ -145,7 +145,7 @@ Brain-stream 429: rate limit — подождите.
     href: "/docs/assistant",
     title: "Поддержка",
     keywords: ["поддержка", "контакт", "email", "telegram", "yuki"],
-    body: `Ассистент документации: Yuki Nakora на /docs/assistant (OpenAI GPT-4o + корпус /docs).
+    body: `Помощник документации: Yuki Nakora на /docs/assistant (корпус /docs).
 Контакты: ceo@nullxes.com, Telegram @MagistrTheOne.
 Руководитель: Онюшко Максим Олегович (Maxim Onyushko).`,
   },

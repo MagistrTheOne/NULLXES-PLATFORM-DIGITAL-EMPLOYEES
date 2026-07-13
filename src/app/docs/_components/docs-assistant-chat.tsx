@@ -99,7 +99,7 @@ export function DocsAssistantChat({
         </Avatar>
         <div>
           <p className="text-sm font-medium text-white">{assistant.name}</p>
-          <p className="text-xs text-white/45">Документация · GPT-4o</p>
+          <p className="text-xs text-white/45">Документация · Yuki Nakora</p>
         </div>
       </div>
 
@@ -138,7 +138,7 @@ export function DocsAssistantChat({
         ))}
         {isPending ? (
           <div className="self-start rounded-xl bg-white/5 px-3 py-2 text-sm text-white/45">
-            GPT-4o готовит ответ…
+            Yuki готовит ответ…
           </div>
         ) : null}
       </div>

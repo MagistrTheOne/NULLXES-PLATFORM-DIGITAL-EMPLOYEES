@@ -61,7 +61,7 @@ export const BILLING_PLANS: Record<BillingPlanId, BillingPlanDefinition> = {
     features: [
       "NULLXES catalog: Adeline + Yuki",
       "30 Talk minutes / month",
-      "Web chat",
+      "AI chat",
       "No custom employees",
     ],
   },

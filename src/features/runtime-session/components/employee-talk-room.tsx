@@ -368,7 +368,7 @@ export function EmployeeTalkRoom({
   };
 
   return (
-    <div className="talk-workspace-shell employee-talk-workspace employee-talk-shell mx-auto flex w-full flex-1 flex-col overflow-hidden rounded-none border-0 bg-[#0a0a0a] min-h-[min(100dvh-7rem,900px)] sm:min-h-[min(90dvh,900px)] sm:rounded-2xl sm:border sm:border-white/10 lg:min-h-[min(84dvh,960px)] min-[1800px]:min-h-[min(88dvh,1040px)]">
+    <div className="talk-workspace-shell employee-talk-workspace employee-talk-shell mx-auto flex h-full min-h-0 w-full max-h-[calc(100dvh-3.5rem)] flex-1 flex-col overflow-hidden rounded-none border-0 bg-[#0a0a0a] sm:rounded-2xl sm:border sm:border-white/10">
       <TalkWorkspaceHeader
         employeeName={employeeName}
         sessionLimitSeconds={sessionLimitSeconds}
@@ -390,13 +390,14 @@ export function EmployeeTalkRoom({
       />
 
       {/* Video-first Talk layout:
-          - Immersive stage is the hero — nearly full workspace width so
-            16:9 media shows more shoulders/environment at the same height.
+          - Stage is a cinematic 16:9 frame (full content width, height from ratio)
+            so cover shows shoulders/environment without a super-tall crop.
+          - Layout stays inside SidebarInset (no viewport w-screen bleed).
           - Floating call controls overlaid on the stage.
           - Details rail is opt-in (collapsed by default). */}
-      <div className="flex min-h-0 flex-1 overflow-hidden border-t border-white/8">
-        <div className="relative flex min-h-0 min-w-0 flex-1 flex-col bg-black lg:px-3 xl:px-4">
-          <div className="talk-workspace-stage relative min-h-0 flex-1 overflow-hidden bg-black">
+      <div className="flex min-h-0 flex-1 overflow-hidden border-t border-white/8 bg-black">
+        <div className="talk-stage-frame relative flex min-h-0 min-w-0 flex-1 px-3 py-3 xl:px-4">
+          <div className="talk-workspace-stage relative overflow-hidden bg-black">
             <EmployeeAnamStage
               employeeId={employeeId}
               employeeName={employeeName}

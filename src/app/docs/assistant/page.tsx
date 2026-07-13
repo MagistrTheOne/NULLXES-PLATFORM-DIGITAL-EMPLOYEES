@@ -10,10 +10,10 @@ export default async function DocsAssistantPage() {
     <article className="flex flex-col gap-8">
       <header id="assistant" className="scroll-mt-24">
         <h2 className="text-2xl font-medium tracking-tight text-white">
-          Ассистент документации
+          Помощник по документации
         </h2>
         <p className="mt-4 text-sm leading-relaxed text-white/60">
-          Ассистент Yuki Nakora — спросите, если есть вопросы по документации.
+          Yuki Nakora отвечает по корпусу /docs. Без рекламы моделей.
         </p>
       </header>
 

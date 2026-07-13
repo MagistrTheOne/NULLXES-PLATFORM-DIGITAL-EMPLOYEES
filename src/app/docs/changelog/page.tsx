@@ -6,7 +6,7 @@ export default function DocsChangelogPage() {
           Changelog документации
         </h2>
         <p className="mt-4">
-          Изменения портала /docs и Public API. Версия портала: 2.0.0.
+          Изменения портала /docs и Public API. Версия портала: 2.1.0.
         </p>
       </header>
 
@@ -14,22 +14,26 @@ export default function DocsChangelogPage() {
         id="recent"
         className="scroll-mt-24 rounded-2xl border border-white/10 bg-[#111111] p-6"
       >
-        <h3 className="font-medium text-white">10 июля 2026 — 2.0.0</h3>
+        <h3 className="font-medium text-white">13 июля 2026 — 2.1.0</h3>
         <ul className="mt-4 list-disc space-y-2 pl-5">
-          <li>Diátaxis IA: Начало / Руководства / Справочник / Соответствие</li>
           <li>
-            Новые разделы: Тарифы, Talk, Knowledge, Troubleshooting, Changelog
+            IA developer portal: Начало · Workforce · Платформа · Админ ·
+            Безопасность · Правовые · Developers · Enterprise
           </li>
           <li>
-            Ассистент Yuki Nakora: OpenAI GPT-4o + RAG по корпусу /docs +
-            citations + multi-turn
+            Новые страницы: architecture, organizations, roles, API keys,
+            webhooks, limits, security, enterprise
           </li>
+          <li>Помощник: Yuki Nakora (без брендинга модели в UI)</li>
+        </ul>
+
+        <h3 className="mt-8 font-medium text-white">10 июля 2026 — 2.0.0</h3>
+        <ul className="mt-4 list-disc space-y-2 pl-5">
+          <li>Первый portal /docs + Public API human docs</li>
           <li>
             Agent-readable:{" "}
-            <span className="font-mono text-white">/llms.txt</span>,{" "}
-            <span className="font-mono text-white">/llms-full.txt</span>
+            <span className="font-mono text-white">/llms.txt</span>
           </li>
-          <li>Public API human docs + Orval typed client</li>
         </ul>
       </section>
     </article>

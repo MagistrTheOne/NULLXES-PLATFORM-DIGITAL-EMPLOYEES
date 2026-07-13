@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { platformFullBleedClass } from "@/shared/layout/platform-layout";
+import { platformInsetBleedClass } from "@/shared/layout/platform-layout";
 
 export default function EmployeeTalkLayout({
   children,
@@ -7,7 +7,12 @@ export default function EmployeeTalkLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <div className={cn("flex min-h-0 flex-1 flex-col", platformFullBleedClass)}>
+    <div
+      className={cn(
+        "flex min-h-0 flex-1 flex-col",
+        platformInsetBleedClass,
+      )}
+    >
       {children}
     </div>
   );

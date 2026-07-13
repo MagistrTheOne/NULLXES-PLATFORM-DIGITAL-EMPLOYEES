@@ -21,11 +21,27 @@
 
 .talk-workspace-shell {
   width: 100%;
+  min-height: 0;
+}
+
+/* Size container so the stage can fit a true 16:9 frame inside leftover space. */
+.talk-stage-frame {
+  container-type: size;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 0;
 }
 
 .talk-workspace-stage {
   position: relative;
-  width: 100%;
+  aspect-ratio: 16 / 9;
+  /* Prefer full width; if height is short, shrink width to keep 16:9. */
+  width: min(100cqw, calc(100cqh * 16 / 9));
+  height: min(100cqh, calc(100cqw * 9 / 16));
+  max-width: 100%;
+  max-height: 100%;
 }
 
 .talk-workspace-stage .employee-anam-stage,
@@ -54,11 +70,6 @@
 
 /* On md+ we switch to side-by-side (stage | chat). Chat fills the full height of the row. */
 @media (min-width: 768px) {
-  .talk-workspace-shell .talk-workspace-stage {
-    aspect-ratio: auto;
-    max-height: none; /* the component controls per-idle/live max-h */
-  }
-
   .talk-workspace-chat {
     border-top: none;
   }
@@ -70,12 +81,6 @@
   }
 }
 
-@media (max-width: 1023px) {
-  .talk-workspace-shell {
-    min-height: min(92dvh, 900px);
-  }
-}
-
 .employee-talk-grid {
   width: 100%;
   min-height: 0;
@@ -83,14 +88,7 @@
 
 .employee-talk-stage-wrap {
   aspect-ratio: 16 / 9;
-  min-height: min(45dvh, 360px);
   width: 100%;
-}
-
-@media (min-width: 1024px) {
-  .employee-talk-stage-wrap {
-    min-height: min(52dvh, 520px);
-  }
 }
 
 .employee-anam-stage {
@@ -100,23 +98,11 @@
 
 .employee-anam-video {
   height: 100%;
-  /* Fill the Talk stage (720×480 / 16:9) — no pillarbox letterboxing. */
+  /* Fill the cinematic 16:9 stage — face centered, more shoulders in frame. */
   object-fit: cover;
   object-position: center 18%;
   width: 100%;
   background: #000;
-}
-
-@media (min-width: 1024px) {
-  .talk-workspace-shell {
-    min-height: min(84dvh, 960px);
-  }
-}
-
-@media (min-width: 1800px) {
-  .talk-workspace-shell {
-    min-height: min(88dvh, 1040px);
-  }
 }
 
 .employee-talk-mobile-tabs {

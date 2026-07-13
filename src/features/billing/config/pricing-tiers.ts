@@ -44,7 +44,7 @@ export const PRICING_TIERS: PricingTier[] = [
     features: [
       "NULLXES catalog: Adeline + Yuki",
       "30 Talk minutes / month",
-      "Web chat",
+      "AI chat",
       "No custom employees",
     ],
   },

@@ -12,7 +12,7 @@ export type DocsNavGroup = {
   items: DocsNavItem[];
 };
 
-/** Diátaxis-inspired IA: start · guides · reference · compliance · help */
+/** Stripe / GitHub Enterprise style: one topic per page, platform not FAQ. */
 export const DOCS_NAV: DocsNavGroup[] = [
   {
     label: "Начало",
@@ -23,183 +23,320 @@ export const DOCS_NAV: DocsNavGroup[] = [
         breadcrumb: "Обзор",
         toc: [
           { id: "overview", label: "Обзор" },
-          { id: "domain", label: "Принадлежность домена" },
-          { id: "legal", label: "Реквизиты правообладателя" },
-          { id: "llm", label: "Обработка текстовых данных" },
-          { id: "sections", label: "Разделы документации" },
+          { id: "domain", label: "Домен" },
+          { id: "sections", label: "Разделы" },
         ],
       },
       {
         href: "/docs/installation",
-        label: "Установка",
-        breadcrumb: "Установка",
+        label: "Быстрый старт",
+        breadcrumb: "Быстрый старт",
         toc: [
-          { id: "requirements", label: "Системные требования" },
-          { id: "source", label: "Исходный код" },
-          { id: "contacts", label: "Контакты разработчика" },
-          { id: "env", label: "Переменные окружения" },
-          { id: "migrations", label: "Миграции БД" },
-          { id: "inngest", label: "Регистрация Inngest" },
-          { id: "verify", label: "Проверка установки" },
+          { id: "requirements", label: "Требования" },
+          { id: "env", label: "Окружение" },
+          { id: "verify", label: "Проверка" },
+        ],
+      },
+      {
+        href: "/docs/architecture",
+        label: "Архитектура платформы",
+        breadcrumb: "Архитектура",
+        toc: [
+          { id: "stack", label: "Стек" },
+          { id: "flow", label: "Поток данных" },
         ],
       },
       {
         href: "/docs/assistant",
-        label: "Ассистент (GPT-4o)",
-        breadcrumb: "Ассистент документации",
-        toc: [
-          { id: "assistant", label: "LLM-ассистент" },
-          { id: "contacts", label: "Контакты" },
-        ],
+        label: "Помощник по документации",
+        breadcrumb: "Yuki Nakora",
+        toc: [{ id: "assistant", label: "Yuki Nakora" }],
       },
     ],
   },
   {
-    label: "Руководства",
+    label: "Работа с цифровыми сотрудниками",
     items: [
       {
-        href: "/docs/operation",
-        label: "Эксплуатация",
-        breadcrumb: "Эксплуатация",
+        href: "/docs/employees",
+        label: "Цифровые сотрудники",
+        breadcrumb: "Цифровые сотрудники",
         toc: [
-          { id: "login", label: "Вход в систему" },
-          { id: "create", label: "Создание сотрудника" },
-          { id: "talk", label: "Диалог (Talk)" },
-          { id: "missions", label: "Mission Control" },
-          { id: "settings", label: "Настройки" },
-          { id: "api", label: "Public API" },
-          { id: "monitoring", label: "Мониторинг" },
+          { id: "model", label: "Модель" },
+          { id: "catalog", label: "Каталог NULLXES" },
+          { id: "lifecycle", label: "Жизненный цикл" },
         ],
       },
       {
         href: "/docs/talk",
-        label: "Talk",
+        label: "Разговоры (Talk)",
         breadcrumb: "Talk",
         toc: [
           { id: "overview", label: "Обзор" },
-          { id: "start", label: "Как начать" },
+          { id: "start", label: "Сессия" },
           { id: "limits", label: "Лимиты" },
           { id: "ready", label: "Talk Ready" },
         ],
       },
       {
         href: "/docs/knowledge",
-        label: "Knowledge",
-        breadcrumb: "Knowledge",
+        label: "База знаний",
+        breadcrumb: "База знаний",
         toc: [
           { id: "overview", label: "Обзор" },
           { id: "upload", label: "Загрузка" },
-          { id: "limits", label: "Лимиты chunks" },
+          { id: "limits", label: "Лимиты" },
         ],
       },
       {
-        href: "/docs/troubleshooting",
-        label: "Устранение неполадок",
-        breadcrumb: "Устранение неполадок",
+        href: "/docs/missions",
+        label: "Миссии",
+        breadcrumb: "Миссии",
         toc: [
-          { id: "talk", label: "Talk" },
-          { id: "api", label: "API" },
-          { id: "missions", label: "Миссии" },
-          { id: "billing", label: "Тарифы" },
+          { id: "overview", label: "Обзор" },
+          { id: "runtime", label: "Запуск" },
         ],
       },
     ],
   },
   {
-    label: "Справочник",
+    label: "Платформа",
     items: [
       {
-        href: "/docs/functional",
-        label: "Функциональные характеристики",
-        breadcrumb: "Функциональные характеристики",
+        href: "/docs/workspaces",
+        label: "Рабочие пространства",
+        breadcrumb: "Рабочие пространства",
+        toc: [{ id: "overview", label: "Обзор" }],
+      },
+      {
+        href: "/docs/organizations",
+        label: "Организации",
+        breadcrumb: "Организации",
         toc: [
-          { id: "purpose", label: "Назначение" },
-          { id: "capabilities", label: "Возможности" },
-          { id: "governance", label: "Управление" },
-          { id: "security", label: "Безопасность" },
-          { id: "deployment", label: "Внедрение" },
-          { id: "roles", label: "Роли" },
+          { id: "model", label: "Модель" },
+          { id: "isolation", label: "Изоляция" },
         ],
       },
       {
-        href: "/docs/plans",
-        label: "Тарифы и лимиты",
-        breadcrumb: "Тарифы и лимиты",
+        href: "/docs/roles",
+        label: "Пользователи и роли",
+        breadcrumb: "Роли",
         toc: [
-          { id: "matrix", label: "Матрица тарифов" },
-          { id: "api", label: "Доступ к API" },
-          { id: "names", label: "Имена планов" },
+          { id: "roles", label: "Роли" },
+          { id: "matrix", label: "Матрица прав" },
         ],
       },
+      {
+        href: "/docs/api",
+        label: "API",
+        breadcrumb: "API",
+        toc: [
+          { id: "overview", label: "Обзор" },
+          { id: "auth", label: "Аутентификация" },
+          { id: "endpoints", label: "Эндпоинты" },
+          { id: "responses", label: "Ответы" },
+        ],
+      },
+      {
+        href: "/docs/api-keys",
+        label: "API Keys",
+        breadcrumb: "API Keys",
+        toc: [
+          { id: "create", label: "Создание" },
+          { id: "scopes", label: "Scopes" },
+          { id: "revoke", label: "Отзыв" },
+        ],
+      },
+      {
+        href: "/docs/webhooks",
+        label: "Webhooks",
+        breadcrumb: "Webhooks",
+        toc: [
+          { id: "events", label: "События" },
+          { id: "signing", label: "Подпись" },
+          { id: "setup", label: "Настройка" },
+        ],
+      },
+      {
+        href: "/docs/integrations",
+        label: "Интеграции",
+        breadcrumb: "Интеграции",
+        toc: [{ id: "overview", label: "Обзор" }],
+      },
+    ],
+  },
+  {
+    label: "Администрирование",
+    items: [
+      {
+        href: "/docs/plans",
+        label: "Тарифы",
+        breadcrumb: "Тарифы",
+        toc: [
+          { id: "matrix", label: "Матрица" },
+          { id: "api", label: "API по тарифам" },
+        ],
+      },
+      {
+        href: "/docs/limits",
+        label: "Лимиты платформы",
+        breadcrumb: "Лимиты",
+        toc: [
+          { id: "workforce", label: "Workforce" },
+          { id: "talk", label: "Talk" },
+          { id: "knowledge", label: "Knowledge" },
+          { id: "api", label: "API" },
+        ],
+      },
+      {
+        href: "/docs/analytics",
+        label: "Аналитика",
+        breadcrumb: "Аналитика",
+        toc: [{ id: "overview", label: "Обзор" }],
+      },
+      {
+        href: "/docs/audit",
+        label: "Аудит действий",
+        breadcrumb: "Аудит",
+        toc: [{ id: "overview", label: "Обзор" }],
+      },
+    ],
+  },
+  {
+    label: "Безопасность",
+    items: [
+      {
+        href: "/docs/security",
+        label: "Безопасность платформы",
+        breadcrumb: "Безопасность",
+        toc: [
+          { id: "transport", label: "Транспорт" },
+          { id: "access", label: "Доступ" },
+          { id: "controls", label: "Контроли" },
+        ],
+      },
+      {
+        href: "/docs/personal-data",
+        label: "Персональные данные",
+        breadcrumb: "Персональные данные",
+        toc: [
+          { id: "operator", label: "Оператор" },
+          { id: "categories", label: "Категории" },
+          { id: "rights", label: "Права субъектов" },
+        ],
+      },
+      {
+        href: "/docs/data-storage",
+        label: "Хранение данных",
+        breadcrumb: "Хранение данных",
+        toc: [
+          { id: "where", label: "Где хранятся" },
+          { id: "retention", label: "Удаление и экспорт" },
+        ],
+      },
+      {
+        href: "/docs/api-security",
+        label: "API Security",
+        breadcrumb: "API Security",
+        toc: [
+          { id: "keys", label: "Ключи" },
+          { id: "webhooks", label: "Webhooks" },
+        ],
+      },
+      {
+        href: "/docs/access-control",
+        label: "Управление доступом",
+        breadcrumb: "Управление доступом",
+        toc: [
+          { id: "rbac", label: "RBAC" },
+          { id: "isolation", label: "Изоляция org" },
+        ],
+      },
+    ],
+  },
+  {
+    label: "Правовые документы",
+    items: [
+      {
+        href: "/docs/terms",
+        label: "Пользовательское соглашение",
+        breadcrumb: "Пользовательское соглашение",
+        toc: [{ id: "scope", label: "Предмет" }],
+      },
+      {
+        href: "/docs/offer",
+        label: "Публичная оферта",
+        breadcrumb: "Публичная оферта",
+        toc: [{ id: "subject", label: "Предмет" }],
+      },
+      {
+        href: "/docs/personal-data",
+        label: "Политика обработки ПДн",
+        breadcrumb: "Политика обработки ПДн",
+        toc: [{ id: "documents", label: "Документы" }],
+      },
+      {
+        href: "/docs/privacy",
+        label: "Политика конфиденциальности",
+        breadcrumb: "Конфиденциальность",
+        toc: [{ id: "overview", label: "Обзор" }],
+      },
+      {
+        href: "/docs/cookies",
+        label: "Cookie",
+        breadcrumb: "Cookie",
+        toc: [{ id: "overview", label: "Обзор" }],
+      },
+      {
+        href: "/docs/company",
+        label: "Реквизиты",
+        breadcrumb: "Реквизиты",
+        toc: [{ id: "requisites", label: "Реквизиты" }],
+      },
+    ],
+  },
+  {
+    label: "Для разработчиков",
+    items: [
       {
         href: "/docs/api",
         label: "Public API",
         breadcrumb: "Public API",
         toc: [
           { id: "overview", label: "Обзор" },
-          { id: "auth", label: "Ключи и scopes" },
-          { id: "endpoints", label: "Эндпоинты" },
-          { id: "responses", label: "Формат ответа" },
-          { id: "examples", label: "Примеры" },
-          { id: "sdk", label: "Typed SDK" },
-          { id: "security", label: "Безопасность" },
+          { id: "auth", label: "Authentication" },
+          { id: "endpoints", label: "Endpoints" },
+          { id: "responses", label: "Errors & format" },
+        ],
+      },
+      {
+        href: "/docs/webhooks",
+        label: "Webhooks",
+        breadcrumb: "Webhooks",
+        toc: [
+          { id: "events", label: "Events" },
+          { id: "signing", label: "Signing" },
         ],
       },
       {
         href: "/docs/changelog",
         label: "Changelog",
         breadcrumb: "Changelog",
-        toc: [{ id: "recent", label: "Недавние изменения" }],
+        toc: [{ id: "recent", label: "Недавние" }],
       },
     ],
   },
   {
-    label: "Соответствие",
+    label: "Enterprise",
     items: [
       {
-        href: "/docs/personal-data",
-        label: "Персональные данные",
-        breadcrumb: "Персональные данные",
+        href: "/docs/enterprise",
+        label: "Enterprise",
+        breadcrumb: "Enterprise",
         toc: [
-          { id: "operator", label: "Оператор ПДн" },
-          { id: "categories", label: "Категории данных" },
-          { id: "documents", label: "Комплект документов" },
-          { id: "storage", label: "Хранение" },
-          { id: "audit", label: "Аудит" },
-          { id: "rights", label: "Права субъектов" },
-        ],
-      },
-      {
-        href: "/docs/terms",
-        label: "Пользовательское соглашение",
-        breadcrumb: "Пользовательское соглашение",
-        toc: [
-          { id: "operator", label: "Правообладатель" },
-          { id: "scope", label: "Предмет и доступ" },
-          { id: "obligations", label: "Обязанности" },
-          { id: "liability", label: "Ответственность" },
-        ],
-      },
-      {
-        href: "/docs/offer",
-        label: "Публичная оферта",
-        breadcrumb: "Публичная оферта",
-        toc: [
-          { id: "seller", label: "Исполнитель" },
-          { id: "subject", label: "Предмет" },
-          { id: "prices", label: "Цены и срок" },
-          { id: "order", label: "Оформление и оплата" },
-          { id: "refund", label: "Возврат и претензии" },
-          { id: "personal-data", label: "Персональные данные" },
-        ],
-      },
-      {
-        href: "/docs/company",
-        label: "Реквизиты",
-        breadcrumb: "Реквизиты",
-        toc: [
-          { id: "requisites", label: "Юридические реквизиты" },
-          { id: "contacts", label: "Контакты" },
+          { id: "deployment", label: "Deployment" },
+          { id: "identity", label: "Identity" },
+          { id: "compliance", label: "Compliance" },
         ],
       },
     ],
@@ -211,5 +348,6 @@ export const DOCS_NAV_FLAT: DocsNavItem[] = DOCS_NAV.flatMap(
 );
 
 export function findDocsNavItem(pathname: string): DocsNavItem | undefined {
+  // Prefer first match; legal group may share href with security personal-data.
   return DOCS_NAV_FLAT.find((item) => item.href === pathname);
 }
