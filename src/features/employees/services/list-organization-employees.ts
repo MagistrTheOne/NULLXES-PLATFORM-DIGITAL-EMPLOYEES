@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, lt, or, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, lt, notInArray, or, sql } from "drizzle-orm";
 import type {
   AvatarProviderConfigPayload,
   SessionProviderConfigPayload,
@@ -13,7 +13,10 @@ import { withDatabaseRetry } from "@/shared/db/with-database-retry";
 import { isAnamAvatarTalkReady } from "../lib/resolve-anam-avatar-talk-readiness";
 import { readProviderFailureReason } from "../lib/resolve-talk-readiness";
 import type { EmployeeListItem } from "../types";
-import { listPublishedPlatformCatalogForPlan } from "./platform-employee-catalog";
+import {
+  listPublishedPlatformCatalog,
+  listPublishedPlatformCatalogForPlan,
+} from "./platform-employee-catalog";
 
 const DEFAULT_PAGE_SIZE = 24;
 
@@ -224,10 +227,14 @@ async function loadOrganizationEmployeesPage(
   const planId = resolveBillingPlanId(org?.billingPlan ?? "free");
 
   // Catalog is additive — never consumes custom-employee page slots.
+  // Home-org of catalog rows (NULLXES / ceo) must not list those IDs twice.
   let catalogItems: EmployeeListItem[] = [];
   if (!cursor) {
     catalogItems = await loadPublishedCatalogItemsForPlan(planId);
   }
+
+  const publishedCatalog = await listPublishedPlatformCatalog();
+  const publishedCatalogIds = publishedCatalog.map((entry) => entry.employeeId);
 
   const employees = await db
     .select()
@@ -235,6 +242,9 @@ async function loadOrganizationEmployeesPage(
     .where(
       and(
         eq(digitalEmployee.organizationId, organizationId),
+        publishedCatalogIds.length > 0
+          ? notInArray(digitalEmployee.id, publishedCatalogIds)
+          : undefined,
         cursor
           ? or(
               lt(digitalEmployee.createdAt, cursor.createdAt),
@@ -252,7 +262,18 @@ async function loadOrganizationEmployeesPage(
   const pageRows = employees.slice(0, limit);
   const hasMore = employees.length > limit;
   const orgItems = await hydrateEmployeeListItems(pageRows, "organization");
-  const items = [...catalogItems, ...orgItems];
+
+  // Belt-and-suspenders: never emit the same employee id twice (catalog + home-org).
+  const seenIds = new Set<string>();
+  const items: EmployeeListItem[] = [];
+  for (const item of [...catalogItems, ...orgItems]) {
+    if (seenIds.has(item.id)) {
+      continue;
+    }
+    seenIds.add(item.id);
+    items.push(item);
+  }
+
   const last = pageRows[pageRows.length - 1];
 
   return {

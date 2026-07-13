@@ -90,6 +90,40 @@ export async function executeAgentTool(input: {
     return { content };
   }
 
+  if (input.toolName === "list_tasks") {
+    const limit =
+      typeof args.limit === "number" && args.limit > 0
+        ? Math.min(Math.floor(args.limit), 20)
+        : 8;
+
+    const { getEmployeeTasks } = await import(
+      "@/features/employees/services/get-employee-tasks"
+    );
+
+    const tasks = await getEmployeeTasks(
+      input.context.organizationId,
+      input.context.employeeId,
+      limit,
+    );
+
+    if (tasks.length === 0) {
+      return { content: "No tasks on record for this digital employee." };
+    }
+
+    return {
+      content: tasks
+        .map((task) => {
+          const due = task.dueAt ? ` · due ${task.dueAt.toISOString()}` : "";
+          const result =
+            task.result && task.result.trim().length > 0
+              ? `\n  Result: ${task.result.slice(0, 200)}${task.result.length > 200 ? "…" : ""}`
+              : "";
+          return `- [${task.status}] ${task.title} (${task.source})${due}${result}`;
+        })
+        .join("\n"),
+    };
+  }
+
   if (input.toolName === "cancel_mission") {
     const missionId =
       typeof args.missionId === "string" ? args.missionId.trim() : "";

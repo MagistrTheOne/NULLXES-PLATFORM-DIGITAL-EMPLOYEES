@@ -80,7 +80,15 @@ export async function buildTalkSessionBrainCache(input: {
     maxTokens,
     employeeName: employee.name,
     employeeRole: employee.role,
-    enabledToolSlugs: blueprint.enabledToolSlugs,
+    // Always expose grounding read tools in Talk — legacy blueprints may omit list_tasks.
+    enabledToolSlugs: [
+      ...new Set([
+        ...blueprint.enabledToolSlugs,
+        "list_missions",
+        "list_tasks",
+        "list_workforce_peers",
+      ]),
+    ],
   };
 }
 

@@ -58,12 +58,20 @@ export async function updateOutboundWebhookSettingsAction(
     }
   }
 
+  // Empty secret field = keep existing secret (UI: "leave blank to keep").
+  const settings: {
+    outboundWebhookUrl: string | null;
+    outboundWebhookSecret?: string | null;
+  } = {
+    outboundWebhookUrl: url.length > 0 ? url : null,
+  };
+  if (secret.length > 0) {
+    settings.outboundWebhookSecret = encryptField(secret);
+  }
+
   const result = await updateOrganizationSettings({
     organizationId: workspace.organization.id,
-    settings: {
-      outboundWebhookUrl: url.length > 0 ? url : null,
-      outboundWebhookSecret: secret.length > 0 ? encryptField(secret) : null,
-    },
+    settings,
   });
 
   if (result.ok) {
@@ -76,7 +84,7 @@ export async function updateOutboundWebhookSettingsAction(
       resourceId: workspace.organization.id,
       metadata: {
         outboundWebhookUrl: url.length > 0 ? url : null,
-        secretConfigured: secret.length > 0,
+        secretRotated: secret.length > 0,
       },
     });
     revalidatePath("/settings");

@@ -24,7 +24,8 @@ export const NULLXES_CONVERSATION_START_POLICY = `Conversation start:
 - Do not repeat a greeting or re-introduce yourself in the same session unless the user asks.`;
 
 export const NULLXES_MISSION_STATUS_POLICY = `Mission status:
-- When asked about missions, tasks, assignments, progress, outbound sends, or prospecting work, call list_missions first.
+- When asked about missions, tasks, assignments, progress, outbound sends, or prospecting work, call list_missions and list_tasks first.
+- Prefer the Live platform state block in your system prompt; refresh with tools when details are missing.
 - Report live status (planned, in progress, awaiting approval, completed, failed, cancelled).
 - For outbound: say who was emailed, what was sent, and why each lead was chosen. Use lead contact, company, whyFit, sentAt, and sendError from the tool output.
 - Mention goal, skills, brief, handoffs, and recent timeline when relevant. Do not guess without checking.

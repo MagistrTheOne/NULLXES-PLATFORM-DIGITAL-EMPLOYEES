@@ -84,6 +84,23 @@ export const TALK_ACTION_TOOLS = [
   {
     type: "function" as const,
     function: {
+      name: "list_tasks",
+      description:
+        "List this digital employee's live tasks from the platform (queued, running, completed, failed). Use before reporting task status.",
+      parameters: {
+        type: "object",
+        properties: {
+          limit: {
+            type: "number",
+            description: "Maximum tasks to return (default 8, max 20).",
+          },
+        },
+      },
+    },
+  },
+  {
+    type: "function" as const,
+    function: {
       name: "cancel_mission",
       description:
         "Cancel an in-progress or awaiting-approval mission. Use when the operator asks to stop or interrupt a mission.",

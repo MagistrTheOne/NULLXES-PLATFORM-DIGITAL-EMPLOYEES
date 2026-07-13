@@ -11,10 +11,25 @@ import {
 
 export type TalkBrainChannel = "chat" | "voice";
 
-function collectEnabledActionTools(
+/** Always offered when enabled — agents must ground status in live DB, not invent. */
+const TALK_READ_TOOL_SLUGS = new Set([
+  "list_missions",
+  "list_tasks",
+  "list_workforce_peers",
+]);
+
+function collectEnabledTools(
   enabled: Set<string>,
+  mode: "read" | "write",
 ): AgentToolDefinition[] {
-  return TALK_ACTION_TOOLS.filter((tool) => enabled.has(tool.function.name));
+  return TALK_ACTION_TOOLS.filter((tool) => {
+    const name = tool.function.name;
+    if (!enabled.has(name)) {
+      return false;
+    }
+    const isRead = TALK_READ_TOOL_SLUGS.has(name);
+    return mode === "read" ? isRead : !isRead;
+  });
 }
 
 function resolveBrainToolsForIntent(input: {
@@ -25,18 +40,21 @@ function resolveBrainToolsForIntent(input: {
   const enabled = new Set(input.enabledToolSlugs);
   const tools: AgentToolDefinition[] = [];
 
+  // Read tools stay attached every turn so mission/task questions cannot be faked.
+  tools.push(...collectEnabledTools(enabled, "read"));
+
   if (enabled.has("search_web") && shouldRunTalkWebSearch(input.lastUserMessage)) {
     tools.push(SEARCH_WEB_TOOL);
   }
 
   if (input.shouldEnableActionTools(input.lastUserMessage)) {
-    tools.push(...collectEnabledActionTools(enabled));
+    tools.push(...collectEnabledTools(enabled, "write"));
   }
 
   return tools.length > 0 ? tools : undefined;
 }
 
-/** Voice/mic: enable tools only when the utterance needs them — keeps latency low. */
+/** Voice/mic: write tools only when the utterance needs them — keeps latency low. */
 export function resolveTalkBrainTools(
   lastUserMessage: string,
   enabledToolSlugs: string[] = [],
@@ -48,7 +66,7 @@ export function resolveTalkBrainTools(
   });
 }
 
-/** Text chat: broader mission/status intent routing for grounded platform answers. */
+/** Text chat: broader mission/status intent routing for write tools. */
 export function resolveChatBrainTools(
   lastUserMessage: string,
   enabledToolSlugs: string[] = [],

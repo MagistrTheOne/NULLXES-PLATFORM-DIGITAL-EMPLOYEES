@@ -37,6 +37,59 @@ function parseAllowlist(value: string | null | undefined): string[] {
     .filter((entry) => entry.length > 0);
 }
 
+function ipv4ToInt(ip: string): number | null {
+  const parts = ip.split(".");
+  if (parts.length !== 4) {
+    return null;
+  }
+  let value = 0;
+  for (const part of parts) {
+    if (!/^\d{1,3}$/.test(part)) {
+      return null;
+    }
+    const octet = Number(part);
+    if (!Number.isInteger(octet) || octet < 0 || octet > 255) {
+      return null;
+    }
+    value = (value << 8) + octet;
+  }
+  return value >>> 0;
+}
+
+/** Exact match, or IPv4 CIDR (e.g. 198.51.100.0/24). IPv6: exact only. */
+function entryMatchesIp(clientIp: string, entry: string): boolean {
+  if (entry === clientIp) {
+    return true;
+  }
+
+  const slash = entry.indexOf("/");
+  if (slash < 0) {
+    return false;
+  }
+
+  const network = entry.slice(0, slash).trim();
+  const prefixRaw = entry.slice(slash + 1).trim();
+  if (!/^\d{1,2}$/.test(prefixRaw)) {
+    return false;
+  }
+  const prefix = Number(prefixRaw);
+  if (prefix < 0 || prefix > 32) {
+    return false;
+  }
+
+  const ipInt = ipv4ToInt(clientIp);
+  const netInt = ipv4ToInt(network);
+  if (ipInt == null || netInt == null) {
+    return false;
+  }
+
+  if (prefix === 0) {
+    return true;
+  }
+  const mask = (0xffffffff << (32 - prefix)) >>> 0;
+  return (ipInt & mask) === (netInt & mask);
+}
+
 function isIpAllowed(clientIp: string | null, allowlist: string[]): boolean {
   if (allowlist.length === 0) {
     return true;
@@ -46,7 +99,7 @@ function isIpAllowed(clientIp: string | null, allowlist: string[]): boolean {
     return false;
   }
 
-  return allowlist.includes(clientIp);
+  return allowlist.some((entry) => entryMatchesIp(clientIp, entry));
 }
 
 export async function authenticateApiKeyRequest(

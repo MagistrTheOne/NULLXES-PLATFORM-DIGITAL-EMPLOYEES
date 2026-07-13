@@ -79,29 +79,48 @@ export async function buildTalkBrainRequest(input: {
   }
 
   const ragStartedAt = performance.now();
-  const retrieved = userQuery
-    ? await measureTalkPerf(
-        "talk.brain.rag",
-        async () => {
-          if (!(await hasReadyKnowledge(input.employeeId))) {
-            return [];
-          }
-          return searchKnowledge({
-            employeeId: input.employeeId,
-            query: userQuery,
-            topK: 4,
-            useSessionCache: true,
-          });
-        },
-        { employeeId: input.employeeId },
-      )
-    : [];
+  const [retrieved, livePlatformBlock] = await Promise.all([
+    userQuery
+      ? measureTalkPerf(
+          "talk.brain.rag",
+          async () => {
+            if (!(await hasReadyKnowledge(input.employeeId))) {
+              return [];
+            }
+            return searchKnowledge({
+              employeeId: input.employeeId,
+              query: userQuery,
+              topK: 4,
+              useSessionCache: true,
+            });
+          },
+          { employeeId: input.employeeId },
+        )
+      : Promise.resolve([]),
+    measureTalkPerf(
+      "talk.brain.platform_state",
+      async () => {
+        const { formatLivePlatformStateContext } = await import(
+          "../lib/format-live-platform-state-context"
+        );
+        return formatLivePlatformStateContext({
+          organizationId: input.organizationId,
+          employeeId: input.employeeId,
+        });
+      },
+      { employeeId: input.employeeId },
+    ),
+  ]);
   ragMs = userQuery ? Math.round(performance.now() - ragStartedAt) : null;
 
   const knowledgeBlock = formatKnowledgeContext(retrieved);
   let systemPrompt = knowledgeBlock
     ? `${cache.systemPromptBase}\n\n${knowledgeBlock}`
     : cache.systemPromptBase;
+
+  if (livePlatformBlock) {
+    systemPrompt = `${systemPrompt}\n\n${livePlatformBlock}`;
+  }
 
   if (input.scenarioSessionId && input.userId) {
     const scenarioSession = await getActiveScenarioSessionForTalk({

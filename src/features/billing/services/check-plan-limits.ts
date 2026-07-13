@@ -1,5 +1,6 @@
-import { count, eq } from "drizzle-orm";
+import { and, count, eq, notInArray } from "drizzle-orm";
 import { digitalEmployee } from "@/entities/digital-employee/schema";
+import { platformEmployeeCatalog } from "@/entities/platform-employee-catalog/schema";
 import { db } from "@/shared/db/client";
 import {
   BILLING_PLANS,
@@ -26,10 +27,23 @@ export async function assertCanCreateEmployee(
   }
 
   // Platform catalog employees live in the NULLXES org — never count toward seats.
+  const catalogRows = await db
+    .select({ employeeId: platformEmployeeCatalog.employeeId })
+    .from(platformEmployeeCatalog)
+    .where(eq(platformEmployeeCatalog.isPublished, true));
+  const catalogIds = catalogRows.map((row) => row.employeeId);
+
   const [row] = await db
     .select({ total: count() })
     .from(digitalEmployee)
-    .where(eq(digitalEmployee.organizationId, organizationId));
+    .where(
+      and(
+        eq(digitalEmployee.organizationId, organizationId),
+        catalogIds.length > 0
+          ? notInArray(digitalEmployee.id, catalogIds)
+          : undefined,
+      ),
+    );
 
   const total = Number(row?.total ?? 0);
 

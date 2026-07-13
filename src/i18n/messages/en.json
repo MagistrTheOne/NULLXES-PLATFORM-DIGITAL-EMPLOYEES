@@ -1261,7 +1261,7 @@
       "saveWebhook": "Save webhook settings",
       "webhookSaved": "Webhook settings saved.",
       "ipAllowlistEnabled": "Enabled",
-      "ipAllowlistInput": "Allowed IP addresses (comma or newline separated)",
+      "ipAllowlistInput": "Allowed IPs or IPv4 CIDR (comma or newline)",
       "saveAllowlist": "Save IP allowlist",
       "allowlistSaved": "IP allowlist saved.",
       "revokeKey": "Revoke",

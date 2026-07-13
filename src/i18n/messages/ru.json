@@ -1261,7 +1261,7 @@
       "saveWebhook": "Сохранить настройки вебхука",
       "webhookSaved": "Настройки вебхука сохранены.",
       "ipAllowlistEnabled": "Включён",
-      "ipAllowlistInput": "Разрешённые IP-адреса (через запятую или с новой строки)",
+      "ipAllowlistInput": "Разрешённые IP или IPv4 CIDR (через запятую или с новой строки)",
       "saveAllowlist": "Сохранить белый список IP",
       "allowlistSaved": "Белый список IP сохранён.",
       "revokeKey": "Отозвать",
