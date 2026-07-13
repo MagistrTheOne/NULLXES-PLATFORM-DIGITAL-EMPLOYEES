@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { DOCS_LEGAL_ENTITY } from "@/app/docs/_lib/docs-legal";
+import { NULLXES_LEGAL_ENTITY } from "@/shared/legal/nullxes-entity";
 
 export function LandingFooter() {
-  const e = DOCS_LEGAL_ENTITY;
+  const e = NULLXES_LEGAL_ENTITY;
 
   return (
     <footer className="relative border-t border-white/[0.06] bg-black px-6 py-14 sm:px-10 lg:px-16">
