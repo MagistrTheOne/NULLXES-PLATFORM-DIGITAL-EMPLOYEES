@@ -1064,8 +1064,9 @@
       "applyDesignPartner": "Стать Design Partner",
       "currentPlan": "Текущий план",
       "currentPlanDesc": "Операционный план цифровой рабочей силы этой организации",
+      "currentPlanPriceHint": "Оплата в ₽ через T‑Bank",
       "selfServe": "Запустить цифрового сотрудника",
-      "selfServeDesc": "Evaluation → Studio → Team → Scale. Годовая оплата −20%. Оплата в ₽ с чеком по 54‑ФЗ — в подключении.",
+      "selfServeDesc": "Evaluation → Studio → Team → Scale. Год ≈ −20%. Оплата картой / СБП через T‑Bank.",
       "enterpriseLadder": "Корпоративное внедрение",
       "enterpriseLadderDesc": "Discovery → Pilot → Digital Department → Holding",
       "plans": "Планы",
@@ -1082,6 +1083,7 @@
       "talkToFounders": "Связаться с основателями",
       "launchEmployee": "Запустить цифрового сотрудника",
       "upgrade": "Запустить цифрового сотрудника",
+      "payWithTbank": "Оплатить через T‑Bank",
       "contactSales": "Связаться с продажами",
       "usageMeters": "Метрики использования",
       "usageMetersDesc": "Активность workspace для биллинга",
@@ -1090,23 +1092,29 @@
       "messages": "Сообщения",
       "knowledgeSources": "Источники знаний",
       "customerPortal": "Счета и оплата",
-      "customerPortalDesc": "Счета, способы оплаты и электронные чеки (54‑ФЗ) появятся после подключения интернет‑эквайринга.",
-      "openPortal": "Скоро: личный кабинет оплаты",
+      "customerPortalDesc": "Новые оплаты — через T‑Bank. Портал Polar только для старых подписок Polar.",
+      "openPortal": "Счета T‑Bank — скоро",
+      "openLegacyPolarPortal": "Открыть старый портал Polar",
+      "legacyPolarHint": "Только если организация ещё на Polar.",
+      "legacyPolar": "Legacy Polar",
       "manualPlan": "Назначен NULLXES",
       "polarSubscription": "Подписка",
       "subscriptionLabel": "Подписка",
       "renewsOn": "Продление {date}",
       "cancelsOn": "Отмена {date}",
-      "polarNotConfigured": "Онлайн‑оплата в ₽ пока не подключена. Напишите в продажи или дождитесь запуска эквайринга.",
+      "polarNotConfigured": "Онлайн‑оплата в ₽ пока не подключена.",
       "polarPricesLive": "Тарифы готовы к оплате в ₽ с фискальным чеком.",
-      "polarPricesPending": "Подготовка оплаты в ₽: {count}/6 тарифов. Чек по 54‑ФЗ будет формироваться автоматически.",
-      "rfCheckoutPending": "Оплата картой и СБП в ₽ подключается. Тест эквайринга: кнопка ниже или /billing/tbank",
-      "rfCheckoutCta": "Скоро: оплата в ₽",
+      "polarPricesPending": "Подготовка оплаты в ₽: {count}/6 тарифов.",
+      "tbankCheckoutNote": "Self-serve тарифы оплачиваются в ₽ через T‑Bank (один магазин для EN и RU). В Init уходит Receipt (54‑ФЗ).",
+      "rfCheckoutPending": "Оплата через T‑Bank подключается.",
+      "rfCheckoutCta": "Оплатить в ₽",
       "rfFiscalNote": "После оплаты — экран «Оплачено». В Init передаётся Receipt (54‑ФЗ).",
       "rfPriceSoon": "₽",
-      "rfPriceNote": "цены в рублях — скоро",
+      "rfPriceNote": "оплата в ₽ через T‑Bank",
       "rfNoCard": "без карты",
       "rfSalesPriceNote": "по согласованию",
+      "priceNoteMonth": "в месяц · ₽",
+      "priceNoteYear": "в год · ₽ · −20%",
       "paymentTest": "Проверка оплаты T‑Bank",
       "paymentTestDesc": "Тестовый терминал DEMO: успех, отказ, возврат и формирование чека",
       "paymentTestBody": "Не меняет план. Только тестовые карты из инструкции T‑Банка.",
@@ -1115,7 +1123,54 @@
       "tbankStatusMissing": "T‑Bank не настроен",
       "tbankReceiptOn": "Receipt · чек",
       "tbankReceiptMeta": "Чек: {taxation} · НДС {vat}",
-      "tbankOpenPayPage": "Страница оформления"
+      "tbankOpenPayPage": "Страница оформления",
+      "tier": {
+        "free": {
+          "name": "Evaluation",
+          "description": "Оцените цифрового сотрудника на пресетах NULLXES с жёсткими лимитами Talk.",
+          "features": "1 цифровой сотрудник (пресеты)|Talk до 2 минут · 30 мин / месяц|Водяной знак Evaluation"
+        },
+        "studio": {
+          "name": "Studio",
+          "description": "Запустите одного цифрового сотрудника для фаундеров и innovation labs.",
+          "features": "1 цифровой сотрудник|Talk до 10 минут · 180 мин / месяц|1 кастомный аватар"
+        },
+        "operator": {
+          "name": "Team",
+          "description": "Небольшая цифровая команда для реальных рабочих нагрузок.",
+          "features": "3 цифровых сотрудника|Talk до 20 минут · 600 мин / месяц|API read access"
+        },
+        "scale": {
+          "name": "Scale",
+          "description": "Масштабируйте цифровую команду до enterprise Design Partner.",
+          "features": "10 цифровых сотрудников|Talk до 30 минут · 2 000 мин / месяц|Полный API"
+        },
+        "discovery": {
+          "name": "Discovery",
+          "description": "Спроектируйте процессы и докажите ценность до масштабирования.",
+          "features": "Карта процессов и автоматизации|1–2 production-прототипа|Оценка готовности к внедрению|Выделенный solutions architect"
+        },
+        "pilot": {
+          "name": "Pilot",
+          "description": "Первые цифровые сотрудники в боевом контуре.",
+          "features": "3–10 цифровых сотрудников в production|Кастомные аватары и голоса|Интеграция систем и знаний|Метрики успеха и отчётность"
+        },
+        "department": {
+          "name": "Digital Department",
+          "description": "Полноценный цифровой департамент как управляемый слой workforce.",
+          "features": "Автоматизация департамента|Governance и роли|Аналитика и audit|SSO и приоритетная поддержка"
+        },
+        "holding": {
+          "name": "Holding",
+          "description": "Координация цифровых workforce по многим организациям.",
+          "features": "Мульти‑организация|Сотни цифровых сотрудников|Compliance и residency|SLA и выделенная инженерия"
+        },
+        "flagship": {
+          "name": "Flagship",
+          "description": "Суверенная цифровая корпорация вместе с NULLXES — цена по согласованию.",
+          "features": "Суверенная цифровая корпорация|Частная инфраструктура и модели|Свой AI и avatar engine|Встроенная команда NULLXES"
+        }
+      }
     },
     "security": {
       "authentication": "Аутентификация",
