@@ -168,9 +168,9 @@ export const BILLING_PLANS: Record<BillingPlanId, BillingPlanDefinition> = {
   },
   government: {
     id: "government",
-    name: "Government",
+    name: "Holding",
     priceLabel: "Contact sales",
-    description: "Sovereign and regulated digital workforce programs.",
+    description: "Coordinate digital workforces across many organizations.",
     checkoutEnabled: false,
     limits: {
       maxEmployees: null,
@@ -185,10 +185,10 @@ export const BILLING_PLANS: Record<BillingPlanId, BillingPlanDefinition> = {
       canCreateEmployees: true,
     },
     features: [
-      "Air-gapped and residency options",
-      "152-FZ-aligned controls",
-      "Dedicated account team",
-      "Custom retention and compliance",
+      "Multi-organization workforce",
+      "Hundreds of digital employees",
+      "Compliance & data residency",
+      "SLA & dedicated engineering",
     ],
   },
 };

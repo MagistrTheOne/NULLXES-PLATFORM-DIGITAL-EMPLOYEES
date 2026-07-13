@@ -5,8 +5,10 @@ export default function TbankSuccessPage() {
   return (
     <Suspense
       fallback={
-        <main className="mx-auto flex min-h-[70vh] max-w-lg items-center justify-center px-6">
-          <p className="text-3xl font-medium text-white">Оплачено</p>
+        <main className="flex min-h-svh items-center justify-center bg-black">
+          <p className="text-2xl font-medium text-white" lang="ru">
+            Оплачено
+          </p>
         </main>
       }
     >

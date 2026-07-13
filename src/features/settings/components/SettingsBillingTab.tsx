@@ -261,28 +261,15 @@ export function SettingsBillingTab({
       <SettingsCard title={t("currentPlan")} description={t("currentPlanDesc")}>
         <div className="space-y-4">
           <div className="rounded-xl border border-border bg-background/40 px-4 py-4">
-            <div className="flex flex-wrap items-center gap-2">
-              <p className="text-2xl font-medium text-foreground">
-                {currentPlanDisplay.name}
-              </p>
-              {billing.planSource === "manual" ? (
-                <span className="rounded-full border border-border px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-                  {t("manualPlan")}
-                </span>
-              ) : null}
-              {billing.planSource === "polar" ? (
-                <span className="rounded-full border border-foreground/20 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-foreground/70">
-                  {t("legacyPolar")}
-                </span>
-              ) : null}
-              {tbankReady ? (
-                <span className="rounded-full border border-foreground/20 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-foreground/70">
-                  {t("tbankStatusReady")}
-                </span>
-              ) : null}
-            </div>
+            <p className="text-2xl font-medium text-foreground">
+              {currentTierId
+                ? tierName(currentTierId, currentPlanDisplay.name)
+                : currentPlanDisplay.name}
+            </p>
             <p className="mt-1 text-sm text-muted-foreground">
-              {currentPlanDisplay.description}
+              {currentTierId
+                ? tierDescription(currentTierId, currentPlanDisplay.description)
+                : currentPlanDisplay.description}
             </p>
             {billing.subscription ? (
               <p className="mt-2 text-xs text-muted-foreground">
@@ -303,7 +290,10 @@ export function SettingsBillingTab({
             ) : null}
           </div>
           <ul className="space-y-2 text-sm text-muted-foreground">
-            {activePlan.features.map((feature) => (
+            {(currentTierId
+              ? tierFeatures(currentTierId, activePlan.features)
+              : activePlan.features
+            ).map((feature) => (
               <li key={feature}>{feature}</li>
             ))}
           </ul>
