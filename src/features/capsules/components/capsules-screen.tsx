@@ -157,7 +157,7 @@ function CapsuleCard({
         ease: [0.22, 1, 0.36, 1],
       }}
       whileHover={reduceMotion ? undefined : { y: -3 }}
-      className="flex h-full min-h-[28rem] flex-col justify-between rounded-2xl border border-white/10 bg-[#1a1a1a] p-5 sm:p-6"
+      className="flex h-full min-h-112 flex-col justify-between rounded-2xl border border-white/10 bg-[#1a1a1a] p-5 sm:p-6"
     >
       <div className="flex flex-col gap-4">
         <div className="flex items-start justify-between gap-3">
