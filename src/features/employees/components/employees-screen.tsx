@@ -122,23 +122,19 @@ export function EmployeesScreen({
   }, [employees, nextCursor]);
 
   const filteredEmployees = useMemo(() => {
-    return loadedEmployees.filter((employee) => {
+    const matched = loadedEmployees.filter((employee) => {
       const statusMatches =
         statusFilter === "all" || employee.status === statusFilter;
       return statusMatches && matchesSearch(employee, searchQuery);
     });
-  }, [loadedEmployees, searchQuery, statusFilter]);
 
-  const catalogEmployees = useMemo(
-    () =>
-      filteredEmployees.filter((employee) => employee.source === "platform"),
-    [filteredEmployees],
-  );
-  const customEmployees = useMemo(
-    () =>
-      filteredEmployees.filter((employee) => employee.source !== "platform"),
-    [filteredEmployees],
-  );
+    // Own workforce first, then CEO catalog — one list, no section headers.
+    return [...matched].sort((a, b) => {
+      const aPlatform = a.source === "platform" ? 1 : 0;
+      const bPlatform = b.source === "platform" ? 1 : 0;
+      return aPlatform - bPlatform;
+    });
+  }, [loadedEmployees, searchQuery, statusFilter]);
 
   const hasEmployees = loadedEmployees.length > 0;
   const pageSize = PAGE_SIZE_BY_VIEW[viewMode];
@@ -149,10 +145,10 @@ export function EmployeesScreen({
 
   const totalPages = Math.max(
     1,
-    Math.ceil(customEmployees.length / pageSize),
+    Math.ceil(filteredEmployees.length / pageSize),
   );
   const currentPage = Math.min(page, totalPages);
-  const pageCustomEmployees = customEmployees.slice(
+  const pageEmployees = filteredEmployees.slice(
     (currentPage - 1) * pageSize,
     currentPage * pageSize,
   );
@@ -285,68 +281,24 @@ export function EmployeesScreen({
             />
             <div ref={listTopRef} className="scroll-mt-4" />
             {filteredEmployees.length > 0 ? (
-              <div className="flex flex-col gap-8">
-                {catalogEmployees.length > 0 ? (
-                  <section className="flex flex-col gap-4">
-                    <div className="border-b border-white/10 pb-2">
-                      <h2 className="text-sm font-medium tracking-wide text-white/70 uppercase">
-                        {t("sectionNullxes")}
-                      </h2>
-                      <p className="mt-1 text-xs text-white/40">
-                        {t("sectionNullxesHint")}
-                      </p>
-                    </div>
-                    {viewMode === "grid" ? (
-                      <EmployeeGrid employees={catalogEmployees} />
-                    ) : null}
-                    {viewMode === "list" ? (
-                      <EmployeeListView employees={catalogEmployees} />
-                    ) : null}
-                    {viewMode === "table" ? (
-                      <EmployeeTableView employees={catalogEmployees} />
-                    ) : null}
-                  </section>
+              <div className="flex flex-col gap-4">
+                {viewMode === "grid" ? (
+                  <EmployeeGrid employees={pageEmployees} />
                 ) : null}
-
-                <section className="flex flex-col gap-4">
-                  <div className="border-b border-white/10 pb-2">
-                    <h2 className="text-sm font-medium tracking-wide text-white/70 uppercase">
-                      {t("sectionMine")}
-                    </h2>
-                    <p className="mt-1 text-xs text-white/40">
-                      {t("sectionMineHint")}
-                    </p>
-                  </div>
-                  {pageCustomEmployees.length > 0 ? (
-                    <>
-                      {viewMode === "grid" ? (
-                        <EmployeeGrid employees={pageCustomEmployees} />
-                      ) : null}
-                      {viewMode === "list" ? (
-                        <EmployeeListView employees={pageCustomEmployees} />
-                      ) : null}
-                      {viewMode === "table" ? (
-                        <EmployeeTableView employees={pageCustomEmployees} />
-                      ) : null}
-                      <EmployeePagination
-                        page={currentPage}
-                        totalPages={totalPages}
-                        totalItems={customEmployees.length}
-                        pageSize={pageSize}
-                        onPageChange={handlePageChange}
-                        isLoading={isLoadingMore}
-                      />
-                    </>
-                  ) : (
-                    <EmployeeEmptyState
-                      onCreateClick={handleCreateClick}
-                      canCreate={
-                        permissions.canManageEmployees && canCreateEmployee
-                      }
-                      emptyLabel={t("emptyMine")}
-                    />
-                  )}
-                </section>
+                {viewMode === "list" ? (
+                  <EmployeeListView employees={pageEmployees} />
+                ) : null}
+                {viewMode === "table" ? (
+                  <EmployeeTableView employees={pageEmployees} />
+                ) : null}
+                <EmployeePagination
+                  page={currentPage}
+                  totalPages={totalPages}
+                  totalItems={filteredEmployees.length}
+                  pageSize={pageSize}
+                  onPageChange={handlePageChange}
+                  isLoading={isLoadingMore}
+                />
               </div>
             ) : (
               <p className="py-8 text-center text-sm text-white/50">
