@@ -24,11 +24,13 @@ import {
   MOCK_EMPLOYEE_TARGETS,
   MOCK_REWARD_ITEMS,
   RARITY_STYLES,
+  REWARD_TYPE_LABELS,
   type RewardItem,
   type RewardType,
 } from "@/features/rewards/lib/catalog";
 import {
   rewardsPrimaryButtonClass,
+  rewardsSecondaryButtonClass,
   rewardsWorkspaceClass,
 } from "@/features/rewards/lib/workspace-shell";
 import { CapsulesAmbienceToggle } from "@/features/capsules/components/capsules-ambience";
@@ -67,22 +69,7 @@ function typeIcon(type: RewardType) {
 }
 
 function typeLabel(type: RewardType): string {
-  switch (type) {
-    case "skill_chip":
-      return "Skill Chip";
-    case "appearance":
-      return "Appearance";
-    case "voice":
-      return "Voice Pack";
-    case "idle":
-      return "Idle Animation";
-    case "background":
-      return "Background";
-    case "frame":
-      return "Frame";
-    default:
-      return type;
-  }
+  return REWARD_TYPE_LABELS[type];
 }
 
 export function InventoryScreen() {
@@ -306,8 +293,7 @@ export function InventoryScreen() {
                   </Button>
                   <Button
                     type="button"
-                    variant="outline"
-                    className="h-10 w-full rounded-xl border-white/12 bg-transparent text-white/70 hover:bg-white/5"
+                    className={rewardsSecondaryButtonClass}
                     onClick={() => setToast("Lock item — coming soon.")}
                   >
                     <Lock className="size-4" />
