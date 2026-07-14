@@ -11,8 +11,10 @@ import {
   KeyRound,
   LayoutDashboard,
   MessageSquare,
+  Package,
   Radar,
   Settings,
+  Sparkles,
   Users,
 } from "lucide-react";
 import {
@@ -35,6 +37,8 @@ const NAV_ITEMS = [
   { labelKey: "dashboard", href: "/dashboard", icon: LayoutDashboard },
   { labelKey: "employees", href: "/dashboard/employees", icon: Users },
   { labelKey: "missions", href: "/dashboard/missions", icon: Radar },
+  { labelKey: "capsules", href: "/dashboard/capsules", icon: Sparkles },
+  { labelKey: "inventory", href: "/dashboard/inventory", icon: Package },
   { labelKey: "conversations", href: "/dashboard/conversations", icon: MessageSquare },
   { labelKey: "hq", href: "/dashboard/hq", icon: Building2 },
   { labelKey: "analytics", href: "/dashboard/analytics", icon: BarChart3 },
