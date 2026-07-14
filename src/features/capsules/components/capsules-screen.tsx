@@ -42,6 +42,10 @@ import {
   rewardsWorkspaceClass,
 } from "@/features/rewards/lib/workspace-shell";
 import { CapsulesAmbienceToggle } from "./capsules-ambience";
+import {
+  CapsuleOpenReveal,
+  type CapsuleRevealReward,
+} from "./capsule-open-reveal";
 import { CapsuleProductVisual } from "./capsule-product-visual";
 import { CapsuleHistorySheet } from "./capsule-history-sheet";
 
@@ -268,6 +272,17 @@ export function CapsulesScreen({
   const [detailsReward, setDetailsReward] = useState<RewardItem | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [revealOpen, setRevealOpen] = useState(false);
+  const [revealTierId, setRevealTierId] = useState<CapsuleTierId | null>(null);
+  const [revealReward, setRevealReward] = useState<CapsuleRevealReward | null>(
+    null,
+  );
+
+  function startReveal(tierId: CapsuleTierId, reward: CapsuleRevealReward) {
+    setRevealTierId(tierId);
+    setRevealReward(reward);
+    setRevealOpen(true);
+  }
 
   useEffect(() => {
     setSecondsLeft(dailySecondsLeft);
@@ -322,10 +337,11 @@ export function CapsulesScreen({
           setToast(result.message);
           return;
         }
-        setToast(
-          `Claimed · ${result.reward.name} (${RARITY_STYLES[result.reward.rarity].label})`,
-        );
-        router.refresh();
+        const catalog = rewards.find((item) => item.id === result.reward.slug);
+        startReveal(offer.id, {
+          ...result.reward,
+          type: catalog?.type,
+        });
       });
       return;
     }
@@ -337,10 +353,11 @@ export function CapsulesScreen({
           setToast(result.message);
           return;
         }
-        setToast(
-          `Opened · ${result.reward.name} (${RARITY_STYLES[result.reward.rarity].label})`,
-        );
-        router.refresh();
+        const catalog = rewards.find((item) => item.id === result.reward.slug);
+        startReveal(offer.id, {
+          ...result.reward,
+          type: catalog?.type,
+        });
       });
       return;
     }
@@ -511,28 +528,6 @@ export function CapsulesScreen({
             </Popover>
           </div>
         </div>
-
-        <section className="rounded-2xl border border-white/10 bg-[#1a1a1a] px-4 py-3 sm:px-5">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <h3 className="text-[10px] tracking-[0.18em] text-white/40 uppercase">
-              Loop
-            </h3>
-            <ul className="flex flex-wrap gap-x-4 gap-y-1.5 text-sm text-white/50">
-              <li>
-                <span className="text-white/80">Capsules</span> → activate
-              </li>
-              <li>
-                <span className="text-white/80">Inventory</span> → collect
-              </li>
-              <li>
-                <span className="text-white/80">Details</span> → inspect
-              </li>
-              <li>
-                <span className="text-white/80">Equip</span> → apply
-              </li>
-            </ul>
-          </div>
-        </section>
 
         <div className="grid w-full gap-6 xl:grid-cols-[minmax(0,1fr)_300px] xl:gap-8">
           <div className="min-w-0 space-y-8">
@@ -719,6 +714,23 @@ export function CapsulesScreen({
         open={historyOpen}
         onOpenChange={setHistoryOpen}
         items={history}
+      />
+
+      <CapsuleOpenReveal
+        open={revealOpen}
+        tierId={revealTierId}
+        reward={revealReward}
+        onOpenChange={(next) => {
+          setRevealOpen(next);
+          if (!next) {
+            setToast(null);
+            router.refresh();
+          }
+        }}
+        onDone={() => {
+          setToast(null);
+          router.refresh();
+        }}
       />
     </div>
   );

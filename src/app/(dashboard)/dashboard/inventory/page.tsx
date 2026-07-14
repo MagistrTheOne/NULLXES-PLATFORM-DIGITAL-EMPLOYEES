@@ -33,6 +33,7 @@ export default async function InventoryPage() {
     >
       <InventoryScreen
         rewards={state.rewards}
+        offers={state.offers}
         employees={employeePage.items.map((e) => ({ id: e.id, name: e.name }))}
         loadouts={loadouts}
       />

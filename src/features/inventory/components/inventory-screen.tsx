@@ -26,6 +26,8 @@ import { cn } from "@/lib/utils";
 import {
   RARITY_STYLES,
   REWARD_TYPE_LABELS,
+  type CapsuleOffer,
+  type CapsuleTierId,
   type RewardItem,
   type RewardRarity,
   type RewardType,
@@ -37,18 +39,26 @@ import {
   type EmployeeLoadout,
 } from "@/features/rewards/lib/loadout";
 import { equipRewardOnEmployeeAction } from "@/features/rewards/actions/equip-reward";
+import { openCapsuleAction } from "@/features/rewards/actions/open-capsule";
 import {
+  rewardsPrimaryButtonClass,
   rewardsSecondaryButtonClass,
   rewardsWorkspaceClass,
 } from "@/features/rewards/lib/workspace-shell";
 import { CapsulesAmbienceToggle } from "@/features/capsules/components/capsules-ambience";
+import {
+  CapsuleOpenReveal,
+  type CapsuleRevealReward,
+} from "@/features/capsules/components/capsule-open-reveal";
+import { CapsuleProductVisual } from "@/features/capsules/components/capsule-product-visual";
 
 const TYPE_FILTERS: Array<{
-  id: "all" | "equipped" | RewardType;
+  id: "all" | "equipped" | "capsules" | RewardType;
   label: string;
   soon?: boolean;
 }> = [
   { id: "all", label: "All Items" },
+  { id: "capsules", label: "Capsules" },
   { id: "equipped", label: "Equipped" },
   { id: "skill_chip", label: "Skill Chips" },
   { id: "appearance", label: "Appearance" },
@@ -74,6 +84,10 @@ type SortId =
   | "equipped"
   | "duplicates";
 
+type Selection =
+  | { kind: "reward"; id: string }
+  | { kind: "capsule"; id: CapsuleTierId };
+
 function typeIcon(type: RewardType) {
   switch (type) {
     case "skill_chip":
@@ -95,10 +109,12 @@ function typeIcon(type: RewardType) {
 
 export function InventoryScreen({
   rewards,
+  offers = [],
   employees,
   loadouts: initialLoadouts,
 }: {
   rewards: RewardItem[];
+  offers?: CapsuleOffer[];
   employees: Array<{ id: string; name: string }>;
   loadouts: Record<string, EmployeeLoadout>;
 }) {
@@ -107,26 +123,46 @@ export function InventoryScreen({
   const searchParams = useSearchParams();
   const initialId = searchParams.get("item");
   const [loadouts, setLoadouts] = useState(initialLoadouts);
-  const [filter, setFilter] = useState<(typeof TYPE_FILTERS)[number]["id"]>("all");
+  const [filter, setFilter] =
+    useState<(typeof TYPE_FILTERS)[number]["id"]>("all");
 
   useEffect(() => {
     setLoadouts(initialLoadouts);
   }, [initialLoadouts]);
+
+  const ownedCapsules = useMemo(
+    () =>
+      offers.filter(
+        (offer) => !offer.daily && (offer.ownedCount ?? 0) > 0,
+      ),
+    [offers],
+  );
+
   const [sort, setSort] = useState<SortId>("rarity");
   const [query, setQuery] = useState("");
-  const [selectedId, setSelectedId] = useState(
-    initialId && rewards.some((item) => item.id === initialId)
-      ? initialId
-      : (rewards[0]?.id ?? null),
-  );
+  const [selected, setSelected] = useState<Selection | null>(() => {
+    if (initialId && rewards.some((item) => item.id === initialId)) {
+      return { kind: "reward", id: initialId };
+    }
+    if (rewards[0]) return { kind: "reward", id: rewards[0].id };
+    if (ownedCapsules[0]) return { kind: "capsule", id: ownedCapsules[0].id };
+    return null;
+  });
   const [toast, setToast] = useState<string | null>(null);
   const [favorites, setFavorites] = useState<Record<string, boolean>>({});
+  const [revealOpen, setRevealOpen] = useState(false);
+  const [revealTierId, setRevealTierId] = useState<CapsuleTierId | null>(null);
+  const [revealReward, setRevealReward] = useState<CapsuleRevealReward | null>(
+    null,
+  );
 
-  const items = useMemo(() => {
+  const rewardItems = useMemo(() => {
     let list = [...rewards];
 
     if (filter === "equipped") {
       list = list.filter((item) => isItemEquippedAnywhere(loadouts, item.id));
+    } else if (filter === "capsules") {
+      list = [];
     } else if (filter !== "all") {
       list = list.filter((item) => item.type === filter);
     }
@@ -162,20 +198,45 @@ export function InventoryScreen({
     return list;
   }, [filter, query, sort, loadouts, rewards]);
 
-  const selected: RewardItem | null =
-    items.find((item) => item.id === selectedId) ??
-    rewards.find((item) => item.id === selectedId) ??
-    null;
+  const capsuleItems = useMemo(() => {
+    if (filter === "equipped") return [];
+    if (filter !== "all" && filter !== "capsules") return [];
 
-  const selectedStyle = selected ? RARITY_STYLES[selected.rarity] : null;
-  const isFavorite = selected ? Boolean(favorites[selected.id]) : false;
+    let list = [...ownedCapsules];
+    const q = query.trim().toLowerCase();
+    if (q) {
+      list = list.filter((offer) => offer.name.toLowerCase().includes(q));
+    }
+    list.sort((a, b) => a.name.localeCompare(b.name));
+    return list;
+  }, [filter, query, ownedCapsules]);
+
+  const selectedReward: RewardItem | null =
+    selected?.kind === "reward"
+      ? (rewards.find((item) => item.id === selected.id) ?? null)
+      : null;
+  const selectedCapsule: CapsuleOffer | null =
+    selected?.kind === "capsule"
+      ? (ownedCapsules.find((offer) => offer.id === selected.id) ??
+        offers.find((offer) => offer.id === selected.id) ??
+        null)
+      : null;
+
+  const selectedStyle = selectedReward
+    ? RARITY_STYLES[selectedReward.rarity]
+    : null;
+  const isFavorite = selectedReward
+    ? Boolean(favorites[selectedReward.id])
+    : false;
+
+  const totalVisible = rewardItems.length + capsuleItems.length;
 
   function onEquip(employeeId: string, employeeName: string) {
-    if (!selected) return;
+    if (!selectedReward) return;
     startTransition(async () => {
       const result = await equipRewardOnEmployeeAction({
         employeeId,
-        rewardSlug: selected.id,
+        rewardSlug: selectedReward.id,
       });
       if (!result.ok) {
         setToast(result.message);
@@ -184,33 +245,50 @@ export function InventoryScreen({
       setLoadouts((prev) => {
         const current = prev[employeeId] ?? emptyLoadout();
         const next = { ...current, skillChipIds: [...current.skillChipIds] };
-        switch (selected.type) {
+        switch (selectedReward.type) {
           case "appearance":
-            next.appearanceId = selected.id;
+            next.appearanceId = selectedReward.id;
             break;
           case "voice":
-            next.voiceId = selected.id;
+            next.voiceId = selectedReward.id;
             break;
           case "background":
-            next.backgroundId = selected.id;
+            next.backgroundId = selectedReward.id;
             break;
           case "idle":
-            next.idleId = selected.id;
+            next.idleId = selectedReward.id;
             break;
           case "frame":
-            next.frameId = selected.id;
+            next.frameId = selectedReward.id;
             break;
           case "skill_chip": {
             const emptyIndex = next.skillChipIds.findIndex((id) => !id);
-            if (emptyIndex >= 0) next.skillChipIds[emptyIndex] = selected.id;
-            else next.skillChipIds[0] = selected.id;
+            if (emptyIndex >= 0) next.skillChipIds[emptyIndex] = selectedReward.id;
+            else next.skillChipIds[0] = selectedReward.id;
             break;
           }
         }
         return { ...prev, [employeeId]: next };
       });
-      setToast(`${selected.name} → ${employeeName}`);
+      setToast(`${selectedReward.name} → ${employeeName}`);
       router.refresh();
+    });
+  }
+
+  function onOpenCapsule(offer: CapsuleOffer) {
+    startTransition(async () => {
+      const result = await openCapsuleAction(offer.id);
+      if (!result.ok) {
+        setToast(result.message);
+        return;
+      }
+      const catalog = rewards.find((item) => item.id === result.reward.slug);
+      setRevealTierId(offer.id);
+      setRevealReward({
+        ...result.reward,
+        type: catalog?.type,
+      });
+      setRevealOpen(true);
     });
   }
 
@@ -223,7 +301,8 @@ export function InventoryScreen({
               Inventory
             </h1>
             <p className="mt-2 text-sm text-white/50">
-              Reward library. Equip shortcuts apply to a digital employee loadout.
+              Reward library. Owned capsules open here; equip applies to a
+              digital employee loadout.
             </p>
           </div>
           <CapsulesAmbienceToggle />
@@ -290,17 +369,60 @@ export function InventoryScreen({
         <div className="grid w-full gap-6 xl:grid-cols-[minmax(0,1fr)_360px] xl:gap-8">
           <div className="min-w-0">
             <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 lg:gap-4">
-              {items.map((item) => {
+              {capsuleItems.map((offer) => {
+                const active =
+                  selected?.kind === "capsule" && selected.id === offer.id;
+                return (
+                  <li key={`capsule-${offer.id}`}>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setSelected({ kind: "capsule", id: offer.id })
+                      }
+                      className={cn(
+                        "relative flex h-full min-h-48 w-full flex-col rounded-2xl border border-white/12 bg-[#1a1a1a] p-4 text-left transition-[border-color,background-color,transform] duration-200 hover:-translate-y-0.5 hover:bg-[#1f1f1f]",
+                        active && "ring-1 ring-white/30",
+                      )}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="text-[10px] tracking-[0.18em] text-white/45 uppercase">
+                          Capsule
+                        </p>
+                        <span className="rounded bg-white/10 px-1.5 py-0.5 font-mono text-[9px] text-white/60">
+                          ×{offer.ownedCount ?? 0}
+                        </span>
+                      </div>
+                      <div className="mt-2 flex flex-1 items-center justify-center overflow-hidden rounded-xl bg-black/30">
+                        <CapsuleProductVisual
+                          tier={offer.id}
+                          className="h-28 w-full rounded-none"
+                        />
+                      </div>
+                      <p className="mt-3 text-sm font-medium text-white">
+                        {offer.name}
+                      </p>
+                      <p className="mt-1 text-[11px] text-white/40">
+                        {offer.priceLabel}
+                      </p>
+                    </button>
+                  </li>
+                );
+              })}
+
+              {rewardItems.map((item) => {
                 const style = RARITY_STYLES[item.rarity];
                 const Icon = typeIcon(item.type);
-                const active = item.id === selected?.id;
+                const active =
+                  selected?.kind === "reward" && selected.id === item.id;
                 const equipped = isItemEquippedAnywhere(loadouts, item.id);
                 const favorite = Boolean(favorites[item.id]);
                 return (
                   <li key={item.id}>
                     <button
                       type="button"
-                      onClick={() => setSelectedId(item.id)}
+                      onClick={() =>
+                        setSelected({ kind: "reward", id: item.id })
+                      }
                       className={cn(
                         "relative flex h-full min-h-48 w-full flex-col rounded-2xl border bg-[#1a1a1a] p-4 text-left transition-[border-color,background-color,transform] duration-200 hover:-translate-y-0.5 hover:bg-[#1f1f1f]",
                         style.border,
@@ -350,20 +472,64 @@ export function InventoryScreen({
                   </li>
                 );
               })}
-              <li>
-                <div className="flex min-h-48 items-center justify-center rounded-2xl border border-dashed border-white/12 bg-[#161616] p-4 text-center text-xs text-white/35">
-                  More items coming soon
-                </div>
-              </li>
+
+              {totalVisible === 0 ? (
+                <li className="col-span-full">
+                  <div className="flex min-h-48 items-center justify-center rounded-2xl border border-dashed border-white/12 bg-[#161616] p-4 text-center text-sm text-white/40">
+                    {filter === "capsules"
+                      ? "No owned capsules. Activate on Capsules store."
+                      : "No items match the current filters."}
+                  </div>
+                </li>
+              ) : (
+                <li>
+                  <div className="flex min-h-48 items-center justify-center rounded-2xl border border-dashed border-white/12 bg-[#161616] p-4 text-center text-xs text-white/35">
+                    More items coming soon
+                  </div>
+                </li>
+              )}
             </ul>
             <p className="mt-4 text-xs text-white/30">
-              Showing 1–{items.length} of {rewards.length} items
+              Showing {totalVisible} of {rewards.length + ownedCapsules.length}{" "}
+              items
             </p>
           </div>
 
           <aside className="space-y-4 xl:sticky xl:top-6 xl:self-start">
             <div className="rounded-2xl border border-white/10 bg-[#1a1a1a] p-5">
-              {selected && selectedStyle ? (
+              {selectedCapsule ? (
+                <>
+                  <div className="mx-auto overflow-hidden rounded-2xl border border-white/12 bg-black/40">
+                    <CapsuleProductVisual
+                      tier={selectedCapsule.id}
+                      className="h-36 w-full rounded-none"
+                    />
+                  </div>
+                  <p className="mt-4 text-center text-[10px] tracking-[0.22em] text-white/45 uppercase">
+                    Capsule
+                  </p>
+                  <h2 className="mt-2 text-center text-xl font-medium text-white">
+                    {selectedCapsule.name}
+                  </h2>
+                  <p className="mt-2 text-center text-[11px] text-white/40">
+                    Owned · {selectedCapsule.ownedCount ?? 0}
+                  </p>
+                  <p className="mt-3 text-sm leading-relaxed text-white/50">
+                    {selectedCapsule.blurb}
+                  </p>
+                  <Button
+                    type="button"
+                    disabled={pending || (selectedCapsule.ownedCount ?? 0) < 1}
+                    className={cn("mt-5", rewardsPrimaryButtonClass)}
+                    onClick={() => onOpenCapsule(selectedCapsule)}
+                  >
+                    Open
+                  </Button>
+                  <Button asChild className={cn("mt-2", rewardsSecondaryButtonClass)}>
+                    <Link href="/dashboard/capsules">Back to Capsules</Link>
+                  </Button>
+                </>
+              ) : selectedReward && selectedStyle ? (
                 <>
                   <div
                     className={cn(
@@ -372,7 +538,7 @@ export function InventoryScreen({
                     )}
                   >
                     {(() => {
-                      const Icon = typeIcon(selected.type);
+                      const Icon = typeIcon(selectedReward.type);
                       return (
                         <Icon className={cn("size-12", selectedStyle.text)} />
                       );
@@ -387,23 +553,27 @@ export function InventoryScreen({
                     {selectedStyle.label}
                   </p>
                   <h2 className="mt-2 text-center text-xl font-medium text-white">
-                    {selected.name}
+                    {selectedReward.name}
                   </h2>
                   <p className="mt-2 text-center text-[11px] text-white/40">
-                    Preview · {REWARD_TYPE_LABELS[selected.type]}
+                    Preview · {REWARD_TYPE_LABELS[selectedReward.type]}
                   </p>
                   <p className="mt-3 text-sm leading-relaxed text-white/50">
-                    {selected.description}
+                    {selectedReward.description}
                   </p>
 
                   <dl className="mt-5 space-y-2 border-t border-white/8 pt-4 text-sm">
                     <div className="flex justify-between gap-3">
                       <dt className="text-white/40">Owned</dt>
-                      <dd className="font-mono text-white/80">×{selected.owned}</dd>
+                      <dd className="font-mono text-white/80">
+                        ×{selectedReward.owned}
+                      </dd>
                     </div>
                     <div className="flex justify-between gap-3">
                       <dt className="text-white/40">Compatible</dt>
-                      <dd className="text-white/80">{selected.compatible}</dd>
+                      <dd className="text-white/80">
+                        {selectedReward.compatible}
+                      </dd>
                     </div>
                   </dl>
 
@@ -413,12 +583,12 @@ export function InventoryScreen({
                     onClick={() => {
                       setFavorites((prev) => ({
                         ...prev,
-                        [selected.id]: !prev[selected.id],
+                        [selectedReward.id]: !prev[selectedReward.id],
                       }));
                       setToast(
                         isFavorite
-                          ? `Removed ${selected.name} from favorites.`
-                          : `Favorited ${selected.name}.`,
+                          ? `Removed ${selectedReward.name} from favorites.`
+                          : `Favorited ${selectedReward.name}.`,
                       );
                     }}
                   >
@@ -446,7 +616,7 @@ export function InventoryScreen({
                             loadouts[employee.id] ?? emptyLoadout();
                           const equipped = isItemEquippedOnLoadout(
                             loadout,
-                            selected.id,
+                            selectedReward.id,
                           );
                           return (
                             <li
@@ -543,6 +713,23 @@ export function InventoryScreen({
           </aside>
         </div>
       </div>
+
+      <CapsuleOpenReveal
+        open={revealOpen}
+        tierId={revealTierId}
+        reward={revealReward}
+        onOpenChange={(next) => {
+          setRevealOpen(next);
+          if (!next) {
+            setToast(null);
+            router.refresh();
+          }
+        }}
+        onDone={() => {
+          setToast(null);
+          router.refresh();
+        }}
+      />
     </div>
   );
 }
