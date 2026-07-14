@@ -16,7 +16,7 @@ export async function assertCanCreateEmployee(
     return {
       ok: false,
       message:
-        "Free includes the NULLXES catalog (Adeline + Yuki). Subscribe to Starter or higher to create custom digital employees.",
+        "Evaluation includes 2 demo employees (Adeline + Yuki). Subscribe to Starter or higher to create custom digital employees.",
     };
   }
 
@@ -77,7 +77,7 @@ export function assertCanCreateCustomAvatar(
   return {
     ok: false,
     message:
-      "Custom avatars start on Studio. Choose a NULLXES preset on Evaluation, or upgrade your plan.",
+      "Custom avatars start on Starter. Choose a NULLXES preset on Evaluation, or upgrade your plan.",
   };
 }
 

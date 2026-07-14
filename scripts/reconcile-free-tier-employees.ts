@@ -110,7 +110,7 @@ async function main(): Promise<void> {
               ...avatarConfig,
               provisioningStatus: "failed",
               failureReason:
-                "Custom avatars start on Studio. Choose a NULLXES preset or upgrade your plan.",
+                "Custom avatars start on Starter. Choose a NULLXES preset or upgrade your plan.",
             },
           })
           .where(
