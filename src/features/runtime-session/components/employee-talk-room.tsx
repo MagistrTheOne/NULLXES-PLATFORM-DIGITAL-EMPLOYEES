@@ -393,7 +393,7 @@ export function EmployeeTalkRoom({
           - Stage chrome only: frame, docked controls, HUD, overlays
           - Details rail is opt-in (collapsed by default). */}
       <div className="flex min-h-0 flex-1 overflow-hidden border-t border-white/8 bg-black">
-        <div className="talk-stage-frame relative flex min-h-0 min-w-0 flex-1 px-3 py-3 xl:px-4">
+        <div className="talk-stage-frame relative flex min-h-0 min-w-0 flex-1 p-1.5 sm:p-2 xl:p-2.5">
           <div className="talk-workspace-stage relative bg-black">
             <EmployeeAnamStage
               employeeId={employeeId}

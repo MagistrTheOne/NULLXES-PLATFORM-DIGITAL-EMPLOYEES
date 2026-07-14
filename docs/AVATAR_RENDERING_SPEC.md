@@ -17,7 +17,7 @@ Visual consistency across dozens of digital employees comes from **standardized 
 
 | Parameter | Value | Notes |
 |-----------|--------|--------|
-| Aspect ratio | **16:9** | Matches Talk stage frame |
+| Aspect ratio | **3:2 capture preferred** (Anam Talk often **720×480**) | Stage fills the Talk panel; `object-fit: cover` crops to the panel |
 | Headroom | **8%** | Space above crown to top of frame |
 | Eyes vertical | **~42%** from top | Eyes sit in upper-mid safe band |
 | Shoulders | **≥18%** of frame height visible | Avoid tight head-crops |
@@ -47,23 +47,27 @@ Outside the safe area may be cropped by the frozen `object-fit: cover` stage. De
 
 Allowed to change (chrome only):
 
-- Stage frame border / inset shadow  
+- Stage frame border / inset / padding (fill the Talk panel — no letterboxed island)
 - Docked controls  
 - HUD / logo opacity & motion  
 - Overlays, focus mode, PiP  
 
+**Global crop (shared by all employees):**
+
+- `object-fit: cover`
+- `object-position: center 22%` (face bias for tall stages)
+
 **Not allowed without CEO-level review:**
 
-- `.employee-anam-video` `object-fit`  
-- Per-employee `object-position` overrides  
-- Changing stage aspect away from 16:9 without updating this spec  
+- Per-employee `object-fit` / `object-position` overrides  
+- Removing `cover` in favor of `contain` (reintroduces black bars)
 
 Live CSS: `src/features/runtime-session/components/employee-talk-theme.css`  
-Mark: `/* NULLXES AVATAR PLAYER — FROZEN */`
+Mark: `/* NULLXES AVATAR PLAYER — FROZEN crop policy */`
 
 ## Checklist for new employees
 
-- [ ] Capture / one-shot is 16:9 or safely croppable to 16:9  
+- [ ] Capture / one-shot is 3:2 or 16:9 and safely croppable with cover  
 - [ ] Eyes near 42% from top after crop  
 - [ ] Shoulders visible (≥18%)  
 - [ ] Preview still looks correct on `/talk` without CSS tweaks  
