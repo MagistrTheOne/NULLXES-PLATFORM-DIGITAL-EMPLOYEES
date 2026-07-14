@@ -105,9 +105,9 @@ export function SettingsGeneralTab({
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
+    <div className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3 xl:gap-6">
       {message ? (
-        <p className="rounded-xl border border-border bg-background/40 px-4 py-3 text-sm text-muted-foreground">
+        <p className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-muted-foreground backdrop-blur-xl md:col-span-2 xl:col-span-3">
           {message}
         </p>
       ) : null}
@@ -128,7 +128,7 @@ export function SettingsGeneralTab({
             </Button>
           }
         >
-          <FieldGroup>
+          <FieldGroup className="gap-4">
             <Field>
               <FieldLabel htmlFor="org-name">{t("organizationName")}</FieldLabel>
               <Input
@@ -202,6 +202,7 @@ export function SettingsGeneralTab({
         <SettingsCard
           title={t("preferences")}
           description={t("preferencesDesc")}
+          className="md:col-span-2 xl:col-span-2"
           footer={
             <Button
               type="button"
@@ -214,12 +215,15 @@ export function SettingsGeneralTab({
             </Button>
           }
         >
-          <FieldGroup>
-            <Field>
-              <FieldLabel>{t("theme")}</FieldLabel>
-              <FieldDescription>{t("themeDarkOnly")}</FieldDescription>
-            </Field>
-            <Field>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 backdrop-blur-md sm:col-span-2 lg:col-span-1">
+              <p className="text-sm text-foreground">{t("theme")}</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {t("themeDarkOnly")}
+              </p>
+            </div>
+
+            <Field className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 backdrop-blur-md">
               <FieldLabel>{t("language")}</FieldLabel>
               <Select
                 value={preferences.language}
@@ -228,7 +232,7 @@ export function SettingsGeneralTab({
                   setPreferences((current) => ({ ...current, language: value }))
                 }
               >
-                <SelectTrigger className="w-full">
+                <SelectTrigger className="mt-2 w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -240,7 +244,8 @@ export function SettingsGeneralTab({
                 </SelectContent>
               </Select>
             </Field>
-            <Field>
+
+            <Field className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 backdrop-blur-md">
               <FieldLabel>{t("dateFormat")}</FieldLabel>
               <Select
                 value={preferences.dateFormat}
@@ -249,7 +254,7 @@ export function SettingsGeneralTab({
                   setPreferences((current) => ({ ...current, dateFormat: value }))
                 }
               >
-                <SelectTrigger className="w-full">
+                <SelectTrigger className="mt-2 w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -260,7 +265,7 @@ export function SettingsGeneralTab({
                   ))}
                 </SelectContent>
               </Select>
-              <FieldDescription>
+              <FieldDescription className="mt-2">
                 {t("dateFormatPreview", {
                   example: formatDateFormatPreview(
                     getOrganizationDateFormat(preferences.dateFormat),
@@ -269,7 +274,8 @@ export function SettingsGeneralTab({
                 })}
               </FieldDescription>
             </Field>
-            <Field>
+
+            <Field className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 backdrop-blur-md">
               <FieldLabel>{t("timeFormat")}</FieldLabel>
               <Select
                 value={preferences.timeFormat}
@@ -278,7 +284,7 @@ export function SettingsGeneralTab({
                   setPreferences((current) => ({ ...current, timeFormat: value }))
                 }
               >
-                <SelectTrigger className="w-full">
+                <SelectTrigger className="mt-2 w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -290,7 +296,8 @@ export function SettingsGeneralTab({
                 </SelectContent>
               </Select>
             </Field>
-            <Field>
+
+            <Field className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 backdrop-blur-md">
               <FieldLabel>{t("defaultTimeRange")}</FieldLabel>
               <Select
                 value={String(preferences.defaultTimeRangeDays)}
@@ -302,7 +309,7 @@ export function SettingsGeneralTab({
                   }))
                 }
               >
-                <SelectTrigger className="w-full">
+                <SelectTrigger className="mt-2 w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -314,7 +321,11 @@ export function SettingsGeneralTab({
                 </SelectContent>
               </Select>
             </Field>
-            <Field orientation="horizontal" className="items-center justify-between rounded-xl border border-border/80 bg-background/30 px-4 py-3">
+
+            <Field
+              orientation="horizontal"
+              className="items-center justify-between rounded-xl border border-white/10 bg-white/5 px-4 py-3 backdrop-blur-md"
+            >
               <FieldContent>
                 <FieldLabel className="text-foreground">{t("compactMode")}</FieldLabel>
                 <FieldDescription>{t("compactModeDesc")}</FieldDescription>
@@ -327,7 +338,7 @@ export function SettingsGeneralTab({
                 }
               />
             </Field>
-          </FieldGroup>
+          </div>
         </SettingsCard>
       ) : null}
 
@@ -347,7 +358,7 @@ export function SettingsGeneralTab({
             </Button>
           }
         >
-          <FieldGroup>
+          <FieldGroup className="gap-4">
             <Field>
               <FieldLabel>{t("knowledgeProcessing")}</FieldLabel>
               <Select
@@ -416,7 +427,7 @@ export function SettingsGeneralTab({
             </Button>
           }
         >
-          <FieldGroup>
+          <FieldGroup className="gap-4">
             <Field>
               <FieldLabel>{t("retentionPolicy")}</FieldLabel>
               <Select
@@ -441,7 +452,7 @@ export function SettingsGeneralTab({
             <div className="grid gap-1">
               <Link
                 href="/settings?tab=advanced"
-                className="flex items-center justify-between gap-4 rounded-lg px-1 py-2.5 text-sm transition-colors hover:bg-background/40"
+                className="flex items-center justify-between gap-4 rounded-lg px-1 py-2.5 text-sm transition-colors hover:bg-white/5"
               >
                 <span className="text-muted-foreground">{t("dataExport")}</span>
                 <span className="text-foreground underline underline-offset-4">
@@ -450,7 +461,7 @@ export function SettingsGeneralTab({
               </Link>
               <Link
                 href="/settings?tab=general"
-                className="flex items-center justify-between gap-4 rounded-lg px-1 py-2.5 text-sm transition-colors hover:bg-background/40"
+                className="flex items-center justify-between gap-4 rounded-lg px-1 py-2.5 text-sm transition-colors hover:bg-white/5"
               >
                 <span className="text-muted-foreground">{t("personalData")}</span>
                 <span className="text-foreground underline underline-offset-4">
@@ -479,7 +490,9 @@ export function SettingsGeneralTab({
         </SettingsCard>
       ) : null}
 
-      <SettingsPersonalDataCard />
+      <div className="md:col-span-2 xl:col-span-1">
+        <SettingsPersonalDataCard />
+      </div>
     </div>
   );
 }
