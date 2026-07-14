@@ -46,10 +46,11 @@ export type CapsuleOffer = {
   featured?: boolean;
 };
 
+/** Empty arrays = no filter (show all). */
 export type RewardsFilterState = {
-  rarity: "all" | RewardRarity;
-  rewardType: "all" | RewardType;
-  price: "all" | CapsulePriceKey;
+  rarities: RewardRarity[];
+  rewardTypes: RewardType[];
+  prices: CapsulePriceKey[];
   query: string;
 };
 
@@ -101,7 +102,8 @@ export const REWARD_TYPE_LABELS: Record<RewardType, string> = {
   frame: "Frame",
 };
 
-export const MOCK_REWARD_ITEMS: RewardItem[] = [
+/** Seed / fallback catalog (also source for DB seed). */
+export const SEED_REWARD_ITEMS: Omit<RewardItem, "owned">[] = [
   {
     id: "exec-black",
     name: "Executive Black",
@@ -109,7 +111,6 @@ export const MOCK_REWARD_ITEMS: RewardItem[] = [
     rarity: "founders",
     description:
       "A signature look for elite performers. Crafted for leadership. Worn by founders.",
-    owned: 1,
     compatible: "All Employees",
     featured: true,
   },
@@ -119,7 +120,6 @@ export const MOCK_REWARD_ITEMS: RewardItem[] = [
     type: "skill_chip",
     rarity: "executive",
     description: "Narrow boost for negotiation scenarios.",
-    owned: 2,
     compatible: "All Employees",
     boostLabel: "+15%",
     featured: true,
@@ -130,7 +130,6 @@ export const MOCK_REWARD_ITEMS: RewardItem[] = [
     type: "voice",
     rarity: "executive",
     description: "Corporate tone pack for executive presence.",
-    owned: 1,
     compatible: "All Employees",
   },
   {
@@ -139,7 +138,6 @@ export const MOCK_REWARD_ITEMS: RewardItem[] = [
     type: "background",
     rarity: "premium",
     description: "Meeting-room backdrop for employee cards and Talk chrome.",
-    owned: 1,
     compatible: "All Employees",
     featured: true,
   },
@@ -149,7 +147,6 @@ export const MOCK_REWARD_ITEMS: RewardItem[] = [
     type: "skill_chip",
     rarity: "premium",
     description: "Focused sales throughput modifier.",
-    owned: 3,
     compatible: "All Employees",
     boostLabel: "+8%",
   },
@@ -159,7 +156,6 @@ export const MOCK_REWARD_ITEMS: RewardItem[] = [
     type: "voice",
     rarity: "professional",
     description: "Steady delivery for support and reception roles.",
-    owned: 1,
     compatible: "All Employees",
     featured: true,
   },
@@ -169,7 +165,6 @@ export const MOCK_REWARD_ITEMS: RewardItem[] = [
     type: "frame",
     rarity: "professional",
     description: "Clean nameplate frame for employee cards.",
-    owned: 2,
     compatible: "All Employees",
   },
   {
@@ -178,7 +173,6 @@ export const MOCK_REWARD_ITEMS: RewardItem[] = [
     type: "skill_chip",
     rarity: "core",
     description: "Light boost to knowledge retrieval in Talk.",
-    owned: 4,
     compatible: "All Employees",
     boostLabel: "+12%",
   },
@@ -188,7 +182,6 @@ export const MOCK_REWARD_ITEMS: RewardItem[] = [
     type: "idle",
     rarity: "core",
     description: "Default standing idle pose.",
-    owned: 1,
     compatible: "All Employees",
   },
   {
@@ -197,7 +190,6 @@ export const MOCK_REWARD_ITEMS: RewardItem[] = [
     type: "skill_chip",
     rarity: "core",
     description: "Support-domain efficiency chip.",
-    owned: 2,
     compatible: "All Employees",
     boostLabel: "+6%",
   },
@@ -207,7 +199,6 @@ export const MOCK_REWARD_ITEMS: RewardItem[] = [
     type: "voice",
     rarity: "professional",
     description: "Measured delivery for leadership briefings.",
-    owned: 1,
     compatible: "All Employees",
   },
   {
@@ -216,24 +207,43 @@ export const MOCK_REWARD_ITEMS: RewardItem[] = [
     type: "idle",
     rarity: "professional",
     description: "Subtle idle for analytical roles.",
-    owned: 1,
     compatible: "All Employees",
   },
 ];
 
-export const MOCK_CAPSULE_OFFERS: CapsuleOffer[] = [
+/** Default owned counts for first-time org bootstrap. */
+export const SEED_ORG_OWNED: Record<string, number> = {
+  "exec-black": 1,
+  "neg-mastery": 2,
+  "exec-voice": 1,
+  "board-room": 1,
+  "sales-eff": 3,
+  "calm-voice": 1,
+  "minimal-frame": 2,
+  "knowledge-recall": 4,
+  "classic-idle": 1,
+  "support-spec": 2,
+  "board-presence": 1,
+  "quiet-focus": 1,
+};
+
+export const SEED_CAPSULE_TIERS: Array<
+  Omit<CapsuleOffer, "claimed" | "ownedCount" | "activateLabel"> & {
+    activateLabel: string;
+    sortOrder: number;
+  }
+> = [
   {
     id: "daily",
     name: "Base Capsule",
     priceKey: "free",
     priceLabel: "Free",
     blurb: "Daily Base drop — Core rewards for steady progress.",
-    activateLabel: "Claimed",
-    claimed: true,
-    ownedCount: 1,
+    activateLabel: "Claim",
     rewardPreviewIds: ["knowledge-recall", "classic-idle", "support-spec"],
     daily: true,
     featured: true,
+    sortOrder: 0,
   },
   {
     id: "standard",
@@ -242,10 +252,10 @@ export const MOCK_CAPSULE_OFFERS: CapsuleOffer[] = [
     priceLabel: "99 ₽",
     blurb: "Diamond tier — high chance for Professional or Premium rewards.",
     activateLabel: "Activate",
-    ownedCount: 2,
     rewardPreviewIds: ["sales-eff", "calm-voice", "minimal-frame"],
     store: true,
     featured: true,
+    sortOrder: 1,
   },
   {
     id: "executive",
@@ -254,15 +264,34 @@ export const MOCK_CAPSULE_OFFERS: CapsuleOffer[] = [
     priceLabel: "4 999 ₽",
     blurb: "Legendary Gold — guaranteed Premium. Chance for Executive or Founder's.",
     activateLabel: "Activate",
-    ownedCount: 0,
     rewardPreviewIds: ["exec-black", "neg-mastery", "exec-voice"],
     store: true,
     featured: true,
+    sortOrder: 2,
   },
 ];
 
-/** Mock catalog size for Collection Progress (expandable later). */
-export const MOCK_COLLECTION_TOTAL = 85;
+export const SEED_CAPSULE_OWNED: Record<CapsuleTierId, number> = {
+  daily: 1,
+  standard: 2,
+  executive: 0,
+};
+
+/** @deprecated Use SEED_REWARD_ITEMS + owned merge */
+export const MOCK_REWARD_ITEMS: RewardItem[] = SEED_REWARD_ITEMS.map((item) => ({
+  ...item,
+  owned: SEED_ORG_OWNED[item.id] ?? 0,
+}));
+
+/** @deprecated Use live CapsuleOffer from services */
+export const MOCK_CAPSULE_OFFERS: CapsuleOffer[] = SEED_CAPSULE_TIERS.map(
+  (tier) => ({
+    ...tier,
+    ownedCount: SEED_CAPSULE_OWNED[tier.id] ?? 0,
+    claimed: tier.id === "daily",
+    activateLabel: tier.id === "daily" ? "Claimed" : tier.activateLabel,
+  }),
+);
 
 export const MOCK_EMPLOYEE_TARGETS = [
   { id: "adeline", name: "Adeline Kalen" },
@@ -273,20 +302,31 @@ export const MOCK_EMPLOYEE_TARGETS = [
 ] as const;
 
 export const DEFAULT_REWARDS_FILTER: RewardsFilterState = {
-  rarity: "all",
-  rewardType: "all",
-  price: "all",
+  rarities: [],
+  rewardTypes: [],
+  prices: [],
   query: "",
 };
 
-export function getRewardById(id: string): RewardItem | undefined {
-  return MOCK_REWARD_ITEMS.find((item) => item.id === id);
+export function activeFilterCount(filter: RewardsFilterState): number {
+  return (
+    filter.rarities.length +
+    filter.rewardTypes.length +
+    filter.prices.length
+  );
 }
 
-export function getCollectionProgress(items: RewardItem[] = MOCK_REWARD_ITEMS) {
+export function getRewardById(
+  id: string,
+  catalog: RewardItem[] = MOCK_REWARD_ITEMS,
+): RewardItem | undefined {
+  return catalog.find((item) => item.id === id);
+}
+
+export function getCollectionProgress(items: RewardItem[]) {
   const ownedItems = items.filter((item) => item.owned > 0);
   const owned = ownedItems.length;
-  const total = MOCK_COLLECTION_TOTAL;
+  const total = Math.max(items.length, 1);
   const completion = Math.round((owned / total) * 100);
   const executiveOwned = ownedItems.filter((i) => i.rarity === "executive").length;
   const foundersOwned = ownedItems.filter((i) => i.rarity === "founders").length;
@@ -311,8 +351,13 @@ export function filterRewards(
   filter: RewardsFilterState,
 ): RewardItem[] {
   return items.filter((item) => {
-    if (filter.rarity !== "all" && item.rarity !== filter.rarity) return false;
-    if (filter.rewardType !== "all" && item.type !== filter.rewardType) {
+    if (filter.rarities.length > 0 && !filter.rarities.includes(item.rarity)) {
+      return false;
+    }
+    if (
+      filter.rewardTypes.length > 0 &&
+      !filter.rewardTypes.includes(item.type)
+    ) {
       return false;
     }
     if (!matchesQuery(item.name, filter.query)) return false;
@@ -323,25 +368,46 @@ export function filterRewards(
 export function filterCapsules(
   offers: CapsuleOffer[],
   filter: RewardsFilterState,
+  rewards: RewardItem[],
 ): CapsuleOffer[] {
+  const byId = new Map(rewards.map((r) => [r.id, r]));
+
   return offers.filter((offer) => {
-    if (filter.price !== "all" && offer.priceKey !== filter.price) return false;
+    if (
+      filter.prices.length > 0 &&
+      !filter.prices.includes(offer.priceKey)
+    ) {
+      return false;
+    }
     if (!matchesQuery(offer.name, filter.query)) return false;
 
     const previewRewards = offer.rewardPreviewIds
-      .map((id) => getRewardById(id))
+      .map((id) => byId.get(id))
       .filter(Boolean) as RewardItem[];
 
-    if (filter.rarity !== "all") {
-      const hasRarity = previewRewards.some((r) => r.rarity === filter.rarity);
+    if (filter.rarities.length > 0) {
+      const hasRarity = previewRewards.some((r) =>
+        filter.rarities.includes(r.rarity),
+      );
       if (!hasRarity) return false;
     }
 
-    if (filter.rewardType !== "all") {
-      const hasType = previewRewards.some((r) => r.type === filter.rewardType);
+    if (filter.rewardTypes.length > 0) {
+      const hasType = previewRewards.some((r) =>
+        filter.rewardTypes.includes(r.type),
+      );
       if (!hasType) return false;
     }
 
     return true;
   });
+}
+
+export function toggleFilterValue<T extends string>(
+  list: T[],
+  value: T,
+): T[] {
+  return list.includes(value)
+    ? list.filter((item) => item !== value)
+    : [...list, value];
 }

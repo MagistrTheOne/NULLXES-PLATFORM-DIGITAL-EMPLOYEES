@@ -79,6 +79,9 @@ export default defineConfig({
     "./src/entities/tool-definition/relations.ts",
     "./src/entities/employee-tool/schema.ts",
     "./src/entities/employee-tool/relations.ts",
+    "./src/entities/platform-employee-catalog/schema.ts",
+    "./src/entities/reward/schema.ts",
+    "./src/entities/reward/relations.ts",
   ],
   out: "./drizzle",
   dbCredentials: {

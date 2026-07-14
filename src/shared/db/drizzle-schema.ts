@@ -14,6 +14,8 @@ import * as toolDefinitionRelations from "@/entities/tool-definition/relations";
 import * as toolDefinitionSchema from "@/entities/tool-definition/schema";
 import * as employeeToolRelations from "@/entities/employee-tool/relations";
 import * as employeeToolSchema from "@/entities/employee-tool/schema";
+import * as rewardRelations from "@/entities/reward/relations";
+import * as rewardSchema from "@/entities/reward/schema";
 import * as missionScheduleRelations from "@/entities/mission-schedule/relations";
 import * as missionScheduleSchema from "@/entities/mission-schedule/schema";
 import * as organizationProviderCredentialRelations from "@/entities/organization-provider-credential/relations";
@@ -140,4 +142,6 @@ export const drizzleSchema = {
   ...toolDefinitionRelations,
   ...employeeToolSchema,
   ...employeeToolRelations,
+  ...rewardSchema,
+  ...rewardRelations,
 };

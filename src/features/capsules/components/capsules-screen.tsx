@@ -2,21 +2,27 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Hexagon, History, Search } from "lucide-react";
+import { ArrowRight, Filter, Hexagon, History, Search } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import {
   DEFAULT_REWARDS_FILTER,
+  activeFilterCount,
   filterCapsules,
   filterRewards,
   getCollectionProgress,
   getRewardById,
-  MOCK_CAPSULE_OFFERS,
-  MOCK_REWARD_ITEMS,
   RARITY_STYLES,
   REWARD_TYPE_LABELS,
+  toggleFilterValue,
   type CapsuleOffer,
   type CapsulePriceKey,
   type RewardItem,
@@ -43,8 +49,7 @@ const TABS = [
 
 type TabId = (typeof TABS)[number]["id"];
 
-const RARITY_FILTERS: Array<{ id: "all" | RewardRarity; label: string }> = [
-  { id: "all", label: "All" },
+const RARITY_OPTIONS: Array<{ id: RewardRarity; label: string }> = [
   { id: "core", label: "Core" },
   { id: "professional", label: "Professional" },
   { id: "premium", label: "Premium" },
@@ -52,8 +57,7 @@ const RARITY_FILTERS: Array<{ id: "all" | RewardRarity; label: string }> = [
   { id: "founders", label: "Founder's" },
 ];
 
-const TYPE_FILTERS: Array<{ id: "all" | RewardType; label: string }> = [
-  { id: "all", label: "All" },
+const TYPE_OPTIONS: Array<{ id: RewardType; label: string }> = [
   { id: "skill_chip", label: "Skill Chip" },
   { id: "appearance", label: "Appearance" },
   { id: "voice", label: "Voice" },
@@ -62,8 +66,7 @@ const TYPE_FILTERS: Array<{ id: "all" | RewardType; label: string }> = [
   { id: "idle", label: "Idle Animation" },
 ];
 
-const PRICE_FILTERS: Array<{ id: "all" | CapsulePriceKey; label: string }> = [
-  { id: "all", label: "All" },
+const PRICE_OPTIONS: Array<{ id: CapsulePriceKey; label: string }> = [
   { id: "free", label: "Free" },
   { id: "99", label: "99 ₽" },
   { id: "4999", label: "4 999 ₽" },
@@ -78,28 +81,39 @@ function formatCountdown(totalSeconds: number): string {
     .join(":");
 }
 
-function FilterChip({
-  active,
-  label,
-  onClick,
+function FilterCheckboxGroup<T extends string>({
+  title,
+  options,
+  selected,
+  onToggle,
 }: {
-  active: boolean;
-  label: string;
-  onClick: () => void;
+  title: string;
+  options: Array<{ id: T; label: string }>;
+  selected: T[];
+  onToggle: (id: T) => void;
 }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        "inline-flex h-8 shrink-0 items-center justify-center rounded-lg px-3 text-xs tracking-wide transition-colors",
-        active
-          ? "bg-white text-black"
-          : "border border-white/10 bg-transparent text-white/50 hover:border-white/20 hover:text-white/80",
-      )}
-    >
-      {label}
-    </button>
+    <div className="space-y-2">
+      <p className="text-[10px] tracking-[0.16em] text-white/40 uppercase">
+        {title}
+      </p>
+      <ul className="space-y-1.5">
+        {options.map((option) => {
+          const checked = selected.includes(option.id);
+          return (
+            <li key={option.id}>
+              <label className="flex cursor-pointer items-center gap-2.5 rounded-lg px-1 py-1 text-sm text-white/70 hover:bg-white/5 hover:text-white">
+                <Checkbox
+                  checked={checked}
+                  onCheckedChange={() => onToggle(option.id)}
+                />
+                <span>{option.label}</span>
+              </label>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
   );
 }
 
@@ -108,11 +122,13 @@ function CapsuleCard({
   secondsLeft,
   onActivate,
   index,
+  rewards,
 }: {
   offer: CapsuleOffer;
   secondsLeft: number;
   onActivate: (offer: CapsuleOffer) => void;
   index: number;
+  rewards: RewardItem[];
 }) {
   const reduceMotion = useReducedMotion();
 
@@ -163,7 +179,7 @@ function CapsuleCard({
 
         <div className="flex flex-wrap gap-2">
           {offer.rewardPreviewIds.map((id) => {
-            const reward = getRewardById(id);
+            const reward = getRewardById(id, rewards);
             if (!reward) return null;
             const style = RARITY_STYLES[reward.rarity];
             return (
@@ -207,13 +223,27 @@ function CapsuleCard({
   );
 }
 
-export function CapsulesScreen() {
+export type CapsulesScreenProps = {
+  offers: CapsuleOffer[];
+  rewards: RewardItem[];
+  dailySecondsLeft: number;
+};
+
+export function CapsulesScreen({
+  offers,
+  rewards,
+  dailySecondsLeft,
+}: CapsulesScreenProps) {
   const [tab, setTab] = useState<TabId>("featured");
   const [filter, setFilter] = useState<RewardsFilterState>(DEFAULT_REWARDS_FILTER);
   const [toast, setToast] = useState<string | null>(null);
-  const [secondsLeft, setSecondsLeft] = useState(19 * 3600 + 32 * 60 + 45);
+  const [secondsLeft, setSecondsLeft] = useState(dailySecondsLeft);
   const [detailsReward, setDetailsReward] = useState<RewardItem | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
+
+  useEffect(() => {
+    setSecondsLeft(dailySecondsLeft);
+  }, [dailySecondsLeft]);
 
   useEffect(() => {
     const id = window.setInterval(() => {
@@ -222,10 +252,11 @@ export function CapsulesScreen() {
     return () => window.clearInterval(id);
   }, []);
 
-  const progress = useMemo(() => getCollectionProgress(), []);
+  const progress = useMemo(() => getCollectionProgress(rewards), [rewards]);
+  const filterCount = activeFilterCount(filter);
 
   const tabCapsules = useMemo(() => {
-    let base = MOCK_CAPSULE_OFFERS;
+    let base = offers;
     if (tab === "store") {
       base = base.filter((c) => c.store);
     } else if (tab === "daily") {
@@ -235,16 +266,16 @@ export function CapsulesScreen() {
     } else if (tab === "inventory") {
       base = base.filter((c) => (c.ownedCount ?? 0) > 0);
     }
-    return filterCapsules(base, filter);
-  }, [tab, filter]);
+    return filterCapsules(base, filter, rewards);
+  }, [tab, filter, offers, rewards]);
 
   const featuredRewards = useMemo(() => {
     const base =
       tab === "inventory"
-        ? MOCK_REWARD_ITEMS.filter((item) => item.owned > 0)
-        : MOCK_REWARD_ITEMS.filter((item) => item.featured);
+        ? rewards.filter((item) => item.owned > 0)
+        : rewards.filter((item) => item.featured);
     return filterRewards(base, filter);
-  }, [tab, filter]);
+  }, [tab, filter, rewards]);
 
   function patchFilter(patch: Partial<RewardsFilterState>) {
     setFilter((prev) => ({ ...prev, ...patch }));
@@ -253,6 +284,10 @@ export function CapsulesScreen() {
   function onActivate(offer: CapsuleOffer) {
     if (offer.claimed) {
       setToast("Daily capsule already claimed. Next drop when the timer ends.");
+      return;
+    }
+    if (offer.daily) {
+      setToast("Daily claim is available — server claim action next.");
       return;
     }
     setToast("Activate is a UI stub — payment and server drop come next.");
@@ -312,108 +347,117 @@ export function CapsulesScreen() {
               </button>
             ))}
           </div>
-          <div className="relative w-full sm:max-w-xs">
-            <Search className="pointer-events-none absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-white/35" />
-            <Input
-              value={filter.query}
-              onChange={(e) => patchFilter({ query: e.target.value })}
-              placeholder="Search..."
-              className="h-9 rounded-xl border-white/12 bg-black/30 pl-9 text-sm text-white placeholder:text-white/35"
-            />
+          <div className="flex w-full flex-col gap-2 sm:max-w-md sm:flex-row sm:items-center">
+            <div className="relative min-w-0 flex-1">
+              <Search className="pointer-events-none absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-white/35" />
+              <Input
+                value={filter.query}
+                onChange={(e) => patchFilter({ query: e.target.value })}
+                placeholder="Search..."
+                className="h-9 rounded-xl border-white/12 bg-black/30 pl-9 text-sm text-white placeholder:text-white/35"
+              />
+            </div>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  type="button"
+                  className={cn(
+                    rewardsSecondaryButtonClass,
+                    "h-9 w-auto shrink-0 gap-2 px-3",
+                  )}
+                >
+                  <Filter className="size-3.5" />
+                  Filter
+                  {filterCount > 0 ? (
+                    <span className="rounded-md bg-white/15 px-1.5 py-0.5 font-mono text-[10px]">
+                      {filterCount}
+                    </span>
+                  ) : null}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent
+                align="end"
+                className="w-72 border-white/12 bg-[#161616] p-4 text-white"
+              >
+                <div className="mb-3 flex items-center justify-between gap-2">
+                  <p className="text-sm font-medium text-white">Filters</p>
+                  {filterCount > 0 ? (
+                    <button
+                      type="button"
+                      className="text-xs text-white/45 hover:text-white"
+                      onClick={() =>
+                        setFilter({
+                          ...DEFAULT_REWARDS_FILTER,
+                          query: filter.query,
+                        })
+                      }
+                    >
+                      Clear
+                    </button>
+                  ) : null}
+                </div>
+                <div className="max-h-80 space-y-4 overflow-y-auto pr-1">
+                  <FilterCheckboxGroup
+                    title="Rarity"
+                    options={RARITY_OPTIONS}
+                    selected={filter.rarities}
+                    onToggle={(id) =>
+                      patchFilter({
+                        rarities: toggleFilterValue(filter.rarities, id),
+                      })
+                    }
+                  />
+                  <FilterCheckboxGroup
+                    title="Reward Type"
+                    options={TYPE_OPTIONS}
+                    selected={filter.rewardTypes}
+                    onToggle={(id) =>
+                      patchFilter({
+                        rewardTypes: toggleFilterValue(filter.rewardTypes, id),
+                      })
+                    }
+                  />
+                  <FilterCheckboxGroup
+                    title="Price"
+                    options={PRICE_OPTIONS}
+                    selected={filter.prices}
+                    onToggle={(id) =>
+                      patchFilter({
+                        prices: toggleFilterValue(filter.prices, id),
+                      })
+                    }
+                  />
+                </div>
+              </PopoverContent>
+            </Popover>
           </div>
         </div>
 
-        <section className="space-y-4 rounded-2xl border border-white/8 bg-[#161616] p-4 sm:p-5">
-          <p className="text-[10px] tracking-[0.18em] text-white/40 uppercase">
-            Filter
-          </p>
-
-          <div className="space-y-3">
-            <div className="flex flex-col gap-2 lg:flex-row lg:items-center">
-              <span className="w-28 shrink-0 text-xs text-white/40">Rarity</span>
-              <div className="flex flex-wrap gap-2">
-                {RARITY_FILTERS.map((item) => (
-                  <FilterChip
-                    key={item.id}
-                    label={item.label}
-                    active={filter.rarity === item.id}
-                    onClick={() => patchFilter({ rarity: item.id })}
-                  />
-                ))}
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-2 lg:flex-row lg:items-center">
-              <span className="w-28 shrink-0 text-xs text-white/40">
-                Reward Type
-              </span>
-              <div className="flex flex-wrap gap-2">
-                {TYPE_FILTERS.map((item) => (
-                  <FilterChip
-                    key={item.id}
-                    label={item.label}
-                    active={filter.rewardType === item.id}
-                    onClick={() => patchFilter({ rewardType: item.id })}
-                  />
-                ))}
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-2 lg:flex-row lg:items-center">
-              <span className="w-28 shrink-0 text-xs text-white/40">Price</span>
-              <div className="flex flex-wrap gap-2">
-                {PRICE_FILTERS.map((item) => (
-                  <FilterChip
-                    key={item.id}
-                    label={item.label}
-                    active={filter.price === item.id}
-                    onClick={() => patchFilter({ price: item.id })}
-                  />
-                ))}
-              </div>
-            </div>
+        <section className="rounded-2xl border border-white/10 bg-[#1a1a1a] px-4 py-3 sm:px-5">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <h3 className="text-[10px] tracking-[0.18em] text-white/40 uppercase">
+              Loop
+            </h3>
+            <ul className="flex flex-wrap gap-x-4 gap-y-1.5 text-sm text-white/50">
+              <li>
+                <span className="text-white/80">Capsules</span> → activate
+              </li>
+              <li>
+                <span className="text-white/80">Inventory</span> → collect
+              </li>
+              <li>
+                <span className="text-white/80">Details</span> → inspect
+              </li>
+              <li>
+                <span className="text-white/80">Equip</span> → apply
+              </li>
+            </ul>
           </div>
         </section>
 
         <div className="grid w-full gap-6 xl:grid-cols-[minmax(0,1fr)_300px] xl:gap-8">
           <div className="min-w-0 space-y-8">
-            {tab === "inventory" ? (
-              <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/10 bg-[#1a1a1a] px-4 py-3">
-                <p className="text-sm text-white/55">
-                  Capsules you already hold. Full collection lives in Inventory.
-                </p>
-                <Link
-                  href="/dashboard/inventory"
-                  className="inline-flex items-center gap-1 text-xs text-white/60 hover:text-white"
-                >
-                  Open Inventory
-                  <ArrowRight className="size-3.5" />
-                </Link>
-              </div>
-            ) : null}
-
-            {tabCapsules.length > 0 ? (
-              <ul className="grid w-full grid-cols-1 items-stretch gap-4 md:grid-cols-2 md:gap-5 xl:grid-cols-3">
-                <AnimatePresence mode="popLayout">
-                  {tabCapsules.map((offer, index) => (
-                    <li key={offer.id} className="min-w-0">
-                      <CapsuleCard
-                        offer={offer}
-                        secondsLeft={secondsLeft}
-                        onActivate={onActivate}
-                        index={index}
-                      />
-                    </li>
-                  ))}
-                </AnimatePresence>
-              </ul>
-            ) : (
-              <div className="rounded-2xl border border-dashed border-white/12 bg-[#161616] px-6 py-16 text-center text-sm text-white/40">
-                No capsules match the current filters.
-              </div>
-            )}
-
-            <section className="w-full border-t border-white/8 pt-6">
+            <section className="w-full">
               <div className="mb-4 flex items-center justify-between gap-3">
                 <h3 className="text-sm font-medium tracking-wide text-white/80 uppercase">
                   {tab === "inventory" ? "Owned rewards" : "Featured rewards"}
@@ -480,6 +524,43 @@ export function CapsulesScreen() {
                 </div>
               )}
             </section>
+
+            {tab === "inventory" ? (
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/10 bg-[#1a1a1a] px-4 py-3">
+                <p className="text-sm text-white/55">
+                  Capsules you already hold. Full collection lives in Inventory.
+                </p>
+                <Link
+                  href="/dashboard/inventory"
+                  className="inline-flex items-center gap-1 text-xs text-white/60 hover:text-white"
+                >
+                  Open Inventory
+                  <ArrowRight className="size-3.5" />
+                </Link>
+              </div>
+            ) : null}
+
+            {tabCapsules.length > 0 ? (
+              <ul className="grid w-full grid-cols-1 items-stretch gap-4 md:grid-cols-2 md:gap-5 xl:grid-cols-3">
+                <AnimatePresence mode="popLayout">
+                  {tabCapsules.map((offer, index) => (
+                    <li key={offer.id} className="min-w-0">
+                      <CapsuleCard
+                        offer={offer}
+                        secondsLeft={secondsLeft}
+                        onActivate={onActivate}
+                        index={index}
+                        rewards={rewards}
+                      />
+                    </li>
+                  ))}
+                </AnimatePresence>
+              </ul>
+            ) : (
+              <div className="rounded-2xl border border-dashed border-white/12 bg-[#161616] px-6 py-16 text-center text-sm text-white/40">
+                No capsules match the current filters.
+              </div>
+            )}
           </div>
 
           <aside className="space-y-4 xl:sticky xl:top-6 xl:self-start">
@@ -520,24 +601,6 @@ export function CapsulesScreen() {
                   style={{ width: `${progress.completion}%` }}
                 />
               </div>
-            </div>
-
-            <div className="rounded-2xl border border-white/10 bg-[#1a1a1a] p-5">
-              <h3 className="text-sm font-medium text-white">Loop</h3>
-              <ul className="mt-4 space-y-2.5 text-sm text-white/50">
-                <li>
-                  <span className="text-white/80">Capsules</span> → activate
-                </li>
-                <li>
-                  <span className="text-white/80">Inventory</span> → collect
-                </li>
-                <li>
-                  <span className="text-white/80">Details</span> → inspect
-                </li>
-                <li>
-                  <span className="text-white/80">Equip</span> → apply
-                </li>
-              </ul>
             </div>
 
             <div className="rounded-2xl border border-white/10 bg-[#1a1a1a] p-5">

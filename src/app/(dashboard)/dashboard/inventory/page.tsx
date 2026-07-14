@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { ensureWorkspace } from "@/features/auth/services/ensure-workspace";
 import { requireAuth } from "@/features/auth/services/require-auth";
 import { InventoryScreen } from "@/features/inventory/components/inventory-screen";
+import { getRewardsWorkspaceState } from "@/features/rewards/services/get-rewards-workspace-state";
 import { hasWorkspaceAccess } from "@/features/workspace";
 
 export default async function InventoryPage() {
@@ -13,6 +14,8 @@ export default async function InventoryPage() {
     redirect("/dashboard");
   }
 
+  const state = await getRewardsWorkspaceState(workspace.organization.id);
+
   return (
     <Suspense
       fallback={
@@ -21,7 +24,7 @@ export default async function InventoryPage() {
         </div>
       }
     >
-      <InventoryScreen />
+      <InventoryScreen rewards={state.rewards} />
     </Suspense>
   );
 }

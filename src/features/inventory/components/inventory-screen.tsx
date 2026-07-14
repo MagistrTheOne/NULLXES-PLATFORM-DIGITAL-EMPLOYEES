@@ -25,7 +25,6 @@ import {
 import { cn } from "@/lib/utils";
 import {
   MOCK_EMPLOYEE_TARGETS,
-  MOCK_REWARD_ITEMS,
   RARITY_STYLES,
   REWARD_TYPE_LABELS,
   type RewardItem,
@@ -112,7 +111,7 @@ function formatAgo(at: number): string {
   return `${days}d ago`;
 }
 
-export function InventoryScreen() {
+export function InventoryScreen({ rewards }: { rewards: RewardItem[] }) {
   const searchParams = useSearchParams();
   const initialId = searchParams.get("item");
   const store = useLoadoutStore();
@@ -120,14 +119,14 @@ export function InventoryScreen() {
   const [sort, setSort] = useState<SortId>("rarity");
   const [query, setQuery] = useState("");
   const [selectedId, setSelectedId] = useState(
-    initialId && MOCK_REWARD_ITEMS.some((item) => item.id === initialId)
+    initialId && rewards.some((item) => item.id === initialId)
       ? initialId
-      : (MOCK_REWARD_ITEMS[0]?.id ?? null),
+      : (rewards[0]?.id ?? null),
   );
   const [toast, setToast] = useState<string | null>(null);
 
   const items = useMemo(() => {
-    let list = [...MOCK_REWARD_ITEMS];
+    let list = [...rewards];
 
     if (filter === "equipped") {
       list = list.filter((item) =>
@@ -148,8 +147,8 @@ export function InventoryScreen() {
           return a.name.localeCompare(b.name);
         case "newest":
           return (
-            MOCK_REWARD_ITEMS.findIndex((i) => i.id === a.id) -
-            MOCK_REWARD_ITEMS.findIndex((i) => i.id === b.id)
+            rewards.findIndex((i) => i.id === a.id) -
+            rewards.findIndex((i) => i.id === b.id)
           );
         case "duplicates":
           return b.owned - a.owned || RARITY_RANK[b.rarity] - RARITY_RANK[a.rarity];
@@ -172,11 +171,11 @@ export function InventoryScreen() {
     });
 
     return list;
-  }, [filter, query, sort, store.loadouts, store.recent]);
+  }, [filter, query, sort, store.loadouts, store.recent, rewards]);
 
   const selected: RewardItem | null =
     items.find((item) => item.id === selectedId) ??
-    MOCK_REWARD_ITEMS.find((item) => item.id === selectedId) ??
+    rewards.find((item) => item.id === selectedId) ??
     null;
 
   const selectedStyle = selected ? RARITY_STYLES[selected.rarity] : null;
@@ -339,7 +338,7 @@ export function InventoryScreen() {
               </li>
             </ul>
             <p className="mt-4 text-xs text-white/30">
-              Showing 1–{items.length} of {MOCK_REWARD_ITEMS.length} items
+              Showing 1–{items.length} of {rewards.length} items
             </p>
           </div>
 

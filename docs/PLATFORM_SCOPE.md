@@ -2,7 +2,7 @@
 
 Legend: **✅** done (backend + frontend where applicable) · **🟡** partial / placeholder · **⬜** not started
 
-Last updated: **2026-07-09** (billing plans `studio`/`operator`/`scale`, Neon HTTP migrate, xAI Voice, security hardening).
+Last updated: **2026-07-14** (Capsules/Inventory rewards domain `0043`, billing plans, Neon HTTP migrate).
 
 ---
 
@@ -68,7 +68,7 @@ Locale switching: **Settings → General → Language** (persisted to `organizat
 | Module | Backend | Frontend | Verify |
 |--------|---------|----------|--------|
 | Next.js 16 App Router + proxy | ✅ | ✅ | `npm run build` (= `db:migrate` + `next build`) |
-| Neon + Drizzle (39 migrations through `0038`) | ✅ | — | `db:migrate` (Neon HTTP), `db:verify` |
+| Neon + Drizzle (43 migrations through `0043`) | ✅ | — | `db:migrate` (Neon HTTP), `db:verify` |
 | Inngest (dev + prod handlers) | ✅ | — | `inngest:dev` |
 | Provider env getters | ✅ | — | `providers:status` |
 
@@ -97,6 +97,18 @@ Locale switching: **Settings → General → Language** (persisted to `organizat
 | Knowledge ingest + indexing | ✅ | ✅ | Inngest pipeline |
 | Provider config (brain/voice/avatar) | ✅ | ✅ | `provider-provisioning:verify` |
 | Scenarios (picker → Talk → debrief) | ✅ | ✅ | Plan-gated monthly limits |
+
+---
+
+## Capsules & Inventory
+
+| Module | Backend | Frontend | Notes |
+|--------|---------|----------|-------|
+| Reward / capsule catalog | ✅ | ✅ | Platform `reward_definition` + `capsule_tier` (migration `0043`) |
+| Org ownership + daily claim | ✅ | ✅ | `organization_reward_item`, holdings, `organization_daily_capsule` |
+| Capsules store UI | 🟡 | ✅ | Search + multi-checkbox filters; Activate (paid) stub |
+| Inventory + equip | 🟡 | ✅ | Library reads DB; equip loadout still client mock |
+| Payment / drop RNG / history | ⬜ | ⬜ | Polar / TBank later |
 
 ---
 
