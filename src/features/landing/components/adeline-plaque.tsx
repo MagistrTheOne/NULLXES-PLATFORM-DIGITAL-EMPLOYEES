@@ -83,6 +83,7 @@ export function AdelinePlaque({
         <div className="flex flex-col gap-2 border-t border-white/5 px-5 py-4">
           <button
             type="button"
+            data-adeline-talk
             onClick={() => setTalkOpen(true)}
             className="inline-flex h-11 items-center justify-center rounded-xl bg-white text-sm font-medium text-black transition-opacity hover:opacity-90"
           >

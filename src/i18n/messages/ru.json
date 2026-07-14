@@ -1915,5 +1915,66 @@
     "employeeTools": {
       "requiresApproval": "Требует подтверждения"
     }
+  },
+  "landing": {
+    "nav": {
+      "platform": "Платформа",
+      "solutions": "Решения",
+      "enterprise": "Enterprise",
+      "security": "Безопасность",
+      "pricing": "Тарифы",
+      "goDashboard": "В кабинет",
+      "requestAccess": "Запросить доступ",
+      "openMenu": "Открыть меню",
+      "closeMenu": "Закрыть меню",
+      "localeSwap": "Сменить язык",
+      "localeEn": "EN",
+      "localeRu": "RU"
+    },
+    "hero": {
+      "eyebrow": "Цифровые сотрудники для enterprise",
+      "titleLine1": "Одна платформа.",
+      "titleLine2": "Все цифровые сотрудники.",
+      "body": "Создавайте, разворачивайте и управляйте цифровыми сотрудниками в организации из одной защищённой платформы.",
+      "explore": "Смотреть платформу",
+      "oneTapTalk": "One Tap to Talk"
+    },
+    "workforce": {
+      "label": "Workforce",
+      "title": "Цифровой штат",
+      "subtitle": "Разверните специализированных цифровых сотрудников по всей организации.",
+      "categories": {
+        "support": {
+          "title": "Digital Support",
+          "role1": "Клиентская поддержка",
+          "role2": "Техническая поддержка",
+          "role3": "L1 Help Desk"
+        },
+        "sales": {
+          "title": "Digital Sales",
+          "role1": "B2B Manager",
+          "role2": "Квалификация лидов",
+          "role3": "Customer Success"
+        },
+        "hr": {
+          "title": "Digital HR",
+          "role1": "Рекрутер",
+          "role2": "HR-специалист",
+          "role3": "Онбординг сотрудников"
+        },
+        "operations": {
+          "title": "Digital Operations",
+          "role1": "Специалист по знаниям",
+          "role2": "Операционный специалист",
+          "role3": "Документация"
+        },
+        "public": {
+          "title": "Digital Public Services",
+          "role1": "Ресепшн",
+          "role2": "Поддержка граждан",
+          "role3": "Информационная стойка"
+        }
+      }
+    }
   }
 }

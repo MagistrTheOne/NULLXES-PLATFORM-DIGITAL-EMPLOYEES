@@ -65,6 +65,33 @@ export function LandingPage({
           0%, 100% { transform: scaleY(0.45); opacity: 0.65; }
           50% { transform: scaleY(1); opacity: 1; }
         }
+        @keyframes landing-reveal {
+          from { opacity: 0; transform: translateY(14px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes landing-nav-in {
+          from { opacity: 0; transform: translateY(-6px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .landing-reveal {
+          opacity: 0;
+          animation: landing-reveal 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+        .landing-reveal-1 { animation-delay: 0.08s; }
+        .landing-reveal-2 { animation-delay: 0.18s; }
+        .landing-reveal-3 { animation-delay: 0.3s; }
+        .landing-reveal-4 { animation-delay: 0.42s; }
+        .landing-nav-reveal {
+          animation: landing-nav-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .landing-reveal,
+          .landing-nav-reveal {
+            opacity: 1;
+            animation: none;
+            transform: none;
+          }
+        }
       `}</style>
     </div>
   );

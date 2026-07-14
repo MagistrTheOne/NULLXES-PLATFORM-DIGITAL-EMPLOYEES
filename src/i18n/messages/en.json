@@ -1915,5 +1915,66 @@
     "employeeTools": {
       "requiresApproval": "Requires approval"
     }
+  },
+  "landing": {
+    "nav": {
+      "platform": "Platform",
+      "solutions": "Solutions",
+      "enterprise": "Enterprise",
+      "security": "Security",
+      "pricing": "Pricing",
+      "goDashboard": "Go to dashboard",
+      "requestAccess": "Request access",
+      "openMenu": "Open menu",
+      "closeMenu": "Close menu",
+      "localeSwap": "Switch language",
+      "localeEn": "EN",
+      "localeRu": "RU"
+    },
+    "hero": {
+      "eyebrow": "Enterprise Digital Employees",
+      "titleLine1": "One platform.",
+      "titleLine2": "Every digital employee.",
+      "body": "Build, deploy and operate digital employees across your organization from one secure platform.",
+      "explore": "Explore Platform",
+      "oneTapTalk": "One Tap to Talk"
+    },
+    "workforce": {
+      "label": "Workforce",
+      "title": "Digital Workforce",
+      "subtitle": "Deploy specialized digital employees across your organization.",
+      "categories": {
+        "support": {
+          "title": "Digital Support",
+          "role1": "Customer Support",
+          "role2": "Technical Support",
+          "role3": "L1 Help Desk"
+        },
+        "sales": {
+          "title": "Digital Sales",
+          "role1": "B2B Manager",
+          "role2": "Lead Qualification",
+          "role3": "Customer Success"
+        },
+        "hr": {
+          "title": "Digital HR",
+          "role1": "Recruiter",
+          "role2": "HR Specialist",
+          "role3": "Employee Onboarding"
+        },
+        "operations": {
+          "title": "Digital Operations",
+          "role1": "Knowledge Specialist",
+          "role2": "Operations Specialist",
+          "role3": "Documentation"
+        },
+        "public": {
+          "title": "Digital Public Services",
+          "role1": "Reception",
+          "role2": "Citizen Support",
+          "role3": "Information Desk"
+        }
+      }
+    }
   }
 }
