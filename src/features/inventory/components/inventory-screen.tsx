@@ -427,23 +427,23 @@ export function InventoryScreen() {
                             key={employee.id}
                             className="flex items-center justify-between gap-3 rounded-xl border border-white/8 bg-black/20 px-3 py-2.5"
                           >
-                            <div className="min-w-0">
+                            <div className="min-w-0 flex-1">
                               <p className="truncate text-sm text-white">
                                 {employee.name}
                               </p>
                               {equipped ? (
                                 <p className="text-[11px] text-white/40">
-                                  Equipped
+                                  On loadout
                                 </p>
                               ) : null}
                             </div>
                             <Button
                               type="button"
                               className={cn(
-                                "h-8 w-auto shrink-0 rounded-lg px-3 text-xs",
+                                "h-9 shrink-0 rounded-lg px-3.5 text-xs font-medium",
                                 equipped
-                                  ? rewardsSecondaryButtonClass
-                                  : rewardsPrimaryButtonClass,
+                                  ? "border border-white/12 bg-transparent text-white/70 hover:bg-white/5"
+                                  : "bg-white text-black hover:bg-white/90",
                               )}
                               onClick={() =>
                                 onEquip(employee.id, employee.name)
