@@ -48,8 +48,8 @@ import {
 } from "./capsule-open-reveal";
 import { playCapsuleRevealSfx } from "./capsule-open-sfx";
 import { CapsuleProductVisual } from "./capsule-product-visual";
-import { CapsuleHistorySheet } from "./capsule-history-sheet";
-import type { CapsuleHistoryItem } from "../lib/history";
+import { CapsuleHistorySheet } from "@/features/capsules/components/capsule-history-sheet";
+import type { CapsuleHistoryItem } from "@/features/capsules/lib/history";
 
 export type { CapsuleHistoryItem };
 
