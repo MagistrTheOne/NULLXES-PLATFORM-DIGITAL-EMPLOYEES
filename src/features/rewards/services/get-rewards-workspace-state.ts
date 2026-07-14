@@ -26,24 +26,28 @@ let catalogSeedPromise: Promise<void> | null = null;
 
 async function seedPlatformCatalogIfEmpty(): Promise<void> {
   const existing = await db
-    .select({ id: rewardDefinition.id })
-    .from(rewardDefinition)
-    .limit(1);
+    .select({ slug: rewardDefinition.slug })
+    .from(rewardDefinition);
+  const known = new Set(existing.map((row) => row.slug));
+  const missing = SEED_REWARD_ITEMS.filter((item) => !known.has(item.id));
 
-  if (existing.length === 0) {
+  if (missing.length > 0) {
     await db.insert(rewardDefinition).values(
-      SEED_REWARD_ITEMS.map((item, index) => ({
-        slug: item.id,
-        name: item.name,
-        type: item.type,
-        rarity: item.rarity,
-        description: item.description,
-        compatible: item.compatible,
-        boostLabel: item.boostLabel ?? null,
-        featured: Boolean(item.featured),
-        comingSoon: Boolean(item.comingSoon),
-        sortOrder: index,
-      })),
+      missing.map((item) => {
+        const sortOrder = SEED_REWARD_ITEMS.findIndex((row) => row.id === item.id);
+        return {
+          slug: item.id,
+          name: item.name,
+          type: item.type,
+          rarity: item.rarity,
+          description: item.description,
+          compatible: item.compatible,
+          boostLabel: item.boostLabel ?? null,
+          featured: Boolean(item.featured),
+          comingSoon: Boolean(item.comingSoon),
+          sortOrder: sortOrder < 0 ? 0 : sortOrder,
+        };
+      }),
     );
   }
 

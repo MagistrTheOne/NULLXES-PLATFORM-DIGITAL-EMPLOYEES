@@ -68,7 +68,7 @@ Locale switching: **Settings → General → Language** (persisted to `organizat
 | Module | Backend | Frontend | Verify |
 |--------|---------|----------|--------|
 | Next.js 16 App Router + proxy | ✅ | ✅ | `npm run build` (= `db:migrate` + `next build`) |
-| Neon + Drizzle (45 migrations through `0045`) | ✅ | — | `db:migrate` (Neon HTTP), `db:verify` |
+| Neon + Drizzle (46 migrations through `0046`) | ✅ | — | `db:migrate` (Neon HTTP), `db:verify` |
 | Inngest (dev + prod handlers) | ✅ | — | `inngest:dev` |
 | Provider env getters | ✅ | — | `providers:status` |
 
@@ -104,7 +104,7 @@ Locale switching: **Settings → General → Language** (persisted to `organizat
 
 | Module | Backend | Frontend | Notes |
 |--------|---------|----------|-------|
-| Reward / capsule catalog | ✅ | ✅ | Platform `reward_definition` + `capsule_tier` (migration `0043`) |
+| Reward / capsule catalog | ✅ | ✅ | Platform catalog `0043` + beta gap-fillers `0046` (17 rewards) |
 | Org ownership + daily claim | ✅ | ✅ | Claim writes `organization_daily_capsule` + grants reward |
 | Capsules store UI | ✅ | ✅ | Search + filters; Claim / Open / T-Bank Activate |
 | Inventory + equip | ✅ | ✅ | DB loadout (`0044`); real employees |
