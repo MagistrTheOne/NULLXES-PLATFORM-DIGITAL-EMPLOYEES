@@ -60,15 +60,39 @@ type AnamSessionErrorPayload = {
   supportedDimensions?: string[];
 };
 
+function extractSupportedDimensionsFromMessage(
+  message: string | undefined,
+): string[] {
+  if (!message) {
+    return [];
+  }
+  // e.g. "Supported dimensions: 720x480." or "Supported dimensions: 720x480, 1280x720."
+  const match = /Supported dimensions:\s*([^.]+)/i.exec(message);
+  if (!match?.[1]) {
+    return [];
+  }
+  return match[1]
+    .split(/[,;]/)
+    .map((part) => part.trim())
+    .filter(Boolean);
+}
+
 function resolveFallbackVideoOptions(
   current: AnamTalkSessionVideoOptions,
   payload: AnamSessionErrorPayload,
 ): AnamTalkSessionVideoOptions | null {
-  if (payload.error !== "video_dimensions_not_supported_for_model") {
+  const isDimensionError =
+    payload.error === "video_dimensions_not_supported_for_model" ||
+    /Video dimensions .+ are not supported/i.test(payload.message ?? "");
+
+  if (!isDimensionError) {
     return null;
   }
 
-  const supported = payload.supportedDimensions ?? [];
+  const supported = [
+    ...(payload.supportedDimensions ?? []),
+    ...extractSupportedDimensionsFromMessage(payload.message),
+  ];
   let parsedAnySupported = false;
 
   for (const token of supported) {
@@ -222,7 +246,8 @@ export async function createAnamTalkSessionTokenForEmployee(
 
     if (
       !dimensionRetryUsed &&
-      errorPayload.error === "video_dimensions_not_supported_for_model"
+      (errorPayload.error === "video_dimensions_not_supported_for_model" ||
+        /Video dimensions .+ are not supported/i.test(errorPayload.message ?? ""))
     ) {
       const fallback = resolveFallbackVideoOptions(videoOptions, errorPayload);
       if (fallback) {

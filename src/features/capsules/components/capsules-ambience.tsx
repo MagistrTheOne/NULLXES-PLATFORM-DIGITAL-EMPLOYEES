@@ -4,17 +4,24 @@ import { useEffect, useRef, useState } from "react";
 import { Volume2, VolumeX } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const AMBIENCE_SRC = "/audio/capsules-ambience.mp3";
-
 /**
- * Soft loop for Capsules / Inventory. Silent until the mp3 is present.
+ * Soft loop for Capsules / Inventory.
+ * Track is optional — do not probe a missing mp3 (avoids console 404).
+ * Drop a file at public/audio/capsules-ambience.mp3 and set ENABLED.
  */
+const AMBIENCE_SRC = "/audio/capsules-ambience.mp3";
+const AMBIENCE_ENABLED = false;
+
 export function CapsulesAmbienceToggle({ className }: { className?: string }) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [muted, setMuted] = useState(true);
   const [available, setAvailable] = useState(false);
 
   useEffect(() => {
+    if (!AMBIENCE_ENABLED) {
+      return;
+    }
+
     const audio = new Audio(AMBIENCE_SRC);
     audio.loop = true;
     audio.volume = 0.28;

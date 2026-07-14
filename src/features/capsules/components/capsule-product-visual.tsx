@@ -1,6 +1,6 @@
 "use client";
 
-import { Component, type ReactNode, useEffect, useState } from "react";
+import { Component, type ReactNode, useCallback, useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import { motion, useReducedMotion } from "motion/react";
@@ -35,7 +35,7 @@ class Capsule3dBoundary extends Component<
 
 /**
  * Product capsule visual for store cards.
- * 3D GLB when allowed; PNG fallback for reduced motion / load failure.
+ * PNG is source of truth until 3D maps are confirmed loaded (avoids white flash).
  */
 export function CapsuleProductVisual({
   tier,
@@ -46,15 +46,22 @@ export function CapsuleProductVisual({
 }) {
   const asset = getCapsuleAsset(tier);
   const reduceMotion = useReducedMotion();
-  const [use3d, setUse3d] = useState(false);
+  const [allow3d, setAllow3d] = useState(false);
   const [failed, setFailed] = useState(false);
+  const [sceneReady, setSceneReady] = useState(false);
   const [hovered, setHovered] = useState(false);
 
   useEffect(() => {
-    setUse3d(!reduceMotion);
-  }, [reduceMotion]);
+    setAllow3d(!reduceMotion);
+    setSceneReady(false);
+  }, [reduceMotion, tier]);
 
-  const show3d = use3d && !failed;
+  const onSceneReady = useCallback((ready: boolean) => {
+    setSceneReady(ready);
+  }, []);
+
+  const try3d = allow3d && !failed;
+  const show3d = try3d && sceneReady;
 
   return (
     <motion.div
@@ -86,6 +93,7 @@ export function CapsuleProductVisual({
             : { duration: 5.5, repeat: Infinity, ease: "easeInOut" }
         }
       >
+        {/* Always keep PNG until textured 3D is ready — never flash white mesh */}
         <Image
           src={asset.preview}
           alt={`${asset.label} capsule`}
@@ -95,24 +103,31 @@ export function CapsuleProductVisual({
             "object-contain p-3 transition-opacity duration-500",
             show3d ? "opacity-0" : "opacity-100",
           )}
+          priority={tier === "daily"}
         />
 
-        {show3d ? (
-          <div className="absolute inset-0">
-            <Capsule3dBoundary onError={() => setFailed(true)}>
-              <CapsuleScene glb={asset.glb} />
+        {try3d ? (
+          <div
+            className={cn(
+              "absolute inset-0 transition-opacity duration-500",
+              show3d ? "opacity-100" : "opacity-0",
+            )}
+          >
+            <Capsule3dBoundary
+              onError={() => {
+                setFailed(true);
+                setSceneReady(false);
+              }}
+            >
+              <CapsuleScene glb={asset.glb} onReady={onSceneReady} />
             </Capsule3dBoundary>
           </div>
         ) : null}
       </motion.div>
 
-      <motion.p
-        className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 text-[10px] tracking-[0.18em] text-white/35 uppercase"
-        animate={reduceMotion ? undefined : { opacity: [0.35, 0.55, 0.35] }}
-        transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
-      >
+      <p className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 text-[10px] tracking-[0.18em] text-white/35 uppercase">
         {asset.tierLabel}
-      </motion.p>
+      </p>
     </motion.div>
   );
 }

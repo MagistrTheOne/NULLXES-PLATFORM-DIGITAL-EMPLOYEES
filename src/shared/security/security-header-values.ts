@@ -36,7 +36,8 @@ export function buildContentSecurityPolicy(nonce?: string): string {
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob: https:",
     "font-src 'self' data:",
-    "connect-src 'self' https: wss:",
+    // blob: required — GLTFLoader fetches embedded maps as blob: URLs (Capsules / R3F).
+    "connect-src 'self' https: wss: blob:",
     "media-src 'self' blob: https:",
     "worker-src 'self' blob:",
     "frame-src 'self' https:",
