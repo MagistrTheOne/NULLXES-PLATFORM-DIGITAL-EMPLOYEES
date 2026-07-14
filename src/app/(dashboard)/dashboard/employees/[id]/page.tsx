@@ -9,6 +9,9 @@ import {
 } from "@/features/employees";
 import { EmployeeDetailMaterializationHost } from "@/features/employees/components/employee-detail-materialization-host";
 import type { EmployeeDetailShell } from "@/features/employees/types";
+import { emptyLoadout } from "@/features/rewards/lib/loadout";
+import { getEmployeeLoadout } from "@/features/rewards/services/employee-loadout";
+import { getRewardsWorkspaceState } from "@/features/rewards/services/get-rewards-workspace-state";
 
 function redactOperatorFields(
   employee: EmployeeDetailShell,
@@ -36,10 +39,16 @@ export default async function EmployeeDetailPage({
   const { id } = await params;
   const session = await requireAuth();
   const workspace = await ensureWorkspace(session.user.id, session.user.name);
-  const [employee, displayPreferences] = await Promise.all([
-    getEmployeeDetailShell(workspace.organization.id, id),
-    getOrganizationDisplayPreferences(workspace.organization.id),
-  ]);
+  const [employee, displayPreferences, rewardsState, loadout] =
+    await Promise.all([
+      getEmployeeDetailShell(workspace.organization.id, id),
+      getOrganizationDisplayPreferences(workspace.organization.id),
+      getRewardsWorkspaceState(workspace.organization.id),
+      getEmployeeLoadout({
+        organizationId: workspace.organization.id,
+        employeeId: id,
+      }).catch(() => emptyLoadout()),
+    ]);
 
   if (!employee) {
     notFound();
@@ -56,6 +65,8 @@ export default async function EmployeeDetailPage({
         employee={employeeForClient}
         organizationId={workspace.organization.id}
         displayPreferences={displayPreferences}
+        customizationRewards={rewardsState.rewards}
+        customizationLoadout={loadout}
       />
     </EmployeeDetailMaterializationHost>
   );

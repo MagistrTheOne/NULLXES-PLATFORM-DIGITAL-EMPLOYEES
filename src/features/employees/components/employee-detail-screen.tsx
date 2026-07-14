@@ -20,6 +20,9 @@ import { EmployeeCustomizationPanel } from "./employee-customization-panel";
 import { EmployeeDetailActions } from "./employee-detail-actions";
 import { EmployeeOverviewTab } from "./employee-overview-tab";
 import { EmployeePreviewRail } from "./employee-preview-rail";
+import type { RewardItem } from "@/features/rewards/lib/catalog";
+import type { EmployeeLoadout } from "@/features/rewards/lib/loadout";
+import { emptyLoadout } from "@/features/rewards/lib/loadout";
 
 function DetailRow({ label, value }: { label: string; value: string }) {
   return (
@@ -57,10 +60,14 @@ export async function EmployeeDetailScreen({
   employee,
   organizationId,
   displayPreferences,
+  customizationRewards = [],
+  customizationLoadout = emptyLoadout(),
 }: {
   employee: EmployeeDetailShell;
   organizationId: string;
   displayPreferences: OrganizationDisplayPreferences;
+  customizationRewards?: RewardItem[];
+  customizationLoadout?: EmployeeLoadout;
 }) {
   const t = await getTranslations("employees.detail");
   const tCommon = await getTranslations("common.actions");
@@ -173,6 +180,8 @@ export async function EmployeeDetailScreen({
           employee={employeeForClient}
           displayPreferences={displayPreferences}
           talkBlockers={talkBlockers}
+          loadout={customizationLoadout}
+          rewards={customizationRewards}
         />
 
         <EmployeeDetailTabs>
@@ -190,6 +199,8 @@ export async function EmployeeDetailScreen({
             <EmployeeCustomizationPanel
               employeeId={employee.id}
               employeeName={employee.name}
+              rewards={customizationRewards}
+              initialLoadout={customizationLoadout}
             />
           </TabsContent>
 

@@ -1,22 +1,28 @@
 "use client";
 
-import { resolveSlotReward, emptyLoadout } from "@/features/rewards/lib/loadout";
-import { useLoadoutStore } from "@/features/rewards/lib/use-loadout-store";
+import { getRewardById, type RewardItem } from "@/features/rewards/lib/catalog";
+import {
+  emptyLoadout,
+  type EmployeeLoadout,
+} from "@/features/rewards/lib/loadout";
 
-/** Shows applied mock loadout under the employee preview (after Apply / Equip). */
-export function EmployeeLoadoutSummary({ employeeId }: { employeeId: string }) {
-  const store = useLoadoutStore();
-  const loadout = store.loadouts[employeeId] ?? emptyLoadout();
-  const appearance = resolveSlotReward(loadout.appearanceId);
-  const voice = resolveSlotReward(loadout.voiceId);
+/** Shows applied DB loadout under the employee preview. */
+export function EmployeeLoadoutSummary({
+  loadout = emptyLoadout(),
+  rewards = [],
+}: {
+  employeeId?: string;
+  loadout?: EmployeeLoadout;
+  rewards?: RewardItem[];
+}) {
+  const appearance = getRewardById(loadout.appearanceId ?? "", rewards);
+  const voice = getRewardById(loadout.voiceId ?? "", rewards);
   const skills = loadout.skillChipIds
-    .map((id) => resolveSlotReward(id))
+    .map((id) => (id ? getRewardById(id, rewards) : undefined))
     .filter(Boolean);
 
   if (!appearance && !voice && skills.length === 0) {
-    return (
-      <p className="text-xs text-white/35">Loadout: Default</p>
-    );
+    return <p className="text-xs text-white/35">Loadout: Default</p>;
   }
 
   return (

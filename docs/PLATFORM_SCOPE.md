@@ -68,7 +68,7 @@ Locale switching: **Settings → General → Language** (persisted to `organizat
 | Module | Backend | Frontend | Verify |
 |--------|---------|----------|--------|
 | Next.js 16 App Router + proxy | ✅ | ✅ | `npm run build` (= `db:migrate` + `next build`) |
-| Neon + Drizzle (43 migrations through `0043`) | ✅ | — | `db:migrate` (Neon HTTP), `db:verify` |
+| Neon + Drizzle (45 migrations through `0045`) | ✅ | — | `db:migrate` (Neon HTTP), `db:verify` |
 | Inngest (dev + prod handlers) | ✅ | — | `inngest:dev` |
 | Provider env getters | ✅ | — | `providers:status` |
 
@@ -105,10 +105,12 @@ Locale switching: **Settings → General → Language** (persisted to `organizat
 | Module | Backend | Frontend | Notes |
 |--------|---------|----------|-------|
 | Reward / capsule catalog | ✅ | ✅ | Platform `reward_definition` + `capsule_tier` (migration `0043`) |
-| Org ownership + daily claim | ✅ | ✅ | `organization_reward_item`, holdings, `organization_daily_capsule` |
-| Capsules store UI | 🟡 | ✅ | Search + multi-checkbox filters; Activate (paid) stub |
-| Inventory + equip | 🟡 | ✅ | Library reads DB; equip loadout still client mock |
-| Payment / drop RNG / history | ⬜ | ⬜ | Polar / TBank later |
+| Org ownership + daily claim | ✅ | ✅ | Claim writes `organization_daily_capsule` + grants reward |
+| Capsules store UI | ✅ | ✅ | Search + filters; Claim / Open / T-Bank Activate |
+| Inventory + equip | ✅ | ✅ | DB loadout (`0044`); real employees |
+| Drop RNG + history | ✅ | ✅ | `capsule_open_event` (`0045`) |
+| Capsule payment (T-Bank) | ✅ | ✅ | `nx-cap-*` OrderId → holding grant; Polar unused |
+| Bundle / Talk cosmetics | ⬜ | ⬜ | Later |
 
 ---
 

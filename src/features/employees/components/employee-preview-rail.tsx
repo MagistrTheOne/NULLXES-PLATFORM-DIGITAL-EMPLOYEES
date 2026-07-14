@@ -16,6 +16,9 @@ import { AvatarIdlePreview } from "./avatar-idle-preview";
 import { EmployeeLoadoutSummary } from "./employee-loadout-summary";
 import { EmployeeProviderBadge } from "./employee-provider-badge";
 import { EmployeeStatusBadge } from "./employee-status-badge";
+import type { RewardItem } from "@/features/rewards/lib/catalog";
+import type { EmployeeLoadout } from "@/features/rewards/lib/loadout";
+import { emptyLoadout } from "@/features/rewards/lib/loadout";
 
 function ProvisioningChip({
   label,
@@ -55,6 +58,8 @@ export async function EmployeePreviewRail({
   talkBlockers,
   authGateHref,
   sticky = true,
+  loadout = emptyLoadout(),
+  rewards = [],
 }: {
   employee: EmployeeDetailShell;
   displayPreferences: OrganizationDisplayPreferences;
@@ -62,6 +67,8 @@ export async function EmployeePreviewRail({
   /** When set (e.g. `/login`), Talk / Voice / Scenario route through auth first. */
   authGateHref?: string;
   sticky?: boolean;
+  loadout?: EmployeeLoadout;
+  rewards?: RewardItem[];
 }) {
   const t = await getTranslations("employees.detail");
   const tCommon = await getTranslations("common.actions");
@@ -109,7 +116,7 @@ export async function EmployeePreviewRail({
           <p className="text-lg font-medium leading-tight">{employee.name}</p>
           <p className="text-sm text-white/55">{employee.role}</p>
           <div className="pt-1">
-            <EmployeeLoadoutSummary employeeId={employee.id} />
+            <EmployeeLoadoutSummary loadout={loadout} rewards={rewards} />
           </div>
         </div>
 

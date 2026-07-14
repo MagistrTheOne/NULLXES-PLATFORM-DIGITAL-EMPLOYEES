@@ -2,7 +2,9 @@ import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { ensureWorkspace } from "@/features/auth/services/ensure-workspace";
 import { requireAuth } from "@/features/auth/services/require-auth";
+import { listOrganizationEmployees } from "@/features/employees/services/list-organization-employees";
 import { InventoryScreen } from "@/features/inventory/components/inventory-screen";
+import { listOrganizationLoadouts } from "@/features/rewards/services/employee-loadout";
 import { getRewardsWorkspaceState } from "@/features/rewards/services/get-rewards-workspace-state";
 import { hasWorkspaceAccess } from "@/features/workspace";
 
@@ -14,7 +16,12 @@ export default async function InventoryPage() {
     redirect("/dashboard");
   }
 
-  const state = await getRewardsWorkspaceState(workspace.organization.id);
+  const orgId = workspace.organization.id;
+  const [state, employeePage, loadouts] = await Promise.all([
+    getRewardsWorkspaceState(orgId),
+    listOrganizationEmployees(orgId, { limit: 50 }),
+    listOrganizationLoadouts(orgId),
+  ]);
 
   return (
     <Suspense
@@ -24,7 +31,11 @@ export default async function InventoryPage() {
         </div>
       }
     >
-      <InventoryScreen rewards={state.rewards} />
+      <InventoryScreen
+        rewards={state.rewards}
+        employees={employeePage.items.map((e) => ({ id: e.id, name: e.name }))}
+        loadouts={loadouts}
+      />
     </Suspense>
   );
 }

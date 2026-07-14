@@ -7,10 +7,14 @@ import {
   parseTbankOrderId,
   toBillingPlanId,
 } from "@/features/billing/config/rub-pricing";
+import { parseTbankCapsuleOrderId } from "@/features/billing/config/capsule-pricing";
+import { grantCapsuleHolding } from "@/features/rewards/services/open-capsule";
 
 /**
- * Apply T-Bank CONFIRMED notification to organization billing_plan.
- * CustomerKey = organization.id; OrderId encodes plan (nx-studio-m-…).
+ * Apply T-Bank CONFIRMED notification.
+ * - Plan OrderId (nx-studio-m-…) → billing_plan
+ * - Capsule OrderId (nx-cap-standard-…) → capsule holding
+ * CustomerKey = organization.id
  */
 export async function applyTbankPaymentConfirmation(input: {
   orderId: string;
@@ -28,14 +32,24 @@ export async function applyTbankPaymentConfirmation(input: {
     return { updated: false, reason: "not_confirmed" };
   }
 
-  const parsed = parseTbankOrderId(input.orderId);
-  if (!parsed.planId) {
-    return { updated: false, reason: "unknown_order" };
-  }
-
   const organizationId = input.customerKey?.trim();
   if (!organizationId) {
     return { updated: false, reason: "missing_customer_key" };
+  }
+
+  const capsule = parseTbankCapsuleOrderId(input.orderId);
+  if (capsule.tierId) {
+    await grantCapsuleHolding({
+      organizationId,
+      tierId: capsule.tierId,
+      amount: 1,
+    });
+    return { updated: true, reason: `capsule_${capsule.tierId}` };
+  }
+
+  const parsed = parseTbankOrderId(input.orderId);
+  if (!parsed.planId) {
+    return { updated: false, reason: "unknown_order" };
   }
 
   const billingPlan = toBillingPlanId(parsed.planId);

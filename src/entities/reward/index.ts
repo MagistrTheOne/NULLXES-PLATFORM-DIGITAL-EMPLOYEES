@@ -1,7 +1,10 @@
 export {
+  capsuleOpenEvent,
+  capsuleOpenSourceEnum,
   capsulePriceKeyEnum,
   capsuleTier,
   capsuleTierIdEnum,
+  employeeRewardLoadout,
   organizationCapsuleHolding,
   organizationDailyCapsule,
   organizationRewardItem,
@@ -10,6 +13,8 @@ export {
   rewardTypeEnum,
 } from "./schema";
 export {
+  capsuleOpenEventRelations,
+  employeeRewardLoadoutRelations,
   organizationCapsuleHoldingRelations,
   organizationDailyCapsuleRelations,
   organizationRewardItemRelations,

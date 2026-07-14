@@ -309,6 +309,20 @@
       "when": 1784700000000,
       "tag": "0043_rewards_capsules",
       "breakpoints": true
+    },
+    {
+      "idx": 44,
+      "version": "7",
+      "when": 1784800000000,
+      "tag": "0044_employee_reward_loadout",
+      "breakpoints": true
+    },
+    {
+      "idx": 45,
+      "version": "7",
+      "when": 1784900000000,
+      "tag": "0045_capsule_open_event",
+      "breakpoints": true
     }
   ]
 }

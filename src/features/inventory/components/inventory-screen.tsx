@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   Hexagon,
   Mic,
@@ -24,7 +24,6 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import {
-  MOCK_EMPLOYEE_TARGETS,
   RARITY_STYLES,
   REWARD_TYPE_LABELS,
   type RewardItem,
@@ -35,15 +34,10 @@ import {
   emptyLoadout,
   isItemEquippedAnywhere,
   isItemEquippedOnLoadout,
-  resolveSlotReward,
+  type EmployeeLoadout,
 } from "@/features/rewards/lib/loadout";
+import { equipRewardOnEmployeeAction } from "@/features/rewards/actions/equip-reward";
 import {
-  equipItemOnEmployee,
-  toggleFavorite,
-  useLoadoutStore,
-} from "@/features/rewards/lib/use-loadout-store";
-import {
-  rewardsPrimaryButtonClass,
   rewardsSecondaryButtonClass,
   rewardsWorkspaceClass,
 } from "@/features/rewards/lib/workspace-shell";
@@ -99,23 +93,25 @@ function typeIcon(type: RewardType) {
   }
 }
 
-function formatAgo(at: number): string {
-  const delta = Math.max(0, Date.now() - at);
-  const minutes = Math.floor(delta / 60_000);
-  if (minutes < 1) return "Just now";
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  const days = Math.floor(hours / 24);
-  if (days === 1) return "Yesterday";
-  return `${days}d ago`;
-}
-
-export function InventoryScreen({ rewards }: { rewards: RewardItem[] }) {
+export function InventoryScreen({
+  rewards,
+  employees,
+  loadouts: initialLoadouts,
+}: {
+  rewards: RewardItem[];
+  employees: Array<{ id: string; name: string }>;
+  loadouts: Record<string, EmployeeLoadout>;
+}) {
+  const router = useRouter();
+  const [pending, startTransition] = useTransition();
   const searchParams = useSearchParams();
   const initialId = searchParams.get("item");
-  const store = useLoadoutStore();
+  const [loadouts, setLoadouts] = useState(initialLoadouts);
   const [filter, setFilter] = useState<(typeof TYPE_FILTERS)[number]["id"]>("all");
+
+  useEffect(() => {
+    setLoadouts(initialLoadouts);
+  }, [initialLoadouts]);
   const [sort, setSort] = useState<SortId>("rarity");
   const [query, setQuery] = useState("");
   const [selectedId, setSelectedId] = useState(
@@ -124,14 +120,13 @@ export function InventoryScreen({ rewards }: { rewards: RewardItem[] }) {
       : (rewards[0]?.id ?? null),
   );
   const [toast, setToast] = useState<string | null>(null);
+  const [favorites, setFavorites] = useState<Record<string, boolean>>({});
 
   const items = useMemo(() => {
     let list = [...rewards];
 
     if (filter === "equipped") {
-      list = list.filter((item) =>
-        isItemEquippedAnywhere(store.loadouts, item.id),
-      );
+      list = list.filter((item) => isItemEquippedAnywhere(loadouts, item.id));
     } else if (filter !== "all") {
       list = list.filter((item) => item.type === filter);
     }
@@ -153,17 +148,11 @@ export function InventoryScreen({ rewards }: { rewards: RewardItem[] }) {
         case "duplicates":
           return b.owned - a.owned || RARITY_RANK[b.rarity] - RARITY_RANK[a.rarity];
         case "equipped": {
-          const ae = isItemEquippedAnywhere(store.loadouts, a.id) ? 1 : 0;
-          const be = isItemEquippedAnywhere(store.loadouts, b.id) ? 1 : 0;
+          const ae = isItemEquippedAnywhere(loadouts, a.id) ? 1 : 0;
+          const be = isItemEquippedAnywhere(loadouts, b.id) ? 1 : 0;
           return be - ae || RARITY_RANK[b.rarity] - RARITY_RANK[a.rarity];
         }
-        case "recent": {
-          const ar = store.recent.findIndex((e) => e.itemId === a.id);
-          const br = store.recent.findIndex((e) => e.itemId === b.id);
-          const aRank = ar === -1 ? 999 : ar;
-          const bRank = br === -1 ? 999 : br;
-          return aRank - bRank;
-        }
+        case "recent":
         case "rarity":
         default:
           return RARITY_RANK[b.rarity] - RARITY_RANK[a.rarity];
@@ -171,7 +160,7 @@ export function InventoryScreen({ rewards }: { rewards: RewardItem[] }) {
     });
 
     return list;
-  }, [filter, query, sort, store.loadouts, store.recent, rewards]);
+  }, [filter, query, sort, loadouts, rewards]);
 
   const selected: RewardItem | null =
     items.find((item) => item.id === selectedId) ??
@@ -179,20 +168,50 @@ export function InventoryScreen({ rewards }: { rewards: RewardItem[] }) {
     null;
 
   const selectedStyle = selected ? RARITY_STYLES[selected.rarity] : null;
-  const isFavorite = selected ? Boolean(store.favorites[selected.id]) : false;
+  const isFavorite = selected ? Boolean(favorites[selected.id]) : false;
 
   function onEquip(employeeId: string, employeeName: string) {
     if (!selected) return;
-    const result = equipItemOnEmployee({
-      employeeId,
-      employeeName,
-      itemId: selected.id,
+    startTransition(async () => {
+      const result = await equipRewardOnEmployeeAction({
+        employeeId,
+        rewardSlug: selected.id,
+      });
+      if (!result.ok) {
+        setToast(result.message);
+        return;
+      }
+      setLoadouts((prev) => {
+        const current = prev[employeeId] ?? emptyLoadout();
+        const next = { ...current, skillChipIds: [...current.skillChipIds] };
+        switch (selected.type) {
+          case "appearance":
+            next.appearanceId = selected.id;
+            break;
+          case "voice":
+            next.voiceId = selected.id;
+            break;
+          case "background":
+            next.backgroundId = selected.id;
+            break;
+          case "idle":
+            next.idleId = selected.id;
+            break;
+          case "frame":
+            next.frameId = selected.id;
+            break;
+          case "skill_chip": {
+            const emptyIndex = next.skillChipIds.findIndex((id) => !id);
+            if (emptyIndex >= 0) next.skillChipIds[emptyIndex] = selected.id;
+            else next.skillChipIds[0] = selected.id;
+            break;
+          }
+        }
+        return { ...prev, [employeeId]: next };
+      });
+      setToast(`${selected.name} → ${employeeName}`);
+      router.refresh();
     });
-    if (!result.ok) {
-      setToast(result.message);
-      return;
-    }
-    setToast(`${selected.name} → ${employeeName}. Open employee Customization to refine loadout.`);
   }
 
   return (
@@ -275,8 +294,8 @@ export function InventoryScreen({ rewards }: { rewards: RewardItem[] }) {
                 const style = RARITY_STYLES[item.rarity];
                 const Icon = typeIcon(item.type);
                 const active = item.id === selected?.id;
-                const equipped = isItemEquippedAnywhere(store.loadouts, item.id);
-                const favorite = Boolean(store.favorites[item.id]);
+                const equipped = isItemEquippedAnywhere(loadouts, item.id);
+                const favorite = Boolean(favorites[item.id]);
                 return (
                   <li key={item.id}>
                     <button
@@ -392,7 +411,10 @@ export function InventoryScreen({ rewards }: { rewards: RewardItem[] }) {
                     type="button"
                     className={cn("mt-4", rewardsSecondaryButtonClass)}
                     onClick={() => {
-                      toggleFavorite(selected.id);
+                      setFavorites((prev) => ({
+                        ...prev,
+                        [selected.id]: !prev[selected.id],
+                      }));
                       setToast(
                         isFavorite
                           ? `Removed ${selected.name} from favorites.`
@@ -414,45 +436,52 @@ export function InventoryScreen({ rewards }: { rewards: RewardItem[] }) {
                       Compatible Employees
                     </p>
                     <ul className="space-y-2">
-                      {MOCK_EMPLOYEE_TARGETS.map((employee) => {
-                        const loadout =
-                          store.loadouts[employee.id] ?? emptyLoadout();
-                        const equipped = isItemEquippedOnLoadout(
-                          loadout,
-                          selected.id,
-                        );
-                        return (
-                          <li
-                            key={employee.id}
-                            className="flex items-center justify-between gap-3 rounded-xl border border-white/8 bg-black/20 px-3 py-2.5"
-                          >
-                            <div className="min-w-0 flex-1">
-                              <p className="truncate text-sm text-white">
-                                {employee.name}
-                              </p>
-                              {equipped ? (
-                                <p className="text-[11px] text-white/40">
-                                  On loadout
-                                </p>
-                              ) : null}
-                            </div>
-                            <Button
-                              type="button"
-                              className={cn(
-                                "h-9 shrink-0 rounded-lg px-3.5 text-xs font-medium",
-                                equipped
-                                  ? "border border-white/12 bg-transparent text-white/70 hover:bg-white/5"
-                                  : "bg-white text-black hover:bg-white/90",
-                              )}
-                              onClick={() =>
-                                onEquip(employee.id, employee.name)
-                              }
+                      {employees.length === 0 ? (
+                        <li className="text-sm text-white/40">
+                          No digital employees yet.
+                        </li>
+                      ) : (
+                        employees.map((employee) => {
+                          const loadout =
+                            loadouts[employee.id] ?? emptyLoadout();
+                          const equipped = isItemEquippedOnLoadout(
+                            loadout,
+                            selected.id,
+                          );
+                          return (
+                            <li
+                              key={employee.id}
+                              className="flex items-center justify-between gap-3 rounded-xl border border-white/8 bg-black/20 px-3 py-2.5"
                             >
-                              {equipped ? "Equipped" : "Equip"}
-                            </Button>
-                          </li>
-                        );
-                      })}
+                              <div className="min-w-0 flex-1">
+                                <p className="truncate text-sm text-white">
+                                  {employee.name}
+                                </p>
+                                {equipped ? (
+                                  <p className="text-[11px] text-white/40">
+                                    On loadout
+                                  </p>
+                                ) : null}
+                              </div>
+                              <Button
+                                type="button"
+                                disabled={pending}
+                                className={cn(
+                                  "h-9 shrink-0 rounded-lg px-3.5 text-xs font-medium",
+                                  equipped
+                                    ? "border border-white/12 bg-transparent text-white/70 hover:bg-white/5"
+                                    : "bg-white text-black hover:bg-white/90",
+                                )}
+                                onClick={() =>
+                                  onEquip(employee.id, employee.name)
+                                }
+                              >
+                                {equipped ? "Equipped" : "Equip"}
+                              </Button>
+                            </li>
+                          );
+                        })
+                      )}
                     </ul>
                     <p className="text-[11px] leading-relaxed text-white/35">
                       Full loadout editing lives on the employee → Customization.
@@ -471,29 +500,40 @@ export function InventoryScreen({ rewards }: { rewards: RewardItem[] }) {
             </div>
 
             <div className="rounded-2xl border border-white/10 bg-[#1a1a1a] p-5">
-              <h3 className="text-sm font-medium text-white">Recently Equipped</h3>
+              <h3 className="text-sm font-medium text-white">Loadouts</h3>
               <ul className="mt-4 space-y-3">
-                {store.recent.length === 0 ? (
-                  <li className="text-sm text-white/40">No recent equips.</li>
+                {employees.length === 0 ? (
+                  <li className="text-sm text-white/40">No employees yet.</li>
                 ) : (
-                  store.recent.slice(0, 5).map((event) => {
-                    const reward = resolveSlotReward(event.itemId);
+                  employees.slice(0, 5).map((employee) => {
+                    const loadout = loadouts[employee.id] ?? emptyLoadout();
+                    const equippedCount = [
+                      loadout.appearanceId,
+                      loadout.voiceId,
+                      loadout.backgroundId,
+                      loadout.idleId,
+                      loadout.frameId,
+                      ...loadout.skillChipIds,
+                    ].filter(Boolean).length;
                     return (
                       <li
-                        key={`${event.itemId}-${event.at}`}
+                        key={employee.id}
                         className="flex items-start justify-between gap-3 text-sm"
                       >
                         <div className="min-w-0">
                           <p className="truncate text-white/85">
-                            {reward?.name ?? event.itemId}
+                            {employee.name}
                           </p>
                           <p className="text-[11px] text-white/40">
-                            {event.employeeName}
+                            {equippedCount} slots filled
                           </p>
                         </div>
-                        <span className="shrink-0 text-[11px] text-white/35">
-                          {formatAgo(event.at)}
-                        </span>
+                        <Link
+                          href={`/dashboard/employees/${employee.id}`}
+                          className="shrink-0 text-[11px] text-white/45 hover:text-white"
+                        >
+                          Edit
+                        </Link>
                       </li>
                     );
                   })

@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ArrowRight, Filter, Hexagon, History, Search } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,8 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { claimDailyCapsuleAction } from "@/features/rewards/actions/claim-daily-capsule";
+import { openCapsuleAction } from "@/features/rewards/actions/open-capsule";
 import {
   DEFAULT_REWARDS_FILTER,
   activeFilterCount,
@@ -25,6 +28,7 @@ import {
   toggleFilterValue,
   type CapsuleOffer,
   type CapsulePriceKey,
+  type CapsuleTierId,
   type RewardItem,
   type RewardRarity,
   type RewardType,
@@ -39,6 +43,7 @@ import {
 } from "@/features/rewards/lib/workspace-shell";
 import { CapsulesAmbienceToggle } from "./capsules-ambience";
 import { CapsuleProductVisual } from "./capsule-product-visual";
+import { CapsuleHistorySheet } from "./capsule-history-sheet";
 
 const TABS = [
   { id: "featured", label: "Featured" },
@@ -71,6 +76,8 @@ const PRICE_OPTIONS: Array<{ id: CapsulePriceKey; label: string }> = [
   { id: "99", label: "99 ₽" },
   { id: "4999", label: "4 999 ₽" },
 ];
+
+const PAID_TIERS: CapsuleTierId[] = ["standard", "executive"];
 
 function formatCountdown(totalSeconds: number): string {
   const hours = Math.floor(totalSeconds / 3600);
@@ -123,12 +130,14 @@ function CapsuleCard({
   onActivate,
   index,
   rewards,
+  busy,
 }: {
   offer: CapsuleOffer;
   secondsLeft: number;
   onActivate: (offer: CapsuleOffer) => void;
   index: number;
   rewards: RewardItem[];
+  busy: boolean;
 }) {
   const reduceMotion = useReducedMotion();
 
@@ -172,6 +181,10 @@ function CapsuleCard({
             <p className="font-mono text-xs text-white/40">
               Next in {formatCountdown(secondsLeft)} · 1/1
             </p>
+          ) : (offer.ownedCount ?? 0) > 0 && !offer.daily ? (
+            <p className="font-mono text-xs text-white/40">
+              Owned · {offer.ownedCount}
+            </p>
           ) : (
             <p className="text-xs text-transparent select-none">.</p>
           )}
@@ -202,12 +215,12 @@ function CapsuleCard({
       <div className="pt-5">
         <motion.div
           whileTap={
-            offer.claimed || reduceMotion ? undefined : { scale: 0.98 }
+            offer.claimed || busy || reduceMotion ? undefined : { scale: 0.98 }
           }
         >
           <Button
             type="button"
-            disabled={offer.claimed}
+            disabled={offer.claimed || busy}
             onClick={() => onActivate(offer)}
             className={
               offer.claimed
@@ -223,23 +236,38 @@ function CapsuleCard({
   );
 }
 
+export type CapsuleHistoryItem = {
+  id: string;
+  tierId: CapsuleTierId;
+  rewardSlug: string;
+  rewardName: string;
+  rarity: RewardRarity;
+  source: string;
+  createdAt: string;
+};
+
 export type CapsulesScreenProps = {
   offers: CapsuleOffer[];
   rewards: RewardItem[];
   dailySecondsLeft: number;
+  history: CapsuleHistoryItem[];
 };
 
 export function CapsulesScreen({
   offers,
   rewards,
   dailySecondsLeft,
+  history,
 }: CapsulesScreenProps) {
+  const router = useRouter();
+  const [pending, startTransition] = useTransition();
   const [tab, setTab] = useState<TabId>("featured");
   const [filter, setFilter] = useState<RewardsFilterState>(DEFAULT_REWARDS_FILTER);
   const [toast, setToast] = useState<string | null>(null);
   const [secondsLeft, setSecondsLeft] = useState(dailySecondsLeft);
   const [detailsReward, setDetailsReward] = useState<RewardItem | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   useEffect(() => {
     setSecondsLeft(dailySecondsLeft);
@@ -286,11 +314,62 @@ export function CapsulesScreen({
       setToast("Daily capsule already claimed. Next drop when the timer ends.");
       return;
     }
+
     if (offer.daily) {
-      setToast("Daily claim is available — server claim action next.");
+      startTransition(async () => {
+        const result = await claimDailyCapsuleAction();
+        if (!result.ok) {
+          setToast(result.message);
+          return;
+        }
+        setToast(
+          `Claimed · ${result.reward.name} (${RARITY_STYLES[result.reward.rarity].label})`,
+        );
+        router.refresh();
+      });
       return;
     }
-    setToast("Activate is a UI stub — payment and server drop come next.");
+
+    if ((offer.ownedCount ?? 0) > 0) {
+      startTransition(async () => {
+        const result = await openCapsuleAction(offer.id);
+        if (!result.ok) {
+          setToast(result.message);
+          return;
+        }
+        setToast(
+          `Opened · ${result.reward.name} (${RARITY_STYLES[result.reward.rarity].label})`,
+        );
+        router.refresh();
+      });
+      return;
+    }
+
+    if (PAID_TIERS.includes(offer.id)) {
+      startTransition(async () => {
+        try {
+          const response = await fetch("/api/billing/tbank/init", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ product: "capsule", tierId: offer.id }),
+          });
+          const data = (await response.json()) as {
+            paymentUrl?: string;
+            error?: string;
+          };
+          if (!response.ok || !data.paymentUrl) {
+            setToast(data.error ?? "T-Bank checkout unavailable.");
+            return;
+          }
+          window.location.assign(data.paymentUrl);
+        } catch {
+          setToast("Unable to start T-Bank payment.");
+        }
+      });
+      return;
+    }
+
+    setToast("This capsule cannot be activated.");
   }
 
   function openRewardDetails(reward: RewardItem) {
@@ -315,7 +394,7 @@ export function CapsulesScreen({
             <Button
               type="button"
               className={cn(rewardsSecondaryButtonClass, "w-auto px-4")}
-              onClick={() => setToast("Capsule history — coming soon.")}
+              onClick={() => setHistoryOpen(true)}
             >
               <History className="size-4" />
               Capsule history
@@ -551,6 +630,7 @@ export function CapsulesScreen({
                         onActivate={onActivate}
                         index={index}
                         rewards={rewards}
+                        busy={pending}
                       />
                     </li>
                   ))}
@@ -630,9 +710,15 @@ export function CapsulesScreen({
         open={detailsOpen}
         onOpenChange={setDetailsOpen}
         onEquipStub={(reward) => {
-          setToast(`Equip stub: ${reward.name} → employee (mock).`);
+          setToast(`Open Inventory to equip ${reward.name}.`);
           setDetailsOpen(false);
         }}
+      />
+
+      <CapsuleHistorySheet
+        open={historyOpen}
+        onOpenChange={setHistoryOpen}
+        items={history}
       />
     </div>
   );

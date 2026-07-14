@@ -197,16 +197,28 @@ export async function getRewardsWorkspaceState(
     }));
 
     const offers: CapsuleOffer[] = tiers.map((tier) => {
+      const ownedCount = holdingsByTier.get(tier.id) ?? 0;
       const claimed = Boolean(tier.isDaily && dailyClaimed);
+      let activateLabel = tier.activateLabel;
+      if (claimed) {
+        activateLabel = "Claimed";
+      } else if (tier.isDaily) {
+        activateLabel = "Claim";
+      } else if (ownedCount > 0) {
+        activateLabel = "Open";
+      } else {
+        activateLabel = "Activate";
+      }
+
       return {
         id: tier.id,
         name: tier.name,
         priceKey: tier.priceKey,
         priceLabel: tier.priceLabel,
         blurb: tier.blurb,
-        activateLabel: claimed ? "Claimed" : tier.activateLabel,
+        activateLabel,
         claimed,
-        ownedCount: holdingsByTier.get(tier.id) ?? 0,
+        ownedCount,
         rewardPreviewIds: tier.rewardPreviewSlugs ?? [],
         store: tier.isStore,
         daily: tier.isDaily,
