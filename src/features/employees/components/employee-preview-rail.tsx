@@ -13,6 +13,7 @@ import type { OrganizationDisplayPreferences } from "@/features/workspace/types/
 import type { EmployeeDetailShell } from "../types";
 import { EmployeeGrokVoiceButton } from "./employee-grok-voice-button";
 import { AvatarIdlePreview } from "./avatar-idle-preview";
+import { EmployeeLoadoutSummary } from "./employee-loadout-summary";
 import { EmployeeProviderBadge } from "./employee-provider-badge";
 import { EmployeeStatusBadge } from "./employee-status-badge";
 
@@ -107,6 +108,9 @@ export async function EmployeePreviewRail({
         <div className="space-y-1">
           <p className="text-lg font-medium leading-tight">{employee.name}</p>
           <p className="text-sm text-white/55">{employee.role}</p>
+          <div className="pt-1">
+            <EmployeeLoadoutSummary employeeId={employee.id} />
+          </div>
         </div>
 
         <EmployeeStatusBadge status={employee.status} />

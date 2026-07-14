@@ -268,6 +268,8 @@ export const MOCK_EMPLOYEE_TARGETS = [
   { id: "adeline", name: "Adeline Kalen" },
   { id: "somnia", name: "Somnia" },
   { id: "yuki", name: "Yuki Nakora" },
+  { id: "anna", name: "Anna" },
+  { id: "kaira", name: "Kaira NULLXES" },
 ] as const;
 
 export const DEFAULT_REWARDS_FILTER: RewardsFilterState = {

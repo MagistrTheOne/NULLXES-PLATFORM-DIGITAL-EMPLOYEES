@@ -16,6 +16,7 @@ import { EmployeeDetailKnowledgeTab } from "./employee-detail-knowledge-tab";
 import { EmployeeDetailLifecycleTab } from "./employee-detail-lifecycle-tab";
 import { EmployeeDetailTasksTab } from "./employee-detail-tasks-tab";
 import { EmployeeBlueprintTabs } from "@/features/agent-blueprint/components/employee-blueprint-tabs";
+import { EmployeeCustomizationPanel } from "./employee-customization-panel";
 import { EmployeeDetailActions } from "./employee-detail-actions";
 import { EmployeeOverviewTab } from "./employee-overview-tab";
 import { EmployeePreviewRail } from "./employee-preview-rail";
@@ -183,6 +184,13 @@ export async function EmployeeDetailScreen({
                 displayPreferences={displayPreferences}
               />
             </Suspense>
+          </TabsContent>
+
+          <TabsContent value="customization" className="mt-0">
+            <EmployeeCustomizationPanel
+              employeeId={employee.id}
+              employeeName={employee.name}
+            />
           </TabsContent>
 
           <TabsContent value="avatar" className="mt-4">

@@ -23,6 +23,12 @@ export function EmployeeDetailTabs({
           {t("overview")}
         </TabsTrigger>
         <TabsTrigger
+          value="customization"
+          className="rounded-none border-0 px-3 py-2 text-white/50 data-active:bg-transparent data-active:text-white"
+        >
+          {t("customization")}
+        </TabsTrigger>
+        <TabsTrigger
           value="avatar"
           className="rounded-none border-0 px-3 py-2 text-white/50 data-active:bg-transparent data-active:text-white"
         >
