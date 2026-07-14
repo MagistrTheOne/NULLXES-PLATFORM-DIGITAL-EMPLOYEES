@@ -1979,11 +1979,9 @@
     "pricing": {
       "label": "Тарифы",
       "title": "Планы и enterprise.",
-      "subtitle": "Self-serve подписки в ₽ из текущего биллинга — enterprise-этапы по согласованию.",
       "platformTitle": "Платформа",
       "platformNote": "₽ · год −20%",
       "enterpriseTitle": "Enterprise",
-      "enterpriseSubtitle": "Discovery → Pilot → Department → Holding → частная корпорация.",
       "recommended": "Рекомендуем",
       "perEval": "Без карты",
       "perMonth": "в месяц",

@@ -24,22 +24,19 @@ export function PricingSection() {
   return (
     <section
       id="pricing"
-      className="relative border-t border-white/10 px-5 py-16 sm:px-6 sm:py-20 md:px-10 lg:px-14 lg:py-24"
+      className="relative flex min-h-svh flex-col justify-center border-t border-white/10 px-5 py-20 sm:px-6 sm:py-24 md:px-10 lg:min-h-dvh lg:px-14 lg:py-28"
     >
       <div className="mx-auto w-full max-w-6xl">
         <header className="max-w-2xl">
           <p className="text-[11px] tracking-[0.28em] text-(--landing-gold) uppercase">
             {t("label")}
           </p>
-          <h2 className="mt-4 font-(family-name:--font-landing-serif) text-[1.85rem] leading-[1.12] tracking-tight text-white sm:text-4xl lg:text-[2.75rem]">
+          <h2 className="mt-5 font-(family-name:--font-landing-serif) text-[1.85rem] leading-[1.12] tracking-tight text-white sm:mt-6 sm:text-4xl lg:text-[2.75rem]">
             {t("title")}
           </h2>
-          <p className="mt-3 max-w-xl text-sm leading-relaxed text-white/50">
-            {t("subtitle")}
-          </p>
         </header>
 
-        <div className="mt-10 sm:mt-12">
+        <div className="mt-14 sm:mt-16">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <h3 className="text-sm font-medium tracking-tight text-white/80">
               {t("platformTitle")}
@@ -49,7 +46,7 @@ export function PricingSection() {
             </p>
           </div>
 
-          <ul className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          <ul className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
             {selfServe.map((tier) => {
               const monthly = getRubTierPrice(tier.id, "month", locale);
               const annual = getRubTierPrice(tier.id, "year", locale);
@@ -119,16 +116,11 @@ export function PricingSection() {
           </ul>
         </div>
 
-        <div className="mt-14 sm:mt-16">
-          <div className="flex flex-wrap items-end justify-between gap-3">
-            <div>
-              <h3 className="text-sm font-medium tracking-tight text-white/80">
-                {t("enterpriseTitle")}
-              </h3>
-              <p className="mt-1 max-w-lg text-sm text-white/45">
-                {t("enterpriseSubtitle")}
-              </p>
-            </div>
+        <div className="mt-16 sm:mt-20">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h3 className="text-sm font-medium tracking-tight text-white/80">
+              {t("enterpriseTitle")}
+            </h3>
             <a
               href={SALES_CONTACT}
               className="inline-flex h-9 items-center justify-center rounded-full border border-(--landing-gold)/50 px-4 text-xs tracking-wide text-(--landing-gold) transition-colors hover:bg-(--landing-gold)/10"
@@ -137,7 +129,7 @@ export function PricingSection() {
             </a>
           </div>
 
-          <ul className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <ul className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {sales.map((tier) => (
               <li key={tier.id}>
                 <article className="flex h-full min-h-48 flex-col rounded-2xl border border-white/8 bg-white/2 px-4 py-4 transition-[border-color,background-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-white/16 hover:bg-white/4 hover:shadow-[0_12px_32px_rgba(0,0,0,0.35)]">

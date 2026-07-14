@@ -1979,11 +1979,9 @@
     "pricing": {
       "label": "Pricing",
       "title": "Plans and enterprise.",
-      "subtitle": "Self-serve RUB subscriptions from live billing — enterprise stages by agreement.",
       "platformTitle": "Platform",
       "platformNote": "RUB · annual −20%",
       "enterpriseTitle": "Enterprise",
-      "enterpriseSubtitle": "Discovery → Pilot → Department → Holding → private corporation.",
       "recommended": "Recommended",
       "perEval": "No card required",
       "perMonth": "per month",
