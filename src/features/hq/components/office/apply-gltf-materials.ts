@@ -8,10 +8,12 @@ import type { GLTFLoader } from "three-stdlib";
 let textureStubPatched = false;
 
 function isHqModelTextureUrl(url: string): boolean {
+  // Do NOT match all `blob:` URLs — GLTFLoader turns embedded maps into blob:
+  // URLs for every GLB (including Capsules). Stubbing those kills real materials.
+  // HQ models still go through configureGltfLoaderNoTextures (per-loader).
   return (
     typeof url === "string" &&
-    (url.startsWith("blob:") ||
-      url.includes("/models/") ||
+    (url.includes("/models/") ||
       url.includes("femalelow") ||
       url.includes("female_low_model") ||
       url.includes("female_base") ||
