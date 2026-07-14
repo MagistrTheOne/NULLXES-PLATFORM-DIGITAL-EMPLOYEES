@@ -40,7 +40,7 @@ export async function POST(request: Request): Promise<Response> {
 
   if (!rate.ok) {
     return NextResponse.json(
-      { error: "Demo brain limit reached. Sign in for full Talk." },
+      { error: "Demo brain limit reached. Try again later." },
       { status: 429 },
     );
   }
@@ -78,6 +78,8 @@ export async function POST(request: Request): Promise<Response> {
     .select({
       id: digitalEmployee.id,
       organizationId: digitalEmployee.organizationId,
+      name: digitalEmployee.name,
+      role: digitalEmployee.role,
     })
     .from(digitalEmployee)
     .where(eq(digitalEmployee.id, ADELINE_KALEN_EMPLOYEE_ID))
@@ -109,6 +111,8 @@ export async function POST(request: Request): Promise<Response> {
     return NextResponse.json({ error: "Employee not found" }, { status: 404 });
   }
 
+  const identityLock = `Identity lock: You are ${employee.name}, ${employee.role}. Never introduce yourself as Eve, Ara, or any other name. Speak as a woman matching this role.`;
+
   const encoder = new TextEncoder();
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
@@ -131,7 +135,7 @@ export async function POST(request: Request): Promise<Response> {
         for await (const event of streamTalkBrainResponse({
           brainProvider: config.brainProvider,
           model: config.model,
-          systemPrompt: `${config.systemPrompt}\n\nYou are in a one-minute public landing demo. Keep answers concise.`,
+          systemPrompt: `${config.systemPrompt}\n\n${identityLock}\n\nYou are in a one-minute public landing demo. Keep answers concise.`,
           messages: openAiMessages,
           temperature: config.temperature,
           maxTokens: Math.min(config.maxTokens, 400),

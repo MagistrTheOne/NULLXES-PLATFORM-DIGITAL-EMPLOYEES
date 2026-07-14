@@ -45,7 +45,8 @@ export function AdelinePlaque({
   const [talkOpen, setTalkOpen] = useState(false);
   const [voiceOpen, setVoiceOpen] = useState(false);
   const employeeId = plaque.id || ADELINE_KALEN_EMPLOYEE_ID;
-  const portrait = ADELINE_MARKETING_PORTRAIT;
+  const portrait =
+    plaque.avatarPreviewUrl?.trim() || ADELINE_MARKETING_PORTRAIT;
 
   return (
     <>

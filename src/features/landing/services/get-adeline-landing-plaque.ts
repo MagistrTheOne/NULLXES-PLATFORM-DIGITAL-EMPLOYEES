@@ -111,7 +111,8 @@ export async function getAdelineLandingPlaque(): Promise<AdelineLandingPlaque> {
         name: employee.name,
         role: employee.role,
         status: employee.status,
-        avatarPreviewUrl: ADELINE_MARKETING_PORTRAIT,
+        avatarPreviewUrl:
+          avatarConfig?.previewUrl?.trim() || ADELINE_MARKETING_PORTRAIT,
         avatarProvisioningStatus: avatarConfig?.previewUrl
           ? readProvisioningStatus(avatarConfig.provisioningStatus)
           : "ready",

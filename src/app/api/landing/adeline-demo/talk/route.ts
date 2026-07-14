@@ -36,7 +36,7 @@ export async function POST(request: Request): Promise<Response> {
 
   if (!rate.ok) {
     return NextResponse.json(
-      { error: "Trial limit reached. Sign in for full Talk access." },
+      { error: "Trial limit reached. Try again later." },
       { status: 429 },
     );
   }

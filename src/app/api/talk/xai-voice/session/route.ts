@@ -94,7 +94,7 @@ export async function POST(request: Request): Promise<Response> {
     enabledToolSlugs: employeeContext.enabledToolSlugs,
     bindConsoleAgent: voiceConfig.bindConsoleAgent,
     instructions,
-    voice: voiceConfig.voice,
+    voice: voiceConfig.bindConsoleAgent ? undefined : voiceConfig.voice,
   });
 
   return NextResponse.json({

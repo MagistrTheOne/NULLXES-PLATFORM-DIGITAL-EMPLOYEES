@@ -38,7 +38,6 @@ export function buildXaiVoiceSessionUpdate(input: {
 
   const sampleRate = input.sampleRate ?? 24000;
   const session: XaiVoiceSessionUpdate = {
-    voice: input.voice?.trim() || "eve",
     reasoning: { effort: "none" },
     turn_detection: {
       type: "server_vad",
@@ -54,6 +53,12 @@ export function buildXaiVoiceSessionUpdate(input: {
       },
     },
   };
+
+  // Console agents own voice + persona in the xAI console.
+  // Sending voice:"eve" here overrides the agent and makes her introduce as Eve.
+  if (!input.bindConsoleAgent) {
+    session.voice = input.voice?.trim() || "eve";
+  }
 
   if (tools.length > 0) {
     session.tools = tools;

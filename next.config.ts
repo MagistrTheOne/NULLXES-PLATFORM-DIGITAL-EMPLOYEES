@@ -50,6 +50,10 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "**.amazonaws.com",
       },
+      {
+        protocol: "https",
+        hostname: "*.public.blob.vercel-storage.com",
+      },
     ],
   },
 };

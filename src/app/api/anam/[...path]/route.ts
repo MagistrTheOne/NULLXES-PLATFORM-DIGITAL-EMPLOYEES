@@ -27,7 +27,7 @@ async function handleProxy(request: Request): Promise<Response> {
     return Response.json(
       {
         error: "authentication_required",
-        message: "Authentication required for Anam proxy. Sign in and retry.",
+        message: "Demo session expired. Close and start Talk again.",
       },
       { status: 401 },
     );

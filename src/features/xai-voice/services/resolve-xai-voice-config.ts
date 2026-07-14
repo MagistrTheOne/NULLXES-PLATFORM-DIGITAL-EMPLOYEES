@@ -31,8 +31,6 @@ function readSessionXaiConfig(
     return null;
   }
 
-  const voice = config.xaiVoiceVoice?.trim() || "eve";
-
   if (config.xaiVoiceBindConsoleAgent !== false) {
     const agentId = config.xaiVoiceAgentId?.trim();
     if (!agentId) {
@@ -43,7 +41,8 @@ function readSessionXaiConfig(
       mode: "console",
       bindConsoleAgent: true,
       agentId,
-      voice,
+      // Console agent defines voice in xAI; do not default to "eve".
+      voice: config.xaiVoiceVoice?.trim() || "",
     };
   }
 
@@ -51,7 +50,7 @@ function readSessionXaiConfig(
     mode: "platform",
     bindConsoleAgent: false,
     instructions: config.xaiVoiceInstructions?.trim() || null,
-    voice,
+    voice: config.xaiVoiceVoice?.trim() || "eve",
   };
 }
 
@@ -76,20 +75,24 @@ export async function resolveXaiVoiceConfigForEmployee(
   const fromDb = readSessionXaiConfig(
     row?.config as SessionProviderConfigPayload | undefined,
   );
-  if (fromDb) {
-    return fromDb;
-  }
 
+  // Adeline landing + Talk must always bind the console agent (never Eve default).
   if (employeeId === ADELINE_KALEN_EMPLOYEE_ID) {
-    const agentId = readXaiVoiceAgentFromEnv();
+    const agentId =
+      (fromDb?.mode === "console" ? fromDb.agentId : null) ||
+      readXaiVoiceAgentFromEnv();
     if (agentId) {
       return {
         mode: "console",
         bindConsoleAgent: true,
         agentId,
-        voice: "eve",
+        voice: "",
       };
     }
+  }
+
+  if (fromDb) {
+    return fromDb;
   }
 
   return null;

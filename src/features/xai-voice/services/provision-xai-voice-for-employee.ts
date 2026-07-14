@@ -42,7 +42,6 @@ export async function provisionXaiVoiceForEmployee(
   const patch: Partial<SessionProviderConfigPayload> = {
     xaiVoiceEnabled: enabled,
     xaiVoiceBindConsoleAgent: bindConsoleAgent,
-    xaiVoiceVoice: input.voice?.trim() || "eve",
   };
 
   if (bindConsoleAgent) {
@@ -50,7 +49,12 @@ export async function provisionXaiVoiceForEmployee(
     if (agentId) {
       patch.xaiVoiceAgentId = agentId;
     }
+    // Leave voice unset — console agent owns timbre + identity.
+    if (input.voice?.trim()) {
+      patch.xaiVoiceVoice = input.voice.trim();
+    }
   } else {
+    patch.xaiVoiceVoice = input.voice?.trim() || "eve";
     patch.xaiVoiceInstructions = instructions ?? undefined;
   }
 

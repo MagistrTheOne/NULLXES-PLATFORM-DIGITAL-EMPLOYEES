@@ -36,7 +36,7 @@ export async function POST(request: Request): Promise<Response> {
 
   if (!rate.ok) {
     return NextResponse.json(
-      { error: "Trial limit reached. Sign in for full Talk access." },
+      { error: "Trial limit reached. Try again later." },
       { status: 429 },
     );
   }
@@ -65,9 +65,9 @@ export async function POST(request: Request): Promise<Response> {
     instructions:
       voiceConfig.mode === "platform"
         ? (voiceConfig.instructions ??
-          "You are Adeline Kalen, Digital Executive at NULLXES. Keep answers concise. This is a one-minute public demo.")
+          "You are Adeline Kalen, Head of the Interworld Department at NULLXES. Speak as Adeline only — never as Eve or any other name. Keep answers concise. This is a one-minute public demo.")
         : undefined,
-    voice: voiceConfig.voice,
+    voice: voiceConfig.bindConsoleAgent ? undefined : voiceConfig.voice,
   });
 
   return NextResponse.json({
