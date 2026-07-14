@@ -9,6 +9,7 @@ const CATEGORIES = [
   "hr",
   "operations",
   "public",
+  "legal",
 ] as const;
 
 const glassCard =

@@ -1973,6 +1973,12 @@
           "role1": "Reception",
           "role2": "Citizen Support",
           "role3": "Information Desk"
+        },
+        "legal": {
+          "title": "Digital Legal",
+          "role1": "Compliance Specialist",
+          "role2": "Contract Review",
+          "role3": "Policy Desk"
         }
       }
     },
