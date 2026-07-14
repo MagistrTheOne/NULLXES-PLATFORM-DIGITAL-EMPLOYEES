@@ -1,25 +1,16 @@
-const CARDS = [
-  {
-    id: "controlled-deployment",
-    number: "01",
-    title: "Controlled deployment",
-    body: "Digital employees launch inside your org boundaries — roles, channels, and approval paths stay explicit.",
-  },
-  {
-    id: "operational-continuity",
-    number: "02",
-    title: "Operational continuity",
-    body: "First contact, routine questions, and handoffs keep moving when the human floor is offline.",
-  },
-  {
-    id: "accountable-presence",
-    number: "03",
-    title: "Accountable presence",
-    body: "Every interaction is attributable: who spoke, what knowledge was used, what requires a human.",
-  },
+"use client";
+
+import { useTranslations } from "next-intl";
+
+const CARD_IDS = [
+  "controlledDeployment",
+  "operationalContinuity",
+  "accountablePresence",
 ] as const;
 
 export function EnterpriseSection() {
+  const t = useTranslations("landing.enterprise");
+
   return (
     <section
       id="enterprise"
@@ -28,16 +19,16 @@ export function EnterpriseSection() {
       <div className="mx-auto w-full max-w-7xl">
         <header className="max-w-2xl">
           <p className="text-[11px] tracking-[0.28em] text-(--landing-gold) uppercase">
-            Enterprise
+            {t("label")}
           </p>
           <h2 className="mt-5 max-w-xl font-(family-name:--font-landing-serif) text-[1.85rem] leading-[1.12] tracking-tight text-white sm:mt-6 sm:text-4xl lg:text-[2.75rem]">
-            Built for institutions that cannot afford a wrong answer.
+            {t("title")}
           </h2>
         </header>
 
         <ul className="mt-14 grid grid-cols-1 gap-5 sm:mt-16 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
-          {CARDS.map((card) => (
-            <li key={card.id}>
+          {CARD_IDS.map((id, index) => (
+            <li key={id}>
               <article className="group relative flex h-full min-h-64 flex-col overflow-hidden rounded-2xl border border-white/10 bg-white/5 px-6 py-7 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-xl transition-[transform,border-color,background-color,box-shadow] duration-200 hover:-translate-y-0.5 hover:border-white/18 hover:bg-white/8 hover:shadow-[0_16px_40px_rgba(0,0,0,0.35)] sm:min-h-72 sm:px-7 sm:py-8">
                 <div
                   aria-hidden
@@ -45,14 +36,14 @@ export function EnterpriseSection() {
                 />
                 <div className="flex items-baseline justify-between gap-3">
                   <span className="text-[11px] tracking-[0.22em] text-(--landing-gold)">
-                    {card.number}
+                    {String(index + 1).padStart(2, "0")}
                   </span>
                   <h3 className="font-(family-name:--font-landing-serif) text-xl tracking-tight text-white sm:text-2xl">
-                    {card.title}
+                    {t(`cards.${id}.title`)}
                   </h3>
                 </div>
                 <p className="mt-6 text-sm leading-relaxed text-white/50 sm:mt-7 sm:text-[15px]">
-                  {card.body}
+                  {t(`cards.${id}.body`)}
                 </p>
               </article>
             </li>

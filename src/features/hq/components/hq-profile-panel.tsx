@@ -164,7 +164,7 @@ export function HqProfilePanel({ employees }: { employees: HqEmployee[] }) {
         </div>
       </div>
 
-      <div className="space-y-3 rounded-xl border border-white/8 bg-white/[0.02] p-3">
+      <div className="space-y-3 rounded-xl border border-white/8 bg-white/2 p-3">
         <div>
           <p className="text-[10px] tracking-[0.14em] text-white/40 uppercase">
             {tFields("currentMission")}
@@ -219,7 +219,7 @@ export function HqProfilePanel({ employees }: { employees: HqEmployee[] }) {
 
       <Link
         href={`/dashboard/employees/${employee.id}`}
-        className="flex items-center justify-between rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-white transition-colors hover:bg-white/[0.06]"
+        className="flex items-center justify-between rounded-xl border border-white/10 bg-white/3 px-4 py-2.5 text-sm text-white transition-colors hover:bg-white/6"
       >
         {t("openProfile")}
         <ArrowRight className="size-4" />
@@ -230,7 +230,7 @@ export function HqProfilePanel({ employees }: { employees: HqEmployee[] }) {
           <button
             type="button"
             onClick={() => openTalk(employee.id)}
-            className="flex items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-xs text-white transition-colors hover:bg-white/[0.06]"
+            className="flex items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/3 px-3 py-2 text-xs text-white transition-colors hover:bg-white/6"
           >
             <MessageSquare className="size-3.5" />
             {t("actions.talk")}
@@ -240,14 +240,14 @@ export function HqProfilePanel({ employees }: { employees: HqEmployee[] }) {
           type="button"
           onClick={handlePause}
           disabled={isPending || employee.status === "paused"}
-          className="flex items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-xs text-white/70 transition-colors hover:bg-white/[0.06] hover:text-white disabled:opacity-40"
+          className="flex items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/3 px-3 py-2 text-xs text-white/70 transition-colors hover:bg-white/6 hover:text-white disabled:opacity-40"
         >
           <Pause className="size-3.5" />
           {t("actions.pause")}
         </button>
         <Link
           href={`/dashboard/missions/new?employeeId=${employee.id}`}
-          className="col-span-2 flex items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-xs text-white/70 transition-colors hover:bg-white/[0.06] hover:text-white"
+          className="col-span-2 flex items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/3 px-3 py-2 text-xs text-white/70 transition-colors hover:bg-white/6 hover:text-white"
         >
           <ClipboardList className="size-3.5" />
           {t("actions.assignTask")}

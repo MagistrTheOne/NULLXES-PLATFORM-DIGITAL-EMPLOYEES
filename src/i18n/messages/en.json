@@ -2002,6 +2002,42 @@
         }
       }
     },
+    "enterprise": {
+      "label": "Enterprise",
+      "title": "Built for institutions that cannot afford a wrong answer.",
+      "cards": {
+        "controlledDeployment": {
+          "title": "Controlled deployment",
+          "body": "Digital employees launch inside your org boundaries — roles, channels, and approval paths stay explicit."
+        },
+        "operationalContinuity": {
+          "title": "Operational continuity",
+          "body": "First contact, routine questions, and handoffs keep moving when the human floor is offline."
+        },
+        "accountablePresence": {
+          "title": "Accountable presence",
+          "body": "Every interaction is attributable: who spoke, what knowledge was used, what requires a human."
+        }
+      }
+    },
+    "security": {
+      "label": "Security",
+      "title": "Control every digital employee.",
+      "cards": {
+        "identityAccess": {
+          "title": "Identity & access",
+          "body": "Role-based permissions, secure authentication, and controlled workspace access for every team."
+        },
+        "infrastructureControl": {
+          "title": "Infrastructure control",
+          "body": "Manage API keys, IP allowlists, webhooks, and external integrations from a single control layer."
+        },
+        "sessionGovernance": {
+          "title": "Session governance",
+          "body": "Control session limits, usage budgets, and maintain a complete audit trail for every digital employee."
+        }
+      }
+    },
     "pricing": {
       "label": "Pricing",
       "title": "Plans and enterprise.",

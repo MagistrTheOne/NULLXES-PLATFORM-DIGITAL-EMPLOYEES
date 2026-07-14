@@ -15,7 +15,7 @@ function MetricCard({ metrics }: { metrics: HqDepartmentMetrics }) {
     <Link
       href={`/dashboard/analytics?department=${metrics.department}`}
       aria-label={`${tDepartments(metrics.department)} — ${t("viewAnalytics")}`}
-      className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02] p-4 transition-colors hover:border-white/20 hover:bg-white/[0.04]"
+      className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/2  p-4 transition-colors hover:border-white/20 hover:bg-white/4"
     >
       <div className="flex items-start justify-between gap-2">
         <p className="truncate text-[11px] tracking-[0.12em] text-white/45 uppercase">

@@ -77,7 +77,7 @@ export function HqMissionTimeline({
               <li key={event.id}>
                 <Link
                   href={href}
-                  className="flex items-start justify-between gap-4 px-5 py-3 transition-colors hover:bg-white/[0.03]"
+                  className="flex items-start justify-between gap-4 px-5 py-3 transition-colors hover:bg-white/3 rounded-xl"
                 >
                   <div className="min-w-0">
                     <p className="text-[10px] tracking-[0.14em] text-white/35 uppercase">
