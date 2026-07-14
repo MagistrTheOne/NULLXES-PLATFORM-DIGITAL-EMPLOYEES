@@ -9,7 +9,9 @@ import {
 } from "@/components/ui/sheet";
 import { RARITY_STYLES } from "@/features/rewards/lib/catalog";
 import { cn } from "@/lib/utils";
-import type { CapsuleHistoryItem } from "./capsules-screen";
+import type { CapsuleHistoryItem } from "../lib/history";
+
+export type { CapsuleHistoryItem };
 
 const TIER_LABEL: Record<string, string> = {
   daily: "Base",

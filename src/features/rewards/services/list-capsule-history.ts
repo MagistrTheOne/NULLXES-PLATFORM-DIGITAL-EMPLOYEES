@@ -2,7 +2,7 @@ import "server-only";
 
 import { desc, eq, inArray } from "drizzle-orm";
 import { capsuleOpenEvent, rewardDefinition } from "@/entities/reward";
-import type { CapsuleHistoryItem } from "@/features/capsules/components/capsules-screen";
+import type { CapsuleHistoryItem } from "@/features/capsules/lib/history";
 import { db } from "@/shared/db/client";
 
 export async function listCapsuleOpenHistory(
