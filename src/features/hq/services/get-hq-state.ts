@@ -2,12 +2,21 @@ import { getOrganizationAnalyticsRange } from "@/features/analytics/lib/get-orga
 import { getEmployeeSessionSummaries } from "@/features/overview/queries/get-employee-session-summaries";
 import { getLiveSessions } from "@/features/overview/queries/get-live-sessions";
 import { listOrganizationEmployees } from "@/features/employees/services/list-organization-employees";
+import {
+  emptyLoadout,
+  equippedSkillCount,
+} from "@/features/rewards/lib/loadout";
+import { listOrganizationLoadouts } from "@/features/rewards/services/employee-loadout";
+import { getRewardsWorkspaceState } from "@/features/rewards/services/get-rewards-workspace-state";
 import { withDatabaseRetry } from "@/shared/db/with-database-retry";
 import {
   deriveEmployeeActivity,
   deriveRuntimeStatus,
 } from "../lib/derive-employee-activity";
-import { DEPARTMENT_ORDER } from "../lib/department-layout";
+import {
+  DEPARTMENT_CAPACITY,
+  DEPARTMENT_ORDER,
+} from "../lib/department-layout";
 import { resolveEmployeeDepartment } from "../lib/map-employee-department";
 import { getActiveHqTasks } from "../queries/get-active-hq-tasks";
 import {
@@ -18,7 +27,7 @@ import {
   emptyTaskSnapshot,
   getEmployeeTaskSnapshots,
 } from "../queries/get-employee-task-snapshots";
-import { getHqMissionSnapshot } from "../queries/get-hq-mission-snapshot";
+import { getHqFloorActivity } from "../queries/get-hq-floor-activity";
 import type {
   HqDepartmentGroup,
   HqDepartmentMetrics,
@@ -41,7 +50,9 @@ export async function getHqState(organizationId: string): Promise<HqState> {
       taskSnapshots,
       performance,
       activeTasks,
-      missionSnapshot,
+      floorActivity,
+      loadouts,
+      rewardsState,
     ] = await Promise.all([
       listOrganizationEmployees(organizationId).then((page) => page.items),
       getEmployeeSessionSummaries(organizationId, range),
@@ -49,8 +60,16 @@ export async function getHqState(organizationId: string): Promise<HqState> {
       getEmployeeTaskSnapshots(organizationId),
       getEmployeePerformance(organizationId, range),
       getActiveHqTasks(organizationId),
-      getHqMissionSnapshot(organizationId),
+      getHqFloorActivity(organizationId),
+      listOrganizationLoadouts(organizationId).catch(
+        (): Record<string, import("@/features/rewards/lib/loadout").EmployeeLoadout> => ({}),
+      ),
+      getRewardsWorkspaceState(organizationId).catch(() => null),
     ]);
+
+    const rewardNameBySlug = new Map(
+      (rewardsState?.rewards ?? []).map((item) => [item.id, item.name]),
+    );
 
     const summaryByEmployeeId = new Map(
       summaries.map((summary) => [summary.employeeId, summary]),
@@ -67,7 +86,17 @@ export async function getHqState(organizationId: string): Promise<HqState> {
       const perf = performance.get(employee.id) ?? emptyPerformance();
       const activeTask = activeTasks.get(employee.id) ?? null;
       const activityInput = { isLive, status: employee.status, tasks };
-      const missionHint = missionSnapshot.missionByEmployeeId.get(employee.id);
+      const missionHint = floorActivity.missionByEmployeeId.get(employee.id);
+      const loadout = loadouts[employee.id] ?? emptyLoadout();
+      const equippedSlots =
+        [
+          loadout.appearanceId,
+          loadout.voiceId,
+          loadout.backgroundId,
+          loadout.idleId,
+          loadout.frameId,
+        ].filter(Boolean).length + equippedSkillCount(loadout);
+      const hasLoadout = equippedSlots > 0;
 
       return {
         id: employee.id,
@@ -103,6 +132,16 @@ export async function getHqState(organizationId: string): Promise<HqState> {
               lastAction: missionHint.lastAction,
             }
           : null,
+        loadout: hasLoadout
+          ? {
+              appearanceSlug: loadout.appearanceId,
+              appearanceName: loadout.appearanceId
+                ? (rewardNameBySlug.get(loadout.appearanceId) ??
+                  loadout.appearanceId)
+                : null,
+              equippedSlots,
+            }
+          : null,
       };
     });
 
@@ -124,6 +163,7 @@ export async function getHqState(organizationId: string): Promise<HqState> {
         const live = group.employees.filter(
           (employee) => employee.isLive,
         ).length;
+        const capacity = DEPARTMENT_CAPACITY[group.department];
         const sessions = group.employees.reduce(
           (sum, employee) => sum + employee.sessionsInRange,
           0,
@@ -148,7 +188,9 @@ export async function getHqState(organizationId: string): Promise<HqState> {
           total,
           active,
           live,
-          utilization: total > 0 ? Math.round((active / total) * 100) : 0,
+          capacity,
+          utilization:
+            capacity > 0 ? Math.round((total / capacity) * 100) : 0,
           sessions,
           conversationSeconds,
           satisfactionAvg,
@@ -161,8 +203,8 @@ export async function getHqState(organizationId: string): Promise<HqState> {
       departments,
       departmentMetrics,
       liveCount: liveEmployeeIds.size,
-      opsItems: missionSnapshot.opsItems,
-      recentTimeline: missionSnapshot.recentTimeline,
+      opsItems: floorActivity.opsItems,
+      recentTimeline: floorActivity.recentTimeline,
     };
   });
 }

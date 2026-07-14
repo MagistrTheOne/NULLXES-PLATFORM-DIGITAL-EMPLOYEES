@@ -1624,6 +1624,7 @@
     "subtitle": "Your digital workforce, live across the headquarters floor.",
     "live": "Live",
     "systemOnline": "System Online",
+    "workforceOnFloor": "{onFloor} / {total} on floor",
     "tabs": {
       "office": "Office",
       "directory": "Directory",
@@ -1675,6 +1676,7 @@
       "satisfaction": "CSAT",
       "talkTime": "Talk time",
       "headcount": "{active}/{total} active",
+      "occupancy": "{occupied}/{capacity} capacity",
       "viewAnalytics": "View analytics"
     },
     "lofi": {
@@ -1723,6 +1725,7 @@
       "noTasks": "No active tasks right now.",
       "noActivity": "No recent activity.",
       "noMission": "No active mission",
+      "equippedSlots": "{count} slots equipped",
       "tabs": {
         "profile": "Profile",
         "tasks": "Tasks",
@@ -1739,6 +1742,7 @@
         "status": "Status",
         "currentTask": "Current Task",
         "currentMission": "Current mission",
+        "equipped": "Equipped",
         "lastAction": "Last action",
         "department": "Department",
         "model": "Model",
@@ -1758,11 +1762,14 @@
       }
     },
     "timeline": {
-      "title": "Mission Timeline",
-      "description": "Latest operational events across the floor.",
-      "empty": "No mission events yet.",
+      "title": "Floor activity",
+      "description": "Latest operational events on the floor.",
+      "empty": "No floor events yet.",
       "openJournal": "Open journal",
-      "open": "Open"
+      "open": "Open",
+      "kindMission": "Mission",
+      "kindCapsule": "Capsule",
+      "kindEquip": "Equip"
     }
   },
   "analytics": {

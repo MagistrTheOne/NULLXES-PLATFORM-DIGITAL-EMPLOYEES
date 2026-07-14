@@ -18,6 +18,21 @@ function formatWhen(value: string, locale: string): string {
   }).format(date);
 }
 
+function kindLabel(
+  kind: HqTimelineEvent["kind"],
+  t: (key: "kindCapsule" | "kindEquip" | "kindMission") => string,
+): string {
+  switch (kind) {
+    case "capsule":
+      return t("kindCapsule");
+    case "equip":
+      return t("kindEquip");
+    case "mission":
+    default:
+      return t("kindMission");
+  }
+}
+
 export function HqMissionTimeline({
   events,
 }: {
@@ -48,31 +63,41 @@ export function HqMissionTimeline({
         <p className="px-5 py-8 text-center text-xs text-white/35">{t("empty")}</p>
       ) : (
         <ul className="divide-y divide-white/6">
-          {events.map((event) => (
-            <li
-              key={event.id}
-              className="flex items-start justify-between gap-4 px-5 py-3"
-            >
-              <div className="min-w-0">
-                <p className="truncate text-sm text-white/90">{event.label}</p>
-                <p className="mt-0.5 truncate text-xs text-white/40">
-                  {event.employeeName}
-                  {event.missionTitle ? ` · ${event.missionTitle}` : ""}
-                </p>
-              </div>
-              <div className="flex shrink-0 flex-col items-end gap-1">
-                <span className="text-[11px] tabular-nums text-white/40">
-                  {formatWhen(event.at, locale)}
-                </span>
+          {events.map((event) => {
+            const href =
+              event.href ??
+              (event.kind === "capsule"
+                ? "/dashboard/capsules"
+                : event.kind === "equip" && event.employeeId
+                  ? `/dashboard/employees/${event.employeeId}`
+                  : event.missionId
+                    ? `/dashboard/missions?mission=${event.missionId}`
+                    : "/dashboard/missions");
+            return (
+              <li key={event.id}>
                 <Link
-                  href={`/dashboard/missions/${event.missionId}`}
-                  className="text-[11px] text-white/45 hover:text-white"
+                  href={href}
+                  className="flex items-start justify-between gap-4 px-5 py-3 transition-colors hover:bg-white/[0.03]"
                 >
-                  {t("open")}
+                  <div className="min-w-0">
+                    <p className="text-[10px] tracking-[0.14em] text-white/35 uppercase">
+                      {kindLabel(event.kind, t)}
+                    </p>
+                    <p className="mt-0.5 truncate text-sm text-white/90">
+                      {event.label}
+                    </p>
+                    <p className="mt-0.5 truncate text-xs text-white/40">
+                      {event.employeeName}
+                      {event.missionTitle ? ` · ${event.missionTitle}` : ""}
+                    </p>
+                  </div>
+                  <time className="shrink-0 text-[11px] tabular-nums text-white/35">
+                    {formatWhen(event.at, locale)}
+                  </time>
                 </Link>
-              </div>
-            </li>
-          ))}
+              </li>
+            );
+          })}
         </ul>
       )}
     </section>

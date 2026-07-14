@@ -48,7 +48,10 @@ function MetricCard({ metrics }: { metrics: HqDepartmentMetrics }) {
         />
       </div>
       <p className="mt-1.5 text-[10px] text-white/35">
-        {t("headcount", { active: metrics.active, total: metrics.total })}
+        {t("occupancy", {
+          occupied: metrics.total,
+          capacity: metrics.capacity,
+        })}
       </p>
     </Link>
   );

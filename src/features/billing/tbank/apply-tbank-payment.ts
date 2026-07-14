@@ -3,17 +3,21 @@ import "server-only";
 import { eq } from "drizzle-orm";
 import { db } from "@/shared/db";
 import { organization } from "@/entities/organization/schema";
+import { capsuleOpenEvent } from "@/entities/reward";
 import {
   parseTbankOrderId,
   toBillingPlanId,
 } from "@/features/billing/config/rub-pricing";
-import { parseTbankCapsuleOrderId } from "@/features/billing/config/capsule-pricing";
+import {
+  CAPSULE_HOLDING_GRANT_SLUG,
+  parseTbankCapsuleOrderId,
+} from "@/features/billing/config/capsule-pricing";
 import { grantCapsuleHolding } from "@/features/rewards/services/open-capsule";
 
 /**
  * Apply T-Bank CONFIRMED notification.
  * - Plan OrderId (nx-studio-m-…) → billing_plan
- * - Capsule OrderId (nx-cap-standard-…) → capsule holding
+ * - Capsule OrderId (nx-cap-standard-…) → capsule holding (idempotent by paymentOrderId)
  * CustomerKey = organization.id
  */
 export async function applyTbankPaymentConfirmation(input: {
@@ -39,11 +43,30 @@ export async function applyTbankPaymentConfirmation(input: {
 
   const capsule = parseTbankCapsuleOrderId(input.orderId);
   if (capsule.tierId) {
+    const prior = await db
+      .select({ id: capsuleOpenEvent.id })
+      .from(capsuleOpenEvent)
+      .where(eq(capsuleOpenEvent.paymentOrderId, input.orderId))
+      .limit(1);
+
+    if (prior[0]) {
+      return { updated: false, reason: "already_applied" };
+    }
+
     await grantCapsuleHolding({
       organizationId,
       tierId: capsule.tierId,
       amount: 1,
     });
+
+    await db.insert(capsuleOpenEvent).values({
+      organizationId,
+      tierId: capsule.tierId,
+      source: "purchase",
+      rewardSlug: CAPSULE_HOLDING_GRANT_SLUG,
+      paymentOrderId: input.orderId,
+    });
+
     return { updated: true, reason: `capsule_${capsule.tierId}` };
   }
 

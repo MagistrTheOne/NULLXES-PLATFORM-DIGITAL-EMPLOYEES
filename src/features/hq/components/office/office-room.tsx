@@ -396,7 +396,7 @@ function FloorCable({ from, to }: { from: [number, number]; to: [number, number]
 }
 
 export function OfficeRoom({ room }: { room: SceneRoom }) {
-  const { def, label } = room;
+  const { def, label, occupied, capacity } = room;
   const halfW = def.w / 2;
   const halfD = def.d / 2;
   const wallY = WALL_HEIGHT / 2;
@@ -523,9 +523,12 @@ export function OfficeRoom({ room }: { room: SceneRoom }) {
         zIndexRange={[10, 0]}
         wrapperClass="pointer-events-none"
       >
-        <div className="pointer-events-none flex select-none whitespace-nowrap rounded-md border border-white/10 bg-white/90 px-2.5 py-1">
+        <div className="pointer-events-none flex select-none items-center gap-2 whitespace-nowrap rounded-md border border-white/10 bg-white/90 px-2.5 py-1">
           <span className="text-[11px] font-semibold tracking-[0.12em] text-black uppercase">
             {label}
+          </span>
+          <span className="font-mono text-[10px] tabular-nums text-black/55">
+            {occupied}/{capacity}
           </span>
         </div>
       </Html>

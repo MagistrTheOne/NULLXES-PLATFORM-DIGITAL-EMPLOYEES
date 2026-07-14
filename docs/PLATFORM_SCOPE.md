@@ -55,7 +55,7 @@ Talk minutes / month are **enforced** (`assertTalkMinutesBudget`).
 | Studio (avatar, voice, brain) | — | ✅ | |
 | Missions | — | ✅ | List / detail / create |
 | Conversations | — | ✅ | 3-pane workspace |
-| HQ | — | ✅ | 3D office |
+| HQ | — | ✅ | 3D office + floor activity / occupancy / loadout presence |
 | Settings (all tabs) | — | ✅ | Including Characters / Skills / Tools |
 | Analytics | — | ✅ | Full screen |
 

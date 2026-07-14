@@ -27,7 +27,9 @@ export async function listCapsuleOpenHistory(
     .where(inArray(rewardDefinition.slug, slugs));
   const bySlug = new Map(defs.map((d) => [d.slug, d]));
 
-  return events.map((event) => {
+  return events
+    .filter((event) => !event.rewardSlug.startsWith("__"))
+    .map((event) => {
     const def = bySlug.get(event.rewardSlug);
     return {
       id: event.id,

@@ -46,6 +46,7 @@ import {
   CapsuleOpenReveal,
   type CapsuleRevealReward,
 } from "./capsule-open-reveal";
+import { playCapsuleRevealSfx } from "./capsule-open-sfx";
 import { CapsuleProductVisual } from "./capsule-product-visual";
 import { CapsuleHistorySheet } from "./capsule-history-sheet";
 
@@ -157,7 +158,7 @@ function CapsuleCard({
         ease: [0.22, 1, 0.36, 1],
       }}
       whileHover={reduceMotion ? undefined : { y: -3 }}
-      className="flex h-full min-h-112 flex-col justify-between rounded-2xl border border-white/10 bg-[#1a1a1a] p-5 sm:p-6"
+      className="flex h-full min-h-[28rem] flex-col justify-between rounded-2xl border border-white/10 bg-[#1a1a1a] p-5 sm:p-6"
     >
       <div className="flex flex-col gap-4">
         <div className="flex items-start justify-between gap-3">
@@ -265,6 +266,7 @@ export function CapsulesScreen({
 }: CapsulesScreenProps) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+  const [checkoutLock, setCheckoutLock] = useState(false);
   const [tab, setTab] = useState<TabId>("featured");
   const [filter, setFilter] = useState<RewardsFilterState>(DEFAULT_REWARDS_FILTER);
   const [toast, setToast] = useState<string | null>(null);
@@ -363,6 +365,8 @@ export function CapsulesScreen({
     }
 
     if (PAID_TIERS.includes(offer.id)) {
+      if (checkoutLock || pending) return;
+      setCheckoutLock(true);
       startTransition(async () => {
         try {
           const response = await fetch("/api/billing/tbank/init", {
@@ -373,14 +377,22 @@ export function CapsulesScreen({
           const data = (await response.json()) as {
             paymentUrl?: string;
             error?: string;
+            errorCode?: string;
           };
           if (!response.ok || !data.paymentUrl) {
-            setToast(data.error ?? "T-Bank checkout unavailable.");
+            setToast(
+              data.error ??
+                (data.errorCode
+                  ? `T-Bank error ${data.errorCode}`
+                  : "T-Bank checkout unavailable."),
+            );
+            setCheckoutLock(false);
             return;
           }
           window.location.assign(data.paymentUrl);
         } catch {
           setToast("Unable to start T-Bank payment.");
+          setCheckoutLock(false);
         }
       });
       return;
@@ -625,7 +637,7 @@ export function CapsulesScreen({
                         onActivate={onActivate}
                         index={index}
                         rewards={rewards}
-                        busy={pending}
+                        busy={pending || checkoutLock}
                       />
                     </li>
                   ))}
@@ -720,6 +732,7 @@ export function CapsulesScreen({
         open={revealOpen}
         tierId={revealTierId}
         reward={revealReward}
+        onPhaseChange={playCapsuleRevealSfx}
         onOpenChange={(next) => {
           setRevealOpen(next);
           if (!next) {

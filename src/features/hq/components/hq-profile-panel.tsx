@@ -173,6 +173,26 @@ export function HqProfilePanel({ employees }: { employees: HqEmployee[] }) {
             {employee.mission?.title ?? t("noMission")}
           </p>
         </div>
+        {employee.loadout ? (
+          <div>
+            <p className="text-[10px] tracking-[0.14em] text-white/40 uppercase">
+              {tFields("equipped")}
+            </p>
+            <p className="mt-1 text-sm text-white/90">
+              {employee.loadout.appearanceName ??
+                t("equippedSlots", {
+                  count: employee.loadout.equippedSlots,
+                })}
+            </p>
+            {employee.loadout.appearanceName ? (
+              <p className="mt-0.5 text-[11px] text-white/40">
+                {t("equippedSlots", {
+                  count: employee.loadout.equippedSlots,
+                })}
+              </p>
+            ) : null}
+          </div>
+        ) : null}
         <StageRail
           stage={employee.mission?.stage ?? null}
           labels={{

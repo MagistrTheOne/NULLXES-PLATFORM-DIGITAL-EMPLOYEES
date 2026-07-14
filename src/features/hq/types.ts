@@ -59,6 +59,12 @@ export type HqEmployeeMission = {
   lastAction: string | null;
 };
 
+export type HqEmployeeLoadoutSummary = {
+  appearanceSlug: string | null;
+  appearanceName: string | null;
+  equippedSlots: number;
+};
+
 export type HqEmployee = {
   id: string;
   name: string;
@@ -84,6 +90,8 @@ export type HqEmployee = {
   canTalk: boolean;
   /** Active mission snapshot for Inspector + office state, if any. */
   mission: HqEmployeeMission | null;
+  /** Equipped cosmetics summary for profile / floor presence. */
+  loadout: HqEmployeeLoadoutSummary | null;
 };
 
 export type HqDepartmentGroup = {
@@ -96,7 +104,9 @@ export type HqDepartmentMetrics = {
   total: number;
   active: number;
   live: number;
-  /** 0-100 utilization: active headcount over total headcount. */
+  /** Desk/seat capacity for the room footprint. */
+  capacity: number;
+  /** 0-100 utilization: occupied headcount over capacity. */
   utilization: number;
   /** Session volume handled by the department within the range. */
   sessions: number;
@@ -118,15 +128,19 @@ export type HqOpsItem = {
   at: string;
 };
 
+export type HqTimelineEventKind = "mission" | "capsule" | "equip";
+
 export type HqTimelineEvent = {
   id: string;
-  missionId: string;
+  kind: HqTimelineEventKind;
+  missionId?: string;
   employeeId: string;
   employeeName: string;
   key: string;
   label: string;
   at: string;
   missionTitle: string;
+  href?: string;
 };
 
 export type HqState = {
@@ -136,6 +150,6 @@ export type HqState = {
   liveCount: number;
   /** Cards for the Central Operations Table. */
   opsItems: HqOpsItem[];
-  /** Last 3–5 mission timeline events for the floor journal. */
+  /** Floor activity journal (missions, capsules, equip). */
   recentTimeline: HqTimelineEvent[];
 };

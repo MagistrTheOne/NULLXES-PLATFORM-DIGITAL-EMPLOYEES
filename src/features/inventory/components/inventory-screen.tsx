@@ -50,6 +50,7 @@ import {
   CapsuleOpenReveal,
   type CapsuleRevealReward,
 } from "@/features/capsules/components/capsule-open-reveal";
+import { playCapsuleRevealSfx } from "@/features/capsules/components/capsule-open-sfx";
 import { CapsuleProductVisual } from "@/features/capsules/components/capsule-product-visual";
 
 const TYPE_FILTERS: Array<{
@@ -718,6 +719,7 @@ export function InventoryScreen({
         open={revealOpen}
         tierId={revealTierId}
         reward={revealReward}
+        onPhaseChange={playCapsuleRevealSfx}
         onOpenChange={(next) => {
           setRevealOpen(next);
           if (!next) {

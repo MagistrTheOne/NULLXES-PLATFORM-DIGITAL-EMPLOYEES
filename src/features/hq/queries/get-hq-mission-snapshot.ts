@@ -140,6 +140,7 @@ export async function getHqMissionSnapshot(organizationId: string): Promise<{
     for (const step of timeline.slice(-3)) {
       timelineEvents.push({
         id: `${row.id}-${step.at}-${step.key}`,
+        kind: "mission",
         missionId: row.id,
         employeeId: row.employeeId,
         employeeName: row.employeeName,

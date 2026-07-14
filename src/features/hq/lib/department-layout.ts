@@ -21,3 +21,13 @@ export const DEPARTMENT_ANCHORS: Record<HqDepartment, DepartmentAnchor> = {
 };
 
 export const DEPARTMENT_ORDER: readonly HqDepartment[] = HQ_DEPARTMENTS;
+
+/** Soft seat capacity per room (enterprise footprint, not game HUD). */
+export const DEPARTMENT_CAPACITY: Record<HqDepartment, number> = {
+  reception: 10,
+  sales: 40,
+  support: 50,
+  hr: 20,
+  analytics: 30,
+  executive: 10,
+};

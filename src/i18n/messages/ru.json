@@ -1624,6 +1624,7 @@
     "subtitle": "Ваша цифровая команда — вживую на этаже штаб-квартиры.",
     "live": "В эфире",
     "systemOnline": "Система в сети",
+    "workforceOnFloor": "{onFloor} / {total} на этаже",
     "tabs": {
       "office": "Офис",
       "directory": "Список",
@@ -1675,6 +1676,7 @@
       "satisfaction": "CSAT",
       "talkTime": "Время бесед",
       "headcount": "{active}/{total} активны",
+      "occupancy": "{occupied}/{capacity} вместимость",
       "viewAnalytics": "Открыть аналитику"
     },
     "lofi": {
@@ -1723,6 +1725,7 @@
       "noTasks": "Сейчас нет активных задач.",
       "noActivity": "Нет недавней активности.",
       "noMission": "Нет активной миссии",
+      "equippedSlots": "{count} слотов экипировано",
       "tabs": {
         "profile": "Профиль",
         "tasks": "Задачи",
@@ -1739,6 +1742,7 @@
         "status": "Статус",
         "currentTask": "Текущая задача",
         "currentMission": "Текущая миссия",
+        "equipped": "Экипировка",
         "lastAction": "Последнее действие",
         "department": "Отдел",
         "model": "Модель",
@@ -1758,11 +1762,14 @@
       }
     },
     "timeline": {
-      "title": "Таймлайн миссий",
+      "title": "События на полу",
       "description": "Последние операционные события на этаже.",
-      "empty": "Событий миссий пока нет.",
+      "empty": "Событий на полу пока нет.",
       "openJournal": "Открыть журнал",
-      "open": "Открыть"
+      "open": "Открыть",
+      "kindMission": "Миссия",
+      "kindCapsule": "Капсула",
+      "kindEquip": "Экипировка"
     }
   },
   "analytics": {

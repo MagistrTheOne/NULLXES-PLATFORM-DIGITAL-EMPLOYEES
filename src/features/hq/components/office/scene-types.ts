@@ -54,9 +54,13 @@ export type SceneEmployee = {
   audioPulse: boolean;
   /** Red desk marker when blocked. */
   blocked: boolean;
+  /** Equipped loadout presence (text/badge until cosmetics assets land). */
+  hasLoadout: boolean;
 };
 
 export type SceneRoom = {
   def: RoomDef;
   label: string;
+  occupied: number;
+  capacity: number;
 };

@@ -21,13 +21,21 @@ function useClock(): string {
   return time;
 }
 
-export function HqStatusBar({ liveCount }: { liveCount: number }) {
+export function HqStatusBar({
+  liveCount,
+  onFloor,
+  workforceTotal,
+}: {
+  liveCount: number;
+  onFloor: number;
+  workforceTotal: number;
+}) {
   const t = useTranslations("hq");
   const clock = useClock();
 
   return (
     <header className="flex flex-wrap items-center justify-between gap-4">
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <h1 className="text-xl font-medium tracking-tight text-foreground">
           {t("title")}
         </h1>
@@ -37,6 +45,12 @@ export function HqStatusBar({ liveCount }: { liveCount: number }) {
           {liveCount > 0 ? (
             <span className="tabular-nums text-white/50">{liveCount}</span>
           ) : null}
+        </span>
+        <span className="text-[11px] tabular-nums text-white/40">
+          {t("workforceOnFloor", {
+            onFloor,
+            total: workforceTotal,
+          })}
         </span>
       </div>
 

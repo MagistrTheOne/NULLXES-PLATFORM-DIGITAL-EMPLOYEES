@@ -12,7 +12,10 @@ import {
   STATUS_COLORS,
   placeEmployeesInRoom,
 } from "../lib/office-layout";
-import { DEPARTMENT_ORDER } from "../lib/department-layout";
+import {
+  DEPARTMENT_CAPACITY,
+  DEPARTMENT_ORDER,
+} from "../lib/department-layout";
 import { buildOfficeNavPath } from "../lib/hq-nav-controller";
 import { deriveActivitySignals } from "../lib/derive-employee-activity";
 import { resolveAgentOfficeState } from "../lib/agent-office-state";
@@ -90,10 +93,17 @@ export function HqOfficeCanvas({
   const controlsRef = useRef<OrbitControlsImpl | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const rooms: SceneRoom[] = DEPARTMENT_ORDER.map((department) => ({
-    def: OFFICE_ROOMS[department],
-    label: tDepartments(department),
-  }));
+  const rooms: SceneRoom[] = DEPARTMENT_ORDER.map((department) => {
+    const metrics = state.departmentMetrics.find(
+      (item) => item.department === department,
+    );
+    return {
+      def: OFFICE_ROOMS[department],
+      label: tDepartments(department),
+      occupied: metrics?.total ?? 0,
+      capacity: metrics?.capacity ?? DEPARTMENT_CAPACITY[department],
+    };
+  });
 
   const statusCounts = useMemo(() => {
     const counts: Record<HqRuntimeStatus, number> = {
@@ -231,6 +241,7 @@ export function HqOfficeCanvas({
           officeState.status === "working" && officeState.action !== "handoff",
         audioPulse: officeState.status === "talking",
         blocked: officeState.status === "blocked",
+        hasLoadout: Boolean(employee.loadout),
       };
     });
   });

@@ -549,6 +549,12 @@ export function OfficeEmployee({ employee, allEmployees = [] }: { employee: Scen
           <meshBasicMaterial color="#f87171" />
         </mesh>
       ) : null}
+      {employee.hasLoadout ? (
+        <mesh position={[-0.28, 0.08, 0.28]}>
+          <boxGeometry args={[0.07, 0.07, 0.07]} />
+          <meshBasicMaterial color="#ffffff" transparent opacity={0.85} />
+        </mesh>
+      ) : null}
       {isSelected ? (
         <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.025, 0]}>
           <ringGeometry args={[0.4, 0.46, 40]} />

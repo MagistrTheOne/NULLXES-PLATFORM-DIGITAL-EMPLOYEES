@@ -60,7 +60,11 @@ export function HqScreen({
 
   return (
     <div className="flex w-full flex-col gap-5">
-      <HqStatusBar liveCount={state.liveCount} />
+      <HqStatusBar
+        liveCount={state.liveCount}
+        onFloor={state.employees.length}
+        workforceTotal={state.employees.length}
+      />
 
       <Tabs defaultValue="office" className="w-full gap-5">
         <TabsList>

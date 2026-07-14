@@ -17,6 +17,10 @@ import {
   type CapsuleTierId,
   type RewardItem,
 } from "@/features/rewards/lib/catalog";
+import {
+  getCapsulePriceLabel,
+  isCapsuleCheckoutTestMode,
+} from "@/features/billing/config/capsule-pricing";
 import { db } from "@/shared/db/client";
 import { withDatabaseRetry } from "@/shared/db/with-database-retry";
 
@@ -218,7 +222,10 @@ export async function getRewardsWorkspaceState(
         id: tier.id,
         name: tier.name,
         priceKey: tier.priceKey,
-        priceLabel: tier.priceLabel,
+        priceLabel:
+          (isCapsuleCheckoutTestMode()
+            ? getCapsulePriceLabel(tier.id)
+            : null) ?? tier.priceLabel,
         blurb: tier.blurb,
         activateLabel,
         claimed,
