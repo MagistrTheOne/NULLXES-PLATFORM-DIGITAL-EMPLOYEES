@@ -16,6 +16,16 @@
       "navigation": "Навигация",
       "platformAdmin": "Платформа"
     },
+    "mobileNav": {
+      "ariaLabel": "Основное меню",
+      "home": "Главная",
+      "employees": "Сотрудники",
+      "inbox": "Входящие",
+      "more": "Ещё",
+      "moreTitle": "Ещё",
+      "moreDescription": "Миссии, коллекция, аналитика и инструменты пространства.",
+      "desktopHint": "ПК"
+    },
     "brand": {
       "name": "NULLXES",
       "product": "Цифровые сотрудники"

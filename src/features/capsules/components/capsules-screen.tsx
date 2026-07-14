@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Hexagon, History, Search } from "lucide-react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -18,7 +19,6 @@ import {
   REWARD_TYPE_LABELS,
   type CapsuleOffer,
   type CapsulePriceKey,
-  type CapsuleTierId,
   type RewardItem,
   type RewardRarity,
   type RewardType,
@@ -32,6 +32,7 @@ import {
   rewardsWorkspaceClass,
 } from "@/features/rewards/lib/workspace-shell";
 import { CapsulesAmbienceToggle } from "./capsules-ambience";
+import { CapsuleProductVisual } from "./capsule-product-visual";
 
 const TABS = [
   { id: "featured", label: "Featured" },
@@ -102,36 +103,33 @@ function FilterChip({
   );
 }
 
-function CapsuleVisual({ tier }: { tier: CapsuleTierId }) {
-  return (
-    <div className="relative mx-auto flex h-40 w-full items-center justify-center">
-      <div
-        className={cn(
-          "relative h-36 w-[4.5rem] rounded-[999px] border border-white/15 bg-[#0c0c0c]",
-          tier === "executive" && "border-white/25",
-          tier === "standard" && "border-white/20",
-        )}
-      >
-        <div className="absolute inset-x-3 top-8 h-px bg-white/15" />
-        <div className="absolute inset-x-4 top-1/2 h-px -translate-y-1/2 bg-white/10" />
-        <div className="absolute inset-x-3 bottom-10 h-px bg-white/10" />
-        <div className="absolute top-1/2 left-1/2 size-5 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/15 bg-black/50" />
-      </div>
-    </div>
-  );
-}
-
 function CapsuleCard({
   offer,
   secondsLeft,
   onActivate,
+  index,
 }: {
   offer: CapsuleOffer;
   secondsLeft: number;
   onActivate: (offer: CapsuleOffer) => void;
+  index: number;
 }) {
+  const reduceMotion = useReducedMotion();
+
   return (
-    <article className="flex h-full min-h-[28rem] flex-col justify-between rounded-2xl border border-white/10 bg-[#1a1a1a] p-5 sm:p-6">
+    <motion.article
+      layout
+      initial={reduceMotion ? false : { opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={reduceMotion ? undefined : { opacity: 0, y: 8 }}
+      transition={{
+        duration: 0.4,
+        delay: reduceMotion ? 0 : index * 0.06,
+        ease: [0.22, 1, 0.36, 1],
+      }}
+      whileHover={reduceMotion ? undefined : { y: -3 }}
+      className="flex h-full min-h-[28rem] flex-col justify-between rounded-2xl border border-white/10 bg-[#1a1a1a] p-5 sm:p-6"
+    >
       <div className="flex flex-col gap-4">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
@@ -147,7 +145,7 @@ function CapsuleCard({
           </span>
         </div>
 
-        <CapsuleVisual tier={offer.id} />
+        <CapsuleProductVisual tier={offer.id} />
 
         <p className="min-h-10 text-sm leading-relaxed text-white/45">
           {offer.blurb}
@@ -169,8 +167,9 @@ function CapsuleCard({
             if (!reward) return null;
             const style = RARITY_STYLES[reward.rarity];
             return (
-              <span
+              <motion.span
                 key={id}
+                whileHover={reduceMotion ? undefined : { scale: 1.08 }}
                 className={cn(
                   "inline-flex size-8 items-center justify-center rounded-lg border bg-black/40",
                   style.border,
@@ -178,25 +177,33 @@ function CapsuleCard({
                 title={reward.name}
               >
                 <Hexagon className={cn("size-3.5", style.text)} />
-              </span>
+              </motion.span>
             );
           })}
         </div>
       </div>
 
       <div className="pt-5">
-        <Button
-          type="button"
-          disabled={offer.claimed}
-          onClick={() => onActivate(offer)}
-          className={
-            offer.claimed ? rewardsMutedButtonClass : rewardsPrimaryButtonClass
+        <motion.div
+          whileTap={
+            offer.claimed || reduceMotion ? undefined : { scale: 0.98 }
           }
         >
-          {offer.activateLabel}
-        </Button>
+          <Button
+            type="button"
+            disabled={offer.claimed}
+            onClick={() => onActivate(offer)}
+            className={
+              offer.claimed
+                ? rewardsMutedButtonClass
+                : rewardsPrimaryButtonClass
+            }
+          >
+            {offer.activateLabel}
+          </Button>
+        </motion.div>
       </div>
-    </article>
+    </motion.article>
   );
 }
 
@@ -387,15 +394,18 @@ export function CapsulesScreen() {
 
             {tabCapsules.length > 0 ? (
               <ul className="grid w-full grid-cols-1 items-stretch gap-4 md:grid-cols-2 md:gap-5 xl:grid-cols-3">
-                {tabCapsules.map((offer) => (
-                  <li key={offer.id} className="min-w-0">
-                    <CapsuleCard
-                      offer={offer}
-                      secondsLeft={secondsLeft}
-                      onActivate={onActivate}
-                    />
-                  </li>
-                ))}
+                <AnimatePresence mode="popLayout">
+                  {tabCapsules.map((offer, index) => (
+                    <li key={offer.id} className="min-w-0">
+                      <CapsuleCard
+                        offer={offer}
+                        secondsLeft={secondsLeft}
+                        onActivate={onActivate}
+                        index={index}
+                      />
+                    </li>
+                  ))}
+                </AnimatePresence>
               </ul>
             ) : (
               <div className="rounded-2xl border border-dashed border-white/12 bg-[#161616] px-6 py-16 text-center text-sm text-white/40">
@@ -419,35 +429,50 @@ export function CapsulesScreen() {
 
               {featuredRewards.length > 0 ? (
                 <ul className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
-                  {featuredRewards.map((item) => {
-                    const style = RARITY_STYLES[item.rarity];
-                    return (
-                      <li key={item.id}>
-                        <button
-                          type="button"
-                          onClick={() => openRewardDetails(item)}
-                          className={cn(
-                            "flex h-full w-full flex-col rounded-xl border bg-[#1a1a1a] p-4 text-left transition-colors hover:bg-[#1f1f1f]",
-                            style.border,
-                          )}
+                  <AnimatePresence mode="popLayout">
+                    {featuredRewards.map((item, index) => {
+                      const style = RARITY_STYLES[item.rarity];
+                      return (
+                        <motion.li
+                          key={item.id}
+                          layout
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0 }}
+                          transition={{
+                            duration: 0.35,
+                            delay: index * 0.04,
+                            ease: [0.22, 1, 0.36, 1],
+                          }}
                         >
-                          <p
+                          <motion.button
+                            type="button"
+                            onClick={() => openRewardDetails(item)}
+                            whileHover={{ y: -2 }}
+                            whileTap={{ scale: 0.98 }}
                             className={cn(
-                              "text-[10px] tracking-[0.18em] uppercase",
-                              style.text,
+                              "flex h-full w-full flex-col rounded-xl border bg-[#1a1a1a] p-4 text-left transition-colors hover:bg-[#1f1f1f]",
+                              style.border,
                             )}
                           >
-                            {style.label}
-                          </p>
-                          <Hexagon className={cn("mt-3 size-8", style.text)} />
-                          <p className="mt-3 text-sm text-white">{item.name}</p>
-                          <p className="mt-1 text-[11px] text-white/40">
-                            {REWARD_TYPE_LABELS[item.type]}
-                          </p>
-                        </button>
-                      </li>
-                    );
-                  })}
+                            <p
+                              className={cn(
+                                "text-[10px] tracking-[0.18em] uppercase",
+                                style.text,
+                              )}
+                            >
+                              {style.label}
+                            </p>
+                            <Hexagon className={cn("mt-3 size-8", style.text)} />
+                            <p className="mt-3 text-sm text-white">{item.name}</p>
+                            <p className="mt-1 text-[11px] text-white/40">
+                              {REWARD_TYPE_LABELS[item.type]}
+                            </p>
+                          </motion.button>
+                        </motion.li>
+                      );
+                    })}
+                  </AnimatePresence>
                 </ul>
               ) : (
                 <div className="rounded-xl border border-dashed border-white/12 px-4 py-10 text-center text-sm text-white/40">

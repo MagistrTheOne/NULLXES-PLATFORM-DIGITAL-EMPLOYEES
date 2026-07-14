@@ -16,6 +16,16 @@
       "navigation": "Navigation",
       "platformAdmin": "Platform"
     },
+    "mobileNav": {
+      "ariaLabel": "Primary",
+      "home": "Home",
+      "employees": "Employees",
+      "inbox": "Inbox",
+      "more": "More",
+      "moreTitle": "More",
+      "moreDescription": "Missions, collection, analytics, and workspace tools.",
+      "desktopHint": "Desktop"
+    },
     "brand": {
       "name": "NULLXES",
       "product": "Digital Employees"

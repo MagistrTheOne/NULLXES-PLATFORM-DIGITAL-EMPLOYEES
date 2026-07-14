@@ -224,10 +224,10 @@ export const MOCK_REWARD_ITEMS: RewardItem[] = [
 export const MOCK_CAPSULE_OFFERS: CapsuleOffer[] = [
   {
     id: "daily",
-    name: "Free Daily",
+    name: "Base Capsule",
     priceKey: "free",
     priceLabel: "Free",
-    blurb: "Core rewards to support your daily progress.",
+    blurb: "Daily Base drop — Core rewards for steady progress.",
     activateLabel: "Claimed",
     claimed: true,
     ownedCount: 1,
@@ -237,10 +237,10 @@ export const MOCK_CAPSULE_OFFERS: CapsuleOffer[] = [
   },
   {
     id: "standard",
-    name: "Standard Capsule",
+    name: "Diamond Capsule",
     priceKey: "99",
     priceLabel: "99 ₽",
-    blurb: "High chance for Professional or Premium rewards.",
+    blurb: "Diamond tier — high chance for Professional or Premium rewards.",
     activateLabel: "Activate",
     ownedCount: 2,
     rewardPreviewIds: ["sales-eff", "calm-voice", "minimal-frame"],
@@ -249,10 +249,10 @@ export const MOCK_CAPSULE_OFFERS: CapsuleOffer[] = [
   },
   {
     id: "executive",
-    name: "Executive Capsule",
+    name: "Gold Capsule",
     priceKey: "4999",
     priceLabel: "4 999 ₽",
-    blurb: "Guaranteed Premium. Chance for Executive or Founder's.",
+    blurb: "Legendary Gold — guaranteed Premium. Chance for Executive or Founder's.",
     activateLabel: "Activate",
     ownedCount: 0,
     rewardPreviewIds: ["exec-black", "neg-mastery", "exec-voice"],
