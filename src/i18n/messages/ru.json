@@ -1975,6 +1975,36 @@
           "role3": "Информационная стойка"
         }
       }
+    },
+    "pricing": {
+      "label": "Тарифы",
+      "title": "Планы и enterprise.",
+      "subtitle": "Self-serve подписки в ₽ из текущего биллинга — enterprise-этапы по согласованию.",
+      "platformTitle": "Платформа",
+      "platformNote": "₽ · год −20%",
+      "enterpriseTitle": "Enterprise",
+      "enterpriseSubtitle": "Discovery → Pilot → Department → Holding → частная корпорация.",
+      "recommended": "Рекомендуем",
+      "perEval": "Без карты",
+      "perMonth": "в месяц",
+      "perMonthAnnual": "в месяц · {annual} / год",
+      "byAgreement": "По согласованию",
+      "startEval": "Начать evaluation",
+      "subscribe": "Оформить",
+      "contactSales": "Связаться с sales",
+      "flagship": "Flagship",
+      "tiers": {
+        "free": "Evaluation",
+        "starter": "Starter",
+        "studio": "Studio",
+        "operator": "Team",
+        "scale": "Scale",
+        "discovery": "Discovery",
+        "pilot": "Pilot",
+        "department": "Enterprise",
+        "holding": "Holding",
+        "flagship": "Цифровая корпорация"
+      }
     }
   }
 }

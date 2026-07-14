@@ -1,145 +1,202 @@
-type PricingLine = {
-  id: string;
-  service: string;
-  price: string;
-};
+"use client";
 
-type PricingStage = {
-  id: string;
-  number: string;
-  title: string;
-  blurb: string;
-  lines: readonly PricingLine[];
-};
+import Link from "next/link";
+import { useLocale, useTranslations } from "next-intl";
+import {
+  getFlagshipPricingTier,
+  getSalesPricingTiers,
+  getSelfServePricingTiers,
+} from "@/features/billing/config/pricing-tiers";
+import { getRubTierPrice } from "@/features/billing/config/rub-pricing";
+import { cn } from "@/lib/utils";
 
-/** USD ranges converted from RUB enterprise quotes (~80 ₽ / $1). */
-const STAGES: readonly PricingStage[] = [
-  {
-    id: "discover",
-    number: "01",
-    title: "Discover",
-    blurb: "Clarify the opportunity before you commit capital.",
-    lines: [
-      {
-        id: "discovery",
-        service: "Executive Discovery / strategic session (up to 2 hours)",
-        price: "$4,000 – $6,000",
-      },
-      {
-        id: "audit",
-        service: "Enterprise AI Audit",
-        price: "$19,000 – $38,000",
-      },
-      {
-        id: "architecture",
-        service: "Solution architecture & implementation roadmap",
-        price: "$38,000 – $88,000",
-      },
-    ],
-  },
-  {
-    id: "prove",
-    number: "02",
-    title: "Prove",
-    blurb: "Validate one scenario, then one business unit.",
-    lines: [
-      {
-        id: "poc",
-        service: "PoC / single-scenario prototype",
-        price: "$60,000 – $150,000",
-      },
-      {
-        id: "pilot",
-        service: "Pilot in one business unit",
-        price: "$150,000 – $375,000",
-      },
-    ],
-  },
-  {
-    id: "scale",
-    number: "03",
-    title: "Scale",
-    blurb: "Deploy, harden the perimeter, and license the platform.",
-    lines: [
-      {
-        id: "deployment",
-        service: "Enterprise deployment",
-        price: "$375,000 – $1.25M+",
-      },
-      {
-        id: "private",
-        service: "Private / on-prem perimeter, security, integrations",
-        price: "from $625,000",
-      },
-      {
-        id: "license",
-        service: "License / platform / SLA",
-        price: "from $125,000 – $375,000 / year",
-      },
-    ],
-  },
-] as const;
+const SALES_CONTACT = "mailto:ceo@nullxes.com?subject=NULLXES%20Enterprise";
+
+const TIER_FEATURE_LIMIT = 4;
 
 export function PricingSection() {
+  const t = useTranslations("landing.pricing");
+  const locale = useLocale();
+  const selfServe = getSelfServePricingTiers();
+  const sales = getSalesPricingTiers();
+  const flagship = getFlagshipPricingTier();
+
   return (
     <section
       id="pricing"
-      className="relative flex min-h-[100svh] flex-col justify-center border-t border-white/10 px-5 py-14 sm:px-6 md:px-10 lg:min-h-dvh lg:px-14 lg:py-0"
+      className="relative border-t border-white/10 px-5 py-16 sm:px-6 sm:py-20 md:px-10 lg:px-14 lg:py-24"
     >
       <div className="mx-auto w-full max-w-6xl">
-        <p className="text-[11px] tracking-[0.28em] text-(--landing-gold) uppercase">
-          Pricing
-        </p>
-        <h2 className="mt-4 max-w-xl font-(family-name:--font-landing-serif) text-[1.85rem] leading-[1.12] tracking-tight text-white sm:text-4xl lg:text-[2.75rem]">
-          Corporate implementation pricing.
-        </h2>
-        <p className="mt-4 max-w-xl text-sm leading-relaxed text-white/45">
-          Enterprise rates for NULLXES deployments — from discovery to full
-          production.
-        </p>
+        <header className="max-w-2xl">
+          <p className="text-[11px] tracking-[0.28em] text-(--landing-gold) uppercase">
+            {t("label")}
+          </p>
+          <h2 className="mt-4 font-(family-name:--font-landing-serif) text-[1.85rem] leading-[1.12] tracking-tight text-white sm:text-4xl lg:text-[2.75rem]">
+            {t("title")}
+          </h2>
+          <p className="mt-3 max-w-xl text-sm leading-relaxed text-white/50">
+            {t("subtitle")}
+          </p>
+        </header>
 
-        <div className="mt-10 grid gap-3 sm:mt-12 sm:gap-4 lg:grid-cols-3 lg:gap-5">
-          {STAGES.map((stage) => (
-            <article
-              key={stage.id}
-              className="group relative flex flex-col overflow-hidden rounded-[1.25rem] border border-white/10 bg-white/[0.03] shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-md transition-[border-color,background-color] duration-300 hover:border-(--landing-gold)/35 hover:bg-white/[0.045] sm:rounded-[1.35rem]"
-            >
-              <div
-                aria-hidden
-                className="pointer-events-none absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-white/25 to-transparent"
-              />
+        <div className="mt-10 sm:mt-12">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <h3 className="text-sm font-medium tracking-tight text-white/80">
+              {t("platformTitle")}
+            </h3>
+            <p className="text-[11px] tracking-wide text-white/35">
+              {t("platformNote")}
+            </p>
+          </div>
 
-              <header className="border-b border-white/8 px-5 py-5 sm:px-6">
-                <div className="flex items-baseline justify-between gap-3">
-                  <span className="text-[11px] tracking-[0.22em] text-(--landing-gold)">
-                    {stage.number}
-                  </span>
-                  <h3 className="font-(family-name:--font-landing-serif) text-xl tracking-tight text-white sm:text-2xl">
-                    {stage.title}
-                  </h3>
-                </div>
-                <p className="mt-3 text-sm leading-relaxed text-white/40">
-                  {stage.blurb}
-                </p>
-              </header>
+          <ul className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+            {selfServe.map((tier) => {
+              const monthly = getRubTierPrice(tier.id, "month", locale);
+              const annual = getRubTierPrice(tier.id, "year", locale);
+              const isRecommended = Boolean(tier.recommended);
 
-              <ul className="flex flex-1 flex-col px-5 py-2 sm:px-6">
-                {stage.lines.map((line) => (
-                  <li
-                    key={line.id}
-                    className="border-b border-white/8 py-4 last:border-b-0"
+              return (
+                <li key={tier.id}>
+                  <article
+                    className={cn(
+                      "flex h-full min-h-56 flex-col rounded-2xl border bg-white/2 px-4 py-4 transition-[border-color,background-color,box-shadow,transform] duration-200",
+                      isRecommended
+                        ? "border-(--landing-gold)/40 hover:border-(--landing-gold)/55"
+                        : "border-white/8 hover:border-white/16",
+                      "hover:-translate-y-0.5 hover:bg-white/4 hover:shadow-[0_12px_32px_rgba(0,0,0,0.35)]",
+                    )}
                   >
-                    <p className="text-[13px] leading-snug tracking-tight text-white/80">
-                      {line.service}
+                    <div className="flex items-start justify-between gap-2">
+                      <h4 className="text-[13px] font-medium tracking-tight text-white">
+                        {t(`tiers.${tier.id}`)}
+                      </h4>
+                      {isRecommended ? (
+                        <span className="shrink-0 text-[9px] tracking-[0.16em] text-(--landing-gold) uppercase">
+                          {t("recommended")}
+                        </span>
+                      ) : null}
+                    </div>
+
+                    <p className="mt-3 font-mono text-lg tabular-nums tracking-tight text-white">
+                      {monthly?.priceLabel ?? tier.priceLabel}
                     </p>
-                    <p className="mt-2 font-mono text-[13px] tabular-nums text-(--landing-gold)">
-                      {line.price}
+                    <p className="mt-0.5 text-[11px] text-white/40">
+                      {tier.id === "free"
+                        ? t("perEval")
+                        : annual
+                          ? t("perMonthAnnual", { annual: annual.priceLabel })
+                          : t("perMonth")}
                     </p>
-                  </li>
-                ))}
-              </ul>
+
+                    <ul className="mt-4 flex flex-1 flex-col gap-1.5">
+                      {tier.features
+                        .slice(0, TIER_FEATURE_LIMIT)
+                        .map((feature) => (
+                          <li
+                            key={feature}
+                            className="text-[11px] leading-snug text-white/50"
+                          >
+                            {feature}
+                          </li>
+                        ))}
+                    </ul>
+
+                    <Link
+                      href="/register"
+                      className={cn(
+                        "mt-5 inline-flex h-9 items-center justify-center rounded-full text-xs font-medium transition-opacity hover:opacity-90",
+                        isRecommended
+                          ? "bg-white text-black"
+                          : "border border-white/15 text-white/80 hover:border-white/30 hover:text-white",
+                      )}
+                    >
+                      {tier.id === "free" ? t("startEval") : t("subscribe")}
+                    </Link>
+                  </article>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+
+        <div className="mt-14 sm:mt-16">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-medium tracking-tight text-white/80">
+                {t("enterpriseTitle")}
+              </h3>
+              <p className="mt-1 max-w-lg text-sm text-white/45">
+                {t("enterpriseSubtitle")}
+              </p>
+            </div>
+            <a
+              href={SALES_CONTACT}
+              className="inline-flex h-9 items-center justify-center rounded-full border border-(--landing-gold)/50 px-4 text-xs tracking-wide text-(--landing-gold) transition-colors hover:bg-(--landing-gold)/10"
+            >
+              {t("contactSales")}
+            </a>
+          </div>
+
+          <ul className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {sales.map((tier) => (
+              <li key={tier.id}>
+                <article className="flex h-full min-h-48 flex-col rounded-2xl border border-white/8 bg-white/2 px-4 py-4 transition-[border-color,background-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-white/16 hover:bg-white/4 hover:shadow-[0_12px_32px_rgba(0,0,0,0.35)]">
+                  <h4 className="text-[13px] font-medium tracking-tight text-white">
+                    {t(`tiers.${tier.id}`)}
+                  </h4>
+                  <p className="mt-3 font-mono text-sm tabular-nums text-(--landing-gold)">
+                    {t("byAgreement")}
+                  </p>
+                  <ul className="mt-4 flex flex-1 flex-col gap-1.5">
+                    {tier.features
+                      .slice(0, TIER_FEATURE_LIMIT)
+                      .map((feature) => (
+                        <li
+                          key={feature}
+                          className="text-[11px] leading-snug text-white/50"
+                        >
+                          {feature}
+                        </li>
+                      ))}
+                  </ul>
+                </article>
+              </li>
+            ))}
+          </ul>
+
+          {flagship ? (
+            <article className="mt-3 flex flex-col gap-4 rounded-2xl border border-white/12 bg-white/3 px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+              <div className="min-w-0">
+                <p className="text-[10px] tracking-[0.2em] text-white/40 uppercase">
+                  {t("flagship")}
+                </p>
+                <h4 className="mt-2 font-(family-name:--font-landing-serif) text-xl tracking-tight text-white sm:text-2xl">
+                  {t(`tiers.${flagship.id}`)}
+                </h4>
+                <p className="mt-1 max-w-xl text-sm text-white/45">
+                  {flagship.description}
+                </p>
+                <ul className="mt-3 flex flex-wrap gap-x-4 gap-y-1">
+                  {flagship.features.map((feature) => (
+                    <li key={feature} className="text-[11px] text-white/45">
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div className="flex shrink-0 flex-col items-start gap-2 sm:items-end">
+                <p className="font-mono text-sm tabular-nums text-(--landing-gold)">
+                  {t("byAgreement")}
+                </p>
+                <a
+                  href={SALES_CONTACT}
+                  className="inline-flex h-9 items-center justify-center rounded-full bg-white px-4 text-xs font-medium text-black transition-opacity hover:opacity-90"
+                >
+                  {t("contactSales")}
+                </a>
+              </div>
             </article>
-          ))}
+          ) : null}
         </div>
       </div>
     </section>

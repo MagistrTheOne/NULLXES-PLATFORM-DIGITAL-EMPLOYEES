@@ -1975,6 +1975,36 @@
           "role3": "Information Desk"
         }
       }
+    },
+    "pricing": {
+      "label": "Pricing",
+      "title": "Plans and enterprise.",
+      "subtitle": "Self-serve RUB subscriptions from live billing — enterprise stages by agreement.",
+      "platformTitle": "Platform",
+      "platformNote": "RUB · annual −20%",
+      "enterpriseTitle": "Enterprise",
+      "enterpriseSubtitle": "Discovery → Pilot → Department → Holding → private corporation.",
+      "recommended": "Recommended",
+      "perEval": "No card required",
+      "perMonth": "per month",
+      "perMonthAnnual": "per month · {annual} / year",
+      "byAgreement": "By agreement",
+      "startEval": "Start evaluation",
+      "subscribe": "Subscribe",
+      "contactSales": "Contact sales",
+      "flagship": "Flagship",
+      "tiers": {
+        "free": "Evaluation",
+        "starter": "Starter",
+        "studio": "Studio",
+        "operator": "Team",
+        "scale": "Scale",
+        "discovery": "Discovery",
+        "pilot": "Pilot",
+        "department": "Enterprise",
+        "holding": "Holding",
+        "flagship": "Digital corporation"
+      }
     }
   }
 }
