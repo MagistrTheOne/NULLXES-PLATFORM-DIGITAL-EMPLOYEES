@@ -4,6 +4,7 @@ import {
   createEmployeeTask,
   enqueueEmployeeTask,
 } from "@/features/agent-tasks";
+import { isPublishedPlatformCatalogEmployee } from "@/features/employees/services/platform-employee-catalog";
 import { createKnowledgeSource } from "@/features/knowledge-processing";
 import { dispatchOrganizationWebhook } from "@/features/public-api/services/dispatch-outbound-webhook";
 import { getSessionTranscript } from "@/features/runtime-session/services/append-session-message";
@@ -55,13 +56,23 @@ export const summarizeCompletedSession = inngest.createFunction(
     }
 
     const knowledge = await step.run("write-knowledge", async () => {
-      const created = await createKnowledgeSource({
-        employeeId: sessionRow.employeeId,
-        organizationId,
-        type: "session_summary",
-        title: `Session summary · ${new Date().toISOString().slice(0, 10)}`,
-        chunks: [{ content: summary.summary }],
-      });
+      // Catalog employees share one RAG corpus across tenants. Never write
+      // private Talk summaries into that pool (cross-tenant bleed).
+      const isCatalog = await isPublishedPlatformCatalogEmployee(
+        sessionRow.employeeId,
+      );
+
+      let knowledgeSourceId: string | null = null;
+      if (!isCatalog) {
+        const created = await createKnowledgeSource({
+          employeeId: sessionRow.employeeId,
+          organizationId,
+          type: "session_summary",
+          title: `Session summary · ${new Date().toISOString().slice(0, 10)}`,
+          chunks: [{ content: summary.summary }],
+        });
+        knowledgeSourceId = created.source.id;
+      }
 
       await db
         .update(employeeSession)
@@ -69,11 +80,11 @@ export const summarizeCompletedSession = inngest.createFunction(
           summary: summary.summary,
           primaryTopic: summary.primaryTopic,
           resolved: summary.resolved,
-          summaryKnowledgeSourceId: created.source.id,
+          summaryKnowledgeSourceId: knowledgeSourceId,
         })
         .where(eq(employeeSession.id, sessionId));
 
-      return created.source.id;
+      return knowledgeSourceId;
     });
 
     await step.run("record-work-event", async () => {
@@ -93,6 +104,12 @@ export const summarizeCompletedSession = inngest.createFunction(
     });
 
     await step.run("schedule-followups", async () => {
+      // Catalog employees are immutable for non-home orgs; skip task creation
+      // so session summary jobs don't fail after shared Talk.
+      if (await isPublishedPlatformCatalogEmployee(sessionRow.employeeId)) {
+        return;
+      }
+
       for (const followUp of summary.followUps) {
         const title = followUp.title?.trim();
         const description = followUp.description?.trim();

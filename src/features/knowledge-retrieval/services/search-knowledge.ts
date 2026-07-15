@@ -4,6 +4,7 @@ import {
   knowledgeChunk,
   knowledgeSource,
 } from "@/entities/knowledge/schema";
+import { isPublishedPlatformCatalogEmployee } from "@/features/employees/services/platform-employee-catalog";
 import { db } from "@/shared/db/client";
 import {
   getOpenAiEmbeddingModel,
@@ -48,6 +49,11 @@ export async function searchKnowledge(
   }
 
   const vectorLiteral = `[${queryEmbedding.join(",")}]`;
+  // Catalog employees share one RAG corpus: never surface private session
+  // summaries that may already exist from home-org Talk history.
+  const excludeSessionSummaries = await isPublishedPlatformCatalogEmployee(
+    input.employeeId,
+  );
 
   const result = await db.execute(sql`
     SELECT
@@ -61,6 +67,10 @@ export async function searchKnowledge(
     WHERE ks.employee_id = ${input.employeeId}
       AND ks.status = 'ready'
       AND kc.embedding IS NOT NULL
+      AND (
+        ${excludeSessionSummaries} = false
+        OR ks.type <> 'session_summary'
+      )
     ORDER BY kc.embedding <=> ${vectorLiteral}::vector
     LIMIT ${topK}
   `);

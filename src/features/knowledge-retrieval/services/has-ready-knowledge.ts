@@ -1,5 +1,6 @@
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, ne, sql } from "drizzle-orm";
 import { knowledgeSource } from "@/entities/knowledge/schema";
+import { isPublishedPlatformCatalogEmployee } from "@/features/employees/services/platform-employee-catalog";
 import { db } from "@/shared/db/client";
 
 const CACHE_TTL_MS = 60_000;
@@ -17,6 +18,9 @@ export async function hasReadyKnowledge(employeeId: string): Promise<boolean> {
     return cached.value;
   }
 
+  const excludeSessionSummaries =
+    await isPublishedPlatformCatalogEmployee(employeeId);
+
   const [row] = await db
     .select({ one: sql<number>`1` })
     .from(knowledgeSource)
@@ -24,6 +28,9 @@ export async function hasReadyKnowledge(employeeId: string): Promise<boolean> {
       and(
         eq(knowledgeSource.employeeId, employeeId),
         eq(knowledgeSource.status, "ready"),
+        excludeSessionSummaries
+          ? ne(knowledgeSource.type, "session_summary")
+          : undefined,
       ),
     )
     .limit(1);
