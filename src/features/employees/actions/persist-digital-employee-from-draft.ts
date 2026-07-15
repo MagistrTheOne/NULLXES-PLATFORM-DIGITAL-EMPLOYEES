@@ -147,7 +147,11 @@ export async function persistDigitalEmployeeFromDraft(
   });
 
   if (draft.knowledge.length > 0) {
-    await persistKnowledgeDraftItems(employeeId, draft.knowledge);
+    await persistKnowledgeDraftItems(
+      employeeId,
+      draft.knowledge,
+      workspace.organization.id,
+    );
   }
 
   const { applyDefaultEmployeeBlueprint } = await import(

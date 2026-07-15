@@ -31,18 +31,22 @@ export type CreateDigitalEmployeeResult = {
 export type ActivateDigitalEmployeeInput = {
   employeeId: string;
   actorUserId: string;
+  /** Caller workspace — home org may mutate catalog-published employees. */
+  organizationId?: string;
   reason?: string;
 };
 
 export type PauseDigitalEmployeeInput = {
   employeeId: string;
   actorUserId: string;
+  organizationId?: string;
   reason?: string;
 };
 
 export type ArchiveDigitalEmployeeInput = {
   employeeId: string;
   actorUserId: string;
+  organizationId?: string;
   reason?: string;
 };
 

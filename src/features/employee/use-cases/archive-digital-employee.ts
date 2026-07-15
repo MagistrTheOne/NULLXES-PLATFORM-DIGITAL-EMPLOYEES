@@ -18,7 +18,7 @@ function assertCanArchive(status: EmployeeStatus): void {
 export async function archiveDigitalEmployee(
   input: ArchiveDigitalEmployeeInput,
 ): Promise<EmployeeStatusChangeResult> {
-  await forbidCatalogMutation(input.employeeId);
+  await forbidCatalogMutation(input.employeeId, input.organizationId);
 
   return dbWithTransactions.transaction(async (tx) => {
     const [existing] = await tx

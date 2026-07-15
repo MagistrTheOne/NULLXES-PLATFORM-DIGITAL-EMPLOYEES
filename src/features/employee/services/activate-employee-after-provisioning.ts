@@ -25,7 +25,11 @@ export async function activateEmployeeAfterProvisioning(
   }
 
   const [employee] = await db
-    .select({ id: digitalEmployee.id, status: digitalEmployee.status })
+    .select({
+      id: digitalEmployee.id,
+      status: digitalEmployee.status,
+      organizationId: digitalEmployee.organizationId,
+    })
     .from(digitalEmployee)
     .where(eq(digitalEmployee.id, employeeId))
     .limit(1);
@@ -59,6 +63,7 @@ export async function activateEmployeeAfterProvisioning(
     await activateDigitalEmployee({
       employeeId,
       actorUserId: createdEvent.actorUserId,
+      organizationId: employee.organizationId,
       reason: "Auto-activated after provider provisioning completed",
     });
 

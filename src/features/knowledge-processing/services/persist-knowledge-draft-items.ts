@@ -40,6 +40,7 @@ async function resolveDraftContent(
 export async function persistKnowledgeDraftItems(
   employeeId: string,
   items: KnowledgeDraftItem[],
+  organizationId?: string,
 ): Promise<PersistKnowledgeDraftResult> {
   const failures: string[] = [];
   let created = 0;
@@ -49,6 +50,7 @@ export async function persistKnowledgeDraftItems(
       const { title, content } = await resolveDraftContent(item);
       await createKnowledgeSource({
         employeeId,
+        organizationId,
         type: item.type,
         title,
         chunks: [{ content }],

@@ -33,7 +33,7 @@ export async function createEmployeeMission(input: {
   source?: MissionSource;
   scheduleId?: string;
 }): Promise<string> {
-  await forbidCatalogMutation(input.employeeId);
+  await forbidCatalogMutation(input.employeeId, input.organizationId);
 
   const [employee] = await db
     .select({ id: digitalEmployee.id })

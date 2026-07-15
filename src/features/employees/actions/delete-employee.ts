@@ -32,7 +32,10 @@ export async function deleteEmployeeAction(
       };
     }
 
-    const catalogGuard = await assertNotPlatformCatalogEmployee(employeeId);
+    const catalogGuard = await assertNotPlatformCatalogEmployee(
+      employeeId,
+      workspace.organization.id,
+    );
     if (!catalogGuard.ok) {
       return catalogGuard;
     }

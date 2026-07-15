@@ -18,7 +18,10 @@ export async function pauseHqEmployeeAction(
       "canManageEmployees",
     );
 
-    const catalogGuard = await assertNotPlatformCatalogEmployee(employeeId);
+    const catalogGuard = await assertNotPlatformCatalogEmployee(
+      employeeId,
+      workspace.organization.id,
+    );
     if (!catalogGuard.ok) {
       return catalogGuard;
     }
@@ -34,6 +37,7 @@ export async function pauseHqEmployeeAction(
     await pauseDigitalEmployee({
       employeeId,
       actorUserId: workspace.user.id,
+      organizationId: workspace.organization.id,
       reason: "Paused from NULLXES HQ",
     });
 

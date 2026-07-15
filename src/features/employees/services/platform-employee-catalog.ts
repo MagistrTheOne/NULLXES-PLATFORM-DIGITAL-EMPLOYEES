@@ -56,9 +56,22 @@ export async function listPublishedPlatformCatalogForPlan(
 export async function isPublishedPlatformCatalogEmployee(
   employeeId: string,
 ): Promise<boolean> {
+  return (await getPublishedCatalogHomeOrganizationId(employeeId)) !== null;
+}
+
+/** Home org that owns a published catalog employee, or null if not in catalog. */
+export async function getPublishedCatalogHomeOrganizationId(
+  employeeId: string,
+): Promise<string | null> {
   const [row] = await db
-    .select({ id: platformEmployeeCatalog.id })
+    .select({
+      homeOrganizationId: digitalEmployee.organizationId,
+    })
     .from(platformEmployeeCatalog)
+    .innerJoin(
+      digitalEmployee,
+      eq(digitalEmployee.id, platformEmployeeCatalog.employeeId),
+    )
     .where(
       and(
         eq(platformEmployeeCatalog.employeeId, employeeId),
@@ -67,32 +80,43 @@ export async function isPublishedPlatformCatalogEmployee(
     )
     .limit(1);
 
-  return Boolean(row);
+  return row?.homeOrganizationId ?? null;
 }
 
 export const CATALOG_IMMUTABLE_MESSAGE =
   "NULLXES catalog employees are read-only. Create a custom digital employee to edit your own workforce.";
 
 /**
- * Domain-layer immutability for published Platform Catalog employees.
- * Use on every definition write (CRUD, blueprint, knowledge, missions, tasks, providers).
+ * Published Platform Catalog employees are read-only for other tenants.
+ * The home organization (ceo / catalog publisher) retains full write access.
  * Talk/sessions are intentionally not gated here.
  */
 export async function assertCatalogEmployeeImmutable(
   employeeId: string,
+  callerOrganizationId?: string,
 ): Promise<{ ok: true } | { ok: false; message: string }> {
-  if (await isPublishedPlatformCatalogEmployee(employeeId)) {
-    return { ok: false, message: CATALOG_IMMUTABLE_MESSAGE };
+  const homeOrganizationId =
+    await getPublishedCatalogHomeOrganizationId(employeeId);
+  if (!homeOrganizationId) {
+    return { ok: true };
   }
 
-  return { ok: true };
+  if (
+    callerOrganizationId &&
+    callerOrganizationId === homeOrganizationId
+  ) {
+    return { ok: true };
+  }
+
+  return { ok: false, message: CATALOG_IMMUTABLE_MESSAGE };
 }
 
 /** Alias kept for existing action call sites. */
 export async function assertNotPlatformCatalogEmployee(
   employeeId: string,
+  callerOrganizationId?: string,
 ): Promise<{ ok: true } | { ok: false; message: string }> {
-  return assertCatalogEmployeeImmutable(employeeId);
+  return assertCatalogEmployeeImmutable(employeeId, callerOrganizationId);
 }
 
 export class CatalogEmployeeImmutableError extends Error {
@@ -104,21 +128,31 @@ export class CatalogEmployeeImmutableError extends Error {
   }
 }
 
-export async function forbidCatalogMutation(employeeId: string): Promise<void> {
-  const guard = await assertCatalogEmployeeImmutable(employeeId);
+export async function forbidCatalogMutation(
+  employeeId: string,
+  callerOrganizationId?: string,
+): Promise<void> {
+  const guard = await assertCatalogEmployeeImmutable(
+    employeeId,
+    callerOrganizationId,
+  );
   if (!guard.ok) {
     throw new CatalogEmployeeImmutableError(guard.message);
   }
 }
 
 /**
- * Custom employees only: must belong to organizationId and not be catalog.
+ * Writable when the employee belongs to organizationId.
+ * Catalog publication does not block the home org.
  */
 export async function assertEmployeeWritableInOrg(
   organizationId: string,
   employeeId: string,
 ): Promise<{ ok: true } | { ok: false; message: string }> {
-  const catalogGuard = await assertCatalogEmployeeImmutable(employeeId);
+  const catalogGuard = await assertCatalogEmployeeImmutable(
+    employeeId,
+    organizationId,
+  );
   if (!catalogGuard.ok) {
     return catalogGuard;
   }

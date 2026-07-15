@@ -13,7 +13,7 @@ export async function updateEmployeeDepartment(input: {
   employeeId: string;
   department: HqDepartment | null;
 }): Promise<boolean> {
-  await forbidCatalogMutation(input.employeeId);
+  await forbidCatalogMutation(input.employeeId, input.organizationId);
 
   const updated = await db
     .update(digitalEmployee)

@@ -12,6 +12,8 @@ export type KnowledgeChunkInput = {
 
 export type CreateKnowledgeSourceInput = {
   employeeId: string;
+  /** Caller workspace — required for catalog home-org writes. */
+  organizationId?: string;
   type: KnowledgeSourceType;
   title: string;
   chunks: KnowledgeChunkInput[];

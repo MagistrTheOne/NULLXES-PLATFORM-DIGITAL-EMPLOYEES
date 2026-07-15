@@ -1,6 +1,7 @@
 import { and, eq } from "drizzle-orm";
 import type { ProviderConfigType } from "@/entities/provider-config";
 import { employeeProviderConfig } from "@/entities/provider-config/schema";
+import { digitalEmployee } from "@/entities/digital-employee/schema";
 import { forbidCatalogMutation } from "@/features/employees/services/platform-employee-catalog";
 import { db } from "@/shared/db/client";
 
@@ -26,10 +27,19 @@ export async function mergeProviderConfig(
   employeeId: string,
   providerType: ProviderConfigType,
   patch: Record<string, unknown>,
-  options?: { allowCatalogMutation?: boolean },
+  options?: { allowCatalogMutation?: boolean; organizationId?: string },
 ): Promise<Record<string, unknown>> {
   if (!options?.allowCatalogMutation) {
-    await forbidCatalogMutation(employeeId);
+    let organizationId = options?.organizationId;
+    if (!organizationId) {
+      const [employee] = await db
+        .select({ organizationId: digitalEmployee.organizationId })
+        .from(digitalEmployee)
+        .where(eq(digitalEmployee.id, employeeId))
+        .limit(1);
+      organizationId = employee?.organizationId;
+    }
+    await forbidCatalogMutation(employeeId, organizationId);
   }
 
   const row = await getProviderConfigRow(employeeId, providerType);

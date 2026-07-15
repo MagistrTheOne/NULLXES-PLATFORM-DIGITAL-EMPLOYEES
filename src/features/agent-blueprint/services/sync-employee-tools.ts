@@ -12,7 +12,7 @@ export async function syncEmployeeTool(input: {
   toolDefinitionId: string;
   isEnabled: boolean;
 }): Promise<void> {
-  await forbidCatalogMutation(input.employeeId);
+  await forbidCatalogMutation(input.employeeId, input.organizationId);
 
   const [employee] = await db
     .select({ id: digitalEmployee.id })

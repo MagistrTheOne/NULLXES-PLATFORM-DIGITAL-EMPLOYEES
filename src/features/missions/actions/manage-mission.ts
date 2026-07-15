@@ -32,7 +32,10 @@ export async function updateMissionAction(input: {
       "canOperateEmployees",
     );
 
-    const catalogGuard = await assertCatalogEmployeeImmutable(input.employeeId);
+    const catalogGuard = await assertCatalogEmployeeImmutable(
+      input.employeeId,
+      workspace.organization.id,
+    );
     if (!catalogGuard.ok) {
       return catalogGuard;
     }

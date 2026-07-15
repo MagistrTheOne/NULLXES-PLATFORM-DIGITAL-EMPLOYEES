@@ -12,7 +12,7 @@ import { db } from "@/shared/db/client";
 import { forbidCatalogMutation } from "@/features/employees/services/platform-employee-catalog";
 
 async function assertEmployeeInOrg(organizationId: string, employeeId: string) {
-  await forbidCatalogMutation(employeeId);
+  await forbidCatalogMutation(employeeId, organizationId);
 
   const [employee] = await db
     .select({ id: digitalEmployee.id })

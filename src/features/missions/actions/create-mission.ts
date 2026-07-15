@@ -52,7 +52,10 @@ export async function createMissionAction(input: {
       return { ok: false, message: "Select a digital employee." };
     }
 
-    const catalogGuard = await assertNotPlatformCatalogEmployee(employeeId);
+    const catalogGuard = await assertNotPlatformCatalogEmployee(
+      employeeId,
+      workspace.organization.id,
+    );
     if (!catalogGuard.ok) {
       return {
         ok: false,

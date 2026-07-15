@@ -19,7 +19,7 @@ export async function assignEmployeeSkills(input: {
   employeeId: string;
   assignments: EmployeeSkillAssignment[];
 }): Promise<void> {
-  await forbidCatalogMutation(input.employeeId);
+  await forbidCatalogMutation(input.employeeId, input.organizationId);
 
   const [employee] = await db
     .select({ id: digitalEmployee.id })
@@ -85,7 +85,7 @@ export async function removeEmployeeSkill(input: {
   employeeId: string;
   skillId: string;
 }): Promise<void> {
-  await forbidCatalogMutation(input.employeeId);
+  await forbidCatalogMutation(input.employeeId, input.organizationId);
 
   await db
     .delete(employeeSkill)

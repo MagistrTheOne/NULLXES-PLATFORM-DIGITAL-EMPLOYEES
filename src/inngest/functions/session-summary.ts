@@ -57,6 +57,7 @@ export const summarizeCompletedSession = inngest.createFunction(
     const knowledge = await step.run("write-knowledge", async () => {
       const created = await createKnowledgeSource({
         employeeId: sessionRow.employeeId,
+        organizationId,
         type: "session_summary",
         title: `Session summary · ${new Date().toISOString().slice(0, 10)}`,
         chunks: [{ content: summary.summary }],

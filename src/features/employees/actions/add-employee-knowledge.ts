@@ -59,6 +59,7 @@ export async function addEmployeeKnowledgeTextAction(input: {
     const normalized = normalizeKnowledgeTextContent(content);
     const created = await createKnowledgeSource({
       employeeId,
+      organizationId: workspace.organization.id,
       type: "text",
       title: normalized.slice(0, 160),
       chunks: [{ content: normalized }],
@@ -101,6 +102,7 @@ export async function addEmployeeKnowledgeUrlAction(input: {
     const content = await fetchKnowledgeUrlContent(url);
     const created = await createKnowledgeSource({
       employeeId,
+      organizationId: workspace.organization.id,
       type: "url",
       title: url,
       chunks: [{ content }],

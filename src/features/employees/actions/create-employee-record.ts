@@ -177,7 +177,11 @@ export async function createEmployeeRecord(
     });
 
     if (input.knowledge.length > 0) {
-      await persistKnowledgeDraftItems(employeeId, input.knowledge);
+      await persistKnowledgeDraftItems(
+        employeeId,
+        input.knowledge,
+        workspace.organization.id,
+      );
     }
 
     const { applyDefaultEmployeeBlueprint } = await import(

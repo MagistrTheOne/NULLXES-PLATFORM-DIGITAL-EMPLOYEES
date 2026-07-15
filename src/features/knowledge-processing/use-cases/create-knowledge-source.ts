@@ -15,7 +15,7 @@ import type {
 export async function createKnowledgeSource(
   input: CreateKnowledgeSourceInput,
 ): Promise<CreateKnowledgeSourceResult> {
-  await forbidCatalogMutation(input.employeeId);
+  await forbidCatalogMutation(input.employeeId, input.organizationId);
 
   if (input.chunks.length === 0) {
     throw new Error("Knowledge source requires at least one chunk");

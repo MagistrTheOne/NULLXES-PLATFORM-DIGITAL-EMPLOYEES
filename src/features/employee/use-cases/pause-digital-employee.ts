@@ -21,7 +21,7 @@ function assertCanPause(status: EmployeeStatus): void {
 export async function pauseDigitalEmployee(
   input: PauseDigitalEmployeeInput,
 ): Promise<EmployeeStatusChangeResult> {
-  await forbidCatalogMutation(input.employeeId);
+  await forbidCatalogMutation(input.employeeId, input.organizationId);
 
   return dbWithTransactions.transaction(async (tx) => {
     const [existing] = await tx

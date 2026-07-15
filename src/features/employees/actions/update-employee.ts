@@ -51,6 +51,7 @@ export async function updateEmployeeAction(
 
     const catalogGuard = await assertNotPlatformCatalogEmployee(
       input.employeeId,
+      workspace.organization.id,
     );
     if (!catalogGuard.ok) {
       return catalogGuard;

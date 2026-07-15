@@ -14,7 +14,7 @@ export async function createEmployeeTask(input: {
   dueAt?: Date;
   callbackUrl?: string;
 }): Promise<string> {
-  await forbidCatalogMutation(input.employeeId);
+  await forbidCatalogMutation(input.employeeId, input.organizationId);
 
   const [task] = await db
     .insert(employeeTask)
