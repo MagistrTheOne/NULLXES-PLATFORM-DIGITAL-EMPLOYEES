@@ -42,13 +42,9 @@ export const sendWeeklyDigest = inngest.createFunction(
           db
             .select({ total: count() })
             .from(employeeSession)
-            .innerJoin(
-              digitalEmployee,
-              eq(digitalEmployee.id, employeeSession.employeeId),
-            )
             .where(
               and(
-                eq(digitalEmployee.organizationId, org.id),
+                eq(employeeSession.organizationId, org.id),
                 gte(employeeSession.createdAt, weekAgo),
               ),
             ),

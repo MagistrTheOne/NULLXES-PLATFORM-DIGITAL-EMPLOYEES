@@ -7,7 +7,6 @@ import {
   workspaceAccessDeniedMessage,
 } from "@/features/workspace";
 import { getTalkSessionMetricsSnapshot } from "@/features/runtime-session/services/record-talk-session-turn";
-import { digitalEmployee } from "@/entities/digital-employee/schema";
 import { employeeSession } from "@/entities/session/schema";
 import { db } from "@/shared/db/client";
 
@@ -42,17 +41,13 @@ export async function GET(
   const [row] = await db
     .select({
       userId: employeeSession.userId,
-      organizationId: digitalEmployee.organizationId,
+      organizationId: employeeSession.organizationId,
     })
     .from(employeeSession)
-    .innerJoin(
-      digitalEmployee,
-      eq(employeeSession.employeeId, digitalEmployee.id),
-    )
     .where(
       and(
         eq(employeeSession.id, trimmedSessionId),
-        eq(digitalEmployee.organizationId, workspace.organization.id),
+        eq(employeeSession.organizationId, workspace.organization.id),
       ),
     )
     .limit(1);

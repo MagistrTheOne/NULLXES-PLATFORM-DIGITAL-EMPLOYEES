@@ -31,7 +31,7 @@ export async function listOrganizationSessions(
     })
     .from(employeeSession)
     .innerJoin(digitalEmployee, eq(digitalEmployee.id, employeeSession.employeeId))
-    .where(eq(digitalEmployee.organizationId, organizationId))
+    .where(eq(employeeSession.organizationId, organizationId))
     .orderBy(desc(employeeSession.startedAt))
     .limit(limit);
 
@@ -58,7 +58,7 @@ export async function getOrganizationSession(
     .where(
       and(
         eq(employeeSession.id, sessionId),
-        eq(digitalEmployee.organizationId, organizationId),
+        eq(employeeSession.organizationId, organizationId),
       ),
     )
     .limit(1);

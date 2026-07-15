@@ -20,7 +20,7 @@ export async function appendSessionMessage(input: {
     throw new Error("Session not found");
   }
 
-  if (session.employee.organizationId !== input.organizationId) {
+  if (session.organizationId !== input.organizationId) {
     throw new Error("Session access denied");
   }
 

@@ -1,4 +1,4 @@
-import { and, eq, inArray, lt } from "drizzle-orm";
+import { and, eq, lt } from "drizzle-orm";
 import { digitalEmployee } from "@/entities/digital-employee/schema";
 import { organizationSettings } from "@/entities/organization-settings/schema";
 import { employeeSession } from "@/entities/session/schema";
@@ -49,19 +49,21 @@ export async function runRetentionPurgeForOrganization(
       cutoff: streamCutoff,
     });
     purgedStreamChannels = streamPurge.purgedChannels;
-
-    const deleted = await db
-      .delete(employeeSession)
-      .where(
-        and(
-          inArray(employeeSession.employeeId, employeeIds),
-          lt(employeeSession.createdAt, sessionCutoff),
-        ),
-      )
-      .returning({ id: employeeSession.id });
-
-    purgedSessions = deleted.length;
   }
+
+  // Sessions belong to the caller workspace, not the employee home org
+  // (catalog Talk must not be purged/kept under the wrong tenant).
+  const deleted = await db
+    .delete(employeeSession)
+    .where(
+      and(
+        eq(employeeSession.organizationId, organizationId),
+        lt(employeeSession.createdAt, sessionCutoff),
+      ),
+    )
+    .returning({ id: employeeSession.id });
+
+  purgedSessions = deleted.length;
 
   await db
     .update(organizationSettings)

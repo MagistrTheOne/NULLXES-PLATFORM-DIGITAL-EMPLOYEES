@@ -1,5 +1,4 @@
 import { and, eq, gte, sql } from "drizzle-orm";
-import { digitalEmployee } from "@/entities/digital-employee/schema";
 import { employeeSession } from "@/entities/session/schema";
 import { organization } from "@/entities/organization/schema";
 import { db } from "@/shared/db/client";
@@ -38,13 +37,9 @@ export async function assertTalkMinutesBudget(input: {
       ),
     })
     .from(employeeSession)
-    .innerJoin(
-      digitalEmployee,
-      eq(employeeSession.employeeId, digitalEmployee.id),
-    )
     .where(
       and(
-        eq(digitalEmployee.organizationId, input.organizationId),
+        eq(employeeSession.organizationId, input.organizationId),
         gte(employeeSession.startedAt, monthStart),
       ),
     );

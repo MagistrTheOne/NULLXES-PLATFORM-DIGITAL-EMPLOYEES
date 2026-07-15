@@ -46,7 +46,7 @@ export async function getEmployeePerformance(
     )
     .where(
       and(
-        eq(digitalEmployee.organizationId, organizationId),
+        eq(employeeSession.organizationId, organizationId),
         gte(employeeSession.startedAt, startOfUtcDay(range.from)),
         lte(employeeSession.startedAt, endOfUtcDay(range.to)),
       ),

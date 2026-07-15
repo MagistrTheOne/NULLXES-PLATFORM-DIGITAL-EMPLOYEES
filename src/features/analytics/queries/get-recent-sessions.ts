@@ -32,7 +32,7 @@ export async function getRecentSessions(
     .innerJoin(user, eq(employeeSession.userId, user.id))
     .where(
       and(
-        eq(digitalEmployee.organizationId, organizationId),
+        eq(employeeSession.organizationId, organizationId),
         gte(employeeSession.startedAt, startOfUtcDay(range.from)),
         lte(employeeSession.startedAt, endOfUtcDay(range.to)),
         employeeIds ? inArray(digitalEmployee.id, employeeIds) : undefined,

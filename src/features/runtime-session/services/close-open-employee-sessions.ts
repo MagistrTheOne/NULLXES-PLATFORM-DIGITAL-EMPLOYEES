@@ -1,5 +1,4 @@
 import { and, count, eq, inArray } from "drizzle-orm";
-import { digitalEmployee } from "@/entities/digital-employee/schema";
 import { employeeSession } from "@/entities/session/schema";
 import { applySessionDurationLimit } from "@/features/runtime-session/services/enforce-session-limit";
 import { getEmployeeSessionLimitSeconds } from "@/features/runtime-session/services/get-employee-session-limit";
@@ -16,15 +15,11 @@ export async function countOpenEmployeeSessions(input?: {
   const [row] = await db
     .select({ total: count() })
     .from(employeeSession)
-    .innerJoin(
-      digitalEmployee,
-      eq(digitalEmployee.id, employeeSession.employeeId),
-    )
     .where(
       and(
         inArray(employeeSession.status, ["created", "active"]),
         input?.organizationId
-          ? eq(digitalEmployee.organizationId, input.organizationId)
+          ? eq(employeeSession.organizationId, input.organizationId)
           : undefined,
       ),
     );
@@ -48,15 +43,11 @@ export async function closeOpenEmployeeSessions(input?: {
       startedAt: employeeSession.startedAt,
     })
     .from(employeeSession)
-    .innerJoin(
-      digitalEmployee,
-      eq(digitalEmployee.id, employeeSession.employeeId),
-    )
     .where(
       and(
         inArray(employeeSession.status, ["created", "active"]),
         input?.organizationId
-          ? eq(digitalEmployee.organizationId, input.organizationId)
+          ? eq(employeeSession.organizationId, input.organizationId)
           : undefined,
       ),
     );

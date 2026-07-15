@@ -1,6 +1,7 @@
 import { relations } from "drizzle-orm";
 import { digitalEmployee } from "@/entities/digital-employee/schema";
 import { knowledgeSource } from "@/entities/knowledge/schema";
+import { organization } from "@/entities/organization/schema";
 import { employeeSessionMessage } from "@/entities/session-message/schema";
 import { employeeSessionTurn } from "@/entities/session-turn/schema";
 import { user } from "@/entities/user/schema";
@@ -12,6 +13,10 @@ export const employeeSessionRelations = relations(
     employee: one(digitalEmployee, {
       fields: [employeeSession.employeeId],
       references: [digitalEmployee.id],
+    }),
+    organization: one(organization, {
+      fields: [employeeSession.organizationId],
+      references: [organization.id],
     }),
     user: one(user, {
       fields: [employeeSession.userId],

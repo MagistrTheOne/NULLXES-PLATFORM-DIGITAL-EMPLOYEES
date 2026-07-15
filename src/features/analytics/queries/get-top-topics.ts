@@ -23,7 +23,7 @@ export async function getTopTopics(
     )
     .where(
       and(
-        eq(digitalEmployee.organizationId, organizationId),
+        eq(employeeSession.organizationId, organizationId),
         gte(employeeSession.startedAt, startOfUtcDay(range.from)),
         lte(employeeSession.startedAt, endOfUtcDay(range.to)),
         sql`${employeeSession.primaryTopic} is not null`,

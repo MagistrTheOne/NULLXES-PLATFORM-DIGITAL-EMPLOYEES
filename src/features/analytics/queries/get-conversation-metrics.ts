@@ -32,7 +32,7 @@ export async function getConversationMetrics(
     )
     .where(
       and(
-        eq(digitalEmployee.organizationId, organizationId),
+        eq(employeeSession.organizationId, organizationId),
         sessionStartedInRange(range),
         employeeIds ? inArray(digitalEmployee.id, employeeIds) : undefined,
       ),

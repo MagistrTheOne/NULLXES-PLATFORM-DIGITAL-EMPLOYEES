@@ -55,12 +55,9 @@ async function assertSessionOwnership(
     throw new Error("Session not found");
   }
 
-  const allowed = await callerCanAccessEmployeeSession({
-    employeeOrganizationId: row.employee.organizationId,
-    callerOrganizationId: organizationId,
-    employeeId: row.employeeId,
-  });
-  if (!allowed) {
+  // Tenant boundary is the caller org that started Talk (catalog employees
+  // live in home org but sessions belong to the operating workspace).
+  if (row.organizationId !== organizationId) {
     throw new Error("Session not found");
   }
 
@@ -111,9 +108,15 @@ export async function startEmployeeSession(input: {
     throw new Error("Employee not found");
   }
 
-  const findOpenSession = async (): Promise<string | null> => {
+  const findOpenSession = async (): Promise<{
+    id: string;
+    organizationId: string;
+  } | null> => {
     const [open] = await db
-      .select({ id: employeeSession.id })
+      .select({
+        id: employeeSession.id,
+        organizationId: employeeSession.organizationId,
+      })
       .from(employeeSession)
       .where(
         and(
@@ -124,14 +127,17 @@ export async function startEmployeeSession(input: {
       )
       .orderBy(desc(employeeSession.createdAt))
       .limit(1);
-    return open?.id ?? null;
+    return open ?? null;
   };
 
   const findOpenSessionInTx = async (
     tx: Parameters<Parameters<typeof dbWithTransactions.transaction>[0]>[0],
-  ): Promise<string | null> => {
+  ): Promise<{ id: string; organizationId: string } | null> => {
     const [open] = await tx
-      .select({ id: employeeSession.id })
+      .select({
+        id: employeeSession.id,
+        organizationId: employeeSession.organizationId,
+      })
       .from(employeeSession)
       .where(
         and(
@@ -142,13 +148,19 @@ export async function startEmployeeSession(input: {
       )
       .orderBy(desc(employeeSession.createdAt))
       .limit(1);
-    return open?.id ?? null;
+    return open ?? null;
   };
 
-  // Fast path: reuse an already-open session.
-  const existingOpenId = await findOpenSession();
-  if (existingOpenId) {
-    return existingOpenId;
+  // Fast path: reuse an already-open session for this caller org.
+  const existingOpen = await findOpenSession();
+  if (existingOpen) {
+    if (existingOpen.organizationId === input.organizationId) {
+      return existingOpen.id;
+    }
+    await db
+      .update(employeeSession)
+      .set({ status: "failed", endedAt: new Date() })
+      .where(eq(employeeSession.id, existingOpen.id));
   }
 
   return dbWithTransactions.transaction(async (tx) => {
@@ -158,7 +170,13 @@ export async function startEmployeeSession(input: {
 
     const openForEmployee = await findOpenSessionInTx(tx);
     if (openForEmployee) {
-      return openForEmployee;
+      if (openForEmployee.organizationId === input.organizationId) {
+        return openForEmployee.id;
+      }
+      await tx
+        .update(employeeSession)
+        .set({ status: "failed", endedAt: new Date() })
+        .where(eq(employeeSession.id, openForEmployee.id));
     }
 
     const [openCountRow] = await tx
@@ -195,13 +213,11 @@ export async function startEmployeeSession(input: {
       }
     }
 
-    // Partial unique index (employee_id+user_id where open) makes same-employee
-    // races safe via ON CONFLICT DO NOTHING; the advisory lock above serializes
-    // the cross-employee open-session cap per user.
     const [created] = await tx
       .insert(employeeSession)
       .values({
         employeeId: input.employeeId,
+        organizationId: input.organizationId,
         userId: input.userId,
         status: "created",
       })
@@ -212,9 +228,9 @@ export async function startEmployeeSession(input: {
       return created.id;
     }
 
-    const raceWinnerId = await findOpenSessionInTx(tx);
-    if (raceWinnerId) {
-      return raceWinnerId;
+    const raceWinner = await findOpenSessionInTx(tx);
+    if (raceWinner && raceWinner.organizationId === input.organizationId) {
+      return raceWinner.id;
     }
 
     throw new Error("Failed to create employee session");

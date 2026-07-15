@@ -41,8 +41,6 @@ export async function buildOrganizationExportPayload(
     .from(digitalEmployee)
     .where(eq(digitalEmployee.organizationId, organizationId));
 
-  const employeeIds = employees.map((row) => row.id);
-
   let sessionsSummary = {
     totalSessions: 0,
     completedSessions: 0,
@@ -67,45 +65,43 @@ export async function buildOrganizationExportPayload(
     createdAt: Date;
   }> = [];
 
-  if (employeeIds.length > 0) {
-    sessions = await db
+  sessions = await db
+    .select({
+      id: employeeSession.id,
+      employeeId: employeeSession.employeeId,
+      userId: employeeSession.userId,
+      status: employeeSession.status,
+      startedAt: employeeSession.startedAt,
+      endedAt: employeeSession.endedAt,
+      durationSeconds: employeeSession.durationSeconds,
+      summary: employeeSession.summary,
+      primaryTopic: employeeSession.primaryTopic,
+      createdAt: employeeSession.createdAt,
+    })
+    .from(employeeSession)
+    .where(eq(employeeSession.organizationId, organizationId));
+
+  sessionsSummary = {
+    totalSessions: sessions.length,
+    completedSessions: sessions.filter((row) => row.status === "completed")
+      .length,
+    totalDurationSeconds: sessions.reduce(
+      (total, row) => total + (row.durationSeconds ?? 0),
+      0,
+    ),
+  };
+
+  const sessionIds = sessions.map((row) => row.id);
+  if (sessionIds.length > 0) {
+    sessionTranscripts = await db
       .select({
-        id: employeeSession.id,
-        employeeId: employeeSession.employeeId,
-        userId: employeeSession.userId,
-        status: employeeSession.status,
-        startedAt: employeeSession.startedAt,
-        endedAt: employeeSession.endedAt,
-        durationSeconds: employeeSession.durationSeconds,
-        summary: employeeSession.summary,
-        primaryTopic: employeeSession.primaryTopic,
-        createdAt: employeeSession.createdAt,
+        sessionId: employeeSessionMessage.sessionId,
+        role: employeeSessionMessage.role,
+        content: employeeSessionMessage.content,
+        createdAt: employeeSessionMessage.createdAt,
       })
-      .from(employeeSession)
-      .where(inArray(employeeSession.employeeId, employeeIds));
-
-    sessionsSummary = {
-      totalSessions: sessions.length,
-      completedSessions: sessions.filter((row) => row.status === "completed")
-        .length,
-      totalDurationSeconds: sessions.reduce(
-        (total, row) => total + (row.durationSeconds ?? 0),
-        0,
-      ),
-    };
-
-    const sessionIds = sessions.map((row) => row.id);
-    if (sessionIds.length > 0) {
-      sessionTranscripts = await db
-        .select({
-          sessionId: employeeSessionMessage.sessionId,
-          role: employeeSessionMessage.role,
-          content: employeeSessionMessage.content,
-          createdAt: employeeSessionMessage.createdAt,
-        })
-        .from(employeeSessionMessage)
-        .where(inArray(employeeSessionMessage.sessionId, sessionIds));
-    }
+      .from(employeeSessionMessage)
+      .where(inArray(employeeSessionMessage.sessionId, sessionIds));
   }
 
   const recentAuditEvents = (

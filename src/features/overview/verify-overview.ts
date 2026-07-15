@@ -67,6 +67,7 @@ async function verifyOverview(): Promise<void> {
   await db.insert(employeeSession).values([
     {
       employeeId: employee.id,
+      organizationId: org.id,
       userId: TEST_USER_ID,
       status: "completed",
       startedAt: daysAgo(1),
@@ -78,6 +79,7 @@ async function verifyOverview(): Promise<void> {
     },
     {
       employeeId: employee.id,
+      organizationId: org.id,
       userId: TEST_USER_ID,
       status: "active",
       startedAt: daysAgo(0),

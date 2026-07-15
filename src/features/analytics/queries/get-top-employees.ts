@@ -22,18 +22,16 @@ export async function getTopEmployees(
           Number,
         ),
     })
-    .from(digitalEmployee)
-    .leftJoin(
-      employeeSession,
-      and(
-        eq(employeeSession.employeeId, digitalEmployee.id),
-        gte(employeeSession.startedAt, startOfUtcDay(range.from)),
-        lte(employeeSession.startedAt, endOfUtcDay(range.to)),
-      ),
+    .from(employeeSession)
+    .innerJoin(
+      digitalEmployee,
+      eq(employeeSession.employeeId, digitalEmployee.id),
     )
     .where(
       and(
-        eq(digitalEmployee.organizationId, organizationId),
+        eq(employeeSession.organizationId, organizationId),
+        gte(employeeSession.startedAt, startOfUtcDay(range.from)),
+        lte(employeeSession.startedAt, endOfUtcDay(range.to)),
         employeeIds ? inArray(digitalEmployee.id, employeeIds) : undefined,
       ),
     )

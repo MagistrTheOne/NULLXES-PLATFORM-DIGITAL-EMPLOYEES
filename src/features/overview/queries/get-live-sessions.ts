@@ -32,7 +32,7 @@ export async function getLiveSessions(
     .innerJoin(user, eq(employeeSession.userId, user.id))
     .where(
       and(
-        eq(digitalEmployee.organizationId, organizationId),
+        eq(employeeSession.organizationId, organizationId),
         eq(employeeSession.status, "active"),
         sql`${employeeSession.startedAt} + (${employeeRuntime.sessionLimitSeconds} * interval '1 second') > now()`,
       ),

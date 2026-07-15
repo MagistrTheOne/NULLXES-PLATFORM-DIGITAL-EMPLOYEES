@@ -10,7 +10,7 @@ export async function getSessionMetrics(
   range?: AnalyticsDateRange,
   employeeIds?: string[],
 ): Promise<SessionMetrics> {
-  const filters = [eq(digitalEmployee.organizationId, organizationId)];
+  const filters = [eq(employeeSession.organizationId, organizationId)];
 
   if (range) {
     filters.push(sessionStartedInRange(range)!);

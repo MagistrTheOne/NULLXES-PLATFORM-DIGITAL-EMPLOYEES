@@ -1,5 +1,4 @@
 import { and, eq } from "drizzle-orm";
-import { digitalEmployee } from "@/entities/digital-employee/schema";
 import { employeeSession } from "@/entities/session/schema";
 import { employeeSessionMessage } from "@/entities/session-message/schema";
 import { db } from "@/shared/db/client";
@@ -21,16 +20,12 @@ export async function setSessionMessageFeedback(input: {
     .select({
       messageId: employeeSessionMessage.id,
       sessionUserId: employeeSession.userId,
-      organizationId: digitalEmployee.organizationId,
+      organizationId: employeeSession.organizationId,
     })
     .from(employeeSessionMessage)
     .innerJoin(
       employeeSession,
       eq(employeeSessionMessage.sessionId, employeeSession.id),
-    )
-    .innerJoin(
-      digitalEmployee,
-      eq(employeeSession.employeeId, digitalEmployee.id),
     )
     .where(
       and(

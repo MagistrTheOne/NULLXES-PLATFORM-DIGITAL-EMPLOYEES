@@ -32,7 +32,7 @@ async function querySessionCountsByDate(
     )
     .where(
       and(
-        eq(digitalEmployee.organizationId, organizationId),
+        eq(employeeSession.organizationId, organizationId),
         gte(employeeSession.startedAt, startOfUtcDay(range.from)),
         lte(employeeSession.startedAt, endOfUtcDay(range.to)),
         employeeIds ? inArray(digitalEmployee.id, employeeIds) : undefined,

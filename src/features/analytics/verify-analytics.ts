@@ -108,6 +108,7 @@ async function verifyAnalytics(): Promise<void> {
   await db.insert(employeeSession).values([
     {
       employeeId: somnia.id,
+      organizationId: org.id,
       userId: TEST_USER_ID,
       status: "completed",
       startedAt: daysAgo(2),
@@ -122,6 +123,7 @@ async function verifyAnalytics(): Promise<void> {
     },
     {
       employeeId: somnia.id,
+      organizationId: org.id,
       userId: TEST_USER_ID,
       status: "completed",
       startedAt: daysAgo(1),
@@ -136,6 +138,7 @@ async function verifyAnalytics(): Promise<void> {
     },
     {
       employeeId: somnia.id,
+      organizationId: org.id,
       userId: TEST_USER_ID,
       status: "completed",
       startedAt: daysAgo(0),
@@ -150,6 +153,7 @@ async function verifyAnalytics(): Promise<void> {
     },
     {
       employeeId: kaira.id,
+      organizationId: org.id,
       userId: TEST_USER_ID,
       status: "completed",
       startedAt: daysAgo(3),
@@ -164,6 +168,7 @@ async function verifyAnalytics(): Promise<void> {
     },
     {
       employeeId: kaira.id,
+      organizationId: org.id,
       userId: TEST_USER_ID,
       status: "active",
       startedAt: daysAgo(0),
