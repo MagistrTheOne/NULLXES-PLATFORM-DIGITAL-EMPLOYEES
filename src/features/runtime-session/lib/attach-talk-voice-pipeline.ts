@@ -228,6 +228,7 @@ export function attachTalkVoicePipeline(input: {
           employeeId: input.employeeId,
           replyText: fallback,
           voiceMode: input.voiceMode,
+          synthesizeEndpoint: input.synthesizeEndpoint,
         });
         mirrorTalkReplyToChat({
           text: fallback,
@@ -265,7 +266,13 @@ export function attachTalkVoicePipeline(input: {
     }
 
     const messageContent = pendingMessage.content ?? "";
-    if (isSubstantiveUserMessage(messageContent)) {
+    // Guest landing demos pass brainEndpoint — never fire auth-gated prefetch
+    // (requireAuth redirect would bounce the visitor to /login mid-demo).
+    if (
+      !input.brainEndpoint &&
+      !input.synthesizeEndpoint &&
+      isSubstantiveUserMessage(messageContent)
+    ) {
       void prefetchTalkQueryEmbeddingAction(
         input.employeeId,
         messageContent,

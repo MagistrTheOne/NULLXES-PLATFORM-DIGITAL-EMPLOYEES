@@ -1,6 +1,8 @@
 "use server";
 
-import { requireWorkspacePermissionOrThrowMessage } from "@/features/workspace";
+import { getCurrentSession } from "@/features/auth/services/get-current-session";
+import { ensureWorkspace } from "@/features/auth/services/ensure-workspace";
+import { assertWorkspaceAccess } from "@/features/workspace/services/assert-workspace-access";
 import { trimTalkHistory } from "../lib/trim-talk-history";
 import { buildTalkBrainRequest } from "../services/build-talk-brain-request";
 import { getEmployeeTalkContext } from "../services/get-employee-talk-context";
@@ -29,39 +31,46 @@ export type SynthesizeTalkVoiceResult =
   | { ok: true; pcmBase64: string }
   | { ok: false; message: string };
 
+/**
+ * Workspace TTS. Soft-fails without session — never redirect("/login"),
+ * because guest landing demos may hit this path if the public synthesize
+ * endpoint is unavailable.
+ */
 export async function synthesizeTalkVoiceAction(
   employeeId: string,
   replyText: string,
 ): Promise<SynthesizeTalkVoiceResult> {
   try {
-    const workspace = await requireWorkspacePermissionOrThrowMessage(
-      "canOperateEmployees",
-    );
+    const session = await getCurrentSession();
+    if (!session) {
+      return { ok: false, message: "Unauthorized" };
+    }
+
+    const workspace = await ensureWorkspace(session.user.id, session.user.name);
+    assertWorkspaceAccess(workspace.permissions, "canOperateEmployees");
+
     const employee = await getEmployeeTalkContext(
       workspace.organization.id,
       employeeId,
     );
 
-  if (!employee?.voiceId) {
-    return { ok: false, message: "Employee voice is not configured" };
-  }
+    if (!employee?.voiceId) {
+      return { ok: false, message: "Employee voice is not configured" };
+    }
 
-  if (resolveTalkVoiceMode(employee) !== "elevenlabs") {
-    return { ok: false, message: "ElevenLabs voice is not enabled for this employee" };
-  }
+    if (resolveTalkVoiceMode(employee) !== "elevenlabs") {
+      return {
+        ok: false,
+        message: "ElevenLabs voice is not enabled for this employee",
+      };
+    }
 
-  try {
     const pcm = await synthesizeTalkVoicePcm(employee.voiceId, replyText);
     return { ok: true, pcmBase64: Buffer.from(pcm).toString("base64") };
-  } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "ElevenLabs synthesis failed";
-    return { ok: false, message };
-  }
   } catch (error: unknown) {
     return {
       ok: false,
-      message: error instanceof Error ? error.message : "Access denied",
+      message: error instanceof Error ? error.message : "Voice synthesis failed",
     };
   }
 }
@@ -71,24 +80,28 @@ export async function processTalkTurnAction(
   messages: TalkPipelineMessage[],
 ): Promise<ProcessTalkTurnResult> {
   try {
-    const workspace = await requireWorkspacePermissionOrThrowMessage(
-      "canOperateEmployees",
-    );
+    const session = await getCurrentSession();
+    if (!session) {
+      return { ok: false, message: "Unauthorized" };
+    }
+
+    const workspace = await ensureWorkspace(session.user.id, session.user.name);
+    assertWorkspaceAccess(workspace.permissions, "canOperateEmployees");
+
     const employee = await getEmployeeTalkContext(
       workspace.organization.id,
       employeeId,
     );
 
-  if (!employee) {
-    return { ok: false, message: "Employee not found" };
-  }
+    if (!employee) {
+      return { ok: false, message: "Employee not found" };
+    }
 
-  const lastMessage = messages.at(-1);
-  if (!lastMessage || lastMessage.role !== "user") {
-    return { ok: false, message: "No user message to process" };
-  }
+    const lastMessage = messages.at(-1);
+    if (!lastMessage || lastMessage.role !== "user") {
+      return { ok: false, message: "No user message to process" };
+    }
 
-  try {
     const openAiMessages = trimTalkHistory(messages).map((message) => ({
       role: (message.role === "user" ? "user" : "assistant") as
         | "user"
@@ -130,15 +143,11 @@ export async function processTalkTurnAction(
       voiceMode,
       pcmBase64,
     };
-  } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Talk voice pipeline failed";
-    return { ok: false, message };
-  }
   } catch (error: unknown) {
     return {
       ok: false,
-      message: error instanceof Error ? error.message : "Access denied",
+      message:
+        error instanceof Error ? error.message : "Talk voice pipeline failed",
     };
   }
 }
