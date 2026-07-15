@@ -1113,6 +1113,8 @@
       "current": "Текущий",
       "currentPlanCta": "Текущий план",
       "included": "Включено",
+      "evaluationOnly": "Только Evaluation",
+      "ownerBillingOnly": "Смену тарифа делает owner",
       "flagship": "Флагман",
       "digitalCorporation": "Цифровая корпорация",
       "talkToFounders": "Связаться с отделом продаж",

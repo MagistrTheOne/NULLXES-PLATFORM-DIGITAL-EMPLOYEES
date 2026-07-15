@@ -83,7 +83,11 @@ export async function syncOrganizationPolarBilling(
         activeSubscription.productId,
         productPlanMap,
       );
-      if (billingPlan !== currentPlan) {
+      // Never overwrite Enterprise / Holding assigned via ops/DB.
+      if (
+        !MANUAL_BILLING_PLANS.includes(currentPlan) &&
+        billingPlan !== currentPlan
+      ) {
         updates.billingPlan = billingPlan;
       }
     } else if (
@@ -148,6 +152,22 @@ export async function syncOrganizationBillingFromPolarEvent(input: {
     !productPlanMap.has(input.productId) &&
     billingPlan === "free"
   ) {
+    if (input.customerId) {
+      await db
+        .update(organization)
+        .set({ polarCustomerId: input.customerId })
+        .where(eq(organization.id, input.externalId));
+    }
+    return;
+  }
+
+  const [existing] = await db
+    .select({ billingPlan: organization.billingPlan })
+    .from(organization)
+    .where(eq(organization.id, input.externalId))
+    .limit(1);
+  const currentPlan = resolveBillingPlanId(existing?.billingPlan ?? "free");
+  if (MANUAL_BILLING_PLANS.includes(currentPlan) && input.fallbackPlan == null) {
     if (input.customerId) {
       await db
         .update(organization)

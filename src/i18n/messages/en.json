@@ -1113,6 +1113,8 @@
       "current": "Current",
       "currentPlanCta": "Current plan",
       "included": "Included",
+      "evaluationOnly": "Evaluation only",
+      "ownerBillingOnly": "Owner can change plan",
       "flagship": "Flagship",
       "digitalCorporation": "Digital corporation",
       "talkToFounders": "Contact sales",

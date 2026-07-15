@@ -1,6 +1,10 @@
 /**
- * Provision sales manager: credential login + Holding org access + CEO workspace membership
- * so demos can use the CEO workforce.
+ * Provision sales manager on an isolated Holding workspace.
+ *
+ * - Own organization (NOT CEO org): separate chats, missions, analytics, billing
+ * - Plan: government (Holding) → full platform catalog employees for demos
+ * - Role: owner → can manage own tariffs
+ * - Removes any membership in the CEO organization
  *
  * Usage:
  *   SALES_MANAGER_PASSWORD='…' npm run auth:provision-sales-manager
@@ -9,7 +13,6 @@
  *   SALES_MANAGER_EMAIL=mistery004@gmail.com
  *   SALES_MANAGER_NAME="Sales Manager"
  *   CEO_EMAIL=ceo@nullxes.com
- *   SALES_MANAGER_ROLE=operator
  *
  * Does not print the password.
  */
@@ -19,7 +22,9 @@ import { hashPassword } from "better-auth/crypto";
 import { account } from "../src/features/auth/schema";
 import { createMembership } from "../src/entities/membership/create-membership";
 import { membership } from "../src/entities/membership/schema";
+import { createOrganization } from "../src/entities/organization/create-organization";
 import { organization } from "../src/entities/organization/schema";
+import { ensureOrganizationSettings } from "../src/entities/organization-settings";
 import { user } from "../src/entities/user/schema";
 import { loadEnvFiles } from "../src/shared/config/load-env-files";
 import { db } from "../src/shared/db/client";
@@ -32,13 +37,8 @@ const EMAIL =
 const NAME =
   process.env.SALES_MANAGER_NAME?.trim() || "Sales Manager";
 const PASSWORD = process.env.SALES_MANAGER_PASSWORD?.trim();
-const CEO_EMAIL =
-  process.env.CEO_EMAIL?.trim().toLowerCase() || "ceo@nullxes.com";
-const ROLE = (process.env.SALES_MANAGER_ROLE?.trim() || "operator") as
-  | "owner"
-  | "admin"
-  | "operator"
-  | "viewer";
+const SALES_ORG_SLUG =
+  process.env.SALES_ORG_SLUG?.trim() || "nullxes-sales-demos";
 
 async function upsertCredentialUser(): Promise<string> {
   if (!PASSWORD || PASSWORD.length < 8) {
@@ -117,107 +117,83 @@ async function upsertCredentialUser(): Promise<string> {
   return userId;
 }
 
-async function resolveCeoOrganizationId(): Promise<{
+async function ensureIsolatedHoldingOrg(userId: string): Promise<{
   id: string;
   name: string;
   slug: string;
-  billingPlan: string;
 }> {
-  const [row] = await db
+  const [bySlug] = await db
     .select({
       id: organization.id,
       name: organization.name,
       slug: organization.slug,
       billingPlan: organization.billingPlan,
     })
-    .from(membership)
-    .innerJoin(user, eq(membership.userId, user.id))
-    .innerJoin(organization, eq(membership.organizationId, organization.id))
-    .where(and(eq(user.email, CEO_EMAIL), eq(membership.role, "owner")))
+    .from(organization)
+    .where(eq(organization.slug, SALES_ORG_SLUG))
     .limit(1);
 
-  if (row) {
-    return row;
+  let org = bySlug;
+
+  if (!org) {
+    const created = await createOrganization({
+      name: "NULLXES Sales Demos",
+      slug: SALES_ORG_SLUG,
+      type: "enterprise",
+      status: "active",
+    });
+    await ensureOrganizationSettings(created.id);
+    org = {
+      id: created.id,
+      name: created.name,
+      slug: created.slug,
+      billingPlan: created.billingPlan,
+    };
+    console.log(`Created sales org: ${org.name} [${org.id}]`);
+  } else {
+    console.log(`Using sales org: ${org.name} [${org.id}]`);
   }
 
-  const [any] = await db
-    .select({
-      id: organization.id,
-      name: organization.name,
-      slug: organization.slug,
-      billingPlan: organization.billingPlan,
-    })
-    .from(membership)
-    .innerJoin(user, eq(membership.userId, user.id))
-    .innerJoin(organization, eq(membership.organizationId, organization.id))
-    .where(eq(user.email, CEO_EMAIL))
-    .limit(1);
-
-  if (!any) {
-    throw new Error(`CEO organization not found for ${CEO_EMAIL}`);
+  if (org.billingPlan !== "government") {
+    await db
+      .update(organization)
+      .set({ billingPlan: "government", updatedAt: new Date() })
+      .where(eq(organization.id, org.id));
+    console.log("Sales org plan → government (Holding)");
   }
 
-  return any;
-}
-
-async function ensureHoldingPlan(orgId: string, previous: string): Promise<void> {
-  if (previous === "government") {
-    console.log("CEO org already on Holding (government).");
-    return;
-  }
-
-  await db
-    .update(organization)
-    .set({ billingPlan: "government", updatedAt: new Date() })
-    .where(eq(organization.id, orgId));
-
-  console.log(`CEO org plan: ${previous} → government (Holding)`);
-}
-
-async function ensureCeoMembership(
-  userId: string,
-  orgId: string,
-): Promise<void> {
-  const [existing] = await db
+  const [existingMembership] = await db
     .select({ id: membership.id, role: membership.role })
     .from(membership)
     .where(
       and(
         eq(membership.userId, userId),
-        eq(membership.organizationId, orgId),
+        eq(membership.organizationId, org.id),
       ),
     )
     .limit(1);
 
-  if (existing) {
-    if (existing.role !== ROLE && existing.role !== "owner") {
-      await db
-        .update(membership)
-        .set({ role: ROLE })
-        .where(eq(membership.id, existing.id));
-      console.log(`Updated CEO-org membership role → ${ROLE}`);
-    } else {
-      console.log(`Already member of CEO org as ${existing.role}`);
-    }
-    return;
+  if (!existingMembership) {
+    await createMembership({
+      userId,
+      organizationId: org.id,
+      role: "owner",
+    });
+    console.log("Added sales manager as owner of isolated org");
+  } else if (existingMembership.role !== "owner") {
+    await db
+      .update(membership)
+      .set({ role: "owner" })
+      .where(eq(membership.id, existingMembership.id));
+    console.log("Sales membership role → owner");
   }
 
-  await createMembership({
-    userId,
-    organizationId: orgId,
-    role: ROLE,
-  });
-  console.log(`Added to CEO org as ${ROLE}`);
+  return { id: org.id, name: org.name, slug: org.slug };
 }
 
-/**
- * Active workspace prefers `owner` over `operator`/`admin`.
- * Drop other memberships so the sales manager lands in the CEO org
- * and sees the demo workforce.
- */
-async function preferCeoWorkspaceOnly(
+async function detachFromOtherOrgs(
   userId: string,
-  ceoOrgId: string,
+  salesOrgId: string,
 ): Promise<void> {
   const rows = await db
     .select({
@@ -231,27 +207,23 @@ async function preferCeoWorkspaceOnly(
     .where(eq(membership.userId, userId));
 
   for (const row of rows) {
-    if (row.orgId === ceoOrgId) {
+    if (row.orgId === salesOrgId) {
       continue;
     }
     await db.delete(membership).where(eq(membership.id, row.id));
     console.log(
-      `Removed extra membership: ${row.orgName} (${row.role}) so CEO org is active`,
+      `Detached from: ${row.orgName} (${row.role}) — chats/missions/billing isolated`,
     );
   }
 }
 
 async function main(): Promise<void> {
   const userId = await upsertCredentialUser();
-  const ceoOrg = await resolveCeoOrganizationId();
-  console.log(`CEO org: ${ceoOrg.name} (${ceoOrg.slug}) [${ceoOrg.id}]`);
-
-  await ensureHoldingPlan(ceoOrg.id, ceoOrg.billingPlan);
-  await ensureCeoMembership(userId, ceoOrg.id);
-  await preferCeoWorkspaceOnly(userId, ceoOrg.id);
+  const salesOrg = await ensureIsolatedHoldingOrg(userId);
+  await detachFromOtherOrgs(userId, salesOrg.id);
 
   console.log(
-    "Done. Sales manager signs in to CEO Holding workspace for demos.",
+    "Done. Sales manager has isolated Holding workspace; catalog employees stay visible for demos.",
   );
 }
 

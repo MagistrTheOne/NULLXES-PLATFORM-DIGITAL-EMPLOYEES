@@ -67,6 +67,10 @@ export function resolveEffectiveBillingPlanId(input: {
   dbPlanId: BillingPlanId;
   subscription: PolarSubscriptionSnapshot | null;
 }): BillingPlanId {
+  // Manual / DB-assigned Enterprise & Holding must not be masked by Polar.
+  if (isManualBillingPlan(input.dbPlanId)) {
+    return input.dbPlanId;
+  }
   return input.subscription?.planId ?? input.dbPlanId;
 }
 

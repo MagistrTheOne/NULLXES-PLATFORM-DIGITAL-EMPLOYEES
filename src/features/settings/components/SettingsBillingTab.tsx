@@ -140,6 +140,7 @@ export function SettingsBillingTab({
       );
     }
 
+    // Evaluation is not "included" in paid/manual plans — omit fake CTA.
     if (tier.id === "free") {
       return (
         <Button
@@ -148,20 +149,19 @@ export function SettingsBillingTab({
           disabled
           className="w-full justify-center border-border bg-transparent text-muted-foreground"
         >
-          {t("included")}
+          {t("evaluationOnly")}
         </Button>
       );
     }
 
     if (tier.engagement === "self_serve") {
-      if (
-        canManageOrganization &&
-        tbankReady &&
-        (tier.id === "starter" ||
-          tier.id === "studio" ||
-          tier.id === "operator" ||
-          tier.id === "scale")
-      ) {
+      const selfServePlan =
+        tier.id === "starter" ||
+        tier.id === "studio" ||
+        tier.id === "operator" ||
+        tier.id === "scale";
+
+      if (selfServePlan && canManageOrganization && tbankReady) {
         return (
           <TbankPayButton
             label={t("subscribe")}
@@ -172,16 +172,32 @@ export function SettingsBillingTab({
           />
         );
       }
-      return (
-        <Button
-          type="button"
-          variant="outline"
-          className="w-full justify-center border-border bg-transparent text-foreground hover:bg-accent"
-          asChild
-        >
-          <a href={SALES_CONTACT}>{t("contactSales")}</a>
-        </Button>
-      );
+
+      if (selfServePlan && !canManageOrganization) {
+        return (
+          <Button
+            type="button"
+            variant="outline"
+            disabled
+            className="w-full justify-center border-border bg-transparent text-muted-foreground"
+          >
+            {t("ownerBillingOnly")}
+          </Button>
+        );
+      }
+
+      if (selfServePlan && !tbankReady) {
+        return (
+          <Button
+            type="button"
+            variant="outline"
+            disabled
+            className="w-full justify-center border-border bg-transparent text-muted-foreground"
+          >
+            {t("tbankStatusMissing")}
+          </Button>
+        );
+      }
     }
 
     return (
