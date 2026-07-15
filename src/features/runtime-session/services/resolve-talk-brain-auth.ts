@@ -93,12 +93,12 @@ export async function resolveTalkBrainAuth(input: {
   const workspace = await ensureWorkspace(session.user.id, session.user.name);
 
   try {
-    assertWorkspaceAccess(workspace.permissions, "canViewEmployees");
+    assertWorkspaceAccess(workspace.permissions, "canOperateEmployees");
   } catch {
     return {
       ok: false,
       status: 403,
-      error: workspaceAccessDeniedMessage("canViewEmployees"),
+      error: workspaceAccessDeniedMessage("canOperateEmployees"),
     };
   }
 

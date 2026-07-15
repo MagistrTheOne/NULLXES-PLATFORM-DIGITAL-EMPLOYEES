@@ -21,7 +21,7 @@ export async function listTalkThreadsAction(
 ): Promise<TalkThreadSummary[]> {
   try {
     const workspace = await requireWorkspacePermissionOrThrowMessage(
-      "canViewEmployees",
+      "canOperateEmployees",
     );
 
     const apiKey = getStreamApiKey();

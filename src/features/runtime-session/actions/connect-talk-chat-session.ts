@@ -18,7 +18,7 @@ export async function connectTalkChatSessionAction(
 ): Promise<ConnectTalkChatSessionResult> {
   try {
     const workspace = await requireWorkspacePermissionOrThrowMessage(
-      "canViewEmployees",
+      "canOperateEmployees",
     );
 
     const talkContext = await getEmployeeTalkContext(
