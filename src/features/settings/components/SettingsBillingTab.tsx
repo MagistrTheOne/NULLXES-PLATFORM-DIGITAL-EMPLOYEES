@@ -155,17 +155,19 @@ export function SettingsBillingTab({
     }
 
     if (tier.engagement === "self_serve") {
-      const selfServePlan =
+      const selfServePlanId =
         tier.id === "starter" ||
         tier.id === "studio" ||
         tier.id === "operator" ||
-        tier.id === "scale";
+        tier.id === "scale"
+          ? tier.id
+          : null;
 
-      if (selfServePlan && canManageOrganization && tbankReady) {
+      if (selfServePlanId && canManageOrganization && tbankReady) {
         return (
           <TbankPayButton
             label={t("subscribe")}
-            planId={tier.id}
+            planId={selfServePlanId}
             interval={billingInterval}
             pendingLabel={t("subscribePending")}
             className="w-full justify-center border-border bg-foreground text-background hover:bg-foreground/90"
@@ -173,7 +175,7 @@ export function SettingsBillingTab({
         );
       }
 
-      if (selfServePlan && !canManageOrganization) {
+      if (selfServePlanId && !canManageOrganization) {
         return (
           <Button
             type="button"
@@ -186,7 +188,7 @@ export function SettingsBillingTab({
         );
       }
 
-      if (selfServePlan && !tbankReady) {
+      if (selfServePlanId && !tbankReady) {
         return (
           <Button
             type="button"
