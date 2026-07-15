@@ -95,6 +95,27 @@ export async function createTalkChatSession(
     // Channel already exists for repeat Talk sessions on the same thread/user.
   }
 
+  // Refuse joining a named thread owned by another user (knowing the UUID).
+  if (threadId) {
+    try {
+      const existing = await channel.query({ state: true, watch: false });
+      const talkUserId = (
+        (existing.channel ?? channel.data ?? {}) as { talkUserId?: string }
+      ).talkUserId;
+      if (typeof talkUserId === "string" && talkUserId !== actorUserId) {
+        throw new Error("Talk channel is owned by another user");
+      }
+    } catch (error: unknown) {
+      if (
+        error instanceof Error &&
+        error.message === "Talk channel is owned by another user"
+      ) {
+        throw error;
+      }
+      // Query can fail on brand-new channels; continue to membership ensure.
+    }
+  }
+
   try {
     // Ensure membership without adding other humans (security isolation).
     await channel.addMembers([actorUserId, botUserId]);

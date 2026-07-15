@@ -1,6 +1,7 @@
 "use server";
 
 import { requireWorkspacePermissionOrThrowMessage } from "@/features/workspace";
+import { assertTalkChannelOwnedByActor } from "../lib/assert-talk-channel-owned";
 import { getEmployeeTalkContext } from "../services/get-employee-talk-context";
 import { sendTalkChatBotMessage } from "../services/send-talk-chat-bot-message";
 
@@ -23,19 +24,18 @@ export async function sendTalkChatBotMessageAction(
       return { ok: false, message: "Talk is not available for this employee" };
     }
 
-    const expectedPrefixMain = "etu-";
-    const expectedPrefixThread = `et-${employeeId}-`;
-    const id = channelId.trim();
-    if (
-      !id ||
-      !(id.startsWith(expectedPrefixMain) || id.startsWith(expectedPrefixThread))
-    ) {
-      return { ok: false, message: "Invalid Talk channel" };
+    const ownership = await assertTalkChannelOwnedByActor({
+      employeeId,
+      channelId,
+      actorUserId: workspace.user.id,
+    });
+    if (!ownership.ok) {
+      return ownership;
     }
 
     const messageId = await sendTalkChatBotMessage({
       employeeId,
-      channelId: id,
+      channelId: channelId.trim(),
       text,
     });
     return { ok: true, messageId };
