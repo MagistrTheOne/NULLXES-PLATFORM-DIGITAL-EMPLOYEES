@@ -24,7 +24,7 @@ export async function consumePlatformAnamQuota(): Promise<
   return checkRateLimit({
     name: "anam-proxy-platform",
     key: "global",
-    limit: 600,
+    limit: 1_200,
     windowMs: 60_000,
   });
 }

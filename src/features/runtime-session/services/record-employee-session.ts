@@ -15,6 +15,7 @@ import {
   EmployeeSessionLimitError,
   MAX_OPEN_SESSIONS_PER_USER,
   MAX_OPEN_SESSIONS_PER_CATALOG_EMPLOYEE,
+  MAX_OPEN_SESSIONS_PER_ORGANIZATION,
 } from "../lib/employee-session-limit";
 
 function assertValidSatisfactionRating(rating: number): void {
@@ -191,6 +192,22 @@ export async function startEmployeeSession(input: {
 
     if (Number(openCountRow?.total ?? 0) >= MAX_OPEN_SESSIONS_PER_USER) {
       throw new EmployeeSessionLimitError();
+    }
+
+    const [orgOpenRow] = await tx
+      .select({ total: count() })
+      .from(employeeSession)
+      .where(
+        and(
+          eq(employeeSession.organizationId, input.organizationId),
+          inArray(employeeSession.status, ["created", "active"]),
+        ),
+      );
+
+    if (Number(orgOpenRow?.total ?? 0) >= MAX_OPEN_SESSIONS_PER_ORGANIZATION) {
+      throw new EmployeeSessionLimitError(
+        "Your workspace already has the maximum number of live Talk sessions. End one before starting another.",
+      );
     }
 
     if (await isPublishedPlatformCatalogEmployee(input.employeeId)) {
