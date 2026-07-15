@@ -93,8 +93,10 @@ function TalkChatFallback({
 class TalkChatErrorBoundary extends Component<
   {
     onError: () => void;
+    onRetry: () => void;
     children: ReactNode;
     unavailableLabel: string;
+    retryLabel: string;
   },
   { hasError: boolean }
 > {
@@ -115,7 +117,11 @@ class TalkChatErrorBoundary extends Component<
           state="unavailable"
           unavailableLabel={this.props.unavailableLabel}
           connectingLabel=""
-          retryLabel=""
+          retryLabel={this.props.retryLabel}
+          onRetry={() => {
+            this.setState({ hasError: false });
+            this.props.onRetry();
+          }}
         />
       );
     }
@@ -169,6 +175,8 @@ export function EmployeeTalkChat({
   const [connectAttempt, setConnectAttempt] = useState(0);
   const [isClearingHistory, setIsClearingHistory] = useState(false);
   const connectGenerationRef = useRef(0);
+  const uiStateRef = useRef(uiState);
+  uiStateRef.current = uiState;
 
   useEffect(() => {
     return () => {
@@ -179,6 +187,21 @@ export function EmployeeTalkChat({
   useEffect(() => {
     setActiveChatSession(chatSession);
   }, [chatSession]);
+
+  // Mobile: retry after returning to the tab if Stream previously failed.
+  useEffect(() => {
+    function onVisibility(): void {
+      if (
+        document.visibilityState === "visible" &&
+        uiStateRef.current === "unavailable"
+      ) {
+        setConnectAttempt((current) => current + 1);
+      }
+    }
+
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => document.removeEventListener("visibilitychange", onVisibility);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -257,11 +280,14 @@ export function EmployeeTalkChat({
 
   useEffect(() => {
     if (uiState !== "ready" || !channel) {
-      registerTalkChatBridge({ employeeId: null });
+      registerTalkChatBridge({ employeeId: null, channelId: null });
       return;
     }
 
-    registerTalkChatBridge({ employeeId });
+    registerTalkChatBridge({
+      employeeId,
+      channelId: activeChatSession?.channelId ?? null,
+    });
 
     const detach = attachTalkChatPipeline({
       channel,
@@ -276,7 +302,7 @@ export function EmployeeTalkChat({
 
     return () => {
       detach();
-      registerTalkChatBridge({ employeeId: null });
+      registerTalkChatBridge({ employeeId: null, channelId: null });
     };
   }, [
     activeChatSession,
@@ -342,7 +368,9 @@ export function EmployeeTalkChat({
   return (
     <TalkChatErrorBoundary
       onError={() => setUiState("unavailable")}
+      onRetry={() => setConnectAttempt((current) => current + 1)}
       unavailableLabel={t("unavailable")}
+      retryLabel={t("retry")}
     >
       <NullxesStreamWorkspace config={streamWorkspaceConfig}>
         <Chat client={client} theme="str-chat__theme-dark">

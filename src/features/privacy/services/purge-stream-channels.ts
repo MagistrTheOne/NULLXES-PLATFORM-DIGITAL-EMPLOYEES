@@ -1,5 +1,6 @@
 import { StreamChat, type ChannelFilters } from "stream-chat";
 import { getStreamApiKey, getStreamSecretKey } from "@/shared/config/env";
+import { legacySharedTalkChannelId } from "@/features/runtime-session/lib/talk-channel-id";
 
 export type StreamChannelPurgeResult = {
   purgedChannels: number;
@@ -15,7 +16,7 @@ function parseStreamTimestamp(value: unknown): Date | null {
 
 /**
  * Delete Stream Chat channels whose last activity is older than the retention cutoff.
- * Covers named talk threads and the legacy default employee-talk channel.
+ * Covers named threads, per-user main channels, and legacy shared employee-talk channels.
  */
 export async function purgeStreamChannelsForRetention(input: {
   employeeIds: string[];
@@ -32,18 +33,17 @@ export async function purgeStreamChannelsForRetention(input: {
   let purgedChannels = 0;
 
   for (const employeeId of input.employeeIds) {
-    const threadFilter = {
-      talkKind: "thread",
+    const employeeFilter = {
       talkEmployeeId: employeeId,
     } as unknown as ChannelFilters;
 
-    const threadChannels = await server.queryChannels(
-      threadFilter,
+    const employeeChannels = await server.queryChannels(
+      employeeFilter,
       { last_message_at: 1 },
       { limit: 100, watch: false, state: false },
     );
 
-    for (const channel of threadChannels) {
+    for (const channel of employeeChannels) {
       const lastDate = parseStreamTimestamp(channel.data?.last_message_at);
 
       if (lastDate && lastDate < input.cutoff && channel.cid) {
@@ -52,7 +52,7 @@ export async function purgeStreamChannelsForRetention(input: {
       }
     }
 
-    const legacyChannelId = `employee-talk-${employeeId}`;
+    const legacyChannelId = legacySharedTalkChannelId(employeeId);
     const legacy = server.channel("messaging", legacyChannelId);
 
     try {

@@ -2,8 +2,8 @@ import type { Channel as StreamChannel } from "stream-chat";
 import { StreamChat } from "stream-chat";
 import type { TalkChatCredentials } from "../services/create-talk-chat-session";
 
-const CHAT_CONNECT_ATTEMPTS = 3;
-const CHAT_HTTP_TIMEOUT_MS = 15_000;
+const CHAT_CONNECT_ATTEMPTS = 4;
+const CHAT_HTTP_TIMEOUT_MS = 20_000;
 
 let talkChatMountCount = 0;
 let connectionChain: Promise<void> = Promise.resolve();
@@ -38,11 +38,19 @@ function isRetryableChatError(error: unknown): boolean {
     normalized.includes("timeout") ||
     normalized.includes("network") ||
     normalized.includes("econnaborted") ||
-    normalized.includes("fetch failed")
+    normalized.includes("fetch failed") ||
+    normalized.includes("websocket") ||
+    normalized.includes("ws error") ||
+    normalized.includes("disconnected") ||
+    normalized.includes("connection") ||
+    normalized.includes("temporarily") ||
+    normalized.includes("429") ||
+    normalized.includes("503") ||
+    normalized.includes("502")
   );
 }
 
-async function withChatRetries<T>(label: string, task: () => Promise<T>): Promise<T> {
+async function withChatRetries<T>(task: () => Promise<T>): Promise<T> {
   let lastError: unknown;
 
   for (let attempt = 0; attempt < CHAT_CONNECT_ATTEMPTS; attempt += 1) {
@@ -55,7 +63,7 @@ async function withChatRetries<T>(label: string, task: () => Promise<T>): Promis
         throw error;
       }
 
-      await pause(400 * (attempt + 1));
+      await pause(500 * (attempt + 1));
     }
   }
 
@@ -95,13 +103,18 @@ export async function connectTalkChatSession(
     configureChatClient(client);
 
     const isSameUser = client.userID === chatSession.userId;
+    const wsUnhealthy =
+      typeof (client as { wsConnection?: { isHealthy?: boolean } }).wsConnection
+        ?.isHealthy === "boolean" &&
+      (client as { wsConnection?: { isHealthy?: boolean } }).wsConnection
+        ?.isHealthy === false;
 
-    if (!isSameUser) {
+    if (!isSameUser || wsUnhealthy) {
       if (client.userID) {
-        await withChatRetries("Talk chat disconnect", () => client.disconnectUser());
+        await withChatRetries(() => client.disconnectUser());
       }
 
-      await withChatRetries("Talk chat connectUser", () =>
+      await withChatRetries(() =>
         client.connectUser(
           { id: chatSession.userId, name: chatSession.userName },
           chatSession.token,
@@ -114,7 +127,7 @@ export async function connectTalkChatSession(
       chatSession.channelId,
     );
 
-    await withChatRetries("Talk chat channel watch", () => channel.watch());
+    await withChatRetries(() => channel.watch());
 
     return { client, channel };
   });
