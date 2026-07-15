@@ -20,6 +20,7 @@ export async function removeTeamMemberAction(
     organizationId: workspace.organization.id,
     membershipId,
     actorUserId: session.user.id,
+    actorRole: workspace.membership.role,
   });
 
   if (result.ok) {

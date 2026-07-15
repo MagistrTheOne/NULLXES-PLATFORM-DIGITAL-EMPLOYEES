@@ -7,6 +7,7 @@ export async function removeTeamMember(input: {
   organizationId: string;
   membershipId: string;
   actorUserId: string;
+  actorRole: MembershipRole;
 }): Promise<{ ok: true } | { ok: false; message: string }> {
   const [target] = await db
     .select({
@@ -29,6 +30,10 @@ export async function removeTeamMember(input: {
 
   if (target.userId === input.actorUserId) {
     return { ok: false, message: "You cannot remove yourself from the workspace." };
+  }
+
+  if (target.role === "owner" && input.actorRole !== "owner") {
+    return { ok: false, message: "Only owners can remove another owner." };
   }
 
   if (target.role === "owner") {
@@ -78,6 +83,10 @@ export async function updateTeamMemberRole(input: {
 
   if (!target) {
     return { ok: false, message: "Member not found." };
+  }
+
+  if (target.role === "owner" && input.actorRole !== "owner") {
+    return { ok: false, message: "Only owners can change another owner's role." };
   }
 
   if (target.role === "owner" && input.role !== "owner") {

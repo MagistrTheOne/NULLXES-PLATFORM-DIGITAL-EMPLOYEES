@@ -30,6 +30,7 @@ export async function inviteTeamMemberAction(input: {
     email: input.email,
     role: input.role,
     invitedByUserId: session.user.id,
+    actorRole: workspace.membership.role,
   });
 
   if (!result.ok) {

@@ -12,10 +12,15 @@ export async function createOrganizationInvite(input: {
   email: string;
   role: MembershipRole;
   invitedByUserId: string;
+  actorRole: MembershipRole;
 }): Promise<
   | { ok: true; inviteId: string; token: string; emailSent: boolean }
   | { ok: false; message: string }
 > {
+  if (input.role === "owner" && input.actorRole !== "owner") {
+    return { ok: false, message: "Only owners can invite another owner." };
+  }
+
   const normalizedEmail = input.email.trim().toLowerCase();
   if (!normalizedEmail.includes("@")) {
     return { ok: false, message: "Enter a valid email address." };
