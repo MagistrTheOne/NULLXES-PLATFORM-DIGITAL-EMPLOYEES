@@ -3,11 +3,13 @@ import { NextResponse } from "next/server";
 import { digitalEmployee } from "@/entities/digital-employee/schema";
 import { ADELINE_MARKETING_PORTRAIT } from "@/features/landing/lib/adeline-marketing";
 import { mintLandingDemoToken } from "@/features/landing/lib/landing-demo-token";
+import { consumeAnamProxyQuota } from "@/features/runtime-session/lib/anam-proxy-quota";
 import { createAnamTalkSessionTokenForEmployee } from "@/features/runtime-session/services/create-anam-talk-session";
+import { getEmployeeTalkContext } from "@/features/runtime-session/services/get-employee-talk-context";
+import { resolveTalkVoiceMode } from "@/features/runtime-session/services/resolve-talk-voice-mode";
 import { ADELINE_KALEN_EMPLOYEE_ID } from "@/shared/config/xai-voice-env";
 import { db } from "@/shared/db/client";
 import { checkRateLimit } from "@/shared/security/rate-limit";
-import { consumeAnamProxyQuota } from "@/features/runtime-session/lib/anam-proxy-quota";
 
 export const runtime = "nodejs";
 
@@ -23,7 +25,7 @@ function clientIp(request: Request): string {
 
 /**
  * Unauthenticated 60s Anam avatar Talk trial for Adeline on the marketing landing.
- * No dashboard session row — token only. Rate-limited by IP.
+ * Uses the same employee + ElevenLabs voice as dashboard Talk.
  */
 export async function POST(request: Request): Promise<Response> {
   const ip = clientIp(request);
@@ -58,9 +60,15 @@ export async function POST(request: Request): Promise<Response> {
     );
   }
 
+  const talkContext = await getEmployeeTalkContext(
+    employee.organizationId,
+    employee.id,
+  );
+
   const tokenResult = await createAnamTalkSessionTokenForEmployee(
     employee.organizationId,
     employee.id,
+    talkContext,
   );
 
   if (!tokenResult.ok) {
@@ -81,12 +89,19 @@ export async function POST(request: Request): Promise<Response> {
     );
   }
 
+  const voiceMode = talkContext
+    ? resolveTalkVoiceMode(talkContext)
+    : "anam";
+
   return NextResponse.json({
     sessionToken: tokenResult.sessionToken,
     demoProxyToken: mintLandingDemoToken(),
     maxDurationSec: LANDING_ADELINE_TALK_TRIAL_SECONDS,
     employeeId: employee.id,
     employeeName: employee.name,
-    avatarPreviewUrl: ADELINE_MARKETING_PORTRAIT,
+    employeeRole: talkContext?.role ?? null,
+    avatarPreviewUrl:
+      talkContext?.avatarPreviewUrl?.trim() || ADELINE_MARKETING_PORTRAIT,
+    voiceMode,
   });
 }

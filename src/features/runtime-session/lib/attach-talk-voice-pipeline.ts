@@ -64,6 +64,8 @@ export function attachTalkVoicePipeline(input: {
   setPipelineState: (state: TalkPipelineState) => void;
   /** Override brain bootstrap endpoint (e.g. public landing demo). */
   brainEndpoint?: string;
+  /** Public ElevenLabs synthesize endpoint for guest demos. */
+  synthesizeEndpoint?: string;
 }): () => void {
   const coordinator = getTalkPipelineCoordinator(input.employeeId);
   coordinator.reset();
@@ -164,6 +166,7 @@ export function attachTalkVoicePipeline(input: {
             employeeId: input.employeeId,
             replyText,
             voiceMode: input.voiceMode,
+            synthesizeEndpoint: input.synthesizeEndpoint,
           });
         } else {
           // Custom LLM output → Anam TTS/face via TalkMessageStream (one stream per turn).

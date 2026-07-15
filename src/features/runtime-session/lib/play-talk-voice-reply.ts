@@ -61,25 +61,55 @@ export async function playTalkVoiceReply(input: {
   employeeId: string;
   replyText: string;
   voiceMode: TalkVoiceMode;
+  /** Public TTS endpoint for guest demos (bypasses workspace auth). */
+  synthesizeEndpoint?: string;
 }): Promise<void> {
   if (input.voiceMode === "elevenlabs") {
-    const synthesized = await synthesizeTalkVoiceAction(
-      input.employeeId,
-      input.replyText,
-    );
-    if (!synthesized.ok) {
+    let pcmBase64: string | null = null;
+
+    if (input.synthesizeEndpoint) {
+      try {
+        const response = await fetch(input.synthesizeEndpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            employeeId: input.employeeId,
+            text: input.replyText,
+          }),
+        });
+        const payload = (await response.json().catch(() => ({}))) as {
+          pcmBase64?: string;
+          error?: string;
+        };
+        if (response.ok && payload.pcmBase64) {
+          pcmBase64 = payload.pcmBase64;
+        }
+      } catch {
+        pcmBase64 = null;
+      }
+    } else {
+      const synthesized = await synthesizeTalkVoiceAction(
+        input.employeeId,
+        input.replyText,
+      );
+      if (synthesized.ok) {
+        pcmBase64 = synthesized.pcmBase64;
+      }
+    }
+
+    if (!pcmBase64) {
       await streamReplyWithAnamVoice(input.anamClient, input.replyText);
       return;
     }
-    await playReplyWithElevenLabsVoice(
-      input.anamClient,
-      synthesized.pcmBase64,
-    ).then((played) => {
-      if (!played) {
-        return streamReplyWithAnamVoice(input.anamClient, input.replyText);
-      }
-      return undefined;
-    });
+
+    await playReplyWithElevenLabsVoice(input.anamClient, pcmBase64).then(
+      (played) => {
+        if (!played) {
+          return streamReplyWithAnamVoice(input.anamClient, input.replyText);
+        }
+        return undefined;
+      },
+    );
     return;
   }
 

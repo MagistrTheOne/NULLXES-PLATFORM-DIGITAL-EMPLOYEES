@@ -20,12 +20,14 @@ import {
 import { attachTalkVoicePipeline } from "@/features/runtime-session/lib/attach-talk-voice-pipeline";
 import { setLandingDemoProxyToken } from "@/features/runtime-session/lib/patch-anam-browser-fetch";
 import type { TalkPipelineState } from "@/features/runtime-session/context/talk-anam-context";
+import type { TalkVoiceMode } from "@/features/runtime-session/services/resolve-talk-voice-mode";
 import { ADELINE_KALEN_EMPLOYEE_ID } from "@/shared/config/xai-voice-env";
 import { cn } from "@/lib/utils";
 
 const VIDEO_ID = "nullxes-landing-anam-demo-video";
 const DEMO_ENDPOINT = "/api/landing/adeline-demo/talk";
 const DEMO_BRAIN_ENDPOINT = "/api/landing/adeline-demo/brain-stream";
+const DEMO_TTS_ENDPOINT = "/api/landing/adeline-demo/synthesize";
 const DEFAULT_MAX_SEC = 60;
 
 function formatDuration(seconds: number): string {
@@ -34,17 +36,42 @@ function formatDuration(seconds: number): string {
   return `${String(minutes).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
 }
 
-function pipelineLabel(state: TalkPipelineState): string {
+function pipelineCopy(state: TalkPipelineState): {
+  label: string;
+  hint: string;
+} {
   switch (state) {
     case "listening":
-      return "Listening…";
+      return { label: "Listening", hint: "Speak — Adeline hears you" };
     case "thinking":
-      return "Thinking…";
+      return { label: "Thinking", hint: "Preparing a reply" };
     case "speaking":
-      return "Speaking…";
+      return { label: "Speaking", hint: "Adeline is responding" };
     default:
-      return "Ready — speak to Adeline";
+      return { label: "Ready", hint: "Speak to Adeline" };
   }
+}
+
+function PipelineBars({ active }: { active: boolean }) {
+  return (
+    <span className="flex h-5 items-end gap-[3px]" aria-hidden>
+      {[0.35, 0.7, 1, 0.55, 0.85, 0.45].map((scale, index) => (
+        <span
+          key={index}
+          className={cn(
+            "w-[3px] rounded-full bg-white transition-all duration-150",
+            active ? "opacity-100" : "opacity-35",
+          )}
+          style={{
+            height: `${scale * 100}%`,
+            animation: active
+              ? `landing-wave 0.9s ease-in-out ${index * 0.07}s infinite`
+              : undefined,
+          }}
+        />
+      ))}
+    </span>
+  );
 }
 
 type DemoPayload = {
@@ -53,7 +80,9 @@ type DemoPayload = {
   maxDurationSec?: number;
   employeeId?: string;
   employeeName?: string;
+  employeeRole?: string | null;
   avatarPreviewUrl?: string;
+  voiceMode?: TalkVoiceMode;
 };
 
 export function LandingAnamDemoOverlay({
@@ -79,6 +108,9 @@ export function LandingAnamDemoOverlay({
   >("unknown");
   const [pipelineState, setPipelineState] =
     useState<TalkPipelineState>("idle");
+  const [liveName, setLiveName] = useState(employeeName);
+  const [livePreview, setLivePreview] = useState(avatarPreviewUrl);
+  const [liveRole, setLiveRole] = useState<string | null>(null);
 
   const clientRef = useRef<ReturnType<typeof createAnamTalkClient> | null>(
     null,
@@ -194,7 +226,19 @@ export function LandingAnamDemoOverlay({
           : DEFAULT_MAX_SEC;
       setMaxDurationSec(maxSec);
 
+      if (payload.employeeName) {
+        setLiveName(payload.employeeName);
+      }
+      if (payload.avatarPreviewUrl) {
+        setLivePreview(payload.avatarPreviewUrl);
+      }
+      setLiveRole(payload.employeeRole ?? null);
+
       const employeeId = payload.employeeId ?? ADELINE_KALEN_EMPLOYEE_ID;
+      // Same path as dashboard: ElevenLabs when configured on the employee.
+      const voiceMode: TalkVoiceMode =
+        payload.voiceMode === "elevenlabs" ? "elevenlabs" : "anam";
+
       const anamClient = createAnamTalkClient(payload.sessionToken);
       clientRef.current = anamClient;
 
@@ -261,9 +305,11 @@ export function LandingAnamDemoOverlay({
       detachVoiceRef.current = attachTalkVoicePipeline({
         anamClient,
         employeeId,
-        voiceMode: "anam",
+        voiceMode,
         setPipelineState,
         brainEndpoint: DEMO_BRAIN_ENDPOINT,
+        synthesizeEndpoint:
+          voiceMode === "elevenlabs" ? DEMO_TTS_ENDPOINT : undefined,
       });
 
       const inputAudioStream = await acquireAnamInputAudioStream();
@@ -294,8 +340,11 @@ export function LandingAnamDemoOverlay({
       setError(null);
       setElapsedSec(0);
       setPipelineState("idle");
+      setLiveName(employeeName);
+      setLivePreview(avatarPreviewUrl);
+      setLiveRole(null);
     }
-  }, [open, stopDemo]);
+  }, [avatarPreviewUrl, employeeName, open, stopDemo]);
 
   useEffect(() => {
     if (status !== "live" || startedAtRef.current === null) {
@@ -336,13 +385,21 @@ export function LandingAnamDemoOverlay({
   const canClose = status !== "connecting" && status !== "live";
   const micHearing = isLive && micPermission === "granted" && !micMuted;
   const micListening = pipelineState === "listening";
+  const pipeline = pipelineCopy(pipelineState);
+  const speaking = pipelineState === "speaking";
+  const thinking = pipelineState === "thinking";
+  const listening = pipelineState === "listening";
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent
         showCloseButton={false}
         className={cn(
-          "fixed inset-0 top-0 left-0 flex h-dvh max-h-dvh w-full max-w-none translate-x-0 translate-y-0 flex-col gap-0 overflow-hidden rounded-none border-0 bg-[#050505] p-0 text-white ring-0",
+          "gap-0 overflow-hidden border-0 bg-[#050505] p-0 text-white ring-0",
+          // Mobile: full-bleed minimalism
+          "fixed inset-0 top-0 left-0 flex h-dvh max-h-dvh w-full max-w-none translate-x-0 translate-y-0 flex-col rounded-none",
+          // Desktop: dashboard-like centered stage (not a skinny left strip)
+          "md:inset-auto md:top-1/2 md:left-1/2 md:h-[min(780px,88dvh)] md:max-h-[88dvh] md:w-[min(1080px,94vw)] md:max-w-[1080px] md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-2xl md:border md:border-white/10 md:shadow-[0_40px_120px_rgba(0,0,0,0.65)]",
           "data-open:zoom-in-100 data-closed:zoom-out-100",
         )}
         onInteractOutside={(event) => event.preventDefault()}
@@ -353,24 +410,18 @@ export function LandingAnamDemoOverlay({
           }
         }}
       >
-        <header className="relative flex shrink-0 items-start justify-between gap-4 border-b border-white/8 px-5 py-4 sm:px-8">
-          <div className="min-w-0 space-y-1">
-            <DialogTitle className="text-lg font-medium tracking-tight text-white sm:text-xl">
-              {employeeName}
+        <header className="relative z-20 flex shrink-0 items-start justify-between gap-3 border-b border-white/8 px-4 py-3 sm:px-5 md:px-6">
+          <div className="min-w-0 space-y-0.5">
+            <DialogTitle className="truncate text-base font-medium tracking-tight text-white md:text-lg">
+              {liveName}
             </DialogTitle>
-            <DialogDescription className="text-xs text-white/45">
-              Avatar Talk · live demo
+            <DialogDescription className="truncate text-[11px] text-white/45 md:text-xs">
+              {liveRole?.trim() || "Avatar Talk · live demo"}
             </DialogDescription>
             {isLive ? (
-              <>
-                <p className="font-mono text-sm tabular-nums text-white/55">
-                  {formatDuration(elapsedSec)} /{" "}
-                  {formatDuration(maxDurationSec)}
-                </p>
-                <p className="text-[11px] text-white/40">
-                  {pipelineLabel(pipelineState)}
-                </p>
-              </>
+              <p className="font-mono text-xs tabular-nums text-white/50">
+                {formatDuration(elapsedSec)} / {formatDuration(maxDurationSec)}
+              </p>
             ) : null}
           </div>
           {canClose ? (
@@ -378,7 +429,7 @@ export function LandingAnamDemoOverlay({
               type="button"
               variant="ghost"
               size="icon-sm"
-              className="text-white/55 hover:bg-white/8 hover:text-white"
+              className="shrink-0 text-white/55 hover:bg-white/8 hover:text-white"
               aria-label="Close"
               onClick={() => handleOpenChange(false)}
             >
@@ -390,14 +441,14 @@ export function LandingAnamDemoOverlay({
         <div className="relative min-h-0 flex-1 bg-black">
           <div className="absolute inset-0">
             <Image
-              src={avatarPreviewUrl}
-              alt={employeeName}
+              src={livePreview}
+              alt={liveName}
               fill
               className={cn(
-                "object-cover object-[50%_12%] transition-opacity duration-500",
+                "object-cover object-[50%_18%] transition-opacity duration-500",
                 isLive ? "opacity-0" : "opacity-100",
               )}
-              sizes="100vw"
+              sizes="(max-width: 768px) 100vw, 1080px"
               priority
             />
           </div>
@@ -406,26 +457,102 @@ export function LandingAnamDemoOverlay({
             autoPlay
             playsInline
             className={cn(
-              "absolute inset-0 size-full object-cover object-[50%_12%] transition-opacity duration-500",
+              "absolute inset-0 size-full object-cover object-[50%_18%] transition-opacity duration-500",
               isLive ? "opacity-100" : "opacity-0",
             )}
           />
 
+          {/* Desktop pipeline HUD — dashboard-style readability */}
+          {isLive ? (
+            <div className="pointer-events-none absolute inset-x-0 top-0 z-20 hidden justify-between p-4 md:flex">
+              <p className="text-[10px] font-semibold tracking-[0.28em] text-white/35 uppercase">
+                NULLXES
+              </p>
+              <div
+                className={cn(
+                  "rounded-full border px-3 py-1 text-[11px] font-medium tracking-wide uppercase backdrop-blur-sm transition-colors",
+                  speaking &&
+                    "border-white/25 bg-white/15 text-white",
+                  listening &&
+                    "border-emerald-400/40 bg-emerald-500/10 text-emerald-200",
+                  thinking &&
+                    "border-white/20 bg-black/55 text-white/80",
+                  !speaking &&
+                    !listening &&
+                    !thinking &&
+                    "border-white/12 bg-black/50 text-white/55",
+                )}
+              >
+                {pipeline.label}
+              </div>
+            </div>
+          ) : null}
+
+          {isLive ? (
+            <div className="pointer-events-none absolute bottom-20 left-1/2 z-20 flex w-[min(92%,420px)] -translate-x-1/2 flex-col items-center gap-2 md:bottom-24">
+              <div
+                className={cn(
+                  "flex items-center gap-3 rounded-2xl border px-4 py-2.5 backdrop-blur-md transition-colors",
+                  speaking && "border-white/25 bg-black/70",
+                  listening && "border-emerald-400/35 bg-black/70",
+                  thinking && "border-white/15 bg-black/70",
+                  !speaking &&
+                    !listening &&
+                    !thinking &&
+                    "border-white/10 bg-black/60",
+                )}
+              >
+                {thinking ? (
+                  <Loader2 className="size-4 animate-spin text-white/70" />
+                ) : (
+                  <PipelineBars active={speaking || listening} />
+                )}
+                <div className="min-w-0 text-left">
+                  <p className="text-sm font-medium text-white">
+                    {pipeline.label}
+                  </p>
+                  <p className="text-[11px] text-white/50">{pipeline.hint}</p>
+                </div>
+              </div>
+            </div>
+          ) : null}
+
+          {/* Mobile minimal status */}
+          {isLive ? (
+            <div className="pointer-events-none absolute top-3 left-1/2 z-20 -translate-x-1/2 md:hidden">
+              <div
+                className={cn(
+                  "rounded-full border px-3 py-1 text-[11px] font-medium uppercase backdrop-blur-sm",
+                  speaking && "border-white/25 bg-black/65 text-white",
+                  listening &&
+                    "border-emerald-400/40 bg-black/65 text-emerald-200",
+                  thinking && "border-white/15 bg-black/65 text-white/80",
+                  !speaking &&
+                    !listening &&
+                    !thinking &&
+                    "border-white/10 bg-black/55 text-white/55",
+                )}
+              >
+                {pipeline.label}
+              </div>
+            </div>
+          ) : null}
+
           {status === "connecting" ? (
             <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 bg-black/55">
               <Loader2 className="size-6 animate-spin text-white/70" />
-              <p className="text-xs text-white/55">Connecting avatar…</p>
+              <p className="text-xs text-white/55">Connecting Adeline…</p>
             </div>
           ) : null}
 
           {isLive && micPermission === "denied" ? (
-            <p className="absolute inset-x-0 bottom-28 z-20 flex justify-center text-center text-[11px] text-red-300/80">
+            <p className="absolute inset-x-0 bottom-28 z-20 flex justify-center px-4 text-center text-[11px] text-red-300/80">
               Microphone permission denied — allow mic to talk.
             </p>
           ) : null}
         </div>
 
-        <footer className="flex shrink-0 flex-col items-center gap-3 border-t border-white/8 px-5 py-5 sm:px-8">
+        <footer className="relative z-20 flex shrink-0 flex-col items-center gap-2 border-t border-white/8 px-4 py-4 sm:px-5 md:px-6 md:py-5">
           {error ? (
             <p className="text-center text-sm text-red-300/90" role="alert">
               {error}
@@ -435,7 +562,7 @@ export function LandingAnamDemoOverlay({
           {status === "idle" || status === "ended" || status === "error" ? (
             <Button
               type="button"
-              className="h-[52px] rounded-full border border-white/10 bg-white px-10 text-sm font-medium text-black shadow-none hover:bg-white/92"
+              className="h-12 rounded-full border border-white/10 bg-white px-10 text-sm font-medium text-black shadow-none hover:bg-white/92 md:h-[52px]"
               onClick={() => void startDemo()}
             >
               <Mic className="mr-2.5 size-4" />
