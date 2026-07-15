@@ -1961,6 +1961,13 @@
       "explore": "Explore Platform",
       "oneTapTalk": "One Tap to Talk"
     },
+    "plaque": {
+      "role": "Digital Executive",
+      "talking": "Talking",
+      "talkCta": "Talk · 1 min",
+      "voiceCta": "Voice · 1 min",
+      "trialLabel": "1 minute demo"
+    },
     "workforce": {
       "label": "Workforce",
       "title": "Digital Workforce",
