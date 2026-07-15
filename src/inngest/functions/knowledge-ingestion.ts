@@ -11,6 +11,9 @@ export const processKnowledgeSource = inngest.createFunction(
     id: "knowledge-ingestion-process-source",
     triggers: [{ event: "knowledge/source.pending" }],
     retries: 2,
+    concurrency: {
+      limit: 4,
+    },
   },
   async ({ event, step }) => {
     const { sourceId } = event.data as { sourceId: string };

@@ -48,6 +48,7 @@ export async function POST(request: Request): Promise<Response> {
   const rateLimit = await assertBrainStreamRateLimit({
     userId: authResult.auth.userId,
     employeeId,
+    organizationId: authResult.auth.organizationId,
   });
 
   if (!rateLimit.ok) {

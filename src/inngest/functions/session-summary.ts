@@ -17,6 +17,13 @@ export const summarizeCompletedSession = inngest.createFunction(
   {
     id: "session-summary-completed",
     triggers: [{ event: "employee/session.completed" }],
+    concurrency: [
+      { limit: 6 },
+      {
+        limit: 2,
+        key: "event.data.organizationId",
+      },
+    ],
   },
   async ({ event, step }) => {
     const { sessionId, organizationId } = event.data as {

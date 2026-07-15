@@ -9,6 +9,10 @@ export const processExportJob = inngest.createFunction(
   {
     id: "export-job-process",
     triggers: [{ event: "export/job.requested" }],
+    concurrency: {
+      limit: 2,
+      key: "event.data.organizationId",
+    },
   },
   async ({ event, step }) => {
     const jobId = event.data.jobId as string;

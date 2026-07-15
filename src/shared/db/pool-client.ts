@@ -14,6 +14,19 @@ void getDeploymentRegion();
 
 neonConfig.webSocketConstructor = ws;
 
-const pool = new Pool({ connectionString: getDatabaseUrl() });
+/** Cap pooled WS connections per serverless isolate (Neon recommends low max). */
+const poolMax = (() => {
+  const raw = process.env.NEON_POOL_MAX?.trim();
+  if (!raw) {
+    return 10;
+  }
+  const parsed = Number.parseInt(raw, 10);
+  return Number.isFinite(parsed) && parsed > 0 ? Math.min(parsed, 20) : 10;
+})();
+
+const pool = new Pool({
+  connectionString: getDatabaseUrl(),
+  max: poolMax,
+});
 
 export const dbWithTransactions = drizzle(pool, { schema: drizzleSchema });

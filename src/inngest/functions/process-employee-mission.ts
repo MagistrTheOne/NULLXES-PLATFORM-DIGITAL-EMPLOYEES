@@ -325,6 +325,13 @@ export const processEmployeeMissionStarted = inngest.createFunction(
     id: "process-employee-mission-started",
     triggers: [{ event: "employee/mission.started" }],
     retries: 2,
+    concurrency: [
+      { limit: 8 },
+      {
+        limit: 2,
+        key: "event.data.organizationId",
+      },
+    ],
   },
   async ({ event, step }) => {
     const { missionId, organizationId } = event.data as {
