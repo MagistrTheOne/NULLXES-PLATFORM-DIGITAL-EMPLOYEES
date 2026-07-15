@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { AudioLines } from "lucide-react";
 import { XaiVoiceCallSheet } from "@/features/xai-voice/components/xai-voice-call-sheet";
 import { ADELINE_KALEN_EMPLOYEE_ID } from "@/shared/config/xai-voice-env";
@@ -42,6 +43,7 @@ export function AdelinePlaque({
   plaque: AdelineLandingPlaque;
   signedIn?: boolean;
 }) {
+  const t = useTranslations("landing.plaque");
   const [talkOpen, setTalkOpen] = useState(false);
   const [voiceOpen, setVoiceOpen] = useState(false);
   const employeeId = plaque.id || ADELINE_KALEN_EMPLOYEE_ID;
@@ -72,12 +74,12 @@ export function AdelinePlaque({
               {plaque.name}
             </p>
             <p className="mt-0.5 truncate text-xs tracking-wide text-(--landing-gold)">
-              Digital Executive
+              {t("role")}
             </p>
           </div>
           <div className="inline-flex shrink-0 items-center gap-2 rounded-full border border-(--landing-gold)/40 bg-black/60 px-3 py-1.5 text-[11px] text-(--landing-gold)">
             <TalkingWaveform active />
-            <span>Talking</span>
+            <span>{t("talking")}</span>
           </div>
         </div>
 
@@ -88,7 +90,7 @@ export function AdelinePlaque({
             onClick={() => setTalkOpen(true)}
             className="inline-flex h-11 items-center justify-center rounded-xl bg-white text-sm font-medium text-black transition-opacity hover:opacity-90"
           >
-            Talk · 1 min
+            {t("talkCta")}
           </button>
           <button
             type="button"
@@ -96,7 +98,7 @@ export function AdelinePlaque({
             className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-white/15 bg-transparent text-sm text-white transition-colors hover:border-white/30 hover:bg-white/5"
           >
             <AudioLines className="size-4" />
-            Voice · 1 min
+            {t("voiceCta")}
           </button>
         </div>
       </article>
@@ -117,7 +119,7 @@ export function AdelinePlaque({
         translationNamespace="employees.talk.xaiVoice"
         sessionEndpoint={DEMO_VOICE_ENDPOINT}
         maxDurationSec={DEMO_TRIAL_SECONDS}
-        trialLabel="1 minute demo"
+        trialLabel={t("trialLabel")}
       />
     </>
   );
