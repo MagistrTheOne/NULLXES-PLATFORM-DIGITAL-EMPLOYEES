@@ -1,4 +1,8 @@
 import Link from "next/link";
+import { docsPageMetadata } from "../_lib/docs-page-metadata";
+
+export const metadata = docsPageMetadata("/docs/limits");
+
 import {
   BILLING_PLANS,
   type BillingPlanId,
@@ -141,5 +145,4 @@ export default function DocsLimitsPage() {
         </ul>
       </section>
     </article>
-  );
-}
+  );}

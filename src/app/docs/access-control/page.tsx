@@ -1,4 +1,7 @@
 import Link from "next/link";
+import { docsPageMetadata } from "../_lib/docs-page-metadata";
+
+export const metadata = docsPageMetadata("/docs/access-control");
 
 export default function DocsAccessControlPage() {
   return (
@@ -36,5 +39,4 @@ export default function DocsAccessControlPage() {
         </ul>
       </section>
     </article>
-  );
-}
+  );}

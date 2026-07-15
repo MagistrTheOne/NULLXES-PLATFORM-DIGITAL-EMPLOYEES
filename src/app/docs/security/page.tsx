@@ -1,4 +1,7 @@
 import Link from "next/link";
+import { docsPageMetadata } from "../_lib/docs-page-metadata";
+
+export const metadata = docsPageMetadata("/docs/security");
 
 export default function DocsSecurityPage() {
   return (
@@ -61,5 +64,4 @@ export default function DocsSecurityPage() {
         </ul>
       </section>
     </article>
-  );
-}
+  );}

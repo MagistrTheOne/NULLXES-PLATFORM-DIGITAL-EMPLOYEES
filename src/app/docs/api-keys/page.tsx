@@ -1,4 +1,7 @@
 import Link from "next/link";
+import { docsPageMetadata } from "../_lib/docs-page-metadata";
+
+export const metadata = docsPageMetadata("/docs/api-keys");
 
 export default function DocsApiKeysPage() {
   return (
@@ -57,5 +60,4 @@ export default function DocsApiKeysPage() {
         </p>
       </section>
     </article>
-  );
-}
+  );}

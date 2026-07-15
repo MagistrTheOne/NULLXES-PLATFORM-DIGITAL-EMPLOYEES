@@ -1,4 +1,7 @@
 import Link from "next/link";
+import { docsPageMetadata } from "../_lib/docs-page-metadata";
+
+export const metadata = docsPageMetadata("/docs/webhooks");
 
 export default function DocsWebhooksPage() {
   return (
@@ -64,5 +67,4 @@ export default function DocsWebhooksPage() {
         </p>
       </section>
     </article>
-  );
-}
+  );}

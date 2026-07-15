@@ -1,4 +1,7 @@
 import { DOCS_LEGAL_ENTITY } from "../_lib/docs-legal";
+import { docsPageMetadata } from "../_lib/docs-page-metadata";
+
+export const metadata = docsPageMetadata("/docs/terms");
 
 export default function DocsTermsPage() {
   return (
@@ -114,5 +117,4 @@ export default function DocsTermsPage() {
         </p>
       </section>
     </article>
-  );
-}
+  );}

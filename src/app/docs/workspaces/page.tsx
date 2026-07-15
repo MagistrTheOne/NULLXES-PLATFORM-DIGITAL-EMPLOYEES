@@ -1,4 +1,7 @@
 import Link from "next/link";
+import { docsPageMetadata } from "../_lib/docs-page-metadata";
+
+export const metadata = docsPageMetadata("/docs/workspaces");
 
 export default function DocsWorkspacesPage() {
   return (
@@ -39,5 +42,4 @@ Dashboard / Talk / API`}
         </p>
       </section>
     </article>
-  );
-}
+  );}

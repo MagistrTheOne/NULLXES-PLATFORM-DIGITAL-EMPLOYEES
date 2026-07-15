@@ -1,3 +1,7 @@
+import { docsPageMetadata } from "../_lib/docs-page-metadata";
+
+export const metadata = docsPageMetadata("/docs/analytics");
+
 export default function DocsAnalyticsPage() {
   return (
     <article className="flex flex-col gap-8 text-sm leading-relaxed text-white/60">

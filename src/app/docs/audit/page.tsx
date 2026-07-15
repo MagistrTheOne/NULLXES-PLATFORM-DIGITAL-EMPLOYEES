@@ -1,4 +1,7 @@
 import Link from "next/link";
+import { docsPageMetadata } from "../_lib/docs-page-metadata";
+
+export const metadata = docsPageMetadata("/docs/audit");
 
 export default function DocsAuditPage() {
   return (
@@ -34,5 +37,4 @@ export default function DocsAuditPage() {
         </ul>
       </section>
     </article>
-  );
-}
+  );}

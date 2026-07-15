@@ -1,5 +1,14 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+import { buildPageMetadata } from "@/shared/seo";
 import { DOCS_LEGAL_ENTITY } from "./_lib/docs-legal";
+
+export const metadata: Metadata = buildPageMetadata({
+  title: "Документация NULLXES",
+  description:
+    "Обзор платформы NULLXES Digital Employees: домен, архитектура, Talk, организации, API и разделы документации.",
+  path: "/docs",
+});
 
 const DOC_SECTIONS = [
   {

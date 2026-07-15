@@ -31,32 +31,34 @@ export function LandingPage({
       className={`${landingSerif.variable} relative overflow-x-hidden bg-black text-white`}
       style={landingVars}
     >
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
         <div className="absolute -left-1/4 -top-1/3 h-[70vh] w-[70vw] rounded-full bg-[radial-gradient(ellipse_at_center,rgba(196,165,116,0.14)_0%,transparent_65%)]" />
         <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.03)_0%,transparent_42%)]" />
       </div>
 
       <LandingNav signedIn={signedIn} />
 
-      <div className="relative flex min-h-svh flex-col pt-15 sm:pt-17 lg:h-dvh lg:min-h-0 lg:overflow-hidden">
-        <AdelineHero signedIn={signedIn} plaque={plaque} />
-      </div>
+      <main id="main-content">
+        <div className="relative flex min-h-svh flex-col pt-15 sm:pt-17 lg:h-dvh lg:min-h-0 lg:overflow-hidden">
+          <AdelineHero signedIn={signedIn} plaque={plaque} />
+        </div>
 
-      <div className="relative">
-        <UseCaseSection />
-      </div>
+        <div className="relative">
+          <UseCaseSection />
+        </div>
 
-      <div className="relative">
-        <EnterpriseSection />
-      </div>
+        <div className="relative">
+          <EnterpriseSection />
+        </div>
 
-      <div className="relative">
-        <SecuritySection />
-      </div>
+        <div className="relative">
+          <SecuritySection />
+        </div>
 
-      <div className="relative">
-        <PricingSection />
-      </div>
+        <div className="relative">
+          <PricingSection />
+        </div>
+      </main>
 
       <LandingFooter />
 

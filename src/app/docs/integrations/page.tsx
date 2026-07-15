@@ -1,4 +1,7 @@
 import Link from "next/link";
+import { docsPageMetadata } from "../_lib/docs-page-metadata";
+
+export const metadata = docsPageMetadata("/docs/integrations");
 
 export default function DocsIntegrationsPage() {
   return (
@@ -36,5 +39,4 @@ export default function DocsIntegrationsPage() {
         </ul>
       </section>
     </article>
-  );
-}
+  );}

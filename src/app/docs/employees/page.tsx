@@ -1,4 +1,7 @@
 import Link from "next/link";
+import { docsPageMetadata } from "../_lib/docs-page-metadata";
+
+export const metadata = docsPageMetadata("/docs/employees");
 
 export default function DocsEmployeesPage() {
   return (
@@ -60,5 +63,4 @@ export default function DocsEmployeesPage() {
         </p>
       </section>
     </article>
-  );
-}
+  );}

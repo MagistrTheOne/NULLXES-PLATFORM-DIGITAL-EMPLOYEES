@@ -1,5 +1,8 @@
 import Link from "next/link";
 import { DOCS_LEGAL_ENTITY } from "../_lib/docs-legal";
+import { docsPageMetadata } from "../_lib/docs-page-metadata";
+
+export const metadata = docsPageMetadata("/docs/personal-data");
 
 export default function DocsPersonalDataPage() {
   return (
@@ -248,5 +251,4 @@ export default function DocsPersonalDataPage() {
         </p>
       </section>
     </article>
-  );
-}
+  );}

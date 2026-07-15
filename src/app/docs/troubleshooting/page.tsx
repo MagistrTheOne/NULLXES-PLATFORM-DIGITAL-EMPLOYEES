@@ -1,4 +1,7 @@
 import Link from "next/link";
+import { docsPageMetadata } from "../_lib/docs-page-metadata";
+
+export const metadata = docsPageMetadata("/docs/troubleshooting");
 
 export default function DocsTroubleshootingPage() {
   return (
@@ -78,5 +81,4 @@ export default function DocsTroubleshootingPage() {
         </ul>
       </section>
     </article>
-  );
-}
+  );}

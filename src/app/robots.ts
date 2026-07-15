@@ -1,13 +1,27 @@
 import type { MetadataRoute } from "next";
+import { SITE_URL } from "@/shared/seo";
 
 export default function robots(): MetadataRoute.Robots {
   return {
-    rules: {
-      userAgent: "*",
-      allow: "/",
-      disallow: ["/dashboard", "/api/", "/login", "/register"],
-    },
-    sitemap: "https://www.nullxesdai.online/sitemap.xml",
-    host: "https://www.nullxesdai.online",
+    rules: [
+      {
+        userAgent: "*",
+        allow: ["/"],
+        disallow: [
+          "/dashboard",
+          "/dashboard/",
+          "/api/",
+          "/login",
+          "/register",
+          "/settings",
+          "/billing",
+          "/accept-invite",
+          "/analytics",
+          "/employees",
+        ],
+      },
+    ],
+    sitemap: `${SITE_URL}/sitemap.xml`,
+    host: SITE_URL,
   };
 }

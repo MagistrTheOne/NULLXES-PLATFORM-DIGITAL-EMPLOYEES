@@ -1,3 +1,7 @@
+import { docsPageMetadata } from "../_lib/docs-page-metadata";
+
+export const metadata = docsPageMetadata("/docs/functional");
+
 export default function DocsFunctionalPage() {
   return (
     <article className="flex flex-col gap-8 text-sm leading-relaxed text-white/60">

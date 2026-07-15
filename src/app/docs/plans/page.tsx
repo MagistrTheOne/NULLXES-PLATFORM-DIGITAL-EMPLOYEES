@@ -1,4 +1,8 @@
 import Link from "next/link";
+import { docsPageMetadata } from "../_lib/docs-page-metadata";
+
+export const metadata = docsPageMetadata("/docs/plans");
+
 import {
   BILLING_PLANS,
   type BillingPlanId,
@@ -156,5 +160,4 @@ export default function DocsPlansPage() {
         </p>
       </section>
     </article>
-  );
-}
+  );}

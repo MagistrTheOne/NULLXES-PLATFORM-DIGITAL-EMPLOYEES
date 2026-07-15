@@ -1,4 +1,7 @@
 import Link from "next/link";
+import { docsPageMetadata } from "../_lib/docs-page-metadata";
+
+export const metadata = docsPageMetadata("/docs/talk");
 
 export default function DocsTalkPage() {
   return (
@@ -73,5 +76,4 @@ export default function DocsTalkPage() {
         </p>
       </section>
     </article>
-  );
-}
+  );}

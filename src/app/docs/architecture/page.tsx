@@ -1,5 +1,9 @@
 import Link from "next/link";
 import { DocsMermaid } from "../_components/docs-mermaid";
+import { docsPageMetadata } from "../_lib/docs-page-metadata";
+
+export const metadata = docsPageMetadata("/docs/architecture");
+
 import {
   ARCH_C4_CONTAINER,
   ARCH_ERD,
@@ -116,5 +120,4 @@ export default function DocsArchitecturePage() {
         </p>
       </section>
     </article>
-  );
-}
+  );}

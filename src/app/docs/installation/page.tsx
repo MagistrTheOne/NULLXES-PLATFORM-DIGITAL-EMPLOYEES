@@ -1,3 +1,7 @@
+import { docsPageMetadata } from "../_lib/docs-page-metadata";
+
+export const metadata = docsPageMetadata("/docs/installation");
+
 import {
   DOCS_LEGAL_ENTITY,
   DOCS_SOURCE_ACCESS_POLICY,
@@ -133,5 +137,4 @@ export default function DocsInstallationPage() {
         </ol>
       </section>
     </article>
-  );
-}
+  );}

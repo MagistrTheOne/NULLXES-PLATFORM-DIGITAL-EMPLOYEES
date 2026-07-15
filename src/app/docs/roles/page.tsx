@@ -1,3 +1,7 @@
+import { docsPageMetadata } from "../_lib/docs-page-metadata";
+
+export const metadata = docsPageMetadata("/docs/roles");
+
 export default function DocsRolesPage() {
   return (
     <article className="flex flex-col gap-8 text-sm leading-relaxed text-white/60">

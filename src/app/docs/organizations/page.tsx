@@ -1,4 +1,7 @@
 import Link from "next/link";
+import { docsPageMetadata } from "../_lib/docs-page-metadata";
+
+export const metadata = docsPageMetadata("/docs/organizations");
 
 export default function DocsOrganizationsPage() {
   return (
@@ -47,5 +50,4 @@ export default function DocsOrganizationsPage() {
         </p>
       </section>
     </article>
-  );
-}
+  );}

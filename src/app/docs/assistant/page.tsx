@@ -1,5 +1,8 @@
 import { DocsAssistantChat } from "../_components/docs-assistant-chat";
 import { getDocsAssistantProfile } from "../_lib/get-docs-assistant";
+import { docsPageMetadata } from "../_lib/docs-page-metadata";
+
+export const metadata = docsPageMetadata("/docs/assistant");
 
 export const revalidate = 300;
 
@@ -50,5 +53,4 @@ export default async function DocsAssistantPage() {
         </ul>
       </section>
     </article>
-  );
-}
+  );}

@@ -1,4 +1,13 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+import { buildPageMetadata } from "@/shared/seo";
+
+export const metadata: Metadata = buildPageMetadata({
+  title: "Trust Center",
+  description:
+    "NULLXES Trust Center: data residency, encryption, access control, audit, retention, and 152-FZ personal data practices for Digital Employees.",
+  path: "/trust",
+});
 
 const TRUST_SECTIONS = [
   {
