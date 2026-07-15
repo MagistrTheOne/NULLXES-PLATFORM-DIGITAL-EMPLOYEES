@@ -40,7 +40,8 @@ export async function assertTalkChannelOwnedByActor(input: {
       talkUserId?: string;
       talkKind?: string;
     };
-    const isMember = Boolean(state.members?.[input.actorUserId]);
+    const memberIds = Object.keys(state.members ?? {});
+    const isMember = memberIds.includes(input.actorUserId);
     const owned =
       data.talkEmployeeId === input.employeeId &&
       data.talkKind === "thread" &&
