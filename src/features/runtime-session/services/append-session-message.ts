@@ -1,6 +1,7 @@
 import { count, eq, max } from "drizzle-orm";
 import { employeeSession } from "@/entities/session/schema";
 import { employeeSessionMessage } from "@/entities/session-message/schema";
+import { withTenantContext } from "@/shared/db/with-tenant-context";
 import { db } from "@/shared/db/client";
 
 export async function appendSessionMessage(input: {
@@ -11,57 +12,62 @@ export async function appendSessionMessage(input: {
   content: string;
   streamMessageId?: string;
 }): Promise<void> {
-  const session = await db.query.employeeSession.findFirst({
-    where: eq(employeeSession.id, input.sessionId),
-    with: { employee: true },
-  });
-
-  if (!session?.employee) {
-    throw new Error("Session not found");
-  }
-
-  if (session.organizationId !== input.organizationId) {
-    throw new Error("Session access denied");
-  }
-
-  if (session.userId !== input.userId) {
-    throw new Error("Session access denied");
-  }
-
-  if (input.streamMessageId) {
-    const existing = await db.query.employeeSessionMessage.findFirst({
-      where: eq(employeeSessionMessage.streamMessageId, input.streamMessageId),
+  await withTenantContext(input.organizationId, async (tx) => {
+    const session = await tx.query.employeeSession.findFirst({
+      where: eq(employeeSession.id, input.sessionId),
+      with: { employee: true },
     });
 
-    if (existing) {
-      return;
+    if (!session?.employee) {
+      throw new Error("Session not found");
     }
-  }
 
-  const [sequenceRow] = await db
-    .select({ value: max(employeeSessionMessage.sequence) })
-    .from(employeeSessionMessage)
-    .where(eq(employeeSessionMessage.sessionId, input.sessionId));
+    if (session.organizationId !== input.organizationId) {
+      throw new Error("Session access denied");
+    }
 
-  const nextSequence = (sequenceRow?.value ?? -1) + 1;
+    if (session.userId !== input.userId) {
+      throw new Error("Session access denied");
+    }
 
-  await db.insert(employeeSessionMessage).values({
-    sessionId: input.sessionId,
-    role: input.role,
-    content: input.content.trim(),
-    sequence: nextSequence,
-    streamMessageId: input.streamMessageId,
+    if (input.streamMessageId) {
+      const existing = await tx.query.employeeSessionMessage.findFirst({
+        where: eq(
+          employeeSessionMessage.streamMessageId,
+          input.streamMessageId,
+        ),
+      });
+
+      if (existing) {
+        return;
+      }
+    }
+
+    const [sequenceRow] = await tx
+      .select({ value: max(employeeSessionMessage.sequence) })
+      .from(employeeSessionMessage)
+      .where(eq(employeeSessionMessage.sessionId, input.sessionId));
+
+    const nextSequence = (sequenceRow?.value ?? -1) + 1;
+
+    await tx.insert(employeeSessionMessage).values({
+      sessionId: input.sessionId,
+      role: input.role,
+      content: input.content.trim(),
+      sequence: nextSequence,
+      streamMessageId: input.streamMessageId,
+    });
+
+    const [messageCountRow] = await tx
+      .select({ total: count() })
+      .from(employeeSessionMessage)
+      .where(eq(employeeSessionMessage.sessionId, input.sessionId));
+
+    await tx
+      .update(employeeSession)
+      .set({ messageCount: Number(messageCountRow?.total ?? 0) })
+      .where(eq(employeeSession.id, input.sessionId));
   });
-
-  const [messageCountRow] = await db
-    .select({ total: count() })
-    .from(employeeSessionMessage)
-    .where(eq(employeeSessionMessage.sessionId, input.sessionId));
-
-  await db
-    .update(employeeSession)
-    .set({ messageCount: Number(messageCountRow?.total ?? 0) })
-    .where(eq(employeeSession.id, input.sessionId));
 }
 
 export async function getSessionTranscript(sessionId: string): Promise<

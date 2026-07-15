@@ -1,6 +1,6 @@
 # Tenant Row-Level Security (RLS)
 
-Migration: `drizzle/0042_tenant_rls.sql`
+Migrations: `drizzle/0042_tenant_rls.sql`, `drizzle/0048_session_knowledge_rls.sql`
 
 ## Model
 
@@ -19,16 +19,22 @@ When `app.bypass_rls = off`, rows must match `app.organization_id`.
 
 `digital_employee` **SELECT** also allows published `platform_employee_catalog` rows (Talk / list).
 
-**UPDATE / DELETE / INSERT** on published catalog rows is denied for tenants (domain layer also blocks).
+**UPDATE / DELETE / INSERT** on catalog employees is allowed for the **home org** only (matches app-layer `forbidCatalogMutation`). Non-home tenants are blocked by organization_id mismatch.
+
+`knowledge_source` / `knowledge_chunk` **SELECT** allows home-org employees plus published catalog corpora. Writes require home-org ownership of the employee.
 
 ## Helpers
 
-- `withTenantContext(organizationId, fn)` — tenant request mutations
+- `withTenantContext(organizationId, fn)` — tenant request mutations / hot reads
 - `withRlsBypass(fn)` — workers / platform admin batch jobs
 
-## Tables covered (P1)
+## Tables covered
 
-`digital_employee`, `membership`, `api_key`, `audit_event`, `employee_mission`, `employee_task`, `organization_settings`, `employee_work_event`, `export_job`
+P1 (`0042`): `digital_employee`, `membership`, `api_key`, `audit_event`, `employee_mission`, `employee_task`, `organization_settings`, `employee_work_event`, `export_job`
+
+Hot paths (`0048`): `employee_session`, `employee_session_message`, `knowledge_source`, `knowledge_chunk`
+
+Wired through `withTenantContext` today: live sessions, active session count, recent sessions, public API session list, append session message, employee update/delete.
 
 ## Apply
 
