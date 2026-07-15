@@ -34,13 +34,26 @@ export async function POST(request: Request): Promise<Response> {
   const rate = await checkRateLimit({
     name: "landing-adeline-brain",
     key: ip,
-    limit: 40,
+    limit: 20,
     windowMs: 60 * 60 * 1000,
   });
 
   if (!rate.ok) {
     return NextResponse.json(
       { error: "Demo brain limit reached. Try again later." },
+      { status: 429 },
+    );
+  }
+
+  const platformRate = await checkRateLimit({
+    name: "landing-adeline-brain-platform",
+    key: "global",
+    limit: 400,
+    windowMs: 60 * 60 * 1000,
+  });
+  if (!platformRate.ok) {
+    return NextResponse.json(
+      { error: "Demo brain busy. Try again later." },
       { status: 429 },
     );
   }

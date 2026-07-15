@@ -14,9 +14,25 @@ function parseStreamTimestamp(value: unknown): Date | null {
   return null;
 }
 
+async function hardDeleteLegacySharedChannel(
+  server: StreamChat,
+  employeeId: string,
+): Promise<boolean> {
+  const legacyChannelId = legacySharedTalkChannelId(employeeId);
+  try {
+    await server.deleteChannels([`messaging:${legacyChannelId}`], {
+      hard_delete: true,
+    });
+    return true;
+  } catch {
+    // Channel may already be gone.
+    return false;
+  }
+}
+
 /**
  * Delete Stream Chat channels whose last activity is older than the retention cutoff.
- * Covers named threads, per-user main channels, and legacy shared employee-talk channels.
+ * Always removes legacy shared `employee-talk-*` channels (pre-isolation).
  */
 export async function purgeStreamChannelsForRetention(input: {
   employeeIds: string[];
@@ -52,21 +68,33 @@ export async function purgeStreamChannelsForRetention(input: {
       }
     }
 
-    const legacyChannelId = legacySharedTalkChannelId(employeeId);
-    const legacy = server.channel("messaging", legacyChannelId);
+    if (await hardDeleteLegacySharedChannel(server, employeeId)) {
+      purgedChannels += 1;
+    }
+  }
 
-    try {
-      await legacy.query({});
-      const lastDate = parseStreamTimestamp(legacy.data?.last_message_at);
+  return { purgedChannels };
+}
 
-      if (lastDate && lastDate < input.cutoff) {
-        await server.deleteChannels([`messaging:${legacyChannelId}`], {
-          hard_delete: true,
-        });
-        purgedChannels += 1;
-      }
-    } catch {
-      // Legacy channel may not exist for this employee.
+/**
+ * One-shot hygiene: remove every legacy shared Talk channel for the given employees.
+ */
+export async function purgeLegacySharedTalkChannels(
+  employeeIds: string[],
+): Promise<StreamChannelPurgeResult> {
+  const apiKey = getStreamApiKey();
+  const secret = getStreamSecretKey();
+
+  if (!apiKey || !secret || employeeIds.length === 0) {
+    return { purgedChannels: 0 };
+  }
+
+  const server = StreamChat.getInstance(apiKey, secret);
+  let purgedChannels = 0;
+
+  for (const employeeId of employeeIds) {
+    if (await hardDeleteLegacySharedChannel(server, employeeId)) {
+      purgedChannels += 1;
     }
   }
 

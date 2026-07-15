@@ -30,13 +30,26 @@ export async function POST(request: Request): Promise<Response> {
   const rate = await checkRateLimit({
     name: "landing-adeline-voice",
     key: ip,
-    limit: 8,
+    limit: 4,
     windowMs: 60 * 60 * 1000,
   });
 
   if (!rate.ok) {
     return NextResponse.json(
       { error: "Trial limit reached. Try again later." },
+      { status: 429 },
+    );
+  }
+
+  const platformRate = await checkRateLimit({
+    name: "landing-adeline-voice-platform",
+    key: "global",
+    limit: 80,
+    windowMs: 60 * 60 * 1000,
+  });
+  if (!platformRate.ok) {
+    return NextResponse.json(
+      { error: "Trial busy. Try again later." },
       { status: 429 },
     );
   }

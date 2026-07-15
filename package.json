@@ -42,6 +42,7 @@
     "provider-provisioning:verify": "node --import tsx src/features/provider-provisioning/verify-provider-provisioning.ts",
     "providers:status": "node --import tsx src/features/provider-provisioning/check-provider-status.ts",
     "stream:verify": "node --env-file=.env --import tsx src/features/runtime-session/verify-stream-credentials.ts",
+    "stream:purge-legacy-talk": "node --env-file=.env -r ./scripts/mock-server-only.cjs --import tsx scripts/purge-legacy-talk-channels.ts",
     "talk-context:verify": "node --env-file=.env --import tsx src/features/runtime-session/verify-talk-context.ts",
     "inngest:sync": "node --env-file=.env --import tsx scripts/sync-inngest.ts",
     "inngest:dev": "npx --yes inngest-cli@latest dev -u http://localhost:3000/api/inngest",

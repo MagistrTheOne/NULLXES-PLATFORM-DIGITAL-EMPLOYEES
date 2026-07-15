@@ -32,13 +32,26 @@ export async function POST(request: Request): Promise<Response> {
   const rate = await checkRateLimit({
     name: "landing-adeline-talk",
     key: ip,
-    limit: 6,
+    limit: 3,
     windowMs: 60 * 60 * 1000,
   });
 
   if (!rate.ok) {
     return NextResponse.json(
       { error: "Trial limit reached. Try again later." },
+      { status: 429 },
+    );
+  }
+
+  const platformRate = await checkRateLimit({
+    name: "landing-adeline-talk-platform",
+    key: "global",
+    limit: 60,
+    windowMs: 60 * 60 * 1000,
+  });
+  if (!platformRate.ok) {
+    return NextResponse.json(
+      { error: "Trial busy. Try again later." },
       { status: 429 },
     );
   }
@@ -80,7 +93,7 @@ export async function POST(request: Request): Promise<Response> {
 
   const proxyQuota = await consumeAnamProxyQuota({
     subject: "demo:landing-adeline",
-    perMinute: 30,
+    perMinute: 15,
   });
   if (!proxyQuota.ok) {
     return NextResponse.json(
