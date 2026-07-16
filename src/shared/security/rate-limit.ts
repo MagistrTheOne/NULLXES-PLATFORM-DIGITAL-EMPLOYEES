@@ -5,11 +5,11 @@
  * multiplies the effective limit by the number of warm instances. When Redis
  * is linked via the Vercel ↔ Upstash integration, counters are shared across
  * instances. Without Redis we fall back to the in-memory window (dev / solo).
- * In production with linked Redis, a missing client or failed increment
+ * In production, Redis is required at boot and a missing/failing Redis client
  * fails closed so limits are not silently bypassed via per-instance memory.
  */
 
-import { getRedisRestClient, isRedisRestLinked } from "@/shared/config/redis-rest";
+import { getRedisRestClient } from "@/shared/config/redis-rest";
 
 type RateLimitInput = {
   /** Logical bucket name, e.g. "brain-stream". */
@@ -73,7 +73,8 @@ function incrementInMemory(bucketKey: string, windowMs: number): number {
 }
 
 function mustDenyWhenRedisUnavailable(): boolean {
-  return process.env.NODE_ENV === "production" && isRedisRestLinked();
+  // Production must use shared Redis counters — never fall back to per-instance memory.
+  return process.env.NODE_ENV === "production";
 }
 
 export async function checkRateLimit(

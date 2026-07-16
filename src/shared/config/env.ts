@@ -231,6 +231,8 @@ export function getDataEncryptionKey(): string {
   throw new Error("DATA_ENCRYPTION_KEY is not set");
 }
 
+import { isRedisRestLinked } from "@/shared/config/redis-rest";
+
 /**
  * Production runtime must set an explicit field-encryption key (not the
  * BETTER_AUTH_SECRET-derived build/dev fallback).
@@ -254,6 +256,34 @@ export function assertProductionSecretsConfigured(): void {
     throw new Error(
       "API_KEY_PEPPER is required in production for Public API key hashing.",
     );
+  }
+
+  if (!isRedisRestLinked()) {
+    throw new Error(
+      "Upstash Redis (UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN) is required in production for shared rate limits. Link Vercel Storage → Redis.",
+    );
+  }
+
+  if (readOptionalEnv("REQUIRE_EMAIL_VERIFICATION")?.toLowerCase() !== "true") {
+    throw new Error(
+      "REQUIRE_EMAIL_VERIFICATION=true is required in production.",
+    );
+  }
+
+  if (readOptionalEnv("EMAIL_OTP_STEP_UP_ENABLED") !== "true") {
+    throw new Error(
+      "EMAIL_OTP_STEP_UP_ENABLED=true is required in production (Resend must be configured).",
+    );
+  }
+
+  if (readOptionalEnv("TWO_FACTOR_GATE_BYPASS_EMAILS")) {
+    throw new Error(
+      "TWO_FACTOR_GATE_BYPASS_EMAILS must be unset in production.",
+    );
+  }
+
+  if (readOptionalEnv("EMAIL_OTP_BYPASS_EMAILS")) {
+    throw new Error("EMAIL_OTP_BYPASS_EMAILS must be unset in production.");
   }
 }
 

@@ -1,6 +1,6 @@
 import { and, count, desc, eq, gte, ilike, lte } from "drizzle-orm";
 import { auditEvent } from "@/entities/audit/schema";
-import { db } from "@/shared/db/client";
+import { withTenantContext } from "@/shared/db/with-tenant-context";
 
 export type AuditEventRow = {
   id: string;
@@ -31,45 +31,47 @@ export async function listAuditEvents(input: {
   const offset = Math.max(input.offset ?? 0, 0);
   const search = input.search?.trim();
 
-  const filters = [eq(auditEvent.organizationId, input.organizationId)];
+  return withTenantContext(input.organizationId, async (tx) => {
+    const filters = [eq(auditEvent.organizationId, input.organizationId)];
 
-  if (search) {
-    filters.push(ilike(auditEvent.action, `%${search}%`));
-  }
+    if (search) {
+      filters.push(ilike(auditEvent.action, `%${search}%`));
+    }
 
-  if (input.from) {
-    filters.push(gte(auditEvent.createdAt, input.from));
-  }
+    if (input.from) {
+      filters.push(gte(auditEvent.createdAt, input.from));
+    }
 
-  if (input.to) {
-    filters.push(lte(auditEvent.createdAt, input.to));
-  }
+    if (input.to) {
+      filters.push(lte(auditEvent.createdAt, input.to));
+    }
 
-  const whereClause = and(...filters);
+    const whereClause = and(...filters);
 
-  const [totalRow, events] = await Promise.all([
-    db.select({ total: count() }).from(auditEvent).where(whereClause),
-    db
-      .select({
-        id: auditEvent.id,
-        action: auditEvent.action,
-        actorUserId: auditEvent.actorUserId,
-        actorRole: auditEvent.actorRole,
-        resourceType: auditEvent.resourceType,
-        resourceId: auditEvent.resourceId,
-        metadata: auditEvent.metadata,
-        ipAddress: auditEvent.ipAddress,
-        createdAt: auditEvent.createdAt,
-      })
-      .from(auditEvent)
-      .where(whereClause)
-      .orderBy(desc(auditEvent.createdAt))
-      .limit(limit)
-      .offset(offset),
-  ]);
+    const [totalRow, events] = await Promise.all([
+      tx.select({ total: count() }).from(auditEvent).where(whereClause),
+      tx
+        .select({
+          id: auditEvent.id,
+          action: auditEvent.action,
+          actorUserId: auditEvent.actorUserId,
+          actorRole: auditEvent.actorRole,
+          resourceType: auditEvent.resourceType,
+          resourceId: auditEvent.resourceId,
+          metadata: auditEvent.metadata,
+          ipAddress: auditEvent.ipAddress,
+          createdAt: auditEvent.createdAt,
+        })
+        .from(auditEvent)
+        .where(whereClause)
+        .orderBy(desc(auditEvent.createdAt))
+        .limit(limit)
+        .offset(offset),
+    ]);
 
-  return {
-    events,
-    total: Number(totalRow[0]?.total ?? 0),
-  };
+    return {
+      events,
+      total: Number(totalRow[0]?.total ?? 0),
+    };
+  });
 }

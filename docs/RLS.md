@@ -26,7 +26,7 @@ When `app.bypass_rls = off`, rows must match `app.organization_id`.
 ## Helpers
 
 - `withTenantContext(organizationId, fn)` — tenant request mutations / hot reads
-- `withRlsBypass(fn)` — workers / platform admin batch jobs
+- `withRlsBypass(fn)` — workers / platform admin batch jobs / API key hash lookup
 
 ## Tables covered
 
@@ -34,7 +34,16 @@ P1 (`0042`): `digital_employee`, `membership`, `api_key`, `audit_event`, `employ
 
 Hot paths (`0048`): `employee_session`, `employee_session_message`, `knowledge_source`, `knowledge_chunk`
 
-Wired through `withTenantContext` today: live sessions, active session count, recent sessions, public API session list, append session message, employee update/delete.
+## Wired through `withTenantContext`
+
+- Live sessions, active session count, recent sessions
+- Public API session list, append session message
+- Employee update/delete
+- Analytics: session / conversation / performance metrics
+- Overview: employee session summaries, overnight work events
+- Security: list API keys, create/count/revoke API keys, list audit events
+
+`verifyApiKey` uses `withRlsBypass` for hash lookup (org unknown), then `withTenantContext` for `lastUsedAt` upgrade.
 
 ## Apply
 
@@ -44,4 +53,4 @@ npm run db:migrate
 
 ## Next
 
-Wire more request paths through `withTenantContext`. Remove reliance on default bypass once coverage is complete.
+Wire remaining analytics leaf queries (timeseries, knowledge metrics, top employees). Plan default `bypass_rls=off` for the app DB role once coverage is complete.

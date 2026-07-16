@@ -7,7 +7,10 @@ import {
   type ApiScopeBundleId,
   resolveApiScopeBundle,
 } from "@/features/public-api/lib/api-scopes";
-import { db } from "@/shared/db/client";
+import {
+  withRlsBypass,
+  withTenantContext,
+} from "@/shared/db/with-tenant-context";
 
 /**
  * Key hashing.
@@ -93,18 +96,21 @@ export async function createApiKey(input: {
   const keyPrefix = rawKey.slice(0, 16);
   const scopes = resolveApiScopeBundle(input.scopeBundle);
 
-  const [row] = await db
-    .insert(apiKey)
-    .values({
-      organizationId: input.organizationId,
-      name: input.name.trim(),
-      keyPrefix,
-      keyHash: computeApiKeyHashes(rawKey).primary,
-      scopes,
-      expiresAt: input.expiresAt ?? null,
-      createdByUserId: input.createdByUserId,
-    })
-    .returning({ id: apiKey.id });
+  const row = await withTenantContext(input.organizationId, async (tx) => {
+    const [created] = await tx
+      .insert(apiKey)
+      .values({
+        organizationId: input.organizationId,
+        name: input.name.trim(),
+        keyPrefix,
+        keyHash: computeApiKeyHashes(rawKey).primary,
+        scopes,
+        expiresAt: input.expiresAt ?? null,
+        createdByUserId: input.createdByUserId,
+      })
+      .returning({ id: apiKey.id });
+    return created;
+  });
 
   if (!row) {
     return { ok: false, message: "Failed to create API key." };
@@ -114,17 +120,19 @@ export async function createApiKey(input: {
 }
 
 export async function countActiveApiKeys(organizationId: string): Promise<number> {
-  const rows = await db
-    .select({ id: apiKey.id })
-    .from(apiKey)
-    .where(
-      and(
-        eq(apiKey.organizationId, organizationId),
-        isNull(apiKey.revokedAt),
-      ),
-    );
+  return withTenantContext(organizationId, async (tx) => {
+    const rows = await tx
+      .select({ id: apiKey.id })
+      .from(apiKey)
+      .where(
+        and(
+          eq(apiKey.organizationId, organizationId),
+          isNull(apiKey.revokedAt),
+        ),
+      );
 
-  return rows.length;
+    return rows.length;
+  });
 }
 
 export async function verifyApiKey(
@@ -144,18 +152,24 @@ export async function verifyApiKey(
   }
 
   const { primary, candidates } = computeApiKeyHashes(rawKey);
-  const [row] = await db
-    .select({
-      id: apiKey.id,
-      organizationId: apiKey.organizationId,
-      createdByUserId: apiKey.createdByUserId,
-      scopes: apiKey.scopes,
-      expiresAt: apiKey.expiresAt,
-      keyHash: apiKey.keyHash,
-    })
-    .from(apiKey)
-    .where(and(inArray(apiKey.keyHash, candidates), isNull(apiKey.revokedAt)))
-    .limit(1);
+
+  // Hash lookup has no org yet — bypass RLS for candidate match, then
+  // touch lastUsed under tenant context once organizationId is known.
+  const row = await withRlsBypass(async (tx) => {
+    const [found] = await tx
+      .select({
+        id: apiKey.id,
+        organizationId: apiKey.organizationId,
+        createdByUserId: apiKey.createdByUserId,
+        scopes: apiKey.scopes,
+        expiresAt: apiKey.expiresAt,
+        keyHash: apiKey.keyHash,
+      })
+      .from(apiKey)
+      .where(and(inArray(apiKey.keyHash, candidates), isNull(apiKey.revokedAt)))
+      .limit(1);
+    return found ?? null;
+  });
 
   if (!row) {
     return null;
@@ -163,14 +177,16 @@ export async function verifyApiKey(
 
   const expired = Boolean(row.expiresAt && row.expiresAt.getTime() <= Date.now());
 
-  await db
-    .update(apiKey)
-    .set({
-      lastUsedAt: new Date(),
-      // Upgrade legacy SHA-256 rows to the peppered hash on first use.
-      ...(row.keyHash !== primary ? { keyHash: primary } : {}),
-    })
-    .where(eq(apiKey.id, row.id));
+  await withTenantContext(row.organizationId, async (tx) => {
+    await tx
+      .update(apiKey)
+      .set({
+        lastUsedAt: new Date(),
+        // Upgrade legacy SHA-256 rows to the peppered hash on first use.
+        ...(row.keyHash !== primary ? { keyHash: primary } : {}),
+      })
+      .where(eq(apiKey.id, row.id));
+  });
 
   return {
     organizationId: row.organizationId,
@@ -185,14 +201,16 @@ export async function revokeApiKey(input: {
   organizationId: string;
   keyId: string;
 }): Promise<void> {
-  await db
-    .update(apiKey)
-    .set({ revokedAt: new Date() })
-    .where(
-      and(
-        eq(apiKey.id, input.keyId),
-        eq(apiKey.organizationId, input.organizationId),
-        isNull(apiKey.revokedAt),
-      ),
-    );
+  await withTenantContext(input.organizationId, async (tx) => {
+    await tx
+      .update(apiKey)
+      .set({ revokedAt: new Date() })
+      .where(
+        and(
+          eq(apiKey.id, input.keyId),
+          eq(apiKey.organizationId, input.organizationId),
+          isNull(apiKey.revokedAt),
+        ),
+      );
+  });
 }

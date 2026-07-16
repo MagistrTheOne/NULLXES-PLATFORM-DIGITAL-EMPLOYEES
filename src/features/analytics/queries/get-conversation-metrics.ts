@@ -1,7 +1,7 @@
 import { and, eq, inArray, sql } from "drizzle-orm";
 import { digitalEmployee } from "@/entities/digital-employee/schema";
 import { employeeSession } from "@/entities/session/schema";
-import { db } from "@/shared/db/client";
+import { withTenantContext } from "@/shared/db/with-tenant-context";
 import { sessionStartedInRange } from "../lib/session-range-filter";
 import type { AnalyticsDateRange, ConversationMetrics } from "../types";
 
@@ -10,40 +10,43 @@ export async function getConversationMetrics(
   range: AnalyticsDateRange,
   employeeIds?: string[],
 ): Promise<ConversationMetrics> {
-  const [row] = await db
-    .select({
-      totalMessages:
-        sql<number>`coalesce(sum(${employeeSession.messageCount}), 0)`.mapWith(
-          Number,
+  return withTenantContext(organizationId, async (tx) => {
+    const [row] = await tx
+      .select({
+        totalMessages:
+          sql<number>`coalesce(sum(${employeeSession.messageCount}), 0)`.mapWith(
+            Number,
+          ),
+        ratedSessions:
+          sql<number>`count(*) filter (where ${employeeSession.satisfactionRating} is not null)`.mapWith(
+            Number,
+          ),
+        averageSatisfaction:
+          sql<number | null>`round(avg(${employeeSession.satisfactionRating}::numeric) filter (where ${employeeSession.satisfactionRating} is not null), 1)`.mapWith(
+            (value) => (value === null ? null : Number(value)),
+          ),
+      })
+      .from(employeeSession)
+      .innerJoin(
+        digitalEmployee,
+        eq(employeeSession.employeeId, digitalEmployee.id),
+      )
+      .where(
+        and(
+          eq(employeeSession.organizationId, organizationId),
+          sessionStartedInRange(range),
+          employeeIds ? inArray(digitalEmployee.id, employeeIds) : undefined,
         ),
-      ratedSessions:
-        sql<number>`count(*) filter (where ${employeeSession.satisfactionRating} is not null)`.mapWith(
-          Number,
-        ),
-      averageSatisfaction:
-        sql<number | null>`round(avg(${employeeSession.satisfactionRating}::numeric) filter (where ${employeeSession.satisfactionRating} is not null), 1)`.mapWith(
-          (value) => (value === null ? null : Number(value)),
-        ),
-    })
-    .from(employeeSession)
-    .innerJoin(
-      digitalEmployee,
-      eq(employeeSession.employeeId, digitalEmployee.id),
-    )
-    .where(
-      and(
-        eq(employeeSession.organizationId, organizationId),
-        sessionStartedInRange(range),
-        employeeIds ? inArray(digitalEmployee.id, employeeIds) : undefined,
-      ),
-    );
+      );
 
-  return {
-    totalMessages: Number(row?.totalMessages ?? 0),
-    ratedSessions: Number(row?.ratedSessions ?? 0),
-    averageSatisfaction:
-      row?.averageSatisfaction === null || row?.averageSatisfaction === undefined
-        ? null
-        : Number(row.averageSatisfaction),
-  };
+    return {
+      totalMessages: Number(row?.totalMessages ?? 0),
+      ratedSessions: Number(row?.ratedSessions ?? 0),
+      averageSatisfaction:
+        row?.averageSatisfaction === null ||
+        row?.averageSatisfaction === undefined
+          ? null
+          : Number(row.averageSatisfaction),
+    };
+  });
 }

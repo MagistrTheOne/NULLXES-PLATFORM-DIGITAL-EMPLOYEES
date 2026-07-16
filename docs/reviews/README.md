@@ -13,7 +13,9 @@ Static reviews only — no build, install, or tests. HQ / Capsules / Inventory t
 
 ### Shared P0 gate (cross-cutting)
 
-1. ~~Tool execute allowlist (`enabledToolSlugs`)~~ — closed in code (`executeAgentTool`)  
-2. ~~Landing trusted IP + separate landing brain facade~~ — closed (`resolveTrustedClientIp` + `surface: "landing"`)  
-3. RLS rollout progress per `docs/RLS.md` (Security) — still open  
-4. Redis linked + auth step-up on in production (Security / Ops) — env/ops
+1. ~~Tool execute allowlist (`enabledToolSlugs`)~~ — closed  
+2. ~~Landing trusted IP + separate landing brain facade~~ — closed  
+3. ~~RLS hot-path expansion~~ — analytics + API keys + audit + overview wired (`docs/RLS.md`); default bypass still on until full coverage  
+4. ~~Redis + auth step-up production asserts~~ — boot requires Upstash Redis, `REQUIRE_EMAIL_VERIFICATION=true`, `EMAIL_OTP_STEP_UP_ENABLED=true`, empty bypass lists  
+
+Remaining (non-P0): more analytics leaf wraps, CodeQL/Dependabot (CI added), alerts-as-code.
