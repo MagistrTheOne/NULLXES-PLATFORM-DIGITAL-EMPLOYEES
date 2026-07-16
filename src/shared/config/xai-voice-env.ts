@@ -13,7 +13,7 @@ export const ANNA_LANDING_DEMO_EMPLOYEE_ID =
 export const LANDING_DEMO_EMPLOYEE_ID = ANNA_LANDING_DEMO_EMPLOYEE_ID;
 
 const DEFAULT_ADELINE_AGENT_ID = "agent_yLXnJLDucVtucCck";
-const DEFAULT_ANNA_AGENT_ID = "agent_8z4syR6vTpYwTuj";
+const DEFAULT_ANNA_AGENT_ID = "agent_8z4syR6vTpYwTujN";
 
 function readEnv(name: string): string | undefined {
   const value = sanitizeEnvValue(process.env[name]);

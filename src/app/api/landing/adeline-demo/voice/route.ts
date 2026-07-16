@@ -19,7 +19,7 @@ function annaVoiceFallback(): XaiVoiceEmployeeConfig {
   return {
     mode: "console",
     bindConsoleAgent: true,
-    agentId: readAnnaXaiVoiceAgentFromEnv() || "agent_8z4syR6vTpYwTuj",
+    agentId: readAnnaXaiVoiceAgentFromEnv() || "agent_8z4syR6vTpYwTujN",
     voice: "",
   };
 }
