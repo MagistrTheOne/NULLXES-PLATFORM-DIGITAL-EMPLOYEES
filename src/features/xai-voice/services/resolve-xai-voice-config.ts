@@ -4,7 +4,9 @@ import { employeeProviderConfig } from "@/entities/provider-config/schema";
 import { db } from "@/shared/db/client";
 import {
   ADELINE_KALEN_EMPLOYEE_ID,
+  ANNA_LANDING_DEMO_EMPLOYEE_ID,
   getXaiApiKey,
+  readAnnaXaiVoiceAgentFromEnv,
   readXaiVoiceAgentFromEnv,
 } from "@/shared/config/xai-voice-env";
 
@@ -76,11 +78,25 @@ export async function resolveXaiVoiceConfigForEmployee(
     row?.config as SessionProviderConfigPayload | undefined,
   );
 
-  // Adeline landing + Talk must always bind the console agent (never Eve default).
+  // Adeline / Anna: always bind console agent (never Eve default).
   if (employeeId === ADELINE_KALEN_EMPLOYEE_ID) {
     const agentId =
       (fromDb?.mode === "console" ? fromDb.agentId : null) ||
       readXaiVoiceAgentFromEnv();
+    if (agentId) {
+      return {
+        mode: "console",
+        bindConsoleAgent: true,
+        agentId,
+        voice: "",
+      };
+    }
+  }
+
+  if (employeeId === ANNA_LANDING_DEMO_EMPLOYEE_ID) {
+    const agentId =
+      (fromDb?.mode === "console" ? fromDb.agentId : null) ||
+      readAnnaXaiVoiceAgentFromEnv();
     if (agentId) {
       return {
         mode: "console",

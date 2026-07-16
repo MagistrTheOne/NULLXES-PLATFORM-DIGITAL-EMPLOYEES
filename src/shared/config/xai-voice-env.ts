@@ -13,6 +13,7 @@ export const ANNA_LANDING_DEMO_EMPLOYEE_ID =
 export const LANDING_DEMO_EMPLOYEE_ID = ANNA_LANDING_DEMO_EMPLOYEE_ID;
 
 const DEFAULT_ADELINE_AGENT_ID = "agent_yLXnJLDucVtucCck";
+const DEFAULT_ANNA_AGENT_ID = "agent_8z4syR6vTpYwTuj";
 
 function readEnv(name: string): string | undefined {
   const value = sanitizeEnvValue(process.env[name]);
@@ -29,6 +30,10 @@ export function isXaiVoiceConfigured(): boolean {
 
 export function readXaiVoiceAgentFromEnv(): string | null {
   return readEnv("XAI_VOICE_AGENT_ADELINE") || DEFAULT_ADELINE_AGENT_ID;
+}
+
+export function readAnnaXaiVoiceAgentFromEnv(): string | null {
+  return readEnv("XAI_VOICE_AGENT_ANNA") || DEFAULT_ANNA_AGENT_ID;
 }
 
 export function buildXaiRealtimeWebSocketUrl(

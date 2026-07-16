@@ -6,6 +6,7 @@ import {
   LANDING_DEMO_EMPLOYEE_ID,
   buildXaiRealtimeWebSocketUrl,
   getXaiApiKey,
+  readAnnaXaiVoiceAgentFromEnv,
 } from "@/shared/config/xai-voice-env";
 import type { XaiVoiceEmployeeConfig } from "@/features/xai-voice/services/resolve-xai-voice-config";
 
@@ -14,13 +15,14 @@ export const runtime = "nodejs";
 /** Public landing trial — Anna (landing demo employee). */
 export const LANDING_ADELINE_TRIAL_SECONDS = 60;
 
-const ANNA_VOICE_FALLBACK: XaiVoiceEmployeeConfig = {
-  mode: "platform",
-  bindConsoleAgent: false,
-  instructions:
-    "You are Anna, a digital employee at NULLXES. Speak as Anna only. Keep answers concise. This is a one-minute public demo.",
-  voice: "eve",
-};
+function annaVoiceFallback(): XaiVoiceEmployeeConfig {
+  return {
+    mode: "console",
+    bindConsoleAgent: true,
+    agentId: readAnnaXaiVoiceAgentFromEnv() || "agent_8z4syR6vTpYwTuj",
+    voice: "",
+  };
+}
 
 /**
  * Unauthenticated 60s Voice trial for the landing demo employee (Anna).
@@ -36,7 +38,7 @@ export async function POST(_request: Request): Promise<Response> {
 
   const voiceConfig =
     (await resolveXaiVoiceConfigForEmployee(LANDING_DEMO_EMPLOYEE_ID)) ??
-    ANNA_VOICE_FALLBACK;
+    annaVoiceFallback();
 
   const clientSecret = await createXaiVoiceClientSecret();
   if (!clientSecret) {
