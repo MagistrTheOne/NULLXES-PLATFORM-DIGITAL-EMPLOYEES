@@ -7,26 +7,19 @@ import {
   buildXaiRealtimeWebSocketUrl,
 } from "@/shared/config/xai-voice-env";
 import { checkRateLimit } from "@/shared/security/rate-limit";
+import { resolvePublicClientIpKey } from "@/shared/security/resolve-trusted-client-ip";
 
 export const runtime = "nodejs";
 
 /** Public landing trial — Adeline only. */
 export const LANDING_ADELINE_TRIAL_SECONDS = 60;
 
-function clientIp(request: Request): string {
-  const forwarded = request.headers.get("x-forwarded-for");
-  if (forwarded) {
-    return forwarded.split(",")[0]?.trim() || "unknown";
-  }
-  return request.headers.get("x-real-ip")?.trim() || "unknown";
-}
-
 /**
  * Unauthenticated 60s Voice trial for Adeline Kalen on the marketing landing.
  * Rate-limited by IP. No tools. Console agent when configured.
  */
 export async function POST(request: Request): Promise<Response> {
-  const ip = clientIp(request);
+  const ip = resolvePublicClientIpKey(request);
   const rate = await checkRateLimit({
     name: "landing-adeline-voice",
     key: ip,

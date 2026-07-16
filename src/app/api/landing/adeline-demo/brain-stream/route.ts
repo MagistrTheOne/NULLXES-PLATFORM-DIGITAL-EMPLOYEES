@@ -8,6 +8,7 @@ import { streamTalkBrainResponse } from "@/features/runtime-session/services/str
 import { ADELINE_KALEN_EMPLOYEE_ID } from "@/shared/config/xai-voice-env";
 import { db } from "@/shared/db/client";
 import { checkRateLimit } from "@/shared/security/rate-limit";
+import { resolvePublicClientIpKey } from "@/shared/security/resolve-trusted-client-ip";
 import { logServerEvent } from "@/shared/lib/server-log";
 
 export const runtime = "nodejs";
@@ -17,20 +18,13 @@ type BrainStreamRequest = {
   messages?: TalkPipelineMessage[];
 };
 
-function clientIp(request: Request): string {
-  const forwarded = request.headers.get("x-forwarded-for");
-  if (forwarded) {
-    return forwarded.split(",")[0]?.trim() || "unknown";
-  }
-  return request.headers.get("x-real-ip")?.trim() || "unknown";
-}
-
 /**
  * Public Adeline-only brain stream for the landing Talk demo.
  * No tools, IP rate-limited, no workspace auth.
+ * Brain surface is `landing` — persona only (no private RAG / live org state).
  */
 export async function POST(request: Request): Promise<Response> {
-  const ip = clientIp(request);
+  const ip = resolvePublicClientIpKey(request);
   const rate = await checkRateLimit({
     name: "landing-adeline-brain",
     key: ip,
@@ -117,6 +111,7 @@ export async function POST(request: Request): Promise<Response> {
     organizationId: employee.organizationId,
     employeeId: employee.id,
     messages: openAiMessages,
+    surface: "landing",
   });
 
   const config = buildResult.config;

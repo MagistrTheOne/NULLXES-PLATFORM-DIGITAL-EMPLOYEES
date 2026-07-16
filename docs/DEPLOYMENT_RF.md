@@ -49,6 +49,8 @@ Vercel [does not recommend](https://vercel.com/kb/guide/cloudflare-with-vercel) 
     - Console must **not** show React #418 or CSP on `cdn-cgi/.../email-decode.min.js`.
     - `connect-src 'none'` **report-only** lines from Cloudflare are noise — they do not block Talk (enforced CSP uses `connect-src 'self' https: wss: blob:`).
 
+App rate limits / landing quotas resolve IP via `CF-Connecting-IP` first (`resolveTrustedClientIp` / `resolvePublicClientIpKey`).
+
 ### Emergency eject
 
 Toggle apex + `www` to **DNS only** (gray cloud) in Cloudflare DNS — traffic goes straight to Vercel within seconds.

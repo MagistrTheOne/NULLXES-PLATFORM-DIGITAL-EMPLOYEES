@@ -14,6 +14,7 @@
 | [PLATFORM_SCOPE.md](./PLATFORM_SCOPE.md) | Product / engineering | Sprint roadmap and module status matrix (2026-07-09) |
 | [PUBLIC_API.md](./PUBLIC_API.md) | Integrations / QA | Public API v1 TZ: OpenAPI contract, Orval SDK, scopes, probe, curl |
 | [DEPLOYMENT_RF.md](./DEPLOYMENT_RF.md) | DevOps | Russia deployment + production env checklist |
+| [reviews/](./reviews/) | **Staff / security / ops** | Enterprise Architecture, Security, AI Platform Security, Operational Readiness (2026-07-16) |
 | [RESPONSIVE_VERIFICATION.md](./RESPONSIVE_VERIFICATION.md) | QA / frontend | Viewport checklist for dashboard routes |
 | [BETA_FREE_TIER.md](./BETA_FREE_TIER.md) | Ops / beta | Free catalog employees, partner shell orgs, seed |
 

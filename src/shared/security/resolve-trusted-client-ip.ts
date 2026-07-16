@@ -1,11 +1,21 @@
 /**
- * Resolve the connecting client IP for allowlists.
+ * Resolve the connecting client IP for allowlists and public demo quotas.
  *
- * Prefer platform-injected headers (Vercel `x-vercel-forwarded-for` / `x-real-ip`)
- * over the first hop of a client-controlled `x-forwarded-for` chain.
+ * Prefer edge-injected headers over client-controlled XFF:
+ * 1. Cloudflare `CF-Connecting-IP` (Verified Proxy Lite)
+ * 2. Vercel `x-vercel-forwarded-for` / `x-real-ip`
+ * 3. Right-most `x-forwarded-for` hop (closest to our edge)
+ *
+ * @see https://vercel.com/docs/security/reverse-proxy
+ * @see docs/DEPLOYMENT_RF.md
  */
 
 export function resolveTrustedClientIp(request: Request): string | null {
+  const cfConnectingIp = request.headers.get("cf-connecting-ip")?.trim();
+  if (cfConnectingIp) {
+    return cfConnectingIp;
+  }
+
   const vercelForwarded = request.headers.get("x-vercel-forwarded-for");
   if (vercelForwarded) {
     return vercelForwarded.split(",")[0]?.trim() || null;
@@ -30,4 +40,9 @@ export function resolveTrustedClientIp(request: Request): string | null {
   }
 
   return null;
+}
+
+/** Rate-limit key for unauthenticated public surfaces (landing demos). */
+export function resolvePublicClientIpKey(request: Request): string {
+  return resolveTrustedClientIp(request) ?? "unknown";
 }

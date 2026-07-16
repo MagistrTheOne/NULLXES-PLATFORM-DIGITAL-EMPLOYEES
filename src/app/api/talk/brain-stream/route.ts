@@ -127,6 +127,7 @@ async function handleBrainStreamPost(request: Request): Promise<Response> {
         organizationId: authResult.auth.organizationId,
         employeeId,
         sessionId: sessionId || undefined,
+        enabledToolSlugs: config.enabledToolSlugs,
       }
     : undefined;
 

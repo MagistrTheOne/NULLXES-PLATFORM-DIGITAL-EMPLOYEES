@@ -41,10 +41,16 @@ export async function buildTalkBrainRequest(input: {
   sessionId?: string;
   scenarioSessionId?: string;
   messages: TalkBrainMessage[];
+  /**
+   * `landing` — public demo: persona prompt only (no private RAG, no live
+   * missions/tasks). Default `workspace` is authenticated Talk.
+   */
+  surface?: "workspace" | "landing";
 }): Promise<TalkBrainBuildResult> {
   const buildStartedAt = performance.now();
   let ragMs: number | null = null;
   let cacheHit = false;
+  const surface = input.surface ?? "workspace";
 
   const userQuery = input.messages.at(-1)?.content.trim() ?? "";
 
@@ -75,6 +81,22 @@ export async function buildTalkBrainRequest(input: {
         cacheHit: false,
       },
       flags: { cacheHit: false, ragUsed: false },
+    };
+  }
+
+  // Public landing demos must not inject home-org live state or private RAG.
+  if (surface === "landing") {
+    return {
+      config: talkBrainCacheToRequestConfig(cache, cache.systemPromptBase),
+      perf: {
+        buildMs: Math.round(performance.now() - buildStartedAt),
+        ragMs: null,
+        cacheHit,
+      },
+      flags: {
+        cacheHit,
+        ragUsed: false,
+      },
     };
   }
 

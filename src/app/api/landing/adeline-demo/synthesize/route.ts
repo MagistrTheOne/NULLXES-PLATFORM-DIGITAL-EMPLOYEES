@@ -7,6 +7,7 @@ import { synthesizeTalkVoicePcm } from "@/features/runtime-session/services/synt
 import { ADELINE_KALEN_EMPLOYEE_ID } from "@/shared/config/xai-voice-env";
 import { db } from "@/shared/db/client";
 import { checkRateLimit } from "@/shared/security/rate-limit";
+import { resolvePublicClientIpKey } from "@/shared/security/resolve-trusted-client-ip";
 
 export const runtime = "nodejs";
 
@@ -15,20 +16,12 @@ type Body = {
   text?: string;
 };
 
-function clientIp(request: Request): string {
-  const forwarded = request.headers.get("x-forwarded-for");
-  if (forwarded) {
-    return forwarded.split(",")[0]?.trim() || "unknown";
-  }
-  return request.headers.get("x-real-ip")?.trim() || "unknown";
-}
-
 /**
  * Public ElevenLabs TTS for the Adeline landing Talk demo only.
  * Same voice ID as dashboard Talk (session.voiceId).
  */
 export async function POST(request: Request): Promise<Response> {
-  const ip = clientIp(request);
+  const ip = resolvePublicClientIpKey(request);
   const rate = await checkRateLimit({
     name: "landing-adeline-tts",
     key: ip,

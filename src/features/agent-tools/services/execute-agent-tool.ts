@@ -24,11 +24,35 @@ function parseJsonArguments(raw: string): Record<string, unknown> {
   }
 }
 
+async function resolveEnabledToolSlugs(
+  context: AgentToolExecutionContext,
+): Promise<string[]> {
+  if (context.enabledToolSlugs) {
+    return context.enabledToolSlugs;
+  }
+
+  const { getEmployeeBlueprint } = await import(
+    "@/features/agent-blueprint/queries/get-employee-blueprint"
+  );
+  const blueprint = await getEmployeeBlueprint({
+    organizationId: context.organizationId,
+    employeeId: context.employeeId,
+  });
+  return blueprint.enabledToolSlugs;
+}
+
 export async function executeAgentTool(input: {
   toolName: string;
   argumentsJson: string;
   context: AgentToolExecutionContext;
 }): Promise<AgentToolExecutionResult> {
+  const enabledToolSlugs = await resolveEnabledToolSlugs(input.context);
+  if (!enabledToolSlugs.includes(input.toolName)) {
+    return {
+      content: `Tool "${input.toolName}" is not enabled for this digital employee.`,
+    };
+  }
+
   const args = parseJsonArguments(input.argumentsJson);
 
   if (input.toolName === "search_web") {

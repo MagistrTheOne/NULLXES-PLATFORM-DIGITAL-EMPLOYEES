@@ -230,6 +230,8 @@ export type AgentToolExecutionContext = {
   organizationId: string;
   employeeId: string;
   sessionId?: string;
+  /** Blueprint allowlist. When omitted, execute loads from employee blueprint. */
+  enabledToolSlugs?: string[];
 };
 
 export type AgentToolExecutionResult = {

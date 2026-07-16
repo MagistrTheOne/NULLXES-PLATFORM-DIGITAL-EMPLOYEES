@@ -55,6 +55,14 @@ export async function POST(request: Request): Promise<Response> {
     return talkApiJsonResponse(rateLimit.code, rateLimit.error, 429);
   }
 
+  const { getEmployeeBlueprint } = await import(
+    "@/features/agent-blueprint/queries/get-employee-blueprint"
+  );
+  const blueprint = await getEmployeeBlueprint({
+    organizationId: authResult.auth.organizationId,
+    employeeId,
+  });
+
   const result = await executeAgentTool({
     toolName,
     argumentsJson,
@@ -62,6 +70,7 @@ export async function POST(request: Request): Promise<Response> {
       organizationId: authResult.auth.organizationId,
       employeeId,
       sessionId: body.sessionId?.trim() || undefined,
+      enabledToolSlugs: blueprint.enabledToolSlugs,
     },
   });
 

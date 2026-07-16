@@ -73,7 +73,8 @@ const LIVE_KEY_PREFIX = "nx_live_";
 
 function normalizeScopes(scopes: string[] | null | undefined): ApiScope[] {
   if (!scopes?.length) {
-    return [...API_SCOPES];
+    // Fail closed: empty / missing scopes must not escalate to full access.
+    return [];
   }
 
   return scopes.filter((scope): scope is ApiScope =>
