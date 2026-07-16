@@ -3,6 +3,10 @@ import { buildXaiVoiceSessionUpdate } from "@/features/xai-voice/lib/build-xai-v
 import { createXaiVoiceClientSecret } from "@/features/xai-voice/services/create-xai-voice-client-secret";
 import { resolveXaiVoiceConfigForEmployee } from "@/features/xai-voice/services/resolve-xai-voice-config";
 import {
+  LANDING_DEMO_RATE,
+  LANDING_DEMO_RATE_BUCKET,
+} from "@/features/landing/lib/landing-demo-rate-limits";
+import {
   LANDING_DEMO_EMPLOYEE_ID,
   buildXaiRealtimeWebSocketUrl,
   getXaiApiKey,
@@ -31,10 +35,9 @@ const ANNA_VOICE_FALLBACK: XaiVoiceEmployeeConfig = {
 export async function POST(request: Request): Promise<Response> {
   const ip = resolvePublicClientIpKey(request);
   const rate = await checkRateLimit({
-    name: "landing-adeline-voice",
+    name: LANDING_DEMO_RATE_BUCKET.voiceIp,
     key: ip,
-    limit: 4,
-    windowMs: 60 * 60 * 1000,
+    ...LANDING_DEMO_RATE.voiceIp,
   });
 
   if (!rate.ok) {
@@ -45,10 +48,9 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   const platformRate = await checkRateLimit({
-    name: "landing-adeline-voice-platform",
+    name: LANDING_DEMO_RATE_BUCKET.voicePlatform,
     key: "global",
-    limit: 80,
-    windowMs: 60 * 60 * 1000,
+    ...LANDING_DEMO_RATE.voicePlatform,
   });
   if (!platformRate.ok) {
     return NextResponse.json(

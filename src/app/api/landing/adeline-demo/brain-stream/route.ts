@@ -5,6 +5,10 @@ import type { TalkPipelineMessage } from "@/features/runtime-session/actions/tal
 import { trimTalkHistory } from "@/features/runtime-session/lib/trim-talk-history";
 import { buildTalkBrainRequest } from "@/features/runtime-session/services/build-talk-brain-request";
 import { streamTalkBrainResponse } from "@/features/runtime-session/services/stream-talk-brain-response";
+import {
+  LANDING_DEMO_RATE,
+  LANDING_DEMO_RATE_BUCKET,
+} from "@/features/landing/lib/landing-demo-rate-limits";
 import { LANDING_DEMO_EMPLOYEE_ID } from "@/shared/config/xai-voice-env";
 import { db } from "@/shared/db/client";
 import { checkRateLimit } from "@/shared/security/rate-limit";
@@ -26,10 +30,9 @@ type BrainStreamRequest = {
 export async function POST(request: Request): Promise<Response> {
   const ip = resolvePublicClientIpKey(request);
   const rate = await checkRateLimit({
-    name: "landing-adeline-brain",
+    name: LANDING_DEMO_RATE_BUCKET.brainIp,
     key: ip,
-    limit: 20,
-    windowMs: 60 * 60 * 1000,
+    ...LANDING_DEMO_RATE.brainIp,
   });
 
   if (!rate.ok) {
@@ -40,10 +43,9 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   const platformRate = await checkRateLimit({
-    name: "landing-adeline-brain-platform",
+    name: LANDING_DEMO_RATE_BUCKET.brainPlatform,
     key: "global",
-    limit: 400,
-    windowMs: 60 * 60 * 1000,
+    ...LANDING_DEMO_RATE.brainPlatform,
   });
   if (!platformRate.ok) {
     return NextResponse.json(

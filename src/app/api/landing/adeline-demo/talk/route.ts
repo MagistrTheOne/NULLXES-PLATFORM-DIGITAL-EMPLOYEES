@@ -2,6 +2,10 @@ import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { digitalEmployee } from "@/entities/digital-employee/schema";
 import { LANDING_DEMO_MARKETING_PORTRAIT } from "@/features/landing/lib/adeline-marketing";
+import {
+  LANDING_DEMO_RATE,
+  LANDING_DEMO_RATE_BUCKET,
+} from "@/features/landing/lib/landing-demo-rate-limits";
 import { mintLandingDemoToken } from "@/features/landing/lib/landing-demo-token";
 import { consumeAnamProxyQuota } from "@/features/runtime-session/lib/anam-proxy-quota";
 import { createAnamTalkSessionTokenForEmployee } from "@/features/runtime-session/services/create-anam-talk-session";
@@ -23,10 +27,9 @@ export const LANDING_ADELINE_TALK_TRIAL_SECONDS = 60;
 export async function POST(request: Request): Promise<Response> {
   const ip = resolvePublicClientIpKey(request);
   const rate = await checkRateLimit({
-    name: "landing-adeline-talk",
+    name: LANDING_DEMO_RATE_BUCKET.talkIp,
     key: ip,
-    limit: 3,
-    windowMs: 60 * 60 * 1000,
+    ...LANDING_DEMO_RATE.talkIp,
   });
 
   if (!rate.ok) {
@@ -37,10 +40,9 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   const platformRate = await checkRateLimit({
-    name: "landing-adeline-talk-platform",
+    name: LANDING_DEMO_RATE_BUCKET.talkPlatform,
     key: "global",
-    limit: 60,
-    windowMs: 60 * 60 * 1000,
+    ...LANDING_DEMO_RATE.talkPlatform,
   });
   if (!platformRate.ok) {
     return NextResponse.json(

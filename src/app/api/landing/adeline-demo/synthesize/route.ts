@@ -4,6 +4,10 @@ import { digitalEmployee } from "@/entities/digital-employee/schema";
 import { getEmployeeTalkContext } from "@/features/runtime-session/services/get-employee-talk-context";
 import { resolveTalkVoiceMode } from "@/features/runtime-session/services/resolve-talk-voice-mode";
 import { synthesizeTalkVoicePcm } from "@/features/runtime-session/services/synthesize-talk-voice-pcm";
+import {
+  LANDING_DEMO_RATE,
+  LANDING_DEMO_RATE_BUCKET,
+} from "@/features/landing/lib/landing-demo-rate-limits";
 import { LANDING_DEMO_EMPLOYEE_ID } from "@/shared/config/xai-voice-env";
 import { db } from "@/shared/db/client";
 import { checkRateLimit } from "@/shared/security/rate-limit";
@@ -23,10 +27,9 @@ type Body = {
 export async function POST(request: Request): Promise<Response> {
   const ip = resolvePublicClientIpKey(request);
   const rate = await checkRateLimit({
-    name: "landing-adeline-tts",
+    name: LANDING_DEMO_RATE_BUCKET.ttsIp,
     key: ip,
-    limit: 40,
-    windowMs: 60 * 60 * 1000,
+    ...LANDING_DEMO_RATE.ttsIp,
   });
 
   if (!rate.ok) {
