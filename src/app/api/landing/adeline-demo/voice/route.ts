@@ -26,7 +26,7 @@ function annaVoiceFallback(): XaiVoiceEmployeeConfig {
 
 /**
  * Unauthenticated 60s Voice trial for the landing demo employee (Anna).
- * No per-IP trial caps (were blocking demos via Redis fail-closed).
+ * No per-IP trial caps.
  */
 export async function POST(_request: Request): Promise<Response> {
   if (!getXaiApiKey()) {

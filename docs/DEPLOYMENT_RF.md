@@ -115,7 +115,7 @@ Toggle apex + `www` to **DNS only** (gray cloud) in Cloudflare DNS — traffic g
 | `REQUIRE_EMAIL_VERIFICATION` | **Required `true` in production** (boot assert) |
 | Bypass email lists | `TWO_FACTOR_GATE_BYPASS_EMAILS` / `EMAIL_OTP_BYPASS_EMAILS` **must be unset** in production |
 | Inngest | `INNGEST_EVENT_KEY` + `INNGEST_SIGNING_KEY`; register app URL `https://<domain>/api/inngest` in Inngest Cloud |
-| Rate limiting (scale) | Vercel **Storage → Redis (Upstash)** — **required in production** (boot assert + fail-closed) |
+| Rate limiting | In-memory per instance (`src/shared/security/rate-limit.ts`) — Redis/Upstash removed |
 | Talk SLA | `TALK_SLA_MODE=observe` (default prod), then `enforce` after calibration — see [SCALING_2026-07-04.md](./SCALING_2026-07-04.md) |
 | Anam pool | `ANAM_API_KEY` … `ANAM_API_KEY_11` — verify with `npm run providers:status` |
 | xAI Voice | `XAI_API_KEY` (+ optional `XAI_VOICE_AGENT_*`) |

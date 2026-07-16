@@ -16,7 +16,7 @@ export const LANDING_ADELINE_TALK_TRIAL_SECONDS = 60;
 /**
  * Unauthenticated 60s Anam avatar Talk trial for the landing demo employee (Anna).
  * Uses the same employee + ElevenLabs voice as dashboard Talk.
- * Per-IP trial caps are off — Redis fail-closed was blocking all demos.
+ * Per-IP trial caps are off.
  */
 export async function POST(_request: Request): Promise<Response> {
   const [employee] = await db

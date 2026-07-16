@@ -112,60 +112,14 @@ async function checkElevenLabs(): Promise<ProviderCheck> {
   }
 }
 
-async function checkRedisRateLimit(): Promise<ProviderCheck> {
-  const { getRedisRestClient, isRedisRestLinked } = await import(
-    "@/shared/config/redis-rest"
-  );
-
-  if (!isRedisRestLinked()) {
-    return {
-      name: "Redis (rate limit)",
-      configured: false,
-      healthy: false,
-      detail:
-        "Not linked — add Upstash Redis via Vercel Storage (env auto-injected); in-memory fallback only",
-    };
-  }
-
-  const redis = getRedisRestClient();
-  if (!redis) {
-    return {
-      name: "Redis (rate limit)",
-      configured: true,
-      healthy: false,
-      detail: "Linked env present but client init failed",
-    };
-  }
-
-  const probeKey = `providers:status:${Date.now()}`;
-  try {
-    await redis.set(probeKey, 1, { px: 5_000 });
-    await redis.del(probeKey);
-    return {
-      name: "Redis (rate limit)",
-      configured: true,
-      healthy: true,
-      detail: "Vercel Storage / Upstash linked (distributed rate limits active)",
-    };
-  } catch (error) {
-    return {
-      name: "Redis (rate limit)",
-      configured: true,
-      healthy: false,
-      detail: error instanceof Error ? error.message : "Ping failed",
-    };
-  }
-}
-
 async function main(): Promise<void> {
-  const [openAi, anamChecks, elevenLabs, redis] = await Promise.all([
+  const [openAi, anamChecks, elevenLabs] = await Promise.all([
     checkOpenAi(),
     checkAnam(),
     checkElevenLabs(),
-    checkRedisRateLimit(),
   ]);
 
-  const checks = [openAi, ...anamChecks, elevenLabs, redis];
+  const checks = [openAi, ...anamChecks, elevenLabs];
 
   console.log("Provider status (live API check):\n");
   for (const check of checks) {
@@ -178,12 +132,9 @@ async function main(): Promise<void> {
     console.log(`    ${check.detail}`);
   }
 
-  const allHealthy = checks.every((check) => {
-    if (check.name === "Redis (rate limit)" && !check.configured) {
-      return true;
-    }
-    return check.configured && check.healthy;
-  });
+  const allHealthy = checks.every(
+    (check) => check.configured && check.healthy,
+  );
   if (!allHealthy) {
     process.exitCode = 1;
   }

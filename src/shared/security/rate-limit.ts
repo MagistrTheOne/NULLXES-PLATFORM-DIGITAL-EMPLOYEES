@@ -1,15 +1,9 @@
 /**
- * Fixed-window rate limiter.
+ * Fixed-window rate limiter (in-memory per instance).
  *
- * On serverless every instance has its own memory, so a Map-based limiter
- * multiplies the effective limit by the number of warm instances. When Redis
- * is linked via the Vercel ↔ Upstash integration, counters are shared across
- * instances. Without Redis we fall back to the in-memory window (dev / solo).
- * In production, Redis is required at boot and a missing/failing Redis client
- * fails closed so limits are not silently bypassed via per-instance memory.
+ * Redis / Upstash was removed — counters are process-local. On serverless this
+ * softens limits across warm instances; that is intentional for Talk reliability.
  */
-
-import { getRedisRestClient } from "@/shared/config/redis-rest";
 
 type RateLimitInput = {
   /** Logical bucket name, e.g. "brain-stream". */
@@ -18,36 +12,13 @@ type RateLimitInput = {
   key: string;
   limit: number;
   windowMs: number;
-  /**
-   * When Redis is missing/failing in production, allow the request instead of
-   * denying. Use for public marketing demos — never for auth / billing.
-   */
+  /** Kept for call-site compatibility; unused (always memory). */
   failOpen?: boolean;
 };
 
 export type RateLimitResult =
   | { ok: true }
-  | { ok: false; reason: "limit" | "redis_unavailable" };
-
-async function incrementInRedis(
-  redisKey: string,
-  windowMs: number,
-): Promise<number | null> {
-  const redis = getRedisRestClient();
-  if (!redis) {
-    return null;
-  }
-
-  try {
-    const count = await redis.incr(redisKey);
-    if (count === 1) {
-      await redis.pexpire(redisKey, windowMs);
-    }
-    return count;
-  } catch {
-    return null;
-  }
-}
+  | { ok: false; reason: "limit" };
 
 type MemoryEntry = {
   count: number;
@@ -79,41 +50,11 @@ function incrementInMemory(bucketKey: string, windowMs: number): number {
   return existing.count;
 }
 
-function mustDenyWhenRedisUnavailable(): boolean {
-  // Production must use shared Redis counters — never fall back to per-instance memory.
-  return process.env.NODE_ENV === "production";
-}
-
 export async function checkRateLimit(
   input: RateLimitInput,
 ): Promise<RateLimitResult> {
   const windowStart = Math.floor(Date.now() / input.windowMs);
   const bucketKey = `rl:${input.name}:${input.key}:${windowStart}`;
-  const denyWithoutWorkingRedis =
-    mustDenyWhenRedisUnavailable() && !input.failOpen;
-
-  const redis = getRedisRestClient();
-  if (redis) {
-    const count = await incrementInRedis(bucketKey, input.windowMs);
-    if (count !== null) {
-      return count <= input.limit
-        ? { ok: true }
-        : { ok: false, reason: "limit" };
-    }
-    // Redis client present but incr failed.
-    if (input.failOpen) {
-      return { ok: true };
-    }
-  }
-
-  if (denyWithoutWorkingRedis) {
-    return { ok: false, reason: "redis_unavailable" };
-  }
-
-  if (!redis && input.failOpen) {
-    return { ok: true };
-  }
-
   const count = incrementInMemory(bucketKey, input.windowMs);
   return count <= input.limit
     ? { ok: true }

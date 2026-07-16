@@ -231,16 +231,6 @@ export function getDataEncryptionKey(): string {
   throw new Error("DATA_ENCRYPTION_KEY is not set");
 }
 
-function isProductionRedisLinked(): boolean {
-  const url =
-    readOptionalEnv("UPSTASH_REDIS_REST_URL") ||
-    readOptionalEnv("KV_REST_API_URL");
-  const token =
-    readOptionalEnv("UPSTASH_REDIS_REST_TOKEN") ||
-    readOptionalEnv("KV_REST_API_TOKEN");
-  return Boolean(url && token);
-}
-
 /**
  * Production runtime must set an explicit field-encryption key (not the
  * BETTER_AUTH_SECRET-derived build/dev fallback).
@@ -266,12 +256,6 @@ export function assertProductionSecretsConfigured(): void {
   if (!readOptionalEnv("API_KEY_PEPPER")) {
     throw new Error(
       "API_KEY_PEPPER is required in production for Public API key hashing.",
-    );
-  }
-
-  if (!isProductionRedisLinked()) {
-    throw new Error(
-      "Upstash Redis (UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN) is required in production for shared rate limits. Link Vercel Storage → Redis.",
     );
   }
 

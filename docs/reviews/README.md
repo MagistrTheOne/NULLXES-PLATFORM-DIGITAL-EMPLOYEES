@@ -16,6 +16,6 @@ Static reviews only — no build, install, or tests. HQ / Capsules / Inventory t
 1. ~~Tool execute allowlist (`enabledToolSlugs`)~~ — closed  
 2. ~~Landing trusted IP + separate landing brain facade~~ — closed  
 3. ~~RLS hot-path expansion~~ — analytics + API keys + audit + overview wired (`docs/RLS.md`); default bypass still on until full coverage  
-4. ~~Redis + auth step-up production asserts~~ — boot requires Upstash Redis, `REQUIRE_EMAIL_VERIFICATION=true`, `EMAIL_OTP_STEP_UP_ENABLED=true`, empty bypass lists  
+4. ~~Auth step-up production asserts~~ — boot requires `REQUIRE_EMAIL_VERIFICATION=true`, `EMAIL_OTP_STEP_UP_ENABLED=true`, empty bypass lists (Redis/Upstash removed)  
 
 Remaining (non-P0): more analytics leaf wraps, CodeQL/Dependabot (CI added), alerts-as-code.

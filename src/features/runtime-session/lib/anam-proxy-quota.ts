@@ -1,9 +1,7 @@
 /**
- * Soft Anam proxy buckets (optional).
+ * Soft Anam proxy buckets (optional, in-memory).
  *
- * Disabled by default: Redis fail-closed and low caps previously surfaced as
- * "Platform Anam quota exceeded" / "Trial limit" and blocked real Talk while
- * Anam itself was fine. Re-enable with ANAM_PROXY_QUOTA_ENABLED=1.
+ * Off by default — re-enable with ANAM_PROXY_QUOTA_ENABLED=1.
  */
 
 import { checkRateLimit } from "@/shared/security/rate-limit";
@@ -17,9 +15,8 @@ export async function consumeAnamProxyQuota(input: {
   subject: string;
   /** Max requests per minute for this subject. */
   perMinute?: number;
-  /** Allow when Redis is down (default true — Talk must not die on Redis). */
   failOpen?: boolean;
-}): Promise<{ ok: true } | { ok: false; reason: "limit" | "redis_unavailable" }> {
+}): Promise<{ ok: true } | { ok: false; reason: "limit" }> {
   if (!isAnamProxyQuotaEnabled()) {
     return { ok: true };
   }
@@ -34,7 +31,7 @@ export async function consumeAnamProxyQuota(input: {
 }
 
 export async function consumePlatformAnamQuota(): Promise<
-  { ok: true } | { ok: false; reason: "limit" | "redis_unavailable" }
+  { ok: true } | { ok: false; reason: "limit" }
 > {
   if (!isAnamProxyQuotaEnabled()) {
     return { ok: true };
