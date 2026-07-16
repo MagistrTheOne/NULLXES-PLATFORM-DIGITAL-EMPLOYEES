@@ -29,11 +29,20 @@ Vercel [does not recommend](https://vercel.com/kb/guide/cloudflare-with-vercel) 
 5. Wait until zone status is **Active**.
 6. **SSL/TLS** → Overview → **Full (strict)** ([docs](https://developers.cloudflare.com/ssl/origin-configuration/ssl-modes/full-strict/)).
    - Never **Flexible** — causes `ERR_TOO_MANY_REDIRECTS` with Vercel ([KB](https://vercel.com/kb/guide/resolve-err-too-many-redirects-when-using-cloudflare-proxy-with-vercel)).
-7. **Cache Rules** (recommended for Next.js App Router):
+7. **Disable Edge HTML/JS rewrites** (required — breaks Talk + landing avatar demos):
+   - **Security** → Settings (or Scrape Shield) → **Email Address Obfuscation → Off**
+     - Symptom if left On: CSP blocks `/cdn-cgi/.../email-decode.min.js` (no nonce under `strict-dynamic`), React minified error **#418** (hydration text mismatch), UI stuck on “Connecting…” / “Starting…”.
+   - **Speed** → Optimization → **Rocket Loader → Off**
+   - **Speed** → Optimization → **Auto Minify** → uncheck HTML (and CSS/JS if present)
+   - **Speed** → Optimization → **Mirage → Off** (if shown)
+   - Optional belt-and-suspenders: origin already sends `Cache-Control: …, no-transform` and `<!--email_off-->` markers so CF skips obfuscation even if the toggle is left on.
+8. **Cache Rules** (recommended for Next.js App Router):
    - Bypass cache for `/.well-known/*`, HTML documents, `/api/*`, RSC / streamed paths
    - Do not set aggressive Edge TTL that overrides Vercel `Cache-Control`
-8. **Vercel** → Project → Domains: confirm `nullxesdai.online` + `www` still Valid. Cloudflare Verified Proxy Lite is automatic.
-9. Verify: response header `cf-ray` present; site opens from RU without VPN; login / Talk / WebSockets still work.
+9. **Vercel** → Project → Domains: confirm `nullxesdai.online` + `www` still Valid. Cloudflare Verified Proxy Lite is automatic (`CF-Connecting-IP`).
+10. Verify: response header `cf-ray` present; View Source has **no** `email-decode.min.js`; site opens from RU without VPN; login / Talk / WebSockets / landing Adeline demo still work.
+    - Console must **not** show React #418 or CSP on `cdn-cgi/.../email-decode.min.js`.
+    - `connect-src 'none'` **report-only** lines from Cloudflare are noise — they do not block Talk (enforced CSP uses `connect-src 'self' https: wss: blob:`).
 
 ### Emergency eject
 

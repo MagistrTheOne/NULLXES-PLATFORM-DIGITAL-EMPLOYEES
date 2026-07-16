@@ -11,6 +11,11 @@ const isProduction = process.env.NODE_ENV === "production";
  *
  * Without a nonce (static assets served via next.config headers) we keep the
  * legacy relaxed policy.
+ *
+ * Cloudflare: do NOT allow Edge features that inject scripts or rewrite HTML
+ * (Email Obfuscation, Rocket Loader, Auto Minify HTML). Injected
+ * `/cdn-cgi/.../email-decode.min.js` has no nonce, so `strict-dynamic` blocks
+ * it; HTML rewrites cause React hydration error #418. See docs/DEPLOYMENT_RF.md.
  */
 export function buildContentSecurityPolicy(nonce?: string): string {
   const scriptSrc = nonce

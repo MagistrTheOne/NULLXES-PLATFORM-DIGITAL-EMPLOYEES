@@ -9,6 +9,10 @@ import {
   JsonLd,
   siteJsonLdGraph,
 } from "@/shared/seo";
+import {
+  CloudflareEmailOffClose,
+  CloudflareEmailOffOpen,
+} from "@/shared/security/cloudflare-email-off";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 
@@ -66,11 +70,13 @@ export default async function RootLayout({
       )}
     >
       <body className="flex min-h-full flex-col bg-black text-white">
+        <CloudflareEmailOffOpen />
         <JsonLd data={siteJsonLdGraph()} />
         <IntlProvider locale={locale} messages={messages}>
           {children}
         </IntlProvider>
         <Analytics />
+        <CloudflareEmailOffClose />
       </body>
     </html>
   );
