@@ -352,15 +352,17 @@ export async function failEmployeeSession(input: {
 }
 
 /**
- * Close abandoned/open Talk sessions for this operator+employee before minting
- * a new Anam token. Prevents stacking Anam concurrent engine sessions on retry.
+ * Close abandoned/open Talk sessions for this operator before minting a new
+ * Anam token. Closes every open row for the user (any employee) so hopping
+ * Somnia → Kaira on the same Anam lab key does not stack engine sessions.
  */
 export async function failOpenEmployeeSessionsForTalkStart(input: {
   employeeId: string;
   userId: string;
 }): Promise<number> {
   const endedAt = new Date();
-  const closed = await db
+  // Prefer same-employee first (narrow), then any leftover open rows for user.
+  const closedSame = await db
     .update(employeeSession)
     .set({
       status: "failed",
@@ -375,5 +377,19 @@ export async function failOpenEmployeeSessionsForTalkStart(input: {
     )
     .returning({ id: employeeSession.id });
 
-  return closed.length;
+  const closedOther = await db
+    .update(employeeSession)
+    .set({
+      status: "failed",
+      endedAt,
+    })
+    .where(
+      and(
+        eq(employeeSession.userId, input.userId),
+        inArray(employeeSession.status, ["created", "active"]),
+      ),
+    )
+    .returning({ id: employeeSession.id });
+
+  return closedSame.length + closedOther.length;
 }

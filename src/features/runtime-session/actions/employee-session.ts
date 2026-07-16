@@ -184,6 +184,8 @@ export async function startTalkSessionAction(
         // Drop prior open DB sessions so retries do not reuse a half-dead
         // row while still minting a fresh Anam engine session (concurrent cap).
         await failOpenEmployeeSessionsForTalkStart({ employeeId, userId });
+        // Brief pause so Anam can release engine slots after tab/retry churn.
+        await new Promise((resolve) => setTimeout(resolve, 400));
 
         const sessionId = await startEmployeeSession({
           organizationId,
@@ -200,11 +202,26 @@ export async function startTalkSessionAction(
           });
         }
 
-        const anamToken = await createAnamTalkSessionTokenForEmployee(
+        let anamToken = await createAnamTalkSessionTokenForEmployee(
           organizationId,
           employeeId,
           employee,
         );
+
+        // One more attempt after concurrent/quota: close leftovers, wait, remint.
+        if (
+          !anamToken.ok &&
+          (anamToken.code === "PROVIDER_QUOTA" ||
+            /concurrent/i.test(anamToken.message))
+        ) {
+          await failOpenEmployeeSessionsForTalkStart({ employeeId, userId });
+          await new Promise((resolve) => setTimeout(resolve, 1_500));
+          anamToken = await createAnamTalkSessionTokenForEmployee(
+            organizationId,
+            employeeId,
+            employee,
+          );
+        }
 
         if (!anamToken.ok) {
           return {

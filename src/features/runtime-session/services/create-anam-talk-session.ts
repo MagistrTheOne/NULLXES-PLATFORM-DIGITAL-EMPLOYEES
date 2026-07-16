@@ -116,16 +116,8 @@ function resolveFallbackVideoOptions(
     }
   }
 
-  // Anam returned a supported list, but every parseable entry matches current.
-  // Do not invent cara-3 — only omit custom dims (model default) or give up.
-  if (parsedAnySupported) {
-    if (current.videoWidth || current.videoHeight) {
-      return { videoQuality: current.videoQuality };
-    }
-    return null;
-  }
-
-  // No usable supportedDimensions from Anam — generic fallbacks.
+  // Never omit dims: Anam/SDK then picks 1152×768, which cara-3 rejects at
+  // stream start ("Invalid request to start session…").
   if (
     current.videoWidth !== ANAM_CARA3_VIDEO_DIMENSIONS.videoWidth ||
     current.videoHeight !== ANAM_CARA3_VIDEO_DIMENSIONS.videoHeight
@@ -136,9 +128,9 @@ function resolveFallbackVideoOptions(
     };
   }
 
-  // Last resort: omit custom dimensions and let Anam use the model default.
-  if (current.videoWidth || current.videoHeight) {
-    return { videoQuality: current.videoQuality };
+  // Already on cara-3 safe size (or Anam listed only that size). Nothing left.
+  if (parsedAnySupported) {
+    return null;
   }
 
   return null;

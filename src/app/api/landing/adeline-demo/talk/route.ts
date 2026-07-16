@@ -2,9 +2,7 @@ import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { digitalEmployee } from "@/entities/digital-employee/schema";
 import { LANDING_DEMO_MARKETING_PORTRAIT } from "@/features/landing/lib/adeline-marketing";
-import { LANDING_DEMO_ANAM_PROXY } from "@/features/landing/lib/landing-demo-rate-limits";
 import { mintLandingDemoToken } from "@/features/landing/lib/landing-demo-token";
-import { consumeAnamProxyQuota } from "@/features/runtime-session/lib/anam-proxy-quota";
 import { createAnamTalkSessionTokenForEmployee } from "@/features/runtime-session/services/create-anam-talk-session";
 import { getEmployeeTalkContext } from "@/features/runtime-session/services/get-employee-talk-context";
 import { resolveTalkVoiceMode } from "@/features/runtime-session/services/resolve-talk-voice-mode";
@@ -54,18 +52,6 @@ export async function POST(_request: Request): Promise<Response> {
       { error: tokenResult.message },
       { status: tokenResult.code === "PROVIDER_QUOTA" ? 503 : 502 },
     );
-  }
-
-  const proxyQuota = await consumeAnamProxyQuota(LANDING_DEMO_ANAM_PROXY);
-  if (!proxyQuota.ok) {
-    // Soft guard only — do not block demos when Redis is unhealthy.
-    // consumeAnamProxyQuota currently fail-closes; ignore redis_unavailable.
-    if (proxyQuota.reason === "limit") {
-      return NextResponse.json(
-        { error: "Trial busy. Try again in a minute.", code: "ANAM_PROXY_LIMIT" },
-        { status: 429 },
-      );
-    }
   }
 
   const voiceMode = talkContext

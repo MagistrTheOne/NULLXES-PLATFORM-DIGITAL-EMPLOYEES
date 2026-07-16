@@ -433,6 +433,7 @@ export function EmployeeTalkRoom({
               avatarPreviewUrl={avatarPreviewUrl}
               sessionToken={activeSession?.sessionToken ?? null}
               voiceMode={activeSession?.voiceMode ?? "anam"}
+              onSessionReminted={onActiveSessionChange}
             />
             <TalkLocalCameraPip
               enabled={cameraEnabled}

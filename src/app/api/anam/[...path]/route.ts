@@ -37,6 +37,7 @@ async function handleProxy(request: Request): Promise<Response> {
     ? `user:${session.user.id}`
     : "demo:landing-adeline";
 
+  // Quotas no-op unless ANAM_PROXY_QUOTA_ENABLED=1 (see anam-proxy-quota.ts).
   const platform = await consumePlatformAnamQuota();
   if (!platform.ok) {
     return Response.json(
@@ -50,7 +51,7 @@ async function handleProxy(request: Request): Promise<Response> {
 
   const bucket = await consumeAnamProxyQuota({
     subject,
-    perMinute: session ? 90 : 30,
+    perMinute: session ? 180 : 60,
   });
   if (!bucket.ok) {
     return Response.json(

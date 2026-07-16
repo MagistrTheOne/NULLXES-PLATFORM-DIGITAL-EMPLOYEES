@@ -7,6 +7,7 @@ import { Loader2 } from "lucide-react";
 import {
   activateTalkSessionAction,
   failTalkSessionAction,
+  startTalkSessionAction,
 } from "@/features/runtime-session/actions/employee-session";
 import { useTalkAnam } from "@/features/runtime-session/context/talk-anam-context";
 import { attachTalkAnamSessionEvents } from "@/features/runtime-session/lib/attach-talk-anam-session-events";
@@ -17,7 +18,11 @@ import {
   releaseAnamInputAudioStream,
   safeVideoPlay,
 } from "@/features/runtime-session/lib/acquire-anam-input-audio-stream";
-import { formatAnamClientError } from "@/features/runtime-session/lib/format-anam-client-error";
+import {
+  formatAnamClientError,
+  isAnamConcurrentSessionError,
+  isAnamVideoDimensionError,
+} from "@/features/runtime-session/lib/format-anam-client-error";
 import type { TalkVoiceMode } from "@/features/runtime-session/services/resolve-talk-voice-mode";
 import { AvatarIdlePreview } from "@/features/employees/components/avatar-idle-preview";
 import { TalkStageHud } from "./talk-stage-hud";
@@ -32,6 +37,7 @@ export function EmployeeAnamStage({
   avatarPreviewUrl,
   sessionToken,
   voiceMode,
+  onSessionReminted,
 }: {
   employeeId: string;
   employeeName: string;
@@ -40,6 +46,11 @@ export function EmployeeAnamStage({
   avatarPreviewUrl: string | null;
   sessionToken: string | null;
   voiceMode: TalkVoiceMode;
+  onSessionReminted?: (session: {
+    sessionId: string;
+    sessionToken: string;
+    voiceMode: TalkVoiceMode;
+  }) => void;
 }) {
   const t = useTranslations("employees.talk");
   const translationsRef = useRef({
@@ -80,6 +91,7 @@ export function EmployeeAnamStage({
     const token = sessionToken;
     let disposed = false;
     let startGeneration = 0;
+    let remintAttempted = false;
     let activeClient: ReturnType<typeof createAnamTalkClient> | null = null;
     let inputAudioStream: MediaStream | null = null;
     let detachVoicePipeline: (() => void) | null = null;
@@ -188,19 +200,50 @@ export function EmployeeAnamStage({
         }
       } catch (error: unknown) {
         if (
-          !disposed &&
-          generation === startGeneration &&
-          !isStoppingIntentionally()
+          disposed ||
+          generation !== startGeneration ||
+          isStoppingIntentionally()
         ) {
-          setStatus("error");
-          setIsLive(false);
-          setErrorMessage(
-            error instanceof Error
-              ? formatAnamClientError(error, translationsRef.current.anamStreamFailed)
-              : translationsRef.current.anamStreamFailed,
-          );
-          void failTalkSessionAction(employeeSessionId);
+          return;
         }
+
+        const canRemint =
+          !remintAttempted &&
+          onSessionReminted &&
+          (isAnamConcurrentSessionError(error) ||
+            isAnamVideoDimensionError(error));
+
+        if (canRemint) {
+          remintAttempted = true;
+          await anamClient.stopStreaming().catch(() => undefined);
+          void failTalkSessionAction(employeeSessionId);
+          await new Promise((resolve) => setTimeout(resolve, 1_800));
+          if (disposed || generation !== startGeneration) {
+            return;
+          }
+
+          const reminted = await startTalkSessionAction(
+            employeeId,
+            scenarioSessionId,
+          );
+          if (reminted.ok && !disposed && generation === startGeneration) {
+            onSessionReminted({
+              sessionId: reminted.sessionId,
+              sessionToken: reminted.sessionToken,
+              voiceMode: reminted.voiceMode,
+            });
+            return;
+          }
+        }
+
+        setStatus("error");
+        setIsLive(false);
+        setErrorMessage(
+          error instanceof Error
+            ? formatAnamClientError(error, translationsRef.current.anamStreamFailed)
+            : translationsRef.current.anamStreamFailed,
+        );
+        void failTalkSessionAction(employeeSessionId);
       }
     }
 
@@ -233,6 +276,8 @@ export function EmployeeAnamStage({
     syncMicFromClient,
     takePendingInputStream,
     voiceMode,
+    onSessionReminted,
+    scenarioSessionId,
   ]);
 
   // Keep the live mic indicator honest: poll the SDK's authoritative input

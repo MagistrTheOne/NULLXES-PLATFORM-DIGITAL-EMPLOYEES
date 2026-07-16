@@ -102,10 +102,27 @@ export const ANAM_CARA3_VIDEO_DIMENSIONS = {
   videoHeight: 480,
 } as const;
 
+/** cara-4 landscape — rejected by cara-3 / sara-3 stock models. */
+export const ANAM_CARA4_LANDSCAPE_VIDEO_DIMENSIONS = {
+  videoWidth: 1152,
+  videoHeight: 768,
+} as const;
+
+function isCara4LandscapeDims(width: number, height: number): boolean {
+  return (
+    width === ANAM_CARA4_LANDSCAPE_VIDEO_DIMENSIONS.videoWidth &&
+    height === ANAM_CARA4_LANDSCAPE_VIDEO_DIMENSIONS.videoHeight
+  );
+}
+
 /**
  * Session video output for Talk.
- * Default 720×480 — stock avatars (sara-3 / cara-3) reject 1152×768.
- * Override with ANAM_TALK_VIDEO_WIDTH + ANAM_TALK_VIDEO_HEIGHT together.
+ * Always pin 720×480 for stock avatars. Omitting dims lets Anam pick 1152×768,
+ * which fails on cara-3 at stream start.
+ *
+ * Custom env dims require ANAM_TALK_ALLOW_CUSTOM_VIDEO_DIMS=1 — otherwise
+ * 1152×768 (and any other override) is ignored so Vercel misconfig cannot
+ * break Talk.
  * @see https://anam.ai/docs/sessions/video-options
  */
 export function buildAnamTalkSessionVideoOptions(): AnamTalkSessionVideoOptions {
@@ -118,16 +135,32 @@ export function buildAnamTalkSessionVideoOptions(): AnamTalkSessionVideoOptions 
   const videoQuality: AnamTalkVideoQuality | undefined =
     qualityRaw === "high" || qualityRaw === "auto" ? qualityRaw : "auto";
 
-  // Always pin a supported size. Omitting dims lets Anam/SDK pick 1152×768,
-  // which fails on sara-3 ("Supported dimensions: 720x480").
   const options: AnamTalkSessionVideoOptions = {
     videoQuality,
     ...ANAM_CARA3_VIDEO_DIMENSIONS,
   };
 
-  if (Number.isFinite(width) && Number.isFinite(height) && width > 0 && height > 0) {
+  const allowCustom =
+    readEnv("ANAM_TALK_ALLOW_CUSTOM_VIDEO_DIMS") === "1" ||
+    readEnv("ANAM_TALK_ALLOW_CUSTOM_VIDEO_DIMS")?.toLowerCase() === "true";
+
+  if (
+    allowCustom &&
+    Number.isFinite(width) &&
+    Number.isFinite(height) &&
+    width > 0 &&
+    height > 0
+  ) {
     options.videoWidth = Math.floor(width);
     options.videoHeight = Math.floor(height);
+  } else if (
+    Number.isFinite(width) &&
+    Number.isFinite(height) &&
+    isCara4LandscapeDims(Math.floor(width), Math.floor(height))
+  ) {
+    // Explicitly keep cara-3 safe size when prod still has the old example envs.
+    options.videoWidth = ANAM_CARA3_VIDEO_DIMENSIONS.videoWidth;
+    options.videoHeight = ANAM_CARA3_VIDEO_DIMENSIONS.videoHeight;
   }
 
   return options;

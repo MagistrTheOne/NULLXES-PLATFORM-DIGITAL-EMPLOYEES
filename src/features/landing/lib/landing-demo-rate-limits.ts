@@ -3,14 +3,7 @@
  *
  * Per-IP trial caps were blocking real demos (and Redis fail-closed looked
  * identical to "limit reached"). Public Talk/Voice skip IP/platform buckets;
- * only a soft Anam proxy guard remains on the talk route.
+ * Anam proxy Redis buckets are also off unless ANAM_PROXY_QUOTA_ENABLED=1.
  */
 
 export const LANDING_DEMO_RATE_ENABLED = false;
-
-/** Soft Anam proxy subject for landing Talk session starts. */
-export const LANDING_DEMO_ANAM_PROXY = {
-  subject: "demo:landing-anna",
-  perMinute: 120,
-  failOpen: true as const,
-};

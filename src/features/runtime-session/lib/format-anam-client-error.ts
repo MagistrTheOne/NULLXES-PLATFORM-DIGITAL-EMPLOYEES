@@ -2,6 +2,53 @@
  * Anam JS SDK ClientError often wraps the real upstream reason in `details.cause`.
  * Surface that so operators see "concurrent limit" instead of "Unknown error…".
  */
+
+export function isAnamConcurrentSessionError(error: unknown): boolean {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+
+  const details =
+    "details" in error && error.details && typeof error.details === "object"
+      ? (error.details as Record<string, unknown>)
+      : null;
+  const cause =
+    typeof details?.cause === "string" && details.cause.trim().length > 0
+      ? details.cause.trim()
+      : "";
+  const code =
+    "code" in error && typeof error.code === "string" ? error.code : null;
+  const message = error.message.trim();
+
+  return (
+    code === "CLIENT_ERROR_CODE_MAX_CONCURRENT_SESSIONS_REACHED" ||
+    /concurrent session limit/i.test(message) ||
+    /concurrent session limit/i.test(cause) ||
+    /лимит одновременных сессий/i.test(message)
+  );
+}
+
+export function isAnamVideoDimensionError(error: unknown): boolean {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+
+  const details =
+    "details" in error && error.details && typeof error.details === "object"
+      ? (error.details as Record<string, unknown>)
+      : null;
+  const cause =
+    typeof details?.cause === "string" && details.cause.trim().length > 0
+      ? details.cause.trim()
+      : "";
+  const haystack = `${error.message} ${cause}`;
+
+  return (
+    /video dimensions .+ are not supported/i.test(haystack) ||
+    /video_dimensions_not_supported/i.test(haystack)
+  );
+}
+
 export function formatAnamClientError(
   error: unknown,
   fallback: string,
@@ -28,12 +75,12 @@ export function formatAnamClientError(
 
   const message = error.message.trim();
 
-  if (
-    code === "CLIENT_ERROR_CODE_MAX_CONCURRENT_SESSIONS_REACHED" ||
-    /concurrent session limit/i.test(message) ||
-    /concurrent session limit/i.test(cause ?? "")
-  ) {
+  if (isAnamConcurrentSessionError(error)) {
     return "Anam: лимит одновременных сессий. Закройте другие вкладки Talk или подождите 1–2 минуты и попробуйте снова.";
+  }
+
+  if (isAnamVideoDimensionError(error)) {
+    return "Anam: неверный размер видео для аватара. Обновите страницу и попробуйте снова (нужен 720×480).";
   }
 
   if (
