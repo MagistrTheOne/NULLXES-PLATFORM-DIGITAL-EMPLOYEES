@@ -126,10 +126,12 @@ function TalkStageControls({
       // iOS/WebKit: mic + video unlock must happen in the Start tap gesture,
       // before awaiting the server session token.
       // @see https://anam.ai/docs/resources/faq
+      // iOS: mic must be acquired in this tap. Unlock must not await play() —
+      // an empty <video> play() can hang and leave the dock on "Starting…".
       const inputAudioStream = await acquireAnamInputAudioStream();
       stashPendingInputStream(inputAudioStream);
       setMicPermission("granted");
-      await unlockAnamVideoPlayback("nullxes-anam-persona-video");
+      unlockAnamVideoPlayback("nullxes-anam-persona-video");
 
       const result = await startTalkSessionAction(employeeId, scenarioSessionId);
       if (!result.ok) {

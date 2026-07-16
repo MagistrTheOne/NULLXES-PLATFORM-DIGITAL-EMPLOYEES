@@ -57,12 +57,25 @@ export function releaseAnamInputAudioStream(stream: MediaStream | null): void {
   }
 }
 
+/** play() on an empty <video> can hang forever in some Chromium/WebKit builds. */
+export async function safeVideoPlay(
+  video: HTMLVideoElement,
+  timeoutMs = 400,
+): Promise<void> {
+  await Promise.race([
+    video.play().then(() => undefined),
+    new Promise<void>((resolve) => {
+      window.setTimeout(resolve, timeoutMs);
+    }),
+  ]).catch(() => undefined);
+}
+
 /**
  * Unlock persona video audio on iOS/WebKit within a user gesture.
- * Must run before or during session start (tap), not after an await chain.
+ * Must run in the Start tap — do not block session start on play().
  * @see https://anam.ai/docs/javascript-sdk/reference/basic-usage (`playsinline`)
  */
-export async function unlockAnamVideoPlayback(videoElementId: string): Promise<void> {
+export function unlockAnamVideoPlayback(videoElementId: string): void {
   if (typeof document === "undefined") {
     return;
   }
@@ -78,10 +91,13 @@ export async function unlockAnamVideoPlayback(videoElementId: string): Promise<v
   video.muted = false;
   video.defaultMuted = false;
 
-  try {
-    await video.play();
-    video.pause();
-  } catch {
-    // Element may have no src yet — attributes + unmute still help once Anam attaches.
-  }
+  // Fire-and-forget: awaiting play() here previously froze Talk on "Starting…"
+  // when the element had no media yet.
+  void safeVideoPlay(video).then(() => {
+    try {
+      video.pause();
+    } catch {
+      // ignore
+    }
+  });
 }

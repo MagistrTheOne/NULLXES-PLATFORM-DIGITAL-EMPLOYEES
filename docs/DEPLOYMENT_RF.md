@@ -29,13 +29,18 @@ Vercel [does not recommend](https://vercel.com/kb/guide/cloudflare-with-vercel) 
 5. Wait until zone status is **Active**.
 6. **SSL/TLS** → Overview → **Full (strict)** ([docs](https://developers.cloudflare.com/ssl/origin-configuration/ssl-modes/full-strict/)).
    - Never **Flexible** — causes `ERR_TOO_MANY_REDIRECTS` with Vercel ([KB](https://vercel.com/kb/guide/resolve-err-too-many-redirects-when-using-cloudflare-proxy-with-vercel)).
-7. **Disable Edge HTML/JS rewrites** (required — breaks Talk + landing avatar demos):
+7. **Disable Edge HTML/JS rewrites + calm RU/global traffic** (required — breaks Talk + landing avatar demos):
    - **Security** → Settings (or Scrape Shield) → **Email Address Obfuscation → Off**
      - Symptom if left On: CSP blocks `/cdn-cgi/.../email-decode.min.js` (no nonce under `strict-dynamic`), React minified error **#418** (hydration text mismatch), UI stuck on “Connecting…” / “Starting…”.
-   - **Speed** → Optimization → **Rocket Loader → Off**
-   - **Speed** → Optimization → **Auto Minify** → uncheck HTML (and CSS/JS if present)
-   - **Speed** → Optimization → **Mirage → Off** (if shown)
-   - Optional belt-and-suspenders: origin already sends `Cache-Control: …, no-transform` and `<!--email_off-->` markers so CF skips obfuscation even if the toggle is left on.
+   - **Speed** → Optimization → **Rocket Loader → Off**; **Auto Minify** all Off; **Mirage → Off**
+   - **SSL/TLS** → **Full (strict)**; **Always Use HTTPS → On**; min TLS 1.2
+   - **Security** level → **Essentially Off** (or Medium). Do **not** enable Under Attack Mode for normal ops.
+   - **Bot Fight Mode → Off** (and JS detections off) — challenges inject `/cdn-cgi/challenge-platform/...` scripts that conflict with nonce CSP and can stall RU clients / Talk WebSockets.
+   - **Browser Integrity Check → Off**; **Server-Side Excludes → Off**
+   - **Caching** → Cache Level **Basic** + Cache Rule: bypass `/api/*`, `/dashboard*`, `/login*`, `/auth*`, `_rsc`, `/.well-known/*`
+   - **Network** → WebSockets **On**, HTTP/3 On, IPv6 On, Pseudo IPv4 Off
+   - Do **not** add country Block rules for RU (or any region you serve). Orange-cloud proxy is global anycast — RU and non-RU both hit the nearest CF PoP → Vercel.
+   - Optional belt-and-suspenders in app: `Cache-Control: no-transform` + `<!--email_off-->` markers.
 8. **Cache Rules** (recommended for Next.js App Router):
    - Bypass cache for `/.well-known/*`, HTML documents, `/api/*`, RSC / streamed paths
    - Do not set aggressive Edge TTL that overrides Vercel `Cache-Control`

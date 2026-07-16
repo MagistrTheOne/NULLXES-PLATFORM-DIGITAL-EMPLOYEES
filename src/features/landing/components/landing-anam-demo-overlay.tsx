@@ -16,6 +16,7 @@ import { createAnamTalkClient } from "@/features/runtime-session/lib/create-anam
 import {
   acquireAnamInputAudioStream,
   releaseAnamInputAudioStream,
+  safeVideoPlay,
   unlockAnamVideoPlayback,
 } from "@/features/runtime-session/lib/acquire-anam-input-audio-stream";
 import { attachTalkVoicePipeline } from "@/features/runtime-session/lib/attach-talk-voice-pipeline";
@@ -219,7 +220,8 @@ export function LandingAnamDemoOverlay({
       }
       streamRef.current = inputAudioStream;
       setMicPermission("granted");
-      await unlockAnamVideoPlayback(VIDEO_ID);
+      // Do not await — empty video.play() can hang the Start gesture.
+      unlockAnamVideoPlayback(VIDEO_ID);
 
       const response = await fetch(DEMO_ENDPOINT, { method: "POST" });
       const payload = (await response.json().catch(() => ({}))) as DemoPayload & {
@@ -340,7 +342,7 @@ export function LandingAnamDemoOverlay({
       await anamClient.streamToVideoElement(VIDEO_ID, inputAudioStream);
       if (video instanceof HTMLVideoElement) {
         video.muted = false;
-        await video.play().catch(() => undefined);
+        await safeVideoPlay(video);
       }
       ensureMicActive();
       syncMicFromClient();

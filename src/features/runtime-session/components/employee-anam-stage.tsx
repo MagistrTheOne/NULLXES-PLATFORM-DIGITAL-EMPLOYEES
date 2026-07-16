@@ -15,6 +15,7 @@ import { createAnamTalkClient } from "@/features/runtime-session/lib/create-anam
 import {
   acquireAnamInputAudioStream,
   releaseAnamInputAudioStream,
+  safeVideoPlay,
 } from "@/features/runtime-session/lib/acquire-anam-input-audio-stream";
 import { formatAnamClientError } from "@/features/runtime-session/lib/format-anam-client-error";
 import type { TalkVoiceMode } from "@/features/runtime-session/services/resolve-talk-voice-mode";
@@ -183,7 +184,7 @@ export function EmployeeAnamStage({
 
         if (video instanceof HTMLVideoElement) {
           video.muted = false;
-          await video.play().catch(() => undefined);
+          await safeVideoPlay(video);
         }
       } catch (error: unknown) {
         if (
