@@ -2,7 +2,42 @@
 
 This document outlines deployment considerations for Russia (RU) data residency and enterprise security controls.
 
-Last updated: **2026-07-09**
+Last updated: **2026-07-16**
+
+## Cloudflare proxy (RU access)
+
+Goal: `User (RU) → Cloudflare (orange cloud) → Vercel → Neon`.
+
+Vercel [does not recommend](https://vercel.com/kb/guide/cloudflare-with-vercel) a reverse proxy in front of the platform, but [supports Cloudflare as Verified Proxy Lite](https://vercel.com/docs/security/reverse-proxy) via the built-in `CF-Connecting-IP` header (all plans, no extra config).
+
+### Current DNS (before Cloudflare)
+
+| Host | Type | Target | NS |
+|------|------|--------|----|
+| `nullxesdai.online` | A | `216.198.79.1` | `dns1/dns2.registrar-servers.com` (Namecheap) |
+| `www.nullxesdai.online` | CNAME | `6324365a24ea910e.vercel-dns-017.com` | same |
+
+### Setup checklist
+
+1. **Cloudflare** → Onboard a domain → `nullxesdai.online` → Free plan ([official onboard](https://developers.cloudflare.com/fundamentals/manage-domains/add-site/)).
+2. **DNS records** (proxied = orange cloud for web; gray for mail/verification):
+   - `A` / `CNAME` apex → keep Vercel target (`216.198.79.1` or `cname.vercel-dns.com` with CNAME flattening)
+   - `CNAME` `www` → `cname.vercel-dns.com` (or current `*.vercel-dns-017.com`)
+   - MX / SPF / DKIM / DMARC → **DNS only** (gray cloud)
+3. If **DNSSEC** is on at Namecheap → **turn off** before changing nameservers, then re-enable via Cloudflare after Active.
+4. At **Namecheap** → Custom nameservers → paste the two Cloudflare NS Cloudflare shows.
+5. Wait until zone status is **Active**.
+6. **SSL/TLS** → Overview → **Full (strict)** ([docs](https://developers.cloudflare.com/ssl/origin-configuration/ssl-modes/full-strict/)).
+   - Never **Flexible** — causes `ERR_TOO_MANY_REDIRECTS` with Vercel ([KB](https://vercel.com/kb/guide/resolve-err-too-many-redirects-when-using-cloudflare-proxy-with-vercel)).
+7. **Cache Rules** (recommended for Next.js App Router):
+   - Bypass cache for `/.well-known/*`, HTML documents, `/api/*`, RSC / streamed paths
+   - Do not set aggressive Edge TTL that overrides Vercel `Cache-Control`
+8. **Vercel** → Project → Domains: confirm `nullxesdai.online` + `www` still Valid. Cloudflare Verified Proxy Lite is automatic.
+9. Verify: response header `cf-ray` present; site opens from RU without VPN; login / Talk / WebSockets still work.
+
+### Emergency eject
+
+Toggle apex + `www` to **DNS only** (gray cloud) in Cloudflare DNS — traffic goes straight to Vercel within seconds.
 
 ## Data region
 

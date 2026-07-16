@@ -29,6 +29,10 @@ import type { TalkViewer } from "./talk-viewer-card";
 import type { TalkChatCredentials } from "../services/create-talk-chat-session";
 import { useTalkAnam } from "../context/talk-anam-context";
 import { useTalkThreads } from "../lib/use-talk-threads";
+import {
+  acquireAnamInputAudioStream,
+  unlockAnamVideoPlayback,
+} from "../lib/acquire-anam-input-audio-stream";
 import { startTalkSessionAction } from "../actions/employee-session";
 import type { TalkVoiceMode } from "../services/resolve-talk-voice-mode";
 import { cn } from "@/lib/utils";
@@ -97,7 +101,7 @@ function TalkStageControls({
   onOpenGrokVoice?: () => void;
 }) {
   const t = useTranslations("employees.talk");
-  const { micMuted, micPermission, toggleMic, isLive, pipelineState } =
+  const { micMuted, micPermission, toggleMic, isLive, pipelineState, setMicPermission, stashPendingInputStream, clearPendingInputStream } =
     useTalkAnam();
   const [isStarting, setIsStarting] = useState(false);
   const [startError, setStartError] = useState<string | null>(null);
@@ -116,9 +120,21 @@ function TalkStageControls({
     startingRef.current = true;
     setIsStarting(true);
     setStartError(null);
+    setMicPermission("pending");
+
     try {
+      // iOS/WebKit: mic + video unlock must happen in the Start tap gesture,
+      // before awaiting the server session token.
+      // @see https://anam.ai/docs/resources/faq
+      const inputAudioStream = await acquireAnamInputAudioStream();
+      stashPendingInputStream(inputAudioStream);
+      setMicPermission("granted");
+      await unlockAnamVideoPlayback("nullxes-anam-persona-video");
+
       const result = await startTalkSessionAction(employeeId, scenarioSessionId);
       if (!result.ok) {
+        clearPendingInputStream();
+        setMicPermission("unknown");
         setStartError(result.message);
         return;
       }
@@ -127,6 +143,18 @@ function TalkStageControls({
         sessionToken: result.sessionToken,
         voiceMode: result.voiceMode,
       });
+    } catch (error: unknown) {
+      clearPendingInputStream();
+      setMicPermission(
+        error instanceof DOMException && error.name === "NotAllowedError"
+          ? "denied"
+          : "unknown",
+      );
+      setStartError(
+        error instanceof Error
+          ? error.message
+          : t("stage.anamStreamFailed"),
+      );
     } finally {
       startingRef.current = false;
       setIsStarting(false);
@@ -367,7 +395,7 @@ export function EmployeeTalkRoom({
   };
 
   return (
-    <div className="talk-workspace-shell employee-talk-workspace employee-talk-shell mx-auto flex h-full min-h-0 w-full max-h-[calc(100dvh-3.5rem)] flex-1 flex-col overflow-hidden rounded-none border-0 bg-[#0a0a0a] sm:rounded-2xl sm:border sm:border-white/10">
+    <div className="talk-workspace-shell employee-talk-workspace employee-talk-shell mx-auto flex h-full min-h-0 w-full max-h-[calc(100dvh-3.5rem-env(safe-area-inset-bottom))] flex-1 flex-col overflow-hidden rounded-none border-0 bg-[#0a0a0a] sm:max-h-[calc(100dvh-3.5rem)] sm:rounded-2xl sm:border sm:border-white/10">
       <TalkWorkspaceHeader
         employeeName={employeeName}
         sessionLimitSeconds={sessionLimitSeconds}

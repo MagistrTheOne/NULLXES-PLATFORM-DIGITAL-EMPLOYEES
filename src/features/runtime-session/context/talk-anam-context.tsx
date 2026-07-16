@@ -14,6 +14,7 @@ import {
   type ReactNode,
 } from "react";
 import type { AnamClient } from "@anam-ai/js-sdk";
+import { releaseAnamInputAudioStream } from "@/features/runtime-session/lib/acquire-anam-input-audio-stream";
 
 export type TalkPipelineState = "idle" | "listening" | "thinking" | "speaking";
 export type TalkMicPermission = "unknown" | "pending" | "granted" | "denied";
@@ -27,6 +28,11 @@ type TalkAnamContextValue = {
   toggleMic: () => void;
   syncMicFromClient: () => void;
   ensureMicActive: () => void;
+  /** Stash mic stream acquired inside the Start tap (mobile gesture). */
+  stashPendingInputStream: (stream: MediaStream) => void;
+  /** Consume stashed stream once when Anam stage starts (or null). */
+  takePendingInputStream: () => MediaStream | null;
+  clearPendingInputStream: () => void;
   stopSession: () => Promise<void>;
   isLive: boolean;
   setIsLive: (live: boolean) => void;
@@ -48,6 +54,31 @@ export function TalkAnamProvider({ children }: { children: ReactNode }) {
     useState<TalkPipelineState>("idle");
   const stoppingIntentionallyRef = useRef(false);
   const userMutedMicRef = useRef(false);
+  const pendingInputStreamRef = useRef<MediaStream | null>(null);
+
+  const clearPendingInputStream = useCallback(() => {
+    releaseAnamInputAudioStream(pendingInputStreamRef.current);
+    pendingInputStreamRef.current = null;
+  }, []);
+
+  const stashPendingInputStream = useCallback(
+    (stream: MediaStream) => {
+      if (
+        pendingInputStreamRef.current &&
+        pendingInputStreamRef.current !== stream
+      ) {
+        releaseAnamInputAudioStream(pendingInputStreamRef.current);
+      }
+      pendingInputStreamRef.current = stream;
+    },
+    [],
+  );
+
+  const takePendingInputStream = useCallback((): MediaStream | null => {
+    const stream = pendingInputStreamRef.current;
+    pendingInputStreamRef.current = null;
+    return stream;
+  }, []);
 
   const registerClient = useCallback((next: AnamClient | null) => {
     clientRef.current = next;
@@ -137,6 +168,7 @@ export function TalkAnamProvider({ children }: { children: ReactNode }) {
     const active = clientRef.current;
     clientRef.current = null;
     stoppingIntentionallyRef.current = true;
+    clearPendingInputStream();
     setClient(null);
     setMicMuted(false);
     setMicPermission("unknown");
@@ -146,7 +178,7 @@ export function TalkAnamProvider({ children }: { children: ReactNode }) {
     if (active) {
       await active.stopStreaming().catch(() => undefined);
     }
-  }, []);
+  }, [clearPendingInputStream]);
 
   const isStoppingIntentionally = useCallback(
     () => stoppingIntentionallyRef.current,
@@ -165,6 +197,9 @@ export function TalkAnamProvider({ children }: { children: ReactNode }) {
       toggleMic,
       syncMicFromClient,
       ensureMicActive,
+      stashPendingInputStream,
+      takePendingInputStream,
+      clearPendingInputStream,
       stopSession,
       isLive,
       setIsLive,
@@ -177,10 +212,12 @@ export function TalkAnamProvider({ children }: { children: ReactNode }) {
       getClient,
       micMuted,
       micPermission,
-      setMicPermission,
       toggleMic,
       syncMicFromClient,
       ensureMicActive,
+      stashPendingInputStream,
+      takePendingInputStream,
+      clearPendingInputStream,
       stopSession,
       isLive,
       pipelineState,

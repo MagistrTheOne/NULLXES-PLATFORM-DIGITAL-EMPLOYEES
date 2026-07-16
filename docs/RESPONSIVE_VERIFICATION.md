@@ -57,6 +57,9 @@ Manual viewport checklist after layout changes. Test in Chrome DevTools device m
 - [ ] Workforce strip hidden on mobile, visible from `md+`
 - [ ] Chat sheet still opens from stage controls
 - [ ] Focus mode hides side panel and shows exit control
+- [ ] **Mic:** Start tap requests microphone *before* session token (iOS gesture); persona hears user after Allow
+- [ ] **Audio out:** avatar speech plays on iPhone/Safari after Start (playsinline + unlock)
+- [ ] Local camera PIP sits above call dock on phones (does not cover mic/stop)
 
 ## Conversations / Missions / HQ
 

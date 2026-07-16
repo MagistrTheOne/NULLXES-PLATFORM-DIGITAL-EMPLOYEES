@@ -1,21 +1,38 @@
+import { isMobileTalkClient } from "./is-mobile-talk-client";
+
 /**
  * Single browser mic capture for the whole Talk session.
  * Passed into Anam `streamToVideoElement(id, stream)` so the SDK does not
  * call getUserMedia again (avoids duplicate tracks / permission races).
+ *
+ * Call this inside a user gesture on mobile (tap Start) — iOS Safari requires
+ * getUserMedia + audio unlock in the same gesture chain.
+ *
  * @see https://anam.ai/docs/javascript-sdk/reference/audio-control
+ * @see https://anam.ai/docs/resources/faq (Safari/iOS autoplay + mic)
  */
 export async function acquireAnamInputAudioStream(): Promise<MediaStream> {
   if (typeof navigator === "undefined" || !navigator.mediaDevices?.getUserMedia) {
     throw new Error("Microphone capture is not available in this browser.");
   }
 
-  const audio: MediaTrackConstraints = {
-    echoCancellation: true,
-    noiseSuppression: true,
-    autoGainControl: true,
-    channelCount: 1,
-    sampleRate: { ideal: 48_000 },
-  };
+  const mobile = isMobileTalkClient();
+
+  // Mobile/WebKit: keep constraints minimal — ideal sampleRate/channelCount
+  // often rejects or returns a silent track on iOS Safari.
+  const audio: boolean | MediaTrackConstraints = mobile
+    ? {
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true,
+      }
+    : {
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true,
+        channelCount: 1,
+        sampleRate: { ideal: 48_000 },
+      };
 
   try {
     return await navigator.mediaDevices.getUserMedia({
@@ -37,5 +54,34 @@ export function releaseAnamInputAudioStream(stream: MediaStream | null): void {
 
   for (const track of stream.getTracks()) {
     track.stop();
+  }
+}
+
+/**
+ * Unlock persona video audio on iOS/WebKit within a user gesture.
+ * Must run before or during session start (tap), not after an await chain.
+ * @see https://anam.ai/docs/javascript-sdk/reference/basic-usage (`playsinline`)
+ */
+export async function unlockAnamVideoPlayback(videoElementId: string): Promise<void> {
+  if (typeof document === "undefined") {
+    return;
+  }
+
+  const video = document.getElementById(videoElementId);
+  if (!(video instanceof HTMLVideoElement)) {
+    return;
+  }
+
+  video.setAttribute("playsinline", "true");
+  video.setAttribute("webkit-playsinline", "true");
+  video.playsInline = true;
+  video.muted = false;
+  video.defaultMuted = false;
+
+  try {
+    await video.play();
+    video.pause();
+  } catch {
+    // Element may have no src yet — attributes + unmute still help once Anam attaches.
   }
 }

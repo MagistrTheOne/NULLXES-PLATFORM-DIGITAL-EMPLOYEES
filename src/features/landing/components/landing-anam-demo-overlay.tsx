@@ -16,6 +16,7 @@ import { createAnamTalkClient } from "@/features/runtime-session/lib/create-anam
 import {
   acquireAnamInputAudioStream,
   releaseAnamInputAudioStream,
+  unlockAnamVideoPlayback,
 } from "@/features/runtime-session/lib/acquire-anam-input-audio-stream";
 import { attachTalkVoicePipeline } from "@/features/runtime-session/lib/attach-talk-voice-pipeline";
 import { setLandingDemoProxyToken } from "@/features/runtime-session/lib/patch-anam-browser-fetch";
@@ -209,6 +210,17 @@ export function LandingAnamDemoOverlay({
     setStatus("connecting");
 
     try {
+      // Mic + video unlock first — must stay in the Start tap gesture on iOS.
+      // @see https://anam.ai/docs/resources/faq
+      const inputAudioStream = await acquireAnamInputAudioStream();
+      if (stoppingRef.current) {
+        releaseAnamInputAudioStream(inputAudioStream);
+        return;
+      }
+      streamRef.current = inputAudioStream;
+      setMicPermission("granted");
+      await unlockAnamVideoPlayback(VIDEO_ID);
+
       const response = await fetch(DEMO_ENDPOINT, { method: "POST" });
       const payload = (await response.json().catch(() => ({}))) as DemoPayload & {
         error?: string;
@@ -312,19 +324,35 @@ export function LandingAnamDemoOverlay({
           voiceMode === "elevenlabs" ? DEMO_TTS_ENDPOINT : undefined,
       });
 
-      const inputAudioStream = await acquireAnamInputAudioStream();
       if (stoppingRef.current) {
-        releaseAnamInputAudioStream(inputAudioStream);
+        releaseAnamInputAudioStream(streamRef.current);
+        streamRef.current = null;
         return;
       }
-      streamRef.current = inputAudioStream;
+
+      const video = document.getElementById(VIDEO_ID);
+      if (video instanceof HTMLVideoElement) {
+        video.muted = false;
+        video.defaultMuted = false;
+        video.playsInline = true;
+      }
 
       await anamClient.streamToVideoElement(VIDEO_ID, inputAudioStream);
+      if (video instanceof HTMLVideoElement) {
+        video.muted = false;
+        await video.play().catch(() => undefined);
+      }
       ensureMicActive();
       syncMicFromClient();
     } catch (startError: unknown) {
       await stopDemo();
       setStatus("error");
+      setMicPermission(
+        startError instanceof DOMException &&
+          startError.name === "NotAllowedError"
+          ? "denied"
+          : "unknown",
+      );
       setError(
         startError instanceof Error
           ? startError.message
@@ -456,6 +484,7 @@ export function LandingAnamDemoOverlay({
             id={VIDEO_ID}
             autoPlay
             playsInline
+            {...{ "webkit-playsinline": "true" }}
             className={cn(
               "absolute inset-0 size-full object-cover object-[50%_18%] transition-opacity duration-500",
               isLive ? "opacity-100" : "opacity-0",
@@ -552,7 +581,7 @@ export function LandingAnamDemoOverlay({
           ) : null}
         </div>
 
-        <footer className="relative z-20 flex shrink-0 flex-col items-center gap-2 border-t border-white/8 px-4 py-4 sm:px-5 md:px-6 md:py-5">
+        <footer className="relative z-20 flex shrink-0 flex-col items-center gap-2 border-t border-white/8 px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-5 md:px-6 md:py-5">
           {error ? (
             <p className="text-center text-sm text-red-300/90" role="alert">
               {error}

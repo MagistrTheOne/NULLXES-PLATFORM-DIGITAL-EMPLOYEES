@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
+import { isMobileTalkClient } from "../lib/is-mobile-talk-client";
 
 export function TalkLocalCameraPip({
   enabled,
@@ -40,12 +41,19 @@ export function TalkLocalCameraPip({
       setFailed(false);
 
       try {
+        const mobile = isMobileTalkClient();
         const stream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            width: { ideal: 1280 },
-            height: { ideal: 720 },
-            facingMode: "user",
-          },
+          video: mobile
+            ? {
+                facingMode: "user",
+                width: { ideal: 640 },
+                height: { ideal: 360 },
+              }
+            : {
+                width: { ideal: 1280 },
+                height: { ideal: 720 },
+                facingMode: "user",
+              },
           audio: false,
         });
 
@@ -91,7 +99,9 @@ export function TalkLocalCameraPip({
     <div
       className={cn(
         "absolute z-30 overflow-hidden border border-white/12 bg-black/80 backdrop-blur-[2px]",
-        "bottom-3 right-3 w-28 rounded-lg lg:inset-x-0 lg:bottom-0 lg:flex lg:h-24 lg:w-auto lg:items-stretch lg:gap-3 lg:rounded-none lg:border-x-0 lg:border-t lg:border-b-0 lg:px-3 lg:py-2",
+        // Sit above the call dock + safe-area on phones; desktop strip at bottom.
+        "right-3 bottom-[calc(4.75rem+env(safe-area-inset-bottom))] w-24 rounded-lg sm:w-28",
+        "lg:inset-x-0 lg:bottom-0 lg:flex lg:h-24 lg:w-auto lg:items-stretch lg:gap-3 lg:rounded-none lg:border-x-0 lg:border-t lg:border-b-0 lg:px-3 lg:py-2",
       )}
     >
       <div className="relative aspect-video w-full bg-[#111111] lg:aspect-auto lg:h-full lg:w-auto lg:overflow-hidden lg:rounded-md">

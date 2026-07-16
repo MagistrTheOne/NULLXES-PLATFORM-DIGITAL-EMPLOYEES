@@ -58,6 +58,7 @@ export function EmployeeAnamStage({
     setMicPermission,
     syncMicFromClient,
     ensureMicActive,
+    takePendingInputStream,
     isStoppingIntentionally,
   } = useTalkAnam();
   const [status, setStatus] = useState<
@@ -153,21 +154,37 @@ export function EmployeeAnamStage({
         setPipelineState,
       });
 
-      // Anam SDK: pass a dedicated input MediaStream for reliable mic capture.
+      // Prefer mic acquired in the Start tap (mobile gesture). Fallback acquire
+      // covers desktop refresh / race where stash was cleared.
       // @see https://anam.ai/docs/javascript-sdk/reference/audio-control
       try {
         setMicPermission("pending");
-        inputAudioStream = await acquireAnamInputAudioStream();
+        inputAudioStream =
+          takePendingInputStream() ?? (await acquireAnamInputAudioStream());
         if (disposed || generation !== startGeneration) {
           releaseAnamInputAudioStream(inputAudioStream);
           inputAudioStream = null;
           return;
         }
 
+        const video = document.getElementById(ANAM_VIDEO_ELEMENT_ID);
+        if (video instanceof HTMLVideoElement) {
+          video.muted = false;
+          video.defaultMuted = false;
+          video.playsInline = true;
+          video.setAttribute("playsinline", "true");
+          video.setAttribute("webkit-playsinline", "true");
+        }
+
         await anamClient.streamToVideoElement(
           ANAM_VIDEO_ELEMENT_ID,
           inputAudioStream,
         );
+
+        if (video instanceof HTMLVideoElement) {
+          video.muted = false;
+          await video.play().catch(() => undefined);
+        }
       } catch (error: unknown) {
         if (
           !disposed &&
@@ -205,11 +222,15 @@ export function EmployeeAnamStage({
   }, [
     employeeId,
     employeeSessionId,
+    ensureMicActive,
     isStoppingIntentionally,
     registerClient,
     sessionToken,
     setIsLive,
+    setMicPermission,
     setPipelineState,
+    syncMicFromClient,
+    takePendingInputStream,
     voiceMode,
   ]);
 
@@ -247,6 +268,9 @@ export function EmployeeAnamStage({
         id={ANAM_VIDEO_ELEMENT_ID}
         autoPlay
         playsInline
+        // iOS Safari: keep playsinline + allow persona audio after user gesture.
+        // @see https://anam.ai/docs/javascript-sdk/reference/basic-usage
+        {...{ "webkit-playsinline": "true" }}
         className={`employee-anam-video relative z-10 size-full transition-opacity duration-500 ${
           status === "live" ? "opacity-100" : "opacity-0"
         }`}

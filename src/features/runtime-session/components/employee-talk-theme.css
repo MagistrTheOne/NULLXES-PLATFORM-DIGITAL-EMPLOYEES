@@ -92,6 +92,26 @@
   gap: 0.5rem;
 }
 
+@media (max-width: 767px) {
+  .talk-stage-dock {
+    padding: 0.65rem 0.75rem max(0.75rem, env(safe-area-inset-bottom));
+  }
+
+  .talk-stage-dock-inner {
+    gap: 0.65rem;
+  }
+
+  .talk-stage-dock-inner button {
+    min-height: 2.5rem;
+    min-width: 2.5rem;
+  }
+
+  /* Face framing on tall phones — slightly higher optical center. */
+  .employee-anam-video {
+    object-position: center 18%;
+  }
+}
+
 .talk-stage-dock-error {
   position: absolute;
   inset-inline: 0;
