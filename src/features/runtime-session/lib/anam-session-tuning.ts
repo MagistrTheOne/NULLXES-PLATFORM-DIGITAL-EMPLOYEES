@@ -96,33 +96,50 @@ export function buildAnamVoiceDetectionOptions(): AnamVoiceDetectionOptions {
   };
 }
 
-/** Safe default for cara-3 (and common Anam stock avatars). */
+/** Safe default for cara-3 / sara-3 stock avatars. */
 export const ANAM_CARA3_VIDEO_DIMENSIONS = {
   videoWidth: 720,
   videoHeight: 480,
 } as const;
 
-/** cara-4 landscape — rejected by cara-3 / sara-3 stock models. */
+/** cara-4 landscape (Talk stage is landscape-first). */
 export const ANAM_CARA4_LANDSCAPE_VIDEO_DIMENSIONS = {
   videoWidth: 1152,
   videoHeight: 768,
 } as const;
 
-function isCara4LandscapeDims(width: number, height: number): boolean {
-  return (
-    width === ANAM_CARA4_LANDSCAPE_VIDEO_DIMENSIONS.videoWidth &&
-    height === ANAM_CARA4_LANDSCAPE_VIDEO_DIMENSIONS.videoHeight
-  );
+function resolveVideoQuality(): AnamTalkVideoQuality {
+  const qualityRaw = readEnv("ANAM_TALK_VIDEO_QUALITY");
+  return qualityRaw === "high" || qualityRaw === "auto" ? qualityRaw : "auto";
 }
 
 /**
- * Session video output for Talk.
- * Always pin 720×480 for stock avatars. Omitting dims lets Anam pick 1152×768,
- * which fails on cara-3 at stream start.
- *
- * Custom env dims require ANAM_TALK_ALLOW_CUSTOM_VIDEO_DIMS=1 — otherwise
- * 1152×768 (and any other override) is ignored so Vercel misconfig cannot
- * break Talk.
+ * Map Anam avatar model (`activeVersion`) → Talk session video size.
+ * cara-4 rejects 720×480; cara-3 rejects 1152×768.
+ */
+export function resolveAnamTalkVideoOptionsForModel(
+  model: string | null | undefined,
+): AnamTalkSessionVideoOptions {
+  const videoQuality = resolveVideoQuality();
+  const normalized = (model ?? "").trim().toLowerCase();
+
+  if (normalized.includes("cara-4") || normalized.includes("cara4")) {
+    return {
+      videoQuality,
+      ...ANAM_CARA4_LANDSCAPE_VIDEO_DIMENSIONS,
+    };
+  }
+
+  return {
+    videoQuality,
+    ...ANAM_CARA3_VIDEO_DIMENSIONS,
+  };
+}
+
+/**
+ * Default Talk video options when avatar model is unknown.
+ * Prefer cara-3 size; mint path upgrades via avatar `activeVersion` or Anam
+ * `supportedDimensions` retry / client remint hint.
  * @see https://anam.ai/docs/sessions/video-options
  */
 export function buildAnamTalkSessionVideoOptions(): AnamTalkSessionVideoOptions {
@@ -131,12 +148,8 @@ export function buildAnamTalkSessionVideoOptions(): AnamTalkSessionVideoOptions 
   const width = widthRaw ? Number(widthRaw) : Number.NaN;
   const height = heightRaw ? Number(heightRaw) : Number.NaN;
 
-  const qualityRaw = readEnv("ANAM_TALK_VIDEO_QUALITY");
-  const videoQuality: AnamTalkVideoQuality | undefined =
-    qualityRaw === "high" || qualityRaw === "auto" ? qualityRaw : "auto";
-
   const options: AnamTalkSessionVideoOptions = {
-    videoQuality,
+    videoQuality: resolveVideoQuality(),
     ...ANAM_CARA3_VIDEO_DIMENSIONS,
   };
 
@@ -153,14 +166,6 @@ export function buildAnamTalkSessionVideoOptions(): AnamTalkSessionVideoOptions 
   ) {
     options.videoWidth = Math.floor(width);
     options.videoHeight = Math.floor(height);
-  } else if (
-    Number.isFinite(width) &&
-    Number.isFinite(height) &&
-    isCara4LandscapeDims(Math.floor(width), Math.floor(height))
-  ) {
-    // Explicitly keep cara-3 safe size when prod still has the old example envs.
-    options.videoWidth = ANAM_CARA3_VIDEO_DIMENSIONS.videoWidth;
-    options.videoHeight = ANAM_CARA3_VIDEO_DIMENSIONS.videoHeight;
   }
 
   return options;
@@ -182,4 +187,23 @@ export function parseAnamSupportedVideoDimension(
   }
 
   return { videoWidth, videoHeight };
+}
+
+/** Prefer landscape among Anam `supportedDimensions` (Talk stage is 16:9-ish). */
+export function pickPreferredAnamVideoDimension(
+  tokens: string[],
+): { videoWidth: number; videoHeight: number } | null {
+  const parsed = tokens
+    .map((token) => parseAnamSupportedVideoDimension(token))
+    .filter(
+      (value): value is { videoWidth: number; videoHeight: number } =>
+        value !== null,
+    );
+
+  if (parsed.length === 0) {
+    return null;
+  }
+
+  const landscape = parsed.find((d) => d.videoWidth >= d.videoHeight);
+  return landscape ?? parsed[0] ?? null;
 }

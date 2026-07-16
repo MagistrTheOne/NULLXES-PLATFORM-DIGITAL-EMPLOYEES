@@ -19,6 +19,7 @@ import {
   safeVideoPlay,
 } from "@/features/runtime-session/lib/acquire-anam-input-audio-stream";
 import {
+  extractAnamVideoOptionsFromError,
   formatAnamClientError,
   isAnamConcurrentSessionError,
   isAnamVideoDimensionError,
@@ -216,24 +217,40 @@ export function EmployeeAnamStage({
         if (canRemint) {
           remintAttempted = true;
           await anamClient.stopStreaming().catch(() => undefined);
-          void failTalkSessionAction(employeeSessionId);
+          await failTalkSessionAction(employeeSessionId).catch(() => undefined);
           await new Promise((resolve) => setTimeout(resolve, 1_800));
           if (disposed || generation !== startGeneration) {
             return;
           }
 
+          const videoHint = isAnamVideoDimensionError(error)
+            ? extractAnamVideoOptionsFromError(error)
+            : null;
+
           const reminted = await startTalkSessionAction(
             employeeId,
             scenarioSessionId,
+            videoHint,
           );
-          if (reminted.ok && !disposed && generation === startGeneration) {
-            onSessionReminted({
-              sessionId: reminted.sessionId,
-              sessionToken: reminted.sessionToken,
-              voiceMode: reminted.voiceMode,
-            });
+          if (reminted.ok) {
+            if (!disposed && generation === startGeneration) {
+              onSessionReminted({
+                sessionId: reminted.sessionId,
+                sessionToken: reminted.sessionToken,
+                voiceMode: reminted.voiceMode,
+              });
+            }
             return;
           }
+
+          // Remint failed: startTalkSessionAction already fails its new DB row.
+          if (disposed || generation !== startGeneration) {
+            return;
+          }
+          setStatus("error");
+          setIsLive(false);
+          setErrorMessage(reminted.message);
+          return;
         }
 
         setStatus("error");

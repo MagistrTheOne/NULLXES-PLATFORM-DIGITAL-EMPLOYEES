@@ -6,8 +6,10 @@ import { syncAnamPersonaExternalBrain } from "@/features/provider-provisioning/s
 import { buildAnamTalkEphemeralPersonaConfig } from "@/features/runtime-session/lib/build-anam-talk-persona-config";
 import {
   ANAM_CARA3_VIDEO_DIMENSIONS,
+  ANAM_CARA4_LANDSCAPE_VIDEO_DIMENSIONS,
   buildAnamTalkSessionVideoOptions,
-  parseAnamSupportedVideoDimension,
+  pickPreferredAnamVideoDimension,
+  resolveAnamTalkVideoOptionsForModel,
   type AnamTalkSessionVideoOptions,
 } from "@/features/runtime-session/lib/anam-session-tuning";
 import { resolveTalkAnamLanguageCode } from "@/features/runtime-session/services/resolve-talk-anam-language";
@@ -60,13 +62,18 @@ type AnamSessionErrorPayload = {
   supportedDimensions?: string[];
 };
 
+type AnamAvatarVersionPayload = {
+  activeVersion?: string | null;
+  availableVersions?: string[];
+};
+
 function extractSupportedDimensionsFromMessage(
   message: string | undefined,
 ): string[] {
   if (!message) {
     return [];
   }
-  // e.g. "Supported dimensions: 720x480." or "Supported dimensions: 720x480, 1280x720."
+  // e.g. "Supported dimensions: 720x480." or "Supported dimensions: 1152x768, 768x1152."
   const match = /Supported dimensions:\s*([^.]+)/i.exec(message);
   if (!match?.[1]) {
     return [];
@@ -93,34 +100,34 @@ function resolveFallbackVideoOptions(
     ...(payload.supportedDimensions ?? []),
     ...extractSupportedDimensionsFromMessage(payload.message),
   ];
-  let parsedAnySupported = false;
 
-  for (const token of supported) {
-    const parsed = parseAnamSupportedVideoDimension(token);
-    if (!parsed) {
-      continue;
-    }
-
-    parsedAnySupported = true;
-
-    // Prefer a supported size that differs from what already failed.
-    if (
-      parsed.videoWidth !== current.videoWidth ||
-      parsed.videoHeight !== current.videoHeight
-    ) {
-      return {
-        videoQuality: current.videoQuality,
-        videoWidth: parsed.videoWidth,
-        videoHeight: parsed.videoHeight,
-      };
-    }
+  const preferred = pickPreferredAnamVideoDimension(supported);
+  if (
+    preferred &&
+    (preferred.videoWidth !== current.videoWidth ||
+      preferred.videoHeight !== current.videoHeight)
+  ) {
+    return {
+      videoQuality: current.videoQuality,
+      videoWidth: preferred.videoWidth,
+      videoHeight: preferred.videoHeight,
+    };
   }
 
-  // Never omit dims: Anam/SDK then picks 1152×768, which cara-3 rejects at
-  // stream start ("Invalid request to start session…").
+  // Flip between known cara-3 / cara-4 sizes when Anam omitted a parseable list.
   if (
-    current.videoWidth !== ANAM_CARA3_VIDEO_DIMENSIONS.videoWidth ||
-    current.videoHeight !== ANAM_CARA3_VIDEO_DIMENSIONS.videoHeight
+    current.videoWidth === ANAM_CARA3_VIDEO_DIMENSIONS.videoWidth &&
+    current.videoHeight === ANAM_CARA3_VIDEO_DIMENSIONS.videoHeight
+  ) {
+    return {
+      videoQuality: current.videoQuality,
+      ...ANAM_CARA4_LANDSCAPE_VIDEO_DIMENSIONS,
+    };
+  }
+
+  if (
+    current.videoWidth === ANAM_CARA4_LANDSCAPE_VIDEO_DIMENSIONS.videoWidth &&
+    current.videoHeight === ANAM_CARA4_LANDSCAPE_VIDEO_DIMENSIONS.videoHeight
   ) {
     return {
       videoQuality: current.videoQuality,
@@ -128,18 +135,73 @@ function resolveFallbackVideoOptions(
     };
   }
 
-  // Already on cara-3 safe size (or Anam listed only that size). Nothing left.
-  if (parsedAnySupported) {
-    return null;
+  return {
+    videoQuality: current.videoQuality,
+    ...ANAM_CARA3_VIDEO_DIMENSIONS,
+  };
+}
+
+async function resolveVideoOptionsForAvatar(input: {
+  avatarId: string;
+  preferredSlot: string | null;
+  override?: AnamTalkSessionVideoOptions | null;
+}): Promise<AnamTalkSessionVideoOptions> {
+  if (
+    input.override?.videoWidth &&
+    input.override.videoHeight &&
+    input.override.videoWidth > 0 &&
+    input.override.videoHeight > 0
+  ) {
+    return {
+      videoQuality:
+        input.override.videoQuality ??
+        buildAnamTalkSessionVideoOptions().videoQuality,
+      videoWidth: Math.floor(input.override.videoWidth),
+      videoHeight: Math.floor(input.override.videoHeight),
+    };
   }
 
-  return null;
+  const keyPool = getAnamApiKeysInOrder(input.preferredSlot);
+  for (const entry of keyPool) {
+    try {
+      const response = await fetch(
+        `${getAnamApiBaseUrl()}/avatars/${encodeURIComponent(input.avatarId)}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${entry.key}`,
+          },
+        },
+      );
+      if (!response.ok) {
+        if (isAnamAvatarQuotaError(response.status, response.statusText)) {
+          continue;
+        }
+        break;
+      }
+
+      const avatar = (await response.json()) as AnamAvatarVersionPayload;
+      const model =
+        avatar.activeVersion?.trim() ||
+        avatar.availableVersions?.find((version) => version.trim().length > 0) ||
+        null;
+      if (model) {
+        return resolveAnamTalkVideoOptionsForModel(model);
+      }
+      break;
+    } catch {
+      continue;
+    }
+  }
+
+  return buildAnamTalkSessionVideoOptions();
 }
 
 export async function createAnamTalkSessionTokenForEmployee(
   organizationId: string,
   employeeId: string,
   talkContext?: EmployeeTalkContext | null,
+  videoOptionsOverride?: AnamTalkSessionVideoOptions | null,
 ): Promise<AnamTalkSessionTokenResult> {
   const employee =
     talkContext ??
@@ -201,10 +263,15 @@ export async function createAnamTalkSessionTokenForEmployee(
     languageCode,
   });
 
-  let videoOptions = buildAnamTalkSessionVideoOptions();
+  let videoOptions = await resolveVideoOptionsForAvatar({
+    avatarId: employee.avatarId,
+    preferredSlot: apiKeySlot,
+    override: videoOptionsOverride,
+  });
   let lastMessage = "Anam session token failed";
   let lastFailureWasQuota = false;
-  let dimensionRetryUsed = false;
+  let dimensionRetries = 0;
+  const maxDimensionRetries = 2;
 
   for (const entry of keyPool) {
     const response = await fetch(`${getAnamApiBaseUrl()}/auth/session-token`, {
@@ -237,15 +304,14 @@ export async function createAnamTalkSessionTokenForEmployee(
     lastMessage = `Anam session token failed (${response.status}): ${detail}`;
 
     if (
-      !dimensionRetryUsed &&
+      dimensionRetries < maxDimensionRetries &&
       (errorPayload.error === "video_dimensions_not_supported_for_model" ||
         /Video dimensions .+ are not supported/i.test(errorPayload.message ?? ""))
     ) {
       const fallback = resolveFallbackVideoOptions(videoOptions, errorPayload);
       if (fallback) {
         videoOptions = fallback;
-        dimensionRetryUsed = true;
-        // Retry the same key with corrected dimensions before rotating the pool.
+        dimensionRetries += 1;
         const retry = await fetch(`${getAnamApiBaseUrl()}/auth/session-token`, {
           method: "POST",
           headers: {
@@ -267,9 +333,25 @@ export async function createAnamTalkSessionTokenForEmployee(
           const retryPayload = (await retry.json()) as AnamSessionErrorPayload;
           detail = retryPayload.message ?? retryPayload.error ?? retry.statusText;
           lastMessage = `Anam session token failed (${retry.status}): ${detail}`;
+          errorPayload = retryPayload;
           if (isAnamAvatarQuotaError(retry.status, detail)) {
             lastFailureWasQuota = true;
             continue;
+          }
+          // Keep looping dimension retries on same key when still a dim error.
+          if (
+            dimensionRetries < maxDimensionRetries &&
+            (retryPayload.error === "video_dimensions_not_supported_for_model" ||
+              /Video dimensions .+ are not supported/i.test(
+                retryPayload.message ?? "",
+              ))
+          ) {
+            const next = resolveFallbackVideoOptions(videoOptions, retryPayload);
+            if (next) {
+              videoOptions = next;
+              dimensionRetries += 1;
+              continue;
+            }
           }
         } catch {
           lastMessage = `Anam session token failed (${retry.status}): ${retry.statusText}`;

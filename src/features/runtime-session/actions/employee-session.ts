@@ -9,6 +9,7 @@ import {
   linkScenarioTalkSession,
 } from "@/features/scenarios/services/scenario-session";
 import { createAnamTalkSessionTokenForEmployee } from "../services/create-anam-talk-session";
+import type { AnamTalkSessionVideoOptions } from "../lib/anam-session-tuning";
 import type { TalkApiErrorCode } from "../lib/talk-api-errors";
 import { EmployeeSessionLimitError } from "../lib/employee-session-limit";
 import { resolveTalkVoiceMode } from "../services/resolve-talk-voice-mode";
@@ -169,6 +170,7 @@ export type StartTalkSessionResult =
 export async function startTalkSessionAction(
   employeeId: string,
   scenarioSessionId?: string,
+  videoOptions?: AnamTalkSessionVideoOptions | null,
 ): Promise<StartTalkSessionResult> {
   try {
     const { organizationId, userId } = await resolveWorkspaceContext();
@@ -206,24 +208,34 @@ export async function startTalkSessionAction(
           organizationId,
           employeeId,
           employee,
+          videoOptions,
         );
 
-        // One more attempt after concurrent/quota: close leftovers, wait, remint.
+        // One more attempt after concurrent/quota — do NOT failOpen here:
+        // that would mark `sessionId` failed while we still return it on success.
         if (
           !anamToken.ok &&
           (anamToken.code === "PROVIDER_QUOTA" ||
             /concurrent/i.test(anamToken.message))
         ) {
-          await failOpenEmployeeSessionsForTalkStart({ employeeId, userId });
           await new Promise((resolve) => setTimeout(resolve, 1_500));
           anamToken = await createAnamTalkSessionTokenForEmployee(
             organizationId,
             employeeId,
             employee,
+            videoOptions,
           );
         }
 
         if (!anamToken.ok) {
+          // Token mint failed after DB row was created — close it immediately
+          // so remint/retry paths do not accumulate dangling "created" sessions.
+          await failEmployeeSession({
+            sessionId,
+            organizationId,
+            userId,
+          }).catch(() => undefined);
+
           return {
             ok: false,
             message: anamToken.message,
