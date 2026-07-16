@@ -231,11 +231,22 @@ export function getDataEncryptionKey(): string {
   throw new Error("DATA_ENCRYPTION_KEY is not set");
 }
 
-import { isRedisRestLinked } from "@/shared/config/redis-rest";
+function isProductionRedisLinked(): boolean {
+  const url =
+    readOptionalEnv("UPSTASH_REDIS_REST_URL") ||
+    readOptionalEnv("KV_REST_API_URL");
+  const token =
+    readOptionalEnv("UPSTASH_REDIS_REST_TOKEN") ||
+    readOptionalEnv("KV_REST_API_TOKEN");
+  return Boolean(url && token);
+}
 
 /**
  * Production runtime must set an explicit field-encryption key (not the
  * BETTER_AUTH_SECRET-derived build/dev fallback).
+ *
+ * Keep this module free of `@/` imports — `next.config.ts` loads it via a
+ * relative path and cannot resolve the app alias.
  */
 export function assertProductionSecretsConfigured(): void {
   if (isDevelopmentRuntime() || isBuildPhase()) {
@@ -258,7 +269,7 @@ export function assertProductionSecretsConfigured(): void {
     );
   }
 
-  if (!isRedisRestLinked()) {
+  if (!isProductionRedisLinked()) {
     throw new Error(
       "Upstash Redis (UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN) is required in production for shared rate limits. Link Vercel Storage → Redis.",
     );
