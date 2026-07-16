@@ -13,26 +13,6 @@ import { LandingAnamDemoOverlay } from "./landing-anam-demo-overlay";
 const DEMO_TRIAL_SECONDS = 60;
 const DEMO_VOICE_ENDPOINT = "/api/landing/adeline-demo/voice";
 
-function TalkingWaveform({ active }: { active?: boolean }) {
-  return (
-    <span className="flex h-3.5 items-end gap-[2px]" aria-hidden>
-      {[0.45, 0.9, 0.55, 1, 0.4, 0.75, 0.5].map((scale, index) => (
-        <span
-          key={index}
-          className="w-[2px] origin-bottom rounded-full bg-(--landing-gold)"
-          style={{
-            height: `${scale * 100}%`,
-            animation: active
-              ? `landing-wave 1.1s ease-in-out ${index * 0.08}s infinite`
-              : undefined,
-            opacity: active ? undefined : 0.55,
-          }}
-        />
-      ))}
-    </span>
-  );
-}
-
 /**
  * Landing demo plaque — Talk = Anam avatar, Voice = xAI audio.
  * Both stay on the marketing page (no dashboard).
@@ -77,9 +57,12 @@ export function AdelinePlaque({
               {t("role")}
             </p>
           </div>
-          <div className="inline-flex shrink-0 items-center gap-2 rounded-full border border-(--landing-gold)/40 bg-black/60 px-3 py-1.5 text-[11px] text-(--landing-gold)">
-            <TalkingWaveform active />
-            <span>{t("talking")}</span>
+          <div className="inline-flex shrink-0 items-center gap-2 rounded-full border border-white/15 bg-black/60 px-3 py-1.5 text-[11px] text-white/70">
+            <span
+              className="size-1.5 rounded-full bg-white/55"
+              aria-hidden
+            />
+            <span>{t("available")}</span>
           </div>
         </div>
 

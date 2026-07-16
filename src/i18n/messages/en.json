@@ -1964,6 +1964,7 @@
     "plaque": {
       "role": "Digital Executive",
       "talking": "Talking",
+      "available": "Available",
       "talkCta": "Talk · 1 min",
       "voiceCta": "Voice · 1 min",
       "trialLabel": "1 minute demo"

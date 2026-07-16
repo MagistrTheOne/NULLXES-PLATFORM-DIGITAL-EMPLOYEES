@@ -4,14 +4,8 @@ import { digitalEmployee } from "@/entities/digital-employee/schema";
 import { getEmployeeTalkContext } from "@/features/runtime-session/services/get-employee-talk-context";
 import { resolveTalkVoiceMode } from "@/features/runtime-session/services/resolve-talk-voice-mode";
 import { synthesizeTalkVoicePcm } from "@/features/runtime-session/services/synthesize-talk-voice-pcm";
-import {
-  LANDING_DEMO_RATE,
-  LANDING_DEMO_RATE_BUCKET,
-} from "@/features/landing/lib/landing-demo-rate-limits";
 import { LANDING_DEMO_EMPLOYEE_ID } from "@/shared/config/xai-voice-env";
 import { db } from "@/shared/db/client";
-import { checkRateLimit } from "@/shared/security/rate-limit";
-import { resolvePublicClientIpKey } from "@/shared/security/resolve-trusted-client-ip";
 
 export const runtime = "nodejs";
 
@@ -25,20 +19,6 @@ type Body = {
  * Same voice ID as dashboard Talk (session.voiceId).
  */
 export async function POST(request: Request): Promise<Response> {
-  const ip = resolvePublicClientIpKey(request);
-  const rate = await checkRateLimit({
-    name: LANDING_DEMO_RATE_BUCKET.ttsIp,
-    key: ip,
-    ...LANDING_DEMO_RATE.ttsIp,
-  });
-
-  if (!rate.ok) {
-    return NextResponse.json(
-      { error: "Demo voice limit reached. Try again later." },
-      { status: 429 },
-    );
-  }
-
   let body: Body;
   try {
     body = (await request.json()) as Body;

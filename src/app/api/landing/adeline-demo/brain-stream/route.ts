@@ -5,14 +5,8 @@ import type { TalkPipelineMessage } from "@/features/runtime-session/actions/tal
 import { trimTalkHistory } from "@/features/runtime-session/lib/trim-talk-history";
 import { buildTalkBrainRequest } from "@/features/runtime-session/services/build-talk-brain-request";
 import { streamTalkBrainResponse } from "@/features/runtime-session/services/stream-talk-brain-response";
-import {
-  LANDING_DEMO_RATE,
-  LANDING_DEMO_RATE_BUCKET,
-} from "@/features/landing/lib/landing-demo-rate-limits";
 import { LANDING_DEMO_EMPLOYEE_ID } from "@/shared/config/xai-voice-env";
 import { db } from "@/shared/db/client";
-import { checkRateLimit } from "@/shared/security/rate-limit";
-import { resolvePublicClientIpKey } from "@/shared/security/resolve-trusted-client-ip";
 import { logServerEvent } from "@/shared/lib/server-log";
 
 export const runtime = "nodejs";
@@ -24,36 +18,9 @@ type BrainStreamRequest = {
 
 /**
  * Public landing-demo brain stream (Anna) for the marketing Talk trial.
- * No tools, IP rate-limited, no workspace auth.
- * Brain surface is `landing` — persona only (no private RAG / live org state).
+ * No tools, no workspace auth. Brain surface is `landing` (persona only).
  */
 export async function POST(request: Request): Promise<Response> {
-  const ip = resolvePublicClientIpKey(request);
-  const rate = await checkRateLimit({
-    name: LANDING_DEMO_RATE_BUCKET.brainIp,
-    key: ip,
-    ...LANDING_DEMO_RATE.brainIp,
-  });
-
-  if (!rate.ok) {
-    return NextResponse.json(
-      { error: "Demo brain limit reached. Try again later." },
-      { status: 429 },
-    );
-  }
-
-  const platformRate = await checkRateLimit({
-    name: LANDING_DEMO_RATE_BUCKET.brainPlatform,
-    key: "global",
-    ...LANDING_DEMO_RATE.brainPlatform,
-  });
-  if (!platformRate.ok) {
-    return NextResponse.json(
-      { error: "Demo brain busy. Try again later." },
-      { status: 429 },
-    );
-  }
-
   let body: BrainStreamRequest;
   try {
     body = (await request.json()) as BrainStreamRequest;

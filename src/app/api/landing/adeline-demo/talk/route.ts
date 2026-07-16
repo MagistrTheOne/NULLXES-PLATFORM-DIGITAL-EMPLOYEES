@@ -2,10 +2,7 @@ import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { digitalEmployee } from "@/entities/digital-employee/schema";
 import { LANDING_DEMO_MARKETING_PORTRAIT } from "@/features/landing/lib/adeline-marketing";
-import {
-  LANDING_DEMO_RATE,
-  LANDING_DEMO_RATE_BUCKET,
-} from "@/features/landing/lib/landing-demo-rate-limits";
+import { LANDING_DEMO_ANAM_PROXY } from "@/features/landing/lib/landing-demo-rate-limits";
 import { mintLandingDemoToken } from "@/features/landing/lib/landing-demo-token";
 import { consumeAnamProxyQuota } from "@/features/runtime-session/lib/anam-proxy-quota";
 import { createAnamTalkSessionTokenForEmployee } from "@/features/runtime-session/services/create-anam-talk-session";
@@ -13,8 +10,6 @@ import { getEmployeeTalkContext } from "@/features/runtime-session/services/get-
 import { resolveTalkVoiceMode } from "@/features/runtime-session/services/resolve-talk-voice-mode";
 import { LANDING_DEMO_EMPLOYEE_ID } from "@/shared/config/xai-voice-env";
 import { db } from "@/shared/db/client";
-import { checkRateLimit } from "@/shared/security/rate-limit";
-import { resolvePublicClientIpKey } from "@/shared/security/resolve-trusted-client-ip";
 
 export const runtime = "nodejs";
 
@@ -23,34 +18,9 @@ export const LANDING_ADELINE_TALK_TRIAL_SECONDS = 60;
 /**
  * Unauthenticated 60s Anam avatar Talk trial for the landing demo employee (Anna).
  * Uses the same employee + ElevenLabs voice as dashboard Talk.
+ * Per-IP trial caps are off — Redis fail-closed was blocking all demos.
  */
-export async function POST(request: Request): Promise<Response> {
-  const ip = resolvePublicClientIpKey(request);
-  const rate = await checkRateLimit({
-    name: LANDING_DEMO_RATE_BUCKET.talkIp,
-    key: ip,
-    ...LANDING_DEMO_RATE.talkIp,
-  });
-
-  if (!rate.ok) {
-    return NextResponse.json(
-      { error: "Trial limit reached. Try again later." },
-      { status: 429 },
-    );
-  }
-
-  const platformRate = await checkRateLimit({
-    name: LANDING_DEMO_RATE_BUCKET.talkPlatform,
-    key: "global",
-    ...LANDING_DEMO_RATE.talkPlatform,
-  });
-  if (!platformRate.ok) {
-    return NextResponse.json(
-      { error: "Trial busy. Try again later." },
-      { status: 429 },
-    );
-  }
-
+export async function POST(_request: Request): Promise<Response> {
   const [employee] = await db
     .select({
       id: digitalEmployee.id,
@@ -86,15 +56,16 @@ export async function POST(request: Request): Promise<Response> {
     );
   }
 
-  const proxyQuota = await consumeAnamProxyQuota({
-    subject: "demo:landing-anna",
-    perMinute: 15,
-  });
+  const proxyQuota = await consumeAnamProxyQuota(LANDING_DEMO_ANAM_PROXY);
   if (!proxyQuota.ok) {
-    return NextResponse.json(
-      { error: "Trial busy. Try again in a minute." },
-      { status: 429 },
-    );
+    // Soft guard only — do not block demos when Redis is unhealthy.
+    // consumeAnamProxyQuota currently fail-closes; ignore redis_unavailable.
+    if (proxyQuota.reason === "limit") {
+      return NextResponse.json(
+        { error: "Trial busy. Try again in a minute.", code: "ANAM_PROXY_LIMIT" },
+        { status: 429 },
+      );
+    }
   }
 
   const voiceMode = talkContext

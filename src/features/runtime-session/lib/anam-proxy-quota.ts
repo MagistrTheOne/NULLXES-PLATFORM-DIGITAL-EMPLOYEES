@@ -9,17 +9,20 @@ export async function consumeAnamProxyQuota(input: {
   subject: string;
   /** Max requests per minute for this subject. */
   perMinute?: number;
-}): Promise<{ ok: true } | { ok: false }> {
+  /** Landing demos: allow when Redis is down. */
+  failOpen?: boolean;
+}): Promise<{ ok: true } | { ok: false; reason: "limit" | "redis_unavailable" }> {
   return checkRateLimit({
     name: "anam-proxy-bucket",
     key: input.subject,
     limit: input.perMinute ?? 60,
     windowMs: 60_000,
+    failOpen: input.failOpen,
   });
 }
 
 export async function consumePlatformAnamQuota(): Promise<
-  { ok: true } | { ok: false }
+  { ok: true } | { ok: false; reason: "limit" | "redis_unavailable" }
 > {
   return checkRateLimit({
     name: "anam-proxy-platform",

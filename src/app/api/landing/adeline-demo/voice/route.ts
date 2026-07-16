@@ -3,17 +3,11 @@ import { buildXaiVoiceSessionUpdate } from "@/features/xai-voice/lib/build-xai-v
 import { createXaiVoiceClientSecret } from "@/features/xai-voice/services/create-xai-voice-client-secret";
 import { resolveXaiVoiceConfigForEmployee } from "@/features/xai-voice/services/resolve-xai-voice-config";
 import {
-  LANDING_DEMO_RATE,
-  LANDING_DEMO_RATE_BUCKET,
-} from "@/features/landing/lib/landing-demo-rate-limits";
-import {
   LANDING_DEMO_EMPLOYEE_ID,
   buildXaiRealtimeWebSocketUrl,
   getXaiApiKey,
 } from "@/shared/config/xai-voice-env";
 import type { XaiVoiceEmployeeConfig } from "@/features/xai-voice/services/resolve-xai-voice-config";
-import { checkRateLimit } from "@/shared/security/rate-limit";
-import { resolvePublicClientIpKey } from "@/shared/security/resolve-trusted-client-ip";
 
 export const runtime = "nodejs";
 
@@ -30,35 +24,9 @@ const ANNA_VOICE_FALLBACK: XaiVoiceEmployeeConfig = {
 
 /**
  * Unauthenticated 60s Voice trial for the landing demo employee (Anna).
- * Rate-limited by IP. No tools.
+ * No per-IP trial caps (were blocking demos via Redis fail-closed).
  */
-export async function POST(request: Request): Promise<Response> {
-  const ip = resolvePublicClientIpKey(request);
-  const rate = await checkRateLimit({
-    name: LANDING_DEMO_RATE_BUCKET.voiceIp,
-    key: ip,
-    ...LANDING_DEMO_RATE.voiceIp,
-  });
-
-  if (!rate.ok) {
-    return NextResponse.json(
-      { error: "Trial limit reached. Try again later." },
-      { status: 429 },
-    );
-  }
-
-  const platformRate = await checkRateLimit({
-    name: LANDING_DEMO_RATE_BUCKET.voicePlatform,
-    key: "global",
-    ...LANDING_DEMO_RATE.voicePlatform,
-  });
-  if (!platformRate.ok) {
-    return NextResponse.json(
-      { error: "Trial busy. Try again later." },
-      { status: 429 },
-    );
-  }
-
+export async function POST(_request: Request): Promise<Response> {
   if (!getXaiApiKey()) {
     return NextResponse.json(
       { error: "Voice trial is temporarily unavailable." },

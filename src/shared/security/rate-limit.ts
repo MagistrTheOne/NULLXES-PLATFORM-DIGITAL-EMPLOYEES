@@ -18,9 +18,16 @@ type RateLimitInput = {
   key: string;
   limit: number;
   windowMs: number;
+  /**
+   * When Redis is missing/failing in production, allow the request instead of
+   * denying. Use for public marketing demos — never for auth / billing.
+   */
+  failOpen?: boolean;
 };
 
-export type RateLimitResult = { ok: true } | { ok: false };
+export type RateLimitResult =
+  | { ok: true }
+  | { ok: false; reason: "limit" | "redis_unavailable" };
 
 async function incrementInRedis(
   redisKey: string,
@@ -82,20 +89,33 @@ export async function checkRateLimit(
 ): Promise<RateLimitResult> {
   const windowStart = Math.floor(Date.now() / input.windowMs);
   const bucketKey = `rl:${input.name}:${input.key}:${windowStart}`;
-  const denyWithoutWorkingRedis = mustDenyWhenRedisUnavailable();
+  const denyWithoutWorkingRedis =
+    mustDenyWhenRedisUnavailable() && !input.failOpen;
 
   const redis = getRedisRestClient();
   if (redis) {
     const count = await incrementInRedis(bucketKey, input.windowMs);
     if (count !== null) {
-      return count <= input.limit ? { ok: true } : { ok: false };
+      return count <= input.limit
+        ? { ok: true }
+        : { ok: false, reason: "limit" };
+    }
+    // Redis client present but incr failed.
+    if (input.failOpen) {
+      return { ok: true };
     }
   }
 
   if (denyWithoutWorkingRedis) {
-    return { ok: false };
+    return { ok: false, reason: "redis_unavailable" };
+  }
+
+  if (!redis && input.failOpen) {
+    return { ok: true };
   }
 
   const count = incrementInMemory(bucketKey, input.windowMs);
-  return count <= input.limit ? { ok: true } : { ok: false };
+  return count <= input.limit
+    ? { ok: true }
+    : { ok: false, reason: "limit" };
 }
