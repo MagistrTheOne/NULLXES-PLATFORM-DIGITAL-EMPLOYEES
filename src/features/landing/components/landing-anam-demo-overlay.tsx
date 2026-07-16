@@ -23,7 +23,7 @@ import { attachTalkVoicePipeline } from "@/features/runtime-session/lib/attach-t
 import { setLandingDemoProxyToken } from "@/features/runtime-session/lib/patch-anam-browser-fetch";
 import type { TalkPipelineState } from "@/features/runtime-session/context/talk-anam-context";
 import type { TalkVoiceMode } from "@/features/runtime-session/services/resolve-talk-voice-mode";
-import { ADELINE_KALEN_EMPLOYEE_ID } from "@/shared/config/xai-voice-env";
+import { LANDING_DEMO_EMPLOYEE_ID } from "@/shared/config/xai-voice-env";
 import { cn } from "@/lib/utils";
 
 const VIDEO_ID = "nullxes-landing-anam-demo-video";
@@ -38,19 +38,22 @@ function formatDuration(seconds: number): string {
   return `${String(minutes).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
 }
 
-function pipelineCopy(state: TalkPipelineState): {
+function pipelineCopy(
+  state: TalkPipelineState,
+  employeeName: string,
+): {
   label: string;
   hint: string;
 } {
   switch (state) {
     case "listening":
-      return { label: "Listening", hint: "Speak — Adeline hears you" };
+      return { label: "Listening", hint: `Speak — ${employeeName} hears you` };
     case "thinking":
       return { label: "Thinking", hint: "Preparing a reply" };
     case "speaking":
-      return { label: "Speaking", hint: "Adeline is responding" };
+      return { label: "Speaking", hint: `${employeeName} is responding` };
     default:
-      return { label: "Ready", hint: "Speak to Adeline" };
+      return { label: "Ready", hint: `Speak to ${employeeName}` };
   }
 }
 
@@ -248,7 +251,7 @@ export function LandingAnamDemoOverlay({
       }
       setLiveRole(payload.employeeRole ?? null);
 
-      const employeeId = payload.employeeId ?? ADELINE_KALEN_EMPLOYEE_ID;
+      const employeeId = payload.employeeId ?? LANDING_DEMO_EMPLOYEE_ID;
       // Same path as dashboard: ElevenLabs when configured on the employee.
       const voiceMode: TalkVoiceMode =
         payload.voiceMode === "elevenlabs" ? "elevenlabs" : "anam";
@@ -415,7 +418,7 @@ export function LandingAnamDemoOverlay({
   const canClose = status !== "connecting" && status !== "live";
   const micHearing = isLive && micPermission === "granted" && !micMuted;
   const micListening = pipelineState === "listening";
-  const pipeline = pipelineCopy(pipelineState);
+  const pipeline = pipelineCopy(pipelineState, liveName);
   const speaking = pipelineState === "speaking";
   const thinking = pipelineState === "thinking";
   const listening = pipelineState === "listening";
@@ -572,7 +575,7 @@ export function LandingAnamDemoOverlay({
           {status === "connecting" ? (
             <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 bg-black/55">
               <Loader2 className="size-6 animate-spin text-white/70" />
-              <p className="text-xs text-white/55">Connecting Adeline…</p>
+              <p className="text-xs text-white/55">Connecting {liveName}…</p>
             </div>
           ) : null}
 
@@ -606,8 +609,8 @@ export function LandingAnamDemoOverlay({
                 aria-label={micMuted ? "Unmute microphone" : "Mute microphone"}
                 title={
                   micHearing
-                    ? "Adeline can hear you"
-                    : "Adeline cannot hear you"
+                    ? `${liveName} can hear you`
+                    : `${liveName} cannot hear you`
                 }
                 disabled={!isLive}
                 onClick={toggleMic}

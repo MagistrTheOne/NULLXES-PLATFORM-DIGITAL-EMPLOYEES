@@ -5,7 +5,7 @@ import type { TalkPipelineMessage } from "@/features/runtime-session/actions/tal
 import { trimTalkHistory } from "@/features/runtime-session/lib/trim-talk-history";
 import { buildTalkBrainRequest } from "@/features/runtime-session/services/build-talk-brain-request";
 import { streamTalkBrainResponse } from "@/features/runtime-session/services/stream-talk-brain-response";
-import { ADELINE_KALEN_EMPLOYEE_ID } from "@/shared/config/xai-voice-env";
+import { LANDING_DEMO_EMPLOYEE_ID } from "@/shared/config/xai-voice-env";
 import { db } from "@/shared/db/client";
 import { checkRateLimit } from "@/shared/security/rate-limit";
 import { resolvePublicClientIpKey } from "@/shared/security/resolve-trusted-client-ip";
@@ -19,7 +19,7 @@ type BrainStreamRequest = {
 };
 
 /**
- * Public Adeline-only brain stream for the landing Talk demo.
+ * Public landing-demo brain stream (Anna) for the marketing Talk trial.
  * No tools, IP rate-limited, no workspace auth.
  * Brain surface is `landing` — persona only (no private RAG / live org state).
  */
@@ -62,8 +62,8 @@ export async function POST(request: Request): Promise<Response> {
   const employeeId = body.employeeId?.trim();
   const messages = body.messages;
 
-  if (employeeId !== ADELINE_KALEN_EMPLOYEE_ID) {
-    return NextResponse.json({ error: "Demo brain is Adeline-only" }, { status: 403 });
+  if (employeeId !== LANDING_DEMO_EMPLOYEE_ID) {
+    return NextResponse.json({ error: "Demo brain is landing-demo only" }, { status: 403 });
   }
 
   if (!Array.isArray(messages) || messages.length === 0) {
@@ -89,12 +89,12 @@ export async function POST(request: Request): Promise<Response> {
       role: digitalEmployee.role,
     })
     .from(digitalEmployee)
-    .where(eq(digitalEmployee.id, ADELINE_KALEN_EMPLOYEE_ID))
+    .where(eq(digitalEmployee.id, LANDING_DEMO_EMPLOYEE_ID))
     .limit(1);
 
   if (!employee) {
     return NextResponse.json(
-      { error: "Adeline Talk demo is temporarily unavailable." },
+      { error: "Talk demo is temporarily unavailable." },
       { status: 503 },
     );
   }

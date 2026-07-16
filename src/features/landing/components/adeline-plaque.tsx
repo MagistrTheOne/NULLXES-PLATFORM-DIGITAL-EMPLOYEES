@@ -5,8 +5,8 @@ import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { AudioLines } from "lucide-react";
 import { XaiVoiceCallSheet } from "@/features/xai-voice/components/xai-voice-call-sheet";
-import { ADELINE_KALEN_EMPLOYEE_ID } from "@/shared/config/xai-voice-env";
-import { ADELINE_MARKETING_PORTRAIT } from "../lib/adeline-marketing";
+import { LANDING_DEMO_EMPLOYEE_ID } from "@/shared/config/xai-voice-env";
+import { LANDING_DEMO_MARKETING_PORTRAIT } from "../lib/adeline-marketing";
 import type { AdelineLandingPlaque } from "../services/get-adeline-landing-plaque";
 import { LandingAnamDemoOverlay } from "./landing-anam-demo-overlay";
 
@@ -46,9 +46,9 @@ export function AdelinePlaque({
   const t = useTranslations("landing.plaque");
   const [talkOpen, setTalkOpen] = useState(false);
   const [voiceOpen, setVoiceOpen] = useState(false);
-  const employeeId = plaque.id || ADELINE_KALEN_EMPLOYEE_ID;
+  const employeeId = plaque.id || LANDING_DEMO_EMPLOYEE_ID;
   const portrait =
-    plaque.avatarPreviewUrl?.trim() || ADELINE_MARKETING_PORTRAIT;
+    plaque.avatarPreviewUrl?.trim() || LANDING_DEMO_MARKETING_PORTRAIT;
 
   return (
     <>

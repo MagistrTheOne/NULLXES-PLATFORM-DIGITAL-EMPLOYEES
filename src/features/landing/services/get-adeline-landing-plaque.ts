@@ -9,8 +9,8 @@ import {
   getDefaultAnalyticsRange,
   startOfUtcDay,
 } from "@/features/analytics/lib/date-range";
-import { ADELINE_MARKETING_PORTRAIT } from "../lib/adeline-marketing";
-import { ADELINE_KALEN_EMPLOYEE_ID } from "@/shared/config/xai-voice-env";
+import { LANDING_DEMO_MARKETING_PORTRAIT } from "../lib/adeline-marketing";
+import { LANDING_DEMO_EMPLOYEE_ID } from "@/shared/config/xai-voice-env";
 import { db } from "@/shared/db/client";
 import { withDatabaseRetry } from "@/shared/db/with-database-retry";
 
@@ -26,11 +26,11 @@ export type AdelineLandingPlaque = {
 };
 
 const FALLBACK: AdelineLandingPlaque = {
-  id: ADELINE_KALEN_EMPLOYEE_ID,
-  name: "Adeline Kalen",
-  role: "Head of the Interworld Department",
+  id: LANDING_DEMO_EMPLOYEE_ID,
+  name: "Anna",
+  role: "Digital Employee",
   status: "active",
-  avatarPreviewUrl: ADELINE_MARKETING_PORTRAIT,
+  avatarPreviewUrl: LANDING_DEMO_MARKETING_PORTRAIT,
   avatarProvisioningStatus: "ready",
   sessionsInRange: 0,
   lastSessionAt: null,
@@ -52,7 +52,7 @@ function readProvisioningStatus(
 
 /**
  * Public marketing read for the landing hero plaque.
- * Loads Adeline Kalen by known platform ID — no workspace auth required.
+ * Loads the landing demo employee (Anna) by known platform ID — no workspace auth.
  */
 export async function getAdelineLandingPlaque(): Promise<AdelineLandingPlaque> {
   try {
@@ -67,7 +67,7 @@ export async function getAdelineLandingPlaque(): Promise<AdelineLandingPlaque> {
           status: digitalEmployee.status,
         })
         .from(digitalEmployee)
-        .where(eq(digitalEmployee.id, ADELINE_KALEN_EMPLOYEE_ID))
+        .where(eq(digitalEmployee.id, LANDING_DEMO_EMPLOYEE_ID))
         .limit(1);
 
       if (!employee) {
@@ -80,7 +80,7 @@ export async function getAdelineLandingPlaque(): Promise<AdelineLandingPlaque> {
           .from(employeeProviderConfig)
           .where(
             and(
-              eq(employeeProviderConfig.employeeId, ADELINE_KALEN_EMPLOYEE_ID),
+              eq(employeeProviderConfig.employeeId, LANDING_DEMO_EMPLOYEE_ID),
               eq(employeeProviderConfig.providerType, "avatar"),
             ),
           )
@@ -94,7 +94,7 @@ export async function getAdelineLandingPlaque(): Promise<AdelineLandingPlaque> {
           .from(employeeSession)
           .where(
             and(
-              eq(employeeSession.employeeId, ADELINE_KALEN_EMPLOYEE_ID),
+              eq(employeeSession.employeeId, LANDING_DEMO_EMPLOYEE_ID),
               gte(employeeSession.startedAt, startOfUtcDay(range.from)),
               lte(employeeSession.startedAt, endOfUtcDay(range.to)),
             ),
@@ -107,12 +107,12 @@ export async function getAdelineLandingPlaque(): Promise<AdelineLandingPlaque> {
         | undefined;
 
       return {
-        id: ADELINE_KALEN_EMPLOYEE_ID,
+        id: LANDING_DEMO_EMPLOYEE_ID,
         name: employee.name,
         role: employee.role,
         status: employee.status,
         avatarPreviewUrl:
-          avatarConfig?.previewUrl?.trim() || ADELINE_MARKETING_PORTRAIT,
+          avatarConfig?.previewUrl?.trim() || LANDING_DEMO_MARKETING_PORTRAIT,
         avatarProvisioningStatus: avatarConfig?.previewUrl
           ? readProvisioningStatus(avatarConfig.provisioningStatus)
           : "ready",

@@ -51,6 +51,18 @@ Vercel [does not recommend](https://vercel.com/kb/guide/cloudflare-with-vercel) 
 
 App rate limits / landing quotas resolve IP via `CF-Connecting-IP` first (`resolveTrustedClientIp` / `resolvePublicClientIpKey`).
 
+### Zone Resources / Regional Services (what Free cannot do)
+
+**Orange-cloud RU access ≠ data residency in Russia PoPs.**
+
+| Capability | Free / Pro | Enterprise |
+|------------|------------|------------|
+| Proxy RU users via nearest CF PoP → Vercel | Yes (current setup) | Yes |
+| Pin hostname to a Cloudflare **region** (Regional Hostnames) | No — API returns `forbidden` without Regional Services | Yes |
+| Available account regions today | `eu`, `us`, `de`, `jp`, `kr`, `sg`, `ca`, `au`, … | Same catalog — **no `ru` key** on this account |
+
+Do **not** expect Dashboard → Zone Resources → “Russia region” on Free. RF goal on this plan is **access from RU**, not **compute/storage affinity inside RF**. True data residency stays at Neon (`data_region`) + app controls below.
+
 ### Emergency eject
 
 Toggle apex + `www` to **DNS only** (gray cloud) in Cloudflare DNS — traffic goes straight to Vercel within seconds.

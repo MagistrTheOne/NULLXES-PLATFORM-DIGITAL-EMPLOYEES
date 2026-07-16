@@ -5,6 +5,13 @@ import type { XaiVoiceEmployeeConfig } from "@/features/xai-voice/services/resol
 export const ADELINE_KALEN_EMPLOYEE_ID =
   "b0ab9bc2-aed4-4e1c-875f-dfb9180d234a";
 
+/** Anna — public landing Talk/Voice demo (Anam trial active). */
+export const ANNA_LANDING_DEMO_EMPLOYEE_ID =
+  "8f418ec3-286e-4bac-87e0-351783bec70e";
+
+/** Employee shown on marketing landing plaque + public demos. */
+export const LANDING_DEMO_EMPLOYEE_ID = ANNA_LANDING_DEMO_EMPLOYEE_ID;
+
 const DEFAULT_ADELINE_AGENT_ID = "agent_yLXnJLDucVtucCck";
 
 function readEnv(name: string): string | undefined {

@@ -8,7 +8,7 @@ export { DEMO_HEADER as LANDING_DEMO_TOKEN_HEADER };
 
 type DemoPayload = {
   v: 1;
-  sub: "landing-adeline";
+  sub: "landing-demo" | "landing-adeline";
   exp: number;
 };
 
@@ -26,7 +26,7 @@ function sign(body: string): string {
 export function mintLandingDemoToken(): string {
   const payload: DemoPayload = {
     v: 1,
-    sub: "landing-adeline",
+    sub: "landing-demo",
     exp: Math.floor(Date.now() / 1000) + DEMO_TOKEN_TTL_SEC,
   };
   const body = encode(payload);
@@ -56,7 +56,10 @@ export function verifyLandingDemoToken(
     const payload = JSON.parse(
       Buffer.from(body, "base64url").toString("utf8"),
     ) as DemoPayload;
-    if (payload.v !== 1 || payload.sub !== "landing-adeline") {
+    if (
+      payload.v !== 1 ||
+      (payload.sub !== "landing-demo" && payload.sub !== "landing-adeline")
+    ) {
       return false;
     }
     if (payload.exp < Math.floor(Date.now() / 1000)) {

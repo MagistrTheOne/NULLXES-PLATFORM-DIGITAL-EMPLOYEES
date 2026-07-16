@@ -1,13 +1,13 @@
 import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { digitalEmployee } from "@/entities/digital-employee/schema";
-import { ADELINE_MARKETING_PORTRAIT } from "@/features/landing/lib/adeline-marketing";
+import { LANDING_DEMO_MARKETING_PORTRAIT } from "@/features/landing/lib/adeline-marketing";
 import { mintLandingDemoToken } from "@/features/landing/lib/landing-demo-token";
 import { consumeAnamProxyQuota } from "@/features/runtime-session/lib/anam-proxy-quota";
 import { createAnamTalkSessionTokenForEmployee } from "@/features/runtime-session/services/create-anam-talk-session";
 import { getEmployeeTalkContext } from "@/features/runtime-session/services/get-employee-talk-context";
 import { resolveTalkVoiceMode } from "@/features/runtime-session/services/resolve-talk-voice-mode";
-import { ADELINE_KALEN_EMPLOYEE_ID } from "@/shared/config/xai-voice-env";
+import { LANDING_DEMO_EMPLOYEE_ID } from "@/shared/config/xai-voice-env";
 import { db } from "@/shared/db/client";
 import { checkRateLimit } from "@/shared/security/rate-limit";
 import { resolvePublicClientIpKey } from "@/shared/security/resolve-trusted-client-ip";
@@ -17,7 +17,7 @@ export const runtime = "nodejs";
 export const LANDING_ADELINE_TALK_TRIAL_SECONDS = 60;
 
 /**
- * Unauthenticated 60s Anam avatar Talk trial for Adeline on the marketing landing.
+ * Unauthenticated 60s Anam avatar Talk trial for the landing demo employee (Anna).
  * Uses the same employee + ElevenLabs voice as dashboard Talk.
  */
 export async function POST(request: Request): Promise<Response> {
@@ -56,12 +56,12 @@ export async function POST(request: Request): Promise<Response> {
       organizationId: digitalEmployee.organizationId,
     })
     .from(digitalEmployee)
-    .where(eq(digitalEmployee.id, ADELINE_KALEN_EMPLOYEE_ID))
+    .where(eq(digitalEmployee.id, LANDING_DEMO_EMPLOYEE_ID))
     .limit(1);
 
   if (!employee) {
     return NextResponse.json(
-      { error: "Adeline Talk trial is temporarily unavailable." },
+      { error: "Talk trial is temporarily unavailable." },
       { status: 503 },
     );
   }
@@ -85,7 +85,7 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   const proxyQuota = await consumeAnamProxyQuota({
-    subject: "demo:landing-adeline",
+    subject: "demo:landing-anna",
     perMinute: 15,
   });
   if (!proxyQuota.ok) {
@@ -107,7 +107,7 @@ export async function POST(request: Request): Promise<Response> {
     employeeName: employee.name,
     employeeRole: talkContext?.role ?? null,
     avatarPreviewUrl:
-      talkContext?.avatarPreviewUrl?.trim() || ADELINE_MARKETING_PORTRAIT,
+      talkContext?.avatarPreviewUrl?.trim() || LANDING_DEMO_MARKETING_PORTRAIT,
     voiceMode,
   });
 }

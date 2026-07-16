@@ -3,20 +3,30 @@ import { buildXaiVoiceSessionUpdate } from "@/features/xai-voice/lib/build-xai-v
 import { createXaiVoiceClientSecret } from "@/features/xai-voice/services/create-xai-voice-client-secret";
 import { resolveXaiVoiceConfigForEmployee } from "@/features/xai-voice/services/resolve-xai-voice-config";
 import {
-  ADELINE_KALEN_EMPLOYEE_ID,
+  LANDING_DEMO_EMPLOYEE_ID,
   buildXaiRealtimeWebSocketUrl,
+  getXaiApiKey,
 } from "@/shared/config/xai-voice-env";
+import type { XaiVoiceEmployeeConfig } from "@/features/xai-voice/services/resolve-xai-voice-config";
 import { checkRateLimit } from "@/shared/security/rate-limit";
 import { resolvePublicClientIpKey } from "@/shared/security/resolve-trusted-client-ip";
 
 export const runtime = "nodejs";
 
-/** Public landing trial — Adeline only. */
+/** Public landing trial — Anna (landing demo employee). */
 export const LANDING_ADELINE_TRIAL_SECONDS = 60;
 
+const ANNA_VOICE_FALLBACK: XaiVoiceEmployeeConfig = {
+  mode: "platform",
+  bindConsoleAgent: false,
+  instructions:
+    "You are Anna, a digital employee at NULLXES. Speak as Anna only. Keep answers concise. This is a one-minute public demo.",
+  voice: "eve",
+};
+
 /**
- * Unauthenticated 60s Voice trial for Adeline Kalen on the marketing landing.
- * Rate-limited by IP. No tools. Console agent when configured.
+ * Unauthenticated 60s Voice trial for the landing demo employee (Anna).
+ * Rate-limited by IP. No tools.
  */
 export async function POST(request: Request): Promise<Response> {
   const ip = resolvePublicClientIpKey(request);
@@ -47,15 +57,16 @@ export async function POST(request: Request): Promise<Response> {
     );
   }
 
-  const voiceConfig = await resolveXaiVoiceConfigForEmployee(
-    ADELINE_KALEN_EMPLOYEE_ID,
-  );
-  if (!voiceConfig) {
+  if (!getXaiApiKey()) {
     return NextResponse.json(
-      { error: "Adeline voice trial is temporarily unavailable." },
+      { error: "Voice trial is temporarily unavailable." },
       { status: 503 },
     );
   }
+
+  const voiceConfig =
+    (await resolveXaiVoiceConfigForEmployee(LANDING_DEMO_EMPLOYEE_ID)) ??
+    ANNA_VOICE_FALLBACK;
 
   const clientSecret = await createXaiVoiceClientSecret();
   if (!clientSecret) {
@@ -71,7 +82,7 @@ export async function POST(request: Request): Promise<Response> {
     instructions:
       voiceConfig.mode === "platform"
         ? (voiceConfig.instructions ??
-          "You are Adeline Kalen, Head of the Interworld Department at NULLXES. Speak as Adeline only — never as Eve or any other name. Keep answers concise. This is a one-minute public demo.")
+          "You are Anna, a digital employee at NULLXES. Speak as Anna only. Keep answers concise. This is a one-minute public demo.")
         : undefined,
     voice: voiceConfig.bindConsoleAgent ? undefined : voiceConfig.voice,
   });
@@ -84,6 +95,6 @@ export async function POST(request: Request): Promise<Response> {
     bindConsoleAgent: voiceConfig.bindConsoleAgent,
     session,
     maxDurationSec: LANDING_ADELINE_TRIAL_SECONDS,
-    employeeId: ADELINE_KALEN_EMPLOYEE_ID,
+    employeeId: LANDING_DEMO_EMPLOYEE_ID,
   });
 }

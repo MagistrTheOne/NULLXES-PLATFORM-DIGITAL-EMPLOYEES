@@ -4,7 +4,7 @@ import { digitalEmployee } from "@/entities/digital-employee/schema";
 import { getEmployeeTalkContext } from "@/features/runtime-session/services/get-employee-talk-context";
 import { resolveTalkVoiceMode } from "@/features/runtime-session/services/resolve-talk-voice-mode";
 import { synthesizeTalkVoicePcm } from "@/features/runtime-session/services/synthesize-talk-voice-pcm";
-import { ADELINE_KALEN_EMPLOYEE_ID } from "@/shared/config/xai-voice-env";
+import { LANDING_DEMO_EMPLOYEE_ID } from "@/shared/config/xai-voice-env";
 import { db } from "@/shared/db/client";
 import { checkRateLimit } from "@/shared/security/rate-limit";
 import { resolvePublicClientIpKey } from "@/shared/security/resolve-trusted-client-ip";
@@ -17,7 +17,7 @@ type Body = {
 };
 
 /**
- * Public ElevenLabs TTS for the Adeline landing Talk demo only.
+ * Public ElevenLabs TTS for the landing Talk demo (Anna) only.
  * Same voice ID as dashboard Talk (session.voiceId).
  */
 export async function POST(request: Request): Promise<Response> {
@@ -46,8 +46,8 @@ export async function POST(request: Request): Promise<Response> {
   const employeeId = body.employeeId?.trim();
   const text = body.text?.trim();
 
-  if (employeeId !== ADELINE_KALEN_EMPLOYEE_ID) {
-    return NextResponse.json({ error: "Demo voice is Adeline-only" }, { status: 403 });
+  if (employeeId !== LANDING_DEMO_EMPLOYEE_ID) {
+    return NextResponse.json({ error: "Demo voice is landing-demo only" }, { status: 403 });
   }
 
   if (!text || text.length > 2_000) {
@@ -60,12 +60,12 @@ export async function POST(request: Request): Promise<Response> {
       organizationId: digitalEmployee.organizationId,
     })
     .from(digitalEmployee)
-    .where(eq(digitalEmployee.id, ADELINE_KALEN_EMPLOYEE_ID))
+    .where(eq(digitalEmployee.id, LANDING_DEMO_EMPLOYEE_ID))
     .limit(1);
 
   if (!employee) {
     return NextResponse.json(
-      { error: "Adeline demo is temporarily unavailable." },
+      { error: "Demo is temporarily unavailable." },
       { status: 503 },
     );
   }
@@ -77,7 +77,7 @@ export async function POST(request: Request): Promise<Response> {
 
   if (!context?.voiceId || resolveTalkVoiceMode(context) !== "elevenlabs") {
     return NextResponse.json(
-      { error: "Adeline ElevenLabs voice is not configured." },
+      { error: "Demo ElevenLabs voice is not configured." },
       { status: 503 },
     );
   }
