@@ -98,10 +98,12 @@ Toggle apex + `www` to **DNS only** (gray cloud) in Cloudflare DNS — traffic g
 | `NEXT_PUBLIC_BETTER_AUTH_URL` | Same as `BETTER_AUTH_URL` in production |
 | `RESEND_FROM_EMAIL` | Transactional auth sender, e.g. `Yuki Nakora NULLXES <noreply@nullxesdai.online>` |
 | `RESEND_AUTOMATION_FROM_EMAIL` | Future outbound/automation sender, e.g. `Yuki Nakora <yukinakora@nullxesdai.online>` |
-| `EMAIL_OTP_STEP_UP_ENABLED` | `true` only in environments where Resend delivery is configured |
+| `EMAIL_OTP_STEP_UP_ENABLED` | **Required `true` in production** (boot assert; Resend required) |
 | `NEXT_PUBLIC_EMAIL_OTP_STEP_UP_ENABLED` | Same value as `EMAIL_OTP_STEP_UP_ENABLED` |
+| `REQUIRE_EMAIL_VERIFICATION` | **Required `true` in production** (boot assert) |
+| Bypass email lists | `TWO_FACTOR_GATE_BYPASS_EMAILS` / `EMAIL_OTP_BYPASS_EMAILS` **must be unset** in production |
 | Inngest | `INNGEST_EVENT_KEY` + `INNGEST_SIGNING_KEY`; register app URL `https://<domain>/api/inngest` in Inngest Cloud |
-| Rate limiting (scale) | Vercel **Storage → Redis (Upstash)** linked to project — env auto-injected; verify `npm run providers:status` |
+| Rate limiting (scale) | Vercel **Storage → Redis (Upstash)** — **required in production** (boot assert + fail-closed) |
 | Talk SLA | `TALK_SLA_MODE=observe` (default prod), then `enforce` after calibration — see [SCALING_2026-07-04.md](./SCALING_2026-07-04.md) |
 | Anam pool | `ANAM_API_KEY` … `ANAM_API_KEY_11` — verify with `npm run providers:status` |
 | xAI Voice | `XAI_API_KEY` (+ optional `XAI_VOICE_AGENT_*`) |
