@@ -137,7 +137,13 @@ function CapsuleCard({
         <div className="flex flex-wrap gap-2">
           {offer.rewardPreviewIds.map((id) => {
             const reward = getRewardById(id, rewards);
-            if (!reward || reward.type === "idle") return null;
+            if (
+              !reward ||
+              reward.type === "idle" ||
+              reward.type === "voice"
+            ) {
+              return null;
+            }
             const style = RARITY_STYLES[reward.rarity];
             return (
               <motion.span

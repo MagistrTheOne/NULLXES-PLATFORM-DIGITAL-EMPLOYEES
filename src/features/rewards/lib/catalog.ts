@@ -135,6 +135,7 @@ export const SEED_REWARD_ITEMS: Omit<RewardItem, "owned">[] = [
     rarity: "executive",
     description: "Corporate tone pack for executive presence.",
     compatible: "All Employees",
+    comingSoon: true,
   },
   {
     id: "board-room",
@@ -163,7 +164,7 @@ export const SEED_REWARD_ITEMS: Omit<RewardItem, "owned">[] = [
     rarity: "professional",
     description: "Steady delivery for support and reception roles.",
     compatible: "All Employees",
-    featured: true,
+    comingSoon: true,
   },
   {
     id: "minimal-frame",
@@ -211,6 +212,7 @@ export const SEED_REWARD_ITEMS: Omit<RewardItem, "owned">[] = [
     rarity: "professional",
     description: "Measured delivery for leadership briefings.",
     compatible: "All Employees",
+    comingSoon: true,
   },
   {
     id: "quiet-focus",
@@ -262,6 +264,7 @@ export const SEED_REWARD_ITEMS: Omit<RewardItem, "owned">[] = [
     rarity: "executive",
     description: "Sharp briefing delivery for leadership updates.",
     compatible: "All Employees",
+    comingSoon: true,
   },
 ];
 
