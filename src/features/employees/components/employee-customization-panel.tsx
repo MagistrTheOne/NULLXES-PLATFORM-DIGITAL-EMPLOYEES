@@ -33,7 +33,7 @@ import {
 
 const DEFAULT_VALUE = "__default__";
 
-type SlotKey = "appearance" | "voice" | "background" | "idle" | "frame";
+type SlotKey = "appearance" | "voice" | "background" | "frame";
 
 function optionsForType(rewards: RewardItem[], type: RewardType) {
   return rewards.filter((item) => item.type === type && item.owned > 0);
@@ -135,8 +135,6 @@ export function EmployeeCustomizationPanel({
           return { ...prev, voiceId: next };
         case "background":
           return { ...prev, backgroundId: next };
-        case "idle":
-          return { ...prev, idleId: next };
         case "frame":
           return { ...prev, frameId: next };
         default:
@@ -218,11 +216,11 @@ export function EmployeeCustomizationPanel({
             onChange={(next) => patchSlot("background", next)}
           />
           <LoadoutSelect
-            label="Idle"
-            type="idle"
-            value={draft.idleId}
+            label="Frame"
+            type="frame"
+            value={draft.frameId}
             rewards={rewards}
-            onChange={(next) => patchSlot("idle", next)}
+            onChange={(next) => patchSlot("frame", next)}
           />
         </div>
 

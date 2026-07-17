@@ -11,6 +11,7 @@ import {
   SKILL_SLOT_COUNT,
   type EmployeeLoadout,
 } from "@/features/rewards/lib/loadout";
+import { syncEmployeeSkillsFromChips } from "@/features/rewards/services/sync-skill-chip-skills";
 import { db } from "@/shared/db/client";
 
 function rowToLoadout(
@@ -106,6 +107,11 @@ export async function upsertEmployeeLoadout(input: {
   loadout: EmployeeLoadout;
 }): Promise<{ ok: true } | { ok: false; message: string }> {
   const { loadout } = input;
+  const previous = await getEmployeeLoadout({
+    organizationId: input.organizationId,
+    employeeId: input.employeeId,
+  });
+
   const checks = await Promise.all([
     assertOwned(input.organizationId, loadout.appearanceId),
     assertOwned(input.organizationId, loadout.voiceId),
@@ -158,6 +164,13 @@ export async function upsertEmployeeLoadout(input: {
   } else {
     await db.insert(employeeRewardLoadout).values(values);
   }
+
+  await syncEmployeeSkillsFromChips({
+    organizationId: input.organizationId,
+    employeeId: input.employeeId,
+    previousChipSlugs: previous.skillChipIds,
+    nextChipSlugs: loadout.skillChipIds,
+  });
 
   return { ok: true };
 }

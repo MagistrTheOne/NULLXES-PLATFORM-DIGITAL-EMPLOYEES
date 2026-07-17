@@ -37,6 +37,7 @@ export async function equipRewardOnEmployeeAction(input: {
     if (!result.ok) return result;
 
     revalidatePath("/dashboard/inventory");
+    revalidatePath("/dashboard/collection");
     revalidatePath(`/dashboard/employees/${input.employeeId}`);
     return { ok: true };
   } catch (error) {
@@ -72,6 +73,7 @@ export async function saveEmployeeLoadoutAction(input: {
     if (!result.ok) return result;
 
     revalidatePath("/dashboard/inventory");
+    revalidatePath("/dashboard/collection");
     revalidatePath(`/dashboard/employees/${input.employeeId}`);
     return { ok: true };
   } catch (error) {

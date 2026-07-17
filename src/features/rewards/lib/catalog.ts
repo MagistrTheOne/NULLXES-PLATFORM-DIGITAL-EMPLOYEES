@@ -26,6 +26,8 @@ export type RewardItem = {
   owned: number;
   compatible: string;
   boostLabel?: string;
+  /** Maps skill_chip → Agent Blueprint system skill slug. */
+  linkedSkillSlug?: string;
   comingSoon?: boolean;
   featured?: boolean;
 };
@@ -119,9 +121,11 @@ export const SEED_REWARD_ITEMS: Omit<RewardItem, "owned">[] = [
     name: "Negotiation Mastery",
     type: "skill_chip",
     rarity: "executive",
-    description: "Narrow boost for negotiation scenarios.",
+    description:
+      "Grants Objection Handling skill — structured pushback responses in Talk.",
     compatible: "All Employees",
-    boostLabel: "+15%",
+    boostLabel: "objection_handling",
+    linkedSkillSlug: "objection_handling",
     featured: true,
   },
   {
@@ -146,9 +150,11 @@ export const SEED_REWARD_ITEMS: Omit<RewardItem, "owned">[] = [
     name: "Sales Efficiency",
     type: "skill_chip",
     rarity: "premium",
-    description: "Focused sales throughput modifier.",
+    description:
+      "Grants B2B Discovery skill — qualification and discovery prompts.",
     compatible: "All Employees",
-    boostLabel: "+8%",
+    boostLabel: "b2b_discovery",
+    linkedSkillSlug: "b2b_discovery",
   },
   {
     id: "calm-voice",
@@ -172,9 +178,11 @@ export const SEED_REWARD_ITEMS: Omit<RewardItem, "owned">[] = [
     name: "Knowledge Recall",
     type: "skill_chip",
     rarity: "core",
-    description: "Light boost to knowledge retrieval in Talk.",
+    description:
+      "Grants Knowledge First Answer skill — prioritize org knowledge in Talk.",
     compatible: "All Employees",
-    boostLabel: "+12%",
+    boostLabel: "knowledge_first_answer",
+    linkedSkillSlug: "knowledge_first_answer",
   },
   {
     id: "classic-idle",
@@ -183,15 +191,18 @@ export const SEED_REWARD_ITEMS: Omit<RewardItem, "owned">[] = [
     rarity: "core",
     description: "Default standing idle pose.",
     compatible: "All Employees",
+    comingSoon: true,
   },
   {
     id: "support-spec",
     name: "Support Specialist",
     type: "skill_chip",
     rarity: "core",
-    description: "Support-domain efficiency chip.",
+    description:
+      "Grants Support Escalation skill — clear handoff and escalation paths.",
     compatible: "All Employees",
-    boostLabel: "+6%",
+    boostLabel: "support_escalation",
+    linkedSkillSlug: "support_escalation",
   },
   {
     id: "board-presence",
@@ -208,6 +219,7 @@ export const SEED_REWARD_ITEMS: Omit<RewardItem, "owned">[] = [
     rarity: "professional",
     description: "Subtle idle for analytical roles.",
     compatible: "All Employees",
+    comingSoon: true,
   },
   // Beta gap-fillers — slot coverage for drop tests (assets later).
   {
@@ -241,6 +253,7 @@ export const SEED_REWARD_ITEMS: Omit<RewardItem, "owned">[] = [
     rarity: "premium",
     description: "Composed idle cadence for premium presence.",
     compatible: "All Employees",
+    comingSoon: true,
   },
   {
     id: "briefing-tone",

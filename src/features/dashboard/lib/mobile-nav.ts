@@ -12,6 +12,7 @@ import {
   Radar,
   Settings,
   Sparkles,
+  Library,
   Users,
 } from "lucide-react";
 
@@ -73,6 +74,12 @@ export const MOBILE_MORE_ITEMS: MobileMoreItem[] = [
     href: "/dashboard/capsules",
     labelKey: "capsules",
     icon: Sparkles,
+  },
+  {
+    id: "collection",
+    href: "/dashboard/collection",
+    labelKey: "collection",
+    icon: Library,
   },
   {
     id: "inventory",

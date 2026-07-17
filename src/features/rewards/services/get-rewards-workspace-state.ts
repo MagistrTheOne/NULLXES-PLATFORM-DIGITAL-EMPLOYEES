@@ -17,6 +17,7 @@ import {
   type CapsuleTierId,
   type RewardItem,
 } from "@/features/rewards/lib/catalog";
+import { linkedSkillSlugForChip } from "@/features/rewards/lib/skill-chip-links";
 import { getCapsulePriceLabel } from "@/features/billing/config/capsule-pricing";
 import { db } from "@/shared/db/client";
 import { withDatabaseRetry } from "@/shared/db/with-database-retry";
@@ -196,6 +197,7 @@ export async function getRewardsWorkspaceState(
       description: row.description,
       compatible: row.compatible,
       boostLabel: row.boostLabel ?? undefined,
+      linkedSkillSlug: linkedSkillSlugForChip(row.slug) ?? undefined,
       featured: row.featured,
       comingSoon: row.comingSoon,
       owned: ownedBySlug.get(row.slug) ?? 0,

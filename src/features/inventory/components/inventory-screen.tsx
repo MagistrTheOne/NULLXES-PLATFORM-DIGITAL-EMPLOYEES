@@ -11,7 +11,6 @@ import {
   Sparkles,
   Square,
   Star,
-  UserRound,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -68,7 +67,6 @@ const TYPE_FILTERS: Array<{
   { id: "skill_chip", label: "Skill Chips" },
   { id: "appearance", label: "Appearance" },
   { id: "voice", label: "Voice" },
-  { id: "idle", label: "Idle" },
   { id: "background", label: "Background" },
   { id: "frame", label: "Frame" },
 ];
@@ -101,8 +99,6 @@ function typeIcon(type: RewardType) {
       return Shirt;
     case "voice":
       return Mic;
-    case "idle":
-      return UserRound;
     case "background":
       return Square;
     case "frame":
@@ -166,8 +162,10 @@ export function InventoryScreen({
   );
 
   const rewardItems = useMemo(() => {
-    // Inventory = owned holdings only (catalog ×0 gap-fillers stay in Capsules store).
-    let list = rewards.filter((item) => item.owned > 0);
+    // Inventory = owned holdings only (Idle mock retired from UI).
+    let list = rewards.filter(
+      (item) => item.owned > 0 && item.type !== "idle",
+    );
 
     if (filter === "equipped") {
       list = list.filter((item) => isItemEquippedAnywhere(loadouts, item.id));
@@ -265,9 +263,6 @@ export function InventoryScreen({
           case "background":
             next.backgroundId = selectedReward.id;
             break;
-          case "idle":
-            next.idleId = selectedReward.id;
-            break;
           case "frame":
             next.frameId = selectedReward.id;
             break;
@@ -311,8 +306,8 @@ export function InventoryScreen({
               Inventory
             </h1>
             <p className="mt-2 text-sm text-white/50">
-              Reward library. Owned capsules open here; equip applies to a
-              digital employee loadout.
+              Equip owned rewards onto digital employees. Browse the full
+              catalog in Collection; open drops in Capsules.
             </p>
           </div>
           <CapsulesAmbienceToggle />
@@ -589,6 +584,15 @@ export function InventoryScreen({
                         {selectedReward.compatible}
                       </dd>
                     </div>
+                    {selectedReward.type === "skill_chip" &&
+                    selectedReward.linkedSkillSlug ? (
+                      <div className="flex justify-between gap-3">
+                        <dt className="text-white/40">Blueprint skill</dt>
+                        <dd className="font-mono text-xs text-white/80">
+                          {selectedReward.linkedSkillSlug}
+                        </dd>
+                      </div>
+                    ) : null}
                   </dl>
 
                   <Button
@@ -695,7 +699,6 @@ export function InventoryScreen({
                       loadout.appearanceId,
                       loadout.voiceId,
                       loadout.backgroundId,
-                      loadout.idleId,
                       loadout.frameId,
                       ...loadout.skillChipIds,
                     ].filter(Boolean).length;

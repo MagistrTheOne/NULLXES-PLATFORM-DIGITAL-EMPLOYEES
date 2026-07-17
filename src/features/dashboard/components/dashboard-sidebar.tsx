@@ -15,6 +15,7 @@ import {
   Radar,
   Settings,
   Sparkles,
+  Library,
   Users,
 } from "lucide-react";
 import {
@@ -38,6 +39,7 @@ const NAV_ITEMS = [
   { labelKey: "employees", href: "/dashboard/employees", icon: Users },
   { labelKey: "missions", href: "/dashboard/missions", icon: Radar },
   { labelKey: "capsules", href: "/dashboard/capsules", icon: Sparkles },
+  { labelKey: "collection", href: "/dashboard/collection", icon: Library },
   { labelKey: "inventory", href: "/dashboard/inventory", icon: Package },
   { labelKey: "conversations", href: "/dashboard/conversations", icon: MessageSquare },
   { labelKey: "hq", href: "/dashboard/hq", icon: Building2 },
