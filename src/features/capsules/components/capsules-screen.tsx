@@ -42,6 +42,7 @@ import {
   rewardsWorkspaceClass,
 } from "@/features/rewards/lib/workspace-shell";
 import { CapsulesAmbienceToggle } from "./capsules-ambience";
+import { CapsulesAnnaEntrance } from "./capsules-anna-entrance";
 import {
   CapsuleOpenReveal,
   type CapsuleRevealReward,
@@ -401,6 +402,7 @@ export function CapsulesScreen({
 
   return (
     <div className={rewardsWorkspaceClass()}>
+      <CapsulesAnnaEntrance />
       <div className="flex w-full flex-1 flex-col gap-6 lg:gap-7">
         <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
