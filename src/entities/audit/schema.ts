@@ -20,6 +20,11 @@ export const auditActionEnum = pgEnum("audit_action", [
   "org.migration.started",
   "org.migration.completed",
   "org.data_deletion.requested",
+  "security.2fa.enabled",
+  "security.2fa.disabled",
+  "security.2fa.failed_attempt",
+  "security.backup_codes.generated",
+  "security.trusted_device.created",
 ]);
 
 export const auditEvent = pgTable("audit_event", {

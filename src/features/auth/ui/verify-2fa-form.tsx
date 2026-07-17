@@ -10,8 +10,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { recordTwoFactorAuditAction } from "@/features/security/actions/record-two-factor-audit";
 import { authClient } from "../client";
 import { ensureWorkspace } from "../services/ensure-workspace";
 import { AUTH_CARD_CLASS, AUTH_INPUT_CLASS } from "./auth-styles";
@@ -22,6 +24,7 @@ export function Verify2faForm() {
   const router = useRouter();
   const [mode, setMode] = useState<VerifyMode>("totp");
   const [code, setCode] = useState("");
+  const [trustDevice, setTrustDevice] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -113,20 +116,24 @@ export function Verify2faForm() {
       mode === "totp"
         ? await authClient.twoFactor.verifyTotp({
             code: trimmed,
-            trustDevice: true,
+            trustDevice,
           })
         : mode === "email"
           ? await authClient.twoFactor.verifyOtp({
               code: trimmed,
-              trustDevice: true,
+              trustDevice,
             })
           : await authClient.twoFactor.verifyBackupCode({
               code: trimmed,
-              trustDevice: true,
+              trustDevice,
             });
 
     if (result.error) {
       setIsSubmitting(false);
+      void recordTwoFactorAuditAction({
+        action: "security.2fa.failed_attempt",
+        metadata: { method: mode },
+      });
       const fallbackMessage =
         mode === "totp"
           ? "Invalid authentication code. Check your authenticator app and try again."
@@ -135,6 +142,13 @@ export function Verify2faForm() {
             : "Invalid backup code. Each backup code can only be used once.";
       setError(result.error.message ?? fallbackMessage);
       return;
+    }
+
+    if (trustDevice) {
+      void recordTwoFactorAuditAction({
+        action: "security.trusted_device.created",
+        metadata: { method: mode },
+      });
     }
 
     const finished = await finishSignIn(
@@ -236,6 +250,20 @@ export function Verify2faForm() {
               onChange={(event) => setCode(event.target.value)}
               className={AUTH_INPUT_CLASS}
             />
+          </div>
+          <div className="flex items-start gap-3 rounded-lg border border-white/10 bg-black/30 p-3">
+            <Checkbox
+              id="trust-device"
+              checked={trustDevice}
+              onCheckedChange={(checked) => setTrustDevice(checked === true)}
+              className="mt-0.5 border-white/20 data-[state=checked]:border-white data-[state=checked]:bg-white data-[state=checked]:text-black"
+            />
+            <Label
+              htmlFor="trust-device"
+              className="text-sm leading-relaxed font-normal text-white/70"
+            >
+              Don&apos;t ask for a code on this device for 30 days
+            </Label>
           </div>
           {mode === "email" ? (
             <Button

@@ -18,6 +18,7 @@ export {
   verifyApiKey,
 } from "./services/api-key";
 export { recordAuditEvent } from "./services/record-audit-event";
+export { recordTwoFactorAuditAction } from "./actions/record-two-factor-audit";
 export {
   runRetentionPurgeForAllOrganizations,
   runRetentionPurgeForOrganization,

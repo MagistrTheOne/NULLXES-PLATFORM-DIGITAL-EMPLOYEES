@@ -344,6 +344,13 @@
       "when": 1785200000000,
       "tag": "0048_session_knowledge_rls",
       "breakpoints": true
+    },
+    {
+      "idx": 49,
+      "version": "7",
+      "when": 1785300000000,
+      "tag": "0049_security_2fa_audit_actions",
+      "breakpoints": true
     }
   ]
 }

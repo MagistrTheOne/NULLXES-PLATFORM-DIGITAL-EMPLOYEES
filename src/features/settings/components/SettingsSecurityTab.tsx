@@ -11,6 +11,7 @@ import { TotpQrCode } from "@/features/auth/ui/totp-qr-code";
 import { createApiKeyAction } from "@/features/security/actions/create-api-key";
 import type { ApiScopeBundleId } from "@/features/public-api/lib/api-scopes";
 import { API_SCOPE_BUNDLES } from "@/features/public-api/lib/api-scopes";
+import { recordTwoFactorAuditAction } from "@/features/security/actions/record-two-factor-audit";
 import { revokeApiKeyAction } from "@/features/security/actions/revoke-api-key";
 import { updateApiSecuritySettingsAction } from "@/features/security/actions/update-api-security-settings";
 import { updateOutboundWebhookSettingsAction } from "@/features/security/actions/update-outbound-webhook-settings";
@@ -74,6 +75,11 @@ export function SettingsSecurityTab({
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [revokeOtherSessions, setRevokeOtherSessions] = useState(true);
+  const [backupCodesPassword, setBackupCodesPassword] = useState("");
+  const [showBackupCodesPassword, setShowBackupCodesPassword] = useState(false);
+  const [regeneratedBackupCodes, setRegeneratedBackupCodes] = useState<
+    string[] | null
+  >(null);
 
   function handleChangePassword(): void {
     if (newPassword.length < 8) {
@@ -175,7 +181,9 @@ export function SettingsSecurityTab({
       setTwoFactorSetup(null);
       setShowPasswordFor(null);
       setPasswordConfirm("");
+      setRegeneratedBackupCodes(null);
       setMessage(t("twoFactorDisabled"));
+      void recordTwoFactorAuditAction({ action: "security.2fa.disabled" });
     });
   }
 
@@ -186,11 +194,50 @@ export function SettingsSecurityTab({
       });
       if (result.error) {
         setMessage(result.error.message ?? t("verifyFailed"));
+        void recordTwoFactorAuditAction({
+          action: "security.2fa.failed_attempt",
+          metadata: { method: "totp", context: "enrollment" },
+        });
         return;
       }
       setTwoFactorSetup(null);
       setVerifyCode("");
       setMessage(t("twoFactorEnabled"));
+      void recordTwoFactorAuditAction({ action: "security.2fa.enabled" });
+    });
+  }
+
+  function handleGenerateBackupCodes(): void {
+    setShowBackupCodesPassword(true);
+    setBackupCodesPassword("");
+    setRegeneratedBackupCodes(null);
+    setMessage(null);
+  }
+
+  function handleConfirmGenerateBackupCodes(): void {
+    if (!backupCodesPassword.trim()) {
+      setMessage(t("passwordRequired"));
+      return;
+    }
+
+    startTransition(async () => {
+      const result = await authClient.twoFactor.generateBackupCodes({
+        password: backupCodesPassword,
+      });
+      if (result.error) {
+        setMessage(result.error.message ?? t("generateBackupCodesFailed"));
+        return;
+      }
+
+      const codes = result.data?.backupCodes ?? [];
+      setRegeneratedBackupCodes(codes);
+      setShowBackupCodesPassword(false);
+      setBackupCodesPassword("");
+      setMessage(t("backupCodesGenerated"));
+      void recordTwoFactorAuditAction({
+        action: "security.backup_codes.generated",
+        metadata: { count: codes.length },
+      });
     });
   }
 
@@ -400,6 +447,9 @@ export function SettingsSecurityTab({
                   <p className="text-xs text-muted-foreground">
                     {t("backupCodesLabel")}
                   </p>
+                  <p className="text-xs text-muted-foreground">
+                    {t("backupCodesOnceLabel")}
+                  </p>
                   <p className="font-mono text-xs text-foreground">
                     {twoFactorSetup.backupCodes.join(", ")}
                   </p>
@@ -426,14 +476,77 @@ export function SettingsSecurityTab({
           ) : null}
 
           {security.twoFactorEnabled && !showPasswordFor ? (
-            <Button
-              type="button"
-              variant="outline"
-              disabled={isPending}
-              onClick={handleDisable2faClick}
-            >
-              {t("disable2fa")}
-            </Button>
+            <div className="grid gap-3">
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={isPending}
+                  onClick={handleGenerateBackupCodes}
+                >
+                  {t("generateBackupCodes")}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={isPending}
+                  onClick={handleDisable2faClick}
+                >
+                  {t("disable2fa")}
+                </Button>
+              </div>
+
+              {showBackupCodesPassword ? (
+                <div className="grid gap-3 rounded-xl border border-border bg-background/40 p-4">
+                  <p className="text-xs text-muted-foreground">
+                    {t("passwordPromptBackupCodes")}
+                  </p>
+                  <div className="grid gap-2">
+                    <Label htmlFor="backup-codes-password">{t("passwordLabel")}</Label>
+                    <Input
+                      id="backup-codes-password"
+                      type="password"
+                      autoComplete="current-password"
+                      value={backupCodesPassword}
+                      onChange={(event) =>
+                        setBackupCodesPassword(event.target.value)
+                      }
+                    />
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      type="button"
+                      disabled={isPending || !backupCodesPassword.trim()}
+                      onClick={handleConfirmGenerateBackupCodes}
+                    >
+                      {t("confirmGenerateBackupCodes")}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      disabled={isPending}
+                      onClick={() => {
+                        setShowBackupCodesPassword(false);
+                        setBackupCodesPassword("");
+                      }}
+                    >
+                      {t("cancel")}
+                    </Button>
+                  </div>
+                </div>
+              ) : null}
+
+              {regeneratedBackupCodes && regeneratedBackupCodes.length > 0 ? (
+                <div className="grid gap-2 rounded-xl border border-border bg-background/40 p-4">
+                  <p className="text-xs text-muted-foreground">
+                    {t("backupCodesOnceLabel")}
+                  </p>
+                  <p className="font-mono text-xs text-foreground">
+                    {regeneratedBackupCodes.join(", ")}
+                  </p>
+                </div>
+              ) : null}
+            </div>
           ) : null}
         </div>
       </SettingsCard>
