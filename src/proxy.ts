@@ -1,5 +1,7 @@
 import { getSessionCookie } from "better-auth/cookies";
 import { NextRequest, NextResponse } from "next/server";
+import { LOCALE_COOKIE } from "@/i18n/config";
+import { resolveLocaleOrDefault } from "@/i18n/resolve-locale-from-geo";
 import { applySecurityHeaders } from "@/shared/security/apply-security-headers";
 import { buildContentSecurityPolicy } from "@/shared/security/security-header-values";
 
@@ -49,6 +51,17 @@ export function proxy(request: NextRequest) {
   const response = NextResponse.next({
     request: { headers: requestHeaders },
   });
+
+  // First-visit locale from edge geo (country only — never persist IP).
+  // Manual LandingLocaleSwap / setLocaleCookie still wins via existing cookie.
+  if (!request.cookies.get(LOCALE_COOKIE)?.value) {
+    const locale = resolveLocaleOrDefault(request.headers);
+    response.cookies.set(LOCALE_COOKIE, locale, {
+      path: "/",
+      maxAge: 60 * 60 * 24 * 365,
+      sameSite: "lax",
+    });
+  }
 
   return applySecurityHeaders(response, nonce);
 }

@@ -1,4 +1,4 @@
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { getRequestConfig } from "next-intl/server";
 import {
   DEFAULT_LOCALE,
@@ -7,6 +7,7 @@ import {
   type AppLocale,
 } from "./config";
 import { loadMessages } from "./load-messages";
+import { resolveLocaleFromGeoHeaders } from "./resolve-locale-from-geo";
 
 export async function getRequestLocale(): Promise<AppLocale> {
   const cookieStore = await cookies();
@@ -16,7 +17,8 @@ export async function getRequestLocale(): Promise<AppLocale> {
     return cookieLocale;
   }
 
-  return DEFAULT_LOCALE;
+  const requestHeaders = await headers();
+  return resolveLocaleFromGeoHeaders(requestHeaders) ?? DEFAULT_LOCALE;
 }
 
 export default getRequestConfig(async () => {
