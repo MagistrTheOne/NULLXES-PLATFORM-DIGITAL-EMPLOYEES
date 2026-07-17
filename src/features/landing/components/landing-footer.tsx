@@ -51,6 +51,14 @@ export function LandingFooter() {
               </li>
               <li>
                 <Link
+                  href="/docs/cookies"
+                  className="transition hover:text-white"
+                >
+                  Cookies
+                </Link>
+              </li>
+              <li>
+                <Link
                   href="/docs/company"
                   className="transition hover:text-white"
                 >

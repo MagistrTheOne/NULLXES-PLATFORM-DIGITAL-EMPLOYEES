@@ -56,6 +56,12 @@
     },
     "subtitle": {
       "workforce": "Manage and operate your digital workforce."
+    },
+    "cookieConsent": {
+      "title": "We use cookies",
+      "body": "Essential cookies keep you signed in and remember language. Analytics runs only with your consent. Details are in our <policy>cookie policy</policy>.",
+      "necessaryOnly": "Necessary only",
+      "acceptAll": "Accept"
     }
   },
   "auth": {

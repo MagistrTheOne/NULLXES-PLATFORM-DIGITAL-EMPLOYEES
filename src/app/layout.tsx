@@ -1,8 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Inter, Figtree } from "next/font/google";
-import { Analytics } from "@vercel/analytics/next";
 import { loadMessages } from "@/i18n/load-messages";
 import { getRequestLocale } from "@/i18n/request";
+import { AnalyticsWhenConsented } from "@/features/privacy/ui/analytics-when-consented";
+import { CookieConsentBanner } from "@/features/privacy/ui/cookie-consent-banner";
 import { IntlProvider } from "@/shared/i18n/intl-provider";
 import {
   buildRootMetadata,
@@ -74,8 +75,9 @@ export default async function RootLayout({
         <JsonLd data={siteJsonLdGraph()} />
         <IntlProvider locale={locale} messages={messages}>
           {children}
+          <CookieConsentBanner />
         </IntlProvider>
-        <Analytics />
+        <AnalyticsWhenConsented />
         <CloudflareEmailOffClose />
       </body>
     </html>
