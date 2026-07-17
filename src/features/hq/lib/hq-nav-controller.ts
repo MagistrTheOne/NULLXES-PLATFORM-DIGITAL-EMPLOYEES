@@ -1,14 +1,19 @@
 import type { HqDepartment } from "../types";
 import type { AgentOfficeState } from "./agent-office-state";
-import { ATRIUM_HUB, ROOM_DOORS, buildErrandPath, type NavPoint } from "./nav-graph";
-import { OFFICE_ROOMS, OPS_TABLE_POINT } from "./office-layout";
+import {
+  ATRIUM_HUB,
+  ROOM_DOORS,
+  buildErrandPath,
+  type NavPoint,
+} from "./nav-graph";
+import { stitchWaypointPath } from "./nav-grid";
+import { OFFICE_ROOMS, OPS_APPROACH } from "./office-layout";
 
 /**
  * HQ Nav Controller (deterministic locomotion).
  *
- * Only issues a path when the agent must relocate for a real platform reason.
- * Idle / desk work never gets a "walk home" path — that fought desk colliders
- * and looked like walk↔return loops.
+ * Skeleton waypoints (door → atrium → target) are expanded via walkable-grid
+ * A* so agents do not cut through desks or walls.
  */
 export function buildOfficeNavPath(input: {
   fromDepartment: HqDepartment;
@@ -17,24 +22,31 @@ export function buildOfficeNavPath(input: {
   errandDestination?: HqDepartment | null;
   errandTarget?: NavPoint | null;
 }): NavPoint[] | null {
-  const { fromDepartment, officeState, errandDestination, errandTarget } = input;
+  const {
+    fromDepartment,
+    officeState,
+    deskCoords,
+    errandDestination,
+    errandTarget,
+  } = input;
+
+  let skeleton: NavPoint[] | null = null;
 
   if (errandDestination && errandTarget) {
-    return buildErrandPath(fromDepartment, errandDestination, errandTarget);
-  }
-
-  if (officeState.zone === "ops_table" || officeState.action === "review") {
-    return [ROOM_DOORS[fromDepartment], ATRIUM_HUB, OPS_TABLE_POINT];
-  }
-
-  if (officeState.action === "handoff") {
+    skeleton = buildErrandPath(fromDepartment, errandDestination, errandTarget);
+  } else if (officeState.zone === "ops_table" || officeState.action === "review") {
+    skeleton = [ROOM_DOORS[fromDepartment], ATRIUM_HUB, OPS_APPROACH];
+  } else if (officeState.action === "handoff") {
     const destDept = zoneToDepartment(officeState.zone) ?? fromDepartment;
     const room = OFFICE_ROOMS[destDept];
-    return buildErrandPath(fromDepartment, destDept, [room.x, room.z]);
+    skeleton = buildErrandPath(fromDepartment, destDept, [room.x, room.z]);
   }
 
-  // monitor / call / research / draft / blocked — stay put at seat
-  return null;
+  if (!skeleton || skeleton.length === 0) {
+    return null;
+  }
+
+  return stitchWaypointPath([deskCoords, ...skeleton]);
 }
 
 export function pathSignature(path: NavPoint[] | null | undefined): string {

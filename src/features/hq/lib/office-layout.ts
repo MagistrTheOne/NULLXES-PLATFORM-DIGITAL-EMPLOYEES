@@ -97,8 +97,17 @@ export const DESK_SIZE_Z = 0.68;
 export const DESK_HALF_W = DESK_SIZE_X / 2;
 export const DESK_HALF_D = DESK_SIZE_Z / 2;
 
-/** Character collision radius used for seats / push-out. */
+/** Character collision radius used for seats / push-out / nav. */
 export const CHARACTER_RADIUS = 0.28;
+
+/**
+ * Stand point just outside the ops table collider (atrium / +Z side).
+ * Never path to OPS_TABLE_POINT center — that is inside the obstacle.
+ */
+export const OPS_APPROACH: [number, number] = [
+  OPS_TABLE_POINT[0],
+  OPS_TABLE_POINT[1] + OPS_TABLE_HALF_D + CHARACTER_RADIUS + 0.2,
+];
 
 /**
  * Seat sits on the atrium-facing (+Z) side of the desk, clear of the desk AABB.

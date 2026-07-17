@@ -254,7 +254,7 @@ export function OfficeEmployee({ employee, allEmployees = [] }: { employee: Scen
         goal.current.set(node[0], 0, node[1]);
         const reach = tmpDir.copy(goal.current).sub(posRef.current);
         reach.y = 0;
-        if (reach.length() < 0.28) {
+        if (reach.length() < 0.22) {
           if (pathIndex.current < path.length - 1) {
             pathIndex.current += 1;
           } else {

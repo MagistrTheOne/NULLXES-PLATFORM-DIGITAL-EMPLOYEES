@@ -2,7 +2,7 @@ import type { HqDepartment, HqEmployee } from "../types";
 import type { HqActivitySignals } from "./hq-behavior-types";
 import {
   OFFICE_ROOMS,
-  OPS_TABLE_POINT,
+  OPS_APPROACH,
   placeEmployeeSeatsInRoom,
 } from "./office-layout";
 
@@ -151,7 +151,7 @@ export function resolveAgentOfficeState(input: {
       taskId: missionHint.missionId,
       label: focus ?? "Awaiting approval",
       updatedAt,
-      targetCoords: OPS_TABLE_POINT,
+      targetCoords: OPS_APPROACH,
     };
   }
 
