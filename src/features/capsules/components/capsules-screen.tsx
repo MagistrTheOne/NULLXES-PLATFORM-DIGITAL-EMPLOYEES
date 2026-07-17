@@ -51,6 +51,8 @@ import { playCapsuleRevealSfx } from "./capsule-open-sfx";
 import { CapsuleProductVisual } from "./capsule-product-visual";
 import { CapsuleHistorySheet } from "@/features/capsules/components/capsule-history-sheet";
 import type { CapsuleHistoryItem } from "@/features/capsules/lib/history";
+import { getCapsuleRoomSrc } from "@/features/capsules/lib/capsule-assets";
+import Image from "next/image";
 
 export type { CapsuleHistoryItem };
 
@@ -149,6 +151,7 @@ function CapsuleCard({
   busy: boolean;
 }) {
   const reduceMotion = useReducedMotion();
+  const roomSrc = getCapsuleRoomSrc(offer.id);
 
   return (
     <motion.article
@@ -162,9 +165,21 @@ function CapsuleCard({
         ease: [0.22, 1, 0.36, 1],
       }}
       whileHover={reduceMotion ? undefined : { y: -3 }}
-      className="flex h-full min-h-112 flex-col justify-between rounded-2xl border border-white/10 bg-[#1a1a1a] p-5 sm:p-6"
+      className="relative flex h-full min-h-112 flex-col justify-between overflow-hidden rounded-2xl border border-white/10 bg-[#1a1a1a] p-5 sm:p-6"
     >
-      <div className="flex flex-col gap-4">
+      <div className="pointer-events-none absolute inset-0" aria-hidden>
+        <Image
+          src={roomSrc}
+          alt=""
+          fill
+          sizes="(max-width: 768px) 100vw, 33vw"
+          className="object-cover opacity-[0.22]"
+          priority={index < 2}
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/55 via-[#1a1a1a]/78 to-[#1a1a1a]" />
+      </div>
+
+      <div className="relative z-10 flex flex-col gap-4">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="text-[10px] tracking-[0.2em] text-white/40 uppercase">
@@ -221,7 +236,7 @@ function CapsuleCard({
         </div>
       </div>
 
-      <div className="pt-5">
+      <div className="relative z-10 pt-5">
         <motion.div
           whileTap={
             offer.claimed || busy || reduceMotion ? undefined : { scale: 0.98 }

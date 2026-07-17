@@ -48,3 +48,22 @@ export const CAPSULE_TIER_ASSET: Record<CapsuleTierId, CapsuleAssetId> = {
 export function getCapsuleAsset(tier: CapsuleTierId): CapsuleAsset {
   return CAPSULE_ASSETS[CAPSULE_TIER_ASSET[tier]];
 }
+
+/**
+ * Room art behind capsule store cards (public/Capsules/ROOM).
+ * Extra Founder / Legendary plates reserved for future rarity chrome.
+ */
+export const CAPSULE_TIER_ROOM: Record<CapsuleTierId, string> = {
+  daily: "/Capsules/ROOM/Core.png",
+  standard: "/Capsules/ROOM/Premium.png",
+  executive: "/Capsules/ROOM/Executive.png",
+};
+
+export const CAPSULE_ROOM_EXTRA = {
+  founders: "/Capsules/ROOM/Founder.jpg",
+  legendary: "/Capsules/ROOM/Legendary.png",
+} as const;
+
+export function getCapsuleRoomSrc(tier: CapsuleTierId): string {
+  return CAPSULE_TIER_ROOM[tier];
+}
