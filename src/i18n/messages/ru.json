@@ -10,7 +10,7 @@
       "hq": "NULLXES HQ",
       "analytics": "Аналитика",
       "settings": "Настройки",
-      "billing": "Биллинг",
+      "billing": "Оплата",
       "anamAdmin": "Key",
       "documentation": "Документация",
       "navigation": "Навигация",
@@ -48,7 +48,7 @@
       "plan": "Тариф",
       "settings": "Настройки",
       "analytics": "Аналитика",
-      "billing": "Биллинг",
+      "billing": "Оплата",
       "upgrade": "Запустите цифрового сотрудника",
       "manageSubscription": "Управление подпиской",
       "contactSales": "Связаться с NULLXES",
@@ -86,8 +86,8 @@
       "title": "Создать аккаунт",
       "description": "Запускайте цифровых сотрудников в масштабе предприятия.",
       "inviteDescription": "Примите приглашение в рабочее пространство.",
-      "consent": "Я даю согласие на обработку моих персональных данных в соответствии с <policy></policy>.",
-      "policyLink": "политикой обработки персональных данных NULLXES (152-ФЗ)",
+      "consent": "<policy></policy>",
+      "policyLink": "Согласие на обработку персональных данных",
       "termsConsent": "Я принимаю <terms></terms>.",
       "termsLink": "пользовательское соглашение NULLXES",
       "consentRequired": "Подтвердите согласие на обработку персональных данных перед регистрацией.",
@@ -240,7 +240,7 @@
       "status": "Статус",
       "started": "Начало",
       "empty": "Нет живых сессий.",
-      "live": "В эфире"
+      "live": "Активна"
     },
     "knowledge": {
       "title": "База знаний",
@@ -379,7 +379,7 @@
       "created": "Создан",
       "knowledgeSources": "Источники знаний",
       "description": "Описание",
-      "provisioning": "Провижининг",
+      "provisioning": "Развёртывание",
       "avatarId": "ID аватара",
       "personaId": "ID персоны",
       "anamKeySlot": "Слот Anam API key",
@@ -515,7 +515,7 @@
         "avatarDescription": "На Evaluation выберите пресет NULLXES или перейдите на Starter для загрузки фото и генерации.",
         "cancel": "Не сейчас",
         "upgrade": "Запустите цифрового сотрудника",
-        "billing": "Биллинг"
+        "billing": "Оплата"
       },
       "errors": {
         "nameRequired": "Укажите имя сотрудника.",
@@ -532,22 +532,22 @@
         "createFailed": "Не удалось создать цифрового сотрудника",
         "voicePreviewPlay": "Не удалось воспроизвести превью голоса.",
         "knowledgeFileRead": "Не удалось прочитать выбранный файл знаний.",
-        "brainOrgDefaultNotConfigured": "Мозг по умолчанию организации не настроен. Выберите свою модель или обновите настройки workspace.",
-        "brainProviderNotConfigured": "Выбранный провайдер мозга не настроен для этого workspace.",
-        "brainModelRequired": "Выберите модель мозга перед продолжением."
+        "brainOrgDefaultNotConfigured": "Интеллект организации по умолчанию не настроен. Выберите свою модель или обновите настройки рабочего пространства.",
+        "brainProviderNotConfigured": "Выбранный провайдер интеллекта не настроен для этого рабочего пространства.",
+        "brainModelRequired": "Выберите модель интеллекта перед продолжением."
       }
     },
     "scenarios": {
       "picker": {
         "title": "Сценарии workforce",
-        "subtitle": "Пройдите guided-симуляцию с {name} ({role}). Сценарий — overlay поверх Talk, запись сотрудника не меняется.",
+        "subtitle": "Пройдите управляемую симуляцию с {name} ({role}). Сценарий — слой поверх Talk, запись сотрудника не меняется.",
         "backToEmployee": "К сотруднику",
         "recommended": "Рекомендуем для этой роли",
         "allScenarios": "Все сценарии",
         "monthlyUsage": "Использовано {used} из {limit} сценариев в этом месяце",
         "limitReached": "Достигнут лимит Evaluation на сценарии в этом месяце. Запустите Studio или выше — симуляции без месячного лимита и более длинные Talk-сессии.",
         "upgrade": "Запустите цифрового сотрудника",
-        "billing": "Биллинг",
+        "billing": "Оплата",
         "starting": "Запуск сценария…"
       },
       "debrief": {
@@ -563,9 +563,9 @@
         "strengths": "Сильные стороны",
         "improvements": "Улучшить в следующий раз",
         "proUpsellTitle": "Вынести workflow в production",
-        "proUpsellBody": "Studio, Operator и Scale — больше сотрудников, custom avatars, missions и более длинные Talk-сессии для реальных операций.",
+        "proUpsellBody": "Studio, Operator и Scale — больше сотрудников, кастомные аватары, миссии и более длинные Talk-сессии для реальных операций.",
         "upgrade": "Запустите цифрового сотрудника",
-        "billing": "Биллинг",
+        "billing": "Оплата",
         "runAnother": "Ещё один сценарий",
         "openTalk": "Открыть Talk"
       },
@@ -625,7 +625,7 @@
       "starting": "Запуск…",
       "stopping": "Остановка…",
       "connecting": "Подключение…",
-      "live": "В эфире",
+      "live": "Активна",
       "remaining": "осталось {remaining} · лимит {limit}",
       "statusOnline": "Онлайн",
       "statusSecure": "Защищено",
@@ -762,7 +762,7 @@
         "transcriptEmpty": "Транскрипт появится здесь во время звонка.",
         "statusIdle": "Готово",
         "statusConnecting": "Подключение к xAI…",
-        "statusLive": "В эфире",
+        "statusLive": "Активна",
         "statusEnded": "Звонок завершён",
         "statusError": "Ошибка"
       },
@@ -908,7 +908,7 @@
         "openAiDescription": "Модели GPT через настроенный ключ OpenAI API.",
         "anthropicDescription": "Модели Claude через настроенный ключ Anthropic API.",
         "googleDescription": "Модели Gemini через настроенный ключ Google API.",
-        "nullxesDescription": "Управляемый платформой мозг NULLXES. Ключ API не нужен.",
+        "nullxesDescription": "Управляемый платформой интеллект NULLXES. Ключ API не нужен.",
         "badgeReady": "Готов",
         "badgeConfigure": "Настроить",
         "badgeManaged": "Управляемый",
@@ -923,14 +923,14 @@
   },
   "settings": {
     "title": "Настройки",
-    "subtitle": "Workspace, люди, план и безопасность.",
+    "subtitle": "Рабочее пространство, команда, план и безопасность.",
     "saved": "Настройки сохранены.",
     "saveFailed": "Не удалось сохранить.",
     "saveChanges": "Сохранить",
     "nav": {
       "primary": "Разделы настроек",
       "workspace": "Workspace",
-      "people": "Люди",
+      "people": "Команда",
       "plan": "План",
       "security": "Безопасность",
       "more": "Ещё"
@@ -938,7 +938,7 @@
     "tabs": {
       "general": "Workspace",
       "organization": "Организация",
-      "team": "Люди",
+      "team": "Команда",
       "billing": "План",
       "integrations": "Интеграции",
       "security": "Безопасность",
@@ -1009,14 +1009,14 @@
       "weeklyDigestDetail": "Сводка активности workforce по понедельникам"
     },
     "team": {
-      "heading": "Люди",
-      "headingDesc": "Приглашайте коллег и управляйте доступом к workspace.",
+      "heading": "Команда",
+      "headingDesc": "Приглашайте коллег и управляйте доступом к рабочему пространству.",
       "inviteMember": "Пригласить",
       "inviteDescription": "Отправить приглашение по email",
       "pendingInvites": "Ожидающие приглашения",
       "pendingInvitesDesc": "Ждут принятия",
       "teamMembers": "Участники",
-      "teamMembersDesc": "Люди с доступом к этому workspace",
+      "teamMembersDesc": "Участники с доступом к этому рабочему пространству",
       "footerManage": "Приглашения действуют 7 дней. Принятие по email или OAuth.",
       "footerView": "Только администраторы управляют командой.",
       "resend": "Отправить снова",
@@ -1059,7 +1059,7 @@
       "deleteOrgTitle": "Удаление workspace",
       "deleteOrgDescription": "Безвозвратное удаление всех данных организации. При включённой 2FA потребуется подтверждение.",
       "deleteOrgButton": "Удалить workspace",
-      "deleteOrgDialogTitle": "Удалить это workspace?",
+      "deleteOrgDialogTitle": "Удалить рабочее пространство?",
       "deleteOrgDialogDescription": "Будут безвозвратно удалены «{name}» и все связанные данные. Отменить нельзя.",
       "deleteOrgCancel": "Отмена",
       "deleteOrgConfirm": "Удалить workspace"
@@ -1162,7 +1162,7 @@
       "tbankStatusMissing": "Оплата не настроена",
       "tbankReceiptOn": "Чек",
       "tbankReceiptMeta": "{taxation} · {vat}",
-      "tbankOpenPayPage": "Биллинг",
+      "tbankOpenPayPage": "Оплата",
       "tier": {
         "free": {
           "name": "Evaluation",
@@ -1172,17 +1172,17 @@
         "starter": {
           "name": "Starter",
           "description": "Стартовый каталог плюс ваши первые цифровые сотрудники.",
-          "features": "Стартовый каталог: Adeline + Yuki|2 своих цифровых сотрудника|До 60 минут общения в месяц|До 2 500 knowledge chunks|1 кастомный аватар|История диалогов"
+          "features": "Стартовый каталог: Adeline + Yuki|2 своих цифровых сотрудника|До 60 минут общения в месяц|До 2 500 фрагментов базы знаний|1 кастомный аватар|История диалогов"
         },
         "studio": {
           "name": "Studio",
           "description": "Стартовый каталог и место для личной цифровой команды.",
-          "features": "Стартовый каталог: Adeline + Yuki|5 своих цифровых сотрудников|До 180 минут общения в месяц|До 15 000 knowledge chunks|1 кастомный аватар|История и поиск по диалогам"
+          "features": "Стартовый каталог: Adeline + Yuki|5 своих цифровых сотрудников|До 180 минут общения в месяц|До 15 000 фрагментов базы знаний|1 кастомный аватар|История и поиск по диалогам"
         },
         "operator": {
           "name": "Team",
           "description": "Цифровая команда с расширенным каталогом и первыми интеграциями.",
-          "features": "Полный доступ к marketplace сотрудников NULLXES|10 своих цифровых сотрудников|До 600 минут общения в месяц|Совместная рабочая область|До 50 000 knowledge chunks|API для чтения"
+          "features": "Полный доступ к каталогу сотрудников NULLXES|10 своих цифровых сотрудников|До 600 минут общения в месяц|Совместная рабочая область|До 50 000 фрагментов базы знаний|API для чтения"
         },
         "scale": {
           "name": "Scale",
@@ -1393,7 +1393,7 @@
       "messages": "Сообщения",
       "knowledgeSources": "Источники знаний",
       "trendVsPrevious": "{trend} к прошлому периоду",
-      "teamMembers": "Люди",
+      "teamMembers": "Команда",
       "teamSummary": "{count} участник(ов)",
       "noTeamMembers": "Пока нет участников."
     },
@@ -1419,7 +1419,7 @@
       "openAiDescription": "Модели GPT через настроенный ключ OpenAI API.",
       "anthropicDescription": "Модели Claude через настроенный ключ Anthropic API.",
       "googleDescription": "Модели Gemini через настроенный ключ Google API.",
-      "nullxesDescription": "Управляемый платформой мозг NULLXES. Ключ API не нужен.",
+      "nullxesDescription": "Управляемый платформой интеллект NULLXES. Ключ API не нужен.",
       "badgeReady": "Готов",
       "badgeConfigure": "Настроить",
       "badgeManaged": "Управляемый"
@@ -1605,7 +1605,7 @@
       "transcriptEmpty": "Транскрипт появится здесь во время звонка.",
       "statusIdle": "Готово",
       "statusConnecting": "Подключение к xAI…",
-      "statusLive": "В эфире",
+      "statusLive": "Активна",
       "statusEnded": "Звонок завершён",
       "statusError": "Ошибка"
     },
@@ -1624,7 +1624,7 @@
   "hq": {
     "title": "NULLXES HQ",
     "subtitle": "Ваша цифровая команда — вживую на этаже штаб-квартиры.",
-    "live": "В эфире",
+    "live": "Активна",
     "systemOnline": "Система в сети",
     "workforceOnFloor": "{onFloor} / {total} на этаже",
     "tabs": {
@@ -1754,7 +1754,7 @@
         "conversationTime": "Время бесед",
         "satisfaction": "Удовлетворённость",
         "lastSession": "Последняя сессия",
-        "live": "В эфире"
+        "live": "Активна"
       },
       "actions": {
         "talk": "Разговор",
