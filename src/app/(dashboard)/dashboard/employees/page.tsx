@@ -6,6 +6,7 @@ import {
   EmployeesScreen,
   listOrganizationEmployees,
 } from "@/features/employees";
+import { listOrganizationLoadouts } from "@/features/rewards/services/employee-loadout";
 import { isTransientDatabaseError } from "@/shared/errors/is-transient-database-error";
 
 export default async function DigitalEmployeesPage({
@@ -17,8 +18,14 @@ export default async function DigitalEmployeesPage({
   try {
     session = await requireAuth();
   } catch (error: unknown) {
-    if (isTransientDatabaseError(error) || (error instanceof Error && error.message.includes("database temporarily unreachable"))) {
-      throw new Error("Failed to load employees: database temporarily unreachable");
+    if (
+      isTransientDatabaseError(error) ||
+      (error instanceof Error &&
+        error.message.includes("database temporarily unreachable"))
+    ) {
+      throw new Error(
+        "Failed to load employees: database temporarily unreachable",
+      );
     }
     throw error;
   }
@@ -28,7 +35,9 @@ export default async function DigitalEmployeesPage({
     workspace = await ensureWorkspace(session.user.id, session.user.name);
   } catch (error: unknown) {
     if (isTransientDatabaseError(error)) {
-      throw new Error("Failed to load employees: database temporarily unreachable");
+      throw new Error(
+        "Failed to load employees: database temporarily unreachable",
+      );
     }
     throw error;
   }
@@ -44,13 +53,21 @@ export default async function DigitalEmployeesPage({
       : undefined;
 
   let page;
+  let loadouts: Awaited<ReturnType<typeof listOrganizationLoadouts>>;
   try {
-    page = await listOrganizationEmployees(workspace.organization.id, {
-      cursor,
-    });
+    [page, loadouts] = await Promise.all([
+      listOrganizationEmployees(workspace.organization.id, {
+        cursor,
+      }),
+      listOrganizationLoadouts(workspace.organization.id).catch(
+        () => ({}) as Awaited<ReturnType<typeof listOrganizationLoadouts>>,
+      ),
+    ]);
   } catch (error: unknown) {
     if (isTransientDatabaseError(error)) {
-      throw new Error("Failed to load employees: database temporarily unreachable");
+      throw new Error(
+        "Failed to load employees: database temporarily unreachable",
+      );
     }
     throw error;
   }
@@ -59,6 +76,7 @@ export default async function DigitalEmployeesPage({
     <EmployeesScreen
       employees={page.items}
       nextCursor={page.nextCursor}
+      loadouts={loadouts}
     />
   );
 }

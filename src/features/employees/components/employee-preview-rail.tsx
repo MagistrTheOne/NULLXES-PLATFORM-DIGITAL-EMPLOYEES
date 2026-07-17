@@ -19,6 +19,12 @@ import { EmployeeStatusBadge } from "./employee-status-badge";
 import type { RewardItem } from "@/features/rewards/lib/catalog";
 import type { EmployeeLoadout } from "@/features/rewards/lib/loadout";
 import { emptyLoadout } from "@/features/rewards/lib/loadout";
+import {
+  COSMETIC_EQUIP_BADGE,
+  hasAnyLoadoutEquipped,
+  resolveCosmeticBackgroundSrc,
+} from "@/features/rewards/lib/cosmetic-assets";
+import Image from "next/image";
 
 function ProvisioningChip({
   label,
@@ -83,6 +89,8 @@ export async function EmployeePreviewRail({
   const scenarioHref =
     authGateHref ?? `/dashboard/employees/${employee.id}/scenarios`;
   const canActivateTalk = Boolean(authGateHref) || employee.canTalk;
+  const backgroundSrc = resolveCosmeticBackgroundSrc(loadout.backgroundId);
+  const showEquipBadge = hasAnyLoadoutEquipped(loadout);
 
   return (
     <Card
@@ -92,14 +100,26 @@ export async function EmployeePreviewRail({
       )}
     >
       <div className="relative aspect-4/3 bg-white/3">
-        {showPreview ? (
-          <AvatarIdlePreview
-            src={employee.avatarPreviewUrl!}
-            alt={employee.name}
+        {backgroundSrc ? (
+          <Image
+            src={backgroundSrc}
+            alt=""
+            fill
             sizes="320px"
+            className="object-cover opacity-45"
+            aria-hidden
           />
+        ) : null}
+        {showPreview ? (
+          <div className="relative z-10 size-full">
+            <AvatarIdlePreview
+              src={employee.avatarPreviewUrl!}
+              alt={employee.name}
+              sizes="320px"
+            />
+          </div>
         ) : (
-          <div className="flex h-full flex-col items-center justify-center gap-2 text-white/40">
+          <div className="relative z-10 flex h-full flex-col items-center justify-center gap-2 text-white/40">
             {isProvisioning ? (
               <Loader2 className="size-8 animate-spin" />
             ) : (
@@ -110,6 +130,16 @@ export async function EmployeePreviewRail({
             </span>
           </div>
         )}
+        {showEquipBadge ? (
+          <Image
+            src={COSMETIC_EQUIP_BADGE}
+            alt=""
+            width={28}
+            height={28}
+            className="absolute top-2.5 right-2.5 z-20 size-7 drop-shadow-[0_2px_8px_rgba(0,0,0,0.65)]"
+            aria-hidden
+          />
+        ) : null}
       </div>
       <CardContent className="flex flex-col gap-4 px-5 py-5">
         <div className="space-y-1">

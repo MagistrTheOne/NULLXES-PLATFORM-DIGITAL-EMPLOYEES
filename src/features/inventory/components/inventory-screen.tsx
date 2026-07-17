@@ -52,6 +52,11 @@ import {
 } from "@/features/capsules/components/capsule-open-reveal";
 import { playCapsuleRevealSfx } from "@/features/capsules/components/capsule-open-sfx";
 import { CapsuleProductVisual } from "@/features/capsules/components/capsule-product-visual";
+import {
+  COSMETIC_EQUIP_BADGE,
+  resolveCosmeticBackgroundSrc,
+} from "@/features/rewards/lib/cosmetic-assets";
+import Image from "next/image";
 
 const TYPE_FILTERS: Array<{
   id: "all" | "equipped" | "capsules" | RewardType;
@@ -442,14 +447,30 @@ export function InventoryScreen({
                             <Star className="size-3 fill-white text-white" />
                           ) : null}
                           {equipped ? (
-                            <span className="rounded bg-white/10 px-1.5 py-0.5 text-[9px] tracking-wide text-white/60 uppercase">
-                              On
-                            </span>
+                            <Image
+                              src={COSMETIC_EQUIP_BADGE}
+                              alt=""
+                              width={18}
+                              height={18}
+                              className="size-4.5 drop-shadow-[0_1px_4px_rgba(0,0,0,0.7)]"
+                              aria-hidden
+                            />
                           ) : null}
                         </div>
                       </div>
-                      <div className="mt-4 flex flex-1 items-center justify-center">
-                        <Icon className={cn("size-10", style.text)} />
+                      <div className="relative mt-4 flex min-h-24 flex-1 items-center justify-center overflow-hidden rounded-xl">
+                        {item.type === "background" &&
+                        resolveCosmeticBackgroundSrc(item.id) ? (
+                          <Image
+                            src={resolveCosmeticBackgroundSrc(item.id)!}
+                            alt=""
+                            fill
+                            sizes="160px"
+                            className="object-cover opacity-80"
+                          />
+                        ) : (
+                          <Icon className={cn("size-10", style.text)} />
+                        )}
                       </div>
                       <p className="mt-3 text-sm font-medium text-white">
                         {item.name}

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useWorkspacePermissions } from "@/features/workspace/components/workspace-permissions-provider";
@@ -7,6 +8,12 @@ import { useFormatOrganizationDate } from "@/features/workspace/components/works
 import { Loader2, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import type { EmployeeLoadout } from "@/features/rewards/lib/loadout";
+import {
+  COSMETIC_EQUIP_BADGE,
+  hasAnyLoadoutEquipped,
+  resolveCosmeticBackgroundSrc,
+} from "@/features/rewards/lib/cosmetic-assets";
 import type { EmployeeListItem } from "../types";
 import { AvatarIdlePreview } from "./avatar-idle-preview";
 import { EmployeeMaterializationCardPreview } from "./employee-materialization-card-preview";
@@ -42,7 +49,13 @@ function provisioningLabel(
   return "";
 }
 
-export function EmployeeCard({ employee }: { employee: EmployeeListItem }) {
+export function EmployeeCard({
+  employee,
+  loadout = null,
+}: {
+  employee: EmployeeListItem;
+  loadout?: EmployeeLoadout | null;
+}) {
   const t = useTranslations("employees.card");
   const tActions = useTranslations("common.actions");
   const permissions = useWorkspacePermissions();
@@ -57,24 +70,40 @@ export function EmployeeCard({ employee }: { employee: EmployeeListItem }) {
     employee.avatarPreviewUrl &&
     employee.avatarProvisioningStatus === "ready" &&
     !isMaterializing;
+  const backgroundSrc = resolveCosmeticBackgroundSrc(loadout?.backgroundId);
+  const showEquipBadge = loadout ? hasAnyLoadoutEquipped(loadout) : false;
 
   return (
     <Card className="flex h-full flex-col gap-0 overflow-hidden border-white/10 bg-[#111111] py-0 text-white ring-white/10">
       <div className="relative flex aspect-4/3 items-center justify-center border-b border-white/10 bg-white/3">
-        {showPreview ? (
-          <AvatarIdlePreview
-            src={employee.avatarPreviewUrl!}
-            alt={employee.name}
+        {backgroundSrc ? (
+          <Image
+            src={backgroundSrc}
+            alt=""
+            fill
             sizes="(max-width: 768px) 100vw, 320px"
+            className="object-cover opacity-45"
+            aria-hidden
           />
+        ) : null}
+        {showPreview ? (
+          <div className="relative z-10 size-full">
+            <AvatarIdlePreview
+              src={employee.avatarPreviewUrl!}
+              alt={employee.name}
+              sizes="(max-width: 768px) 100vw, 320px"
+            />
+          </div>
         ) : isMaterializing ? (
-          <EmployeeMaterializationCardPreview
-            portraitUrl={employee.avatarPreviewUrl}
-            name={employee.name}
-            label={provisioningLabel(employee.avatarProvisioningStatus, t)}
-          />
+          <div className="relative z-10 size-full">
+            <EmployeeMaterializationCardPreview
+              portraitUrl={employee.avatarPreviewUrl}
+              name={employee.name}
+              label={provisioningLabel(employee.avatarProvisioningStatus, t)}
+            />
+          </div>
         ) : (
-          <div className="flex flex-col items-center gap-2 text-white/40">
+          <div className="relative z-10 flex flex-col items-center gap-2 text-white/40">
             {isProvisioning ? (
               <Loader2 className="size-8 animate-spin stroke-[1.25]" />
             ) : (
@@ -86,6 +115,16 @@ export function EmployeeCard({ employee }: { employee: EmployeeListItem }) {
             </span>
           </div>
         )}
+        {showEquipBadge ? (
+          <Image
+            src={COSMETIC_EQUIP_BADGE}
+            alt=""
+            width={28}
+            height={28}
+            className="absolute top-2.5 right-2.5 z-20 size-7 drop-shadow-[0_2px_8px_rgba(0,0,0,0.65)]"
+            aria-hidden
+          />
+        ) : null}
       </div>
       <CardContent className="flex flex-1 flex-col gap-3 px-4 py-4 sm:gap-4 sm:px-5 sm:py-5">
         <div className="flex flex-col gap-2">

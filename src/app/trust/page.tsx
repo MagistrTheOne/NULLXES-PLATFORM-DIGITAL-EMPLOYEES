@@ -27,7 +27,7 @@ const TRUST_SECTIONS = [
     body: "Security-relevant actions are recorded in an immutable audit log. Session data is purged automatically according to your organization's retention policy.",
   },
   {
-    title: "Personal data (152-FZ)",
+    title: "Personal data, laws and regulations",
     body: "Personal data processing follows Russian Federal Law No. 152-FZ, GOST R ISO/IEC 27001-2021 and GOST R 7.0.8-2013. Documentation covers the operator, data categories, storage conditions, encryption, retention/destruction, access audit, and subject rights. See /docs/personal-data.",
   },
   {
@@ -47,9 +47,6 @@ export default function TrustPage() {
         <p className="mt-4 text-sm leading-relaxed text-white/60">
           Security, privacy, and operational transparency for enterprise digital
           workforce deployments.
-        </p>
-        <p className="mt-3 text-xs leading-relaxed text-white/40">
-          This page is static documentation. It is not a live status monitor.
         </p>
 
         <div className="mt-12 grid gap-6">
@@ -71,7 +68,7 @@ export default function TrustPage() {
           <Link href="/docs" className="text-white hover:underline">
             /docs
           </Link>
-          . Соответствие ФЗ:{" "}
+          . Соответствие законодательству Российской Федерации 152-ФЗ:{" "}
           <Link href="/docs/personal-data" className="text-white hover:underline">
             /docs/personal-data
           </Link>

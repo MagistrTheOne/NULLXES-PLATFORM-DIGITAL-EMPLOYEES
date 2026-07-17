@@ -26,6 +26,7 @@ import {
   type EmployeeMaterializationTarget,
 } from "./employee-materialization-overlay";
 import { ScenarioPostCreateSheet } from "@/features/scenarios/components/scenario-post-create-sheet";
+import type { EmployeeLoadout } from "@/features/rewards/lib/loadout";
 
 async function retainPortraitPreviewUrl(url: string): Promise<string> {
   if (!url.startsWith("blob:")) {
@@ -75,9 +76,11 @@ function readStoredViewMode(): EmployeeViewMode {
 export function EmployeesScreen({
   employees,
   nextCursor,
+  loadouts = {},
 }: {
   employees: EmployeeListItem[];
   nextCursor?: string | null;
+  loadouts?: Record<string, EmployeeLoadout>;
 }) {
   const router = useRouter();
   const permissions = useWorkspacePermissions();
@@ -283,7 +286,7 @@ export function EmployeesScreen({
             {filteredEmployees.length > 0 ? (
               <div className="flex flex-col gap-4">
                 {viewMode === "grid" ? (
-                  <EmployeeGrid employees={pageEmployees} />
+                  <EmployeeGrid employees={pageEmployees} loadouts={loadouts} />
                 ) : null}
                 {viewMode === "list" ? (
                   <EmployeeListView employees={pageEmployees} />
