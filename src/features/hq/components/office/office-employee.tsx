@@ -35,6 +35,7 @@ import {
   STATUS_COLORS,
   getStaticObstacles,
   resolveMovement,
+  resolvePlacement,
 } from "../../lib/office-layout";
 import { MEETING_POINT } from "../../lib/standup";
 import { useOfficeStore } from "../../store/use-office-store";
@@ -120,7 +121,7 @@ export function OfficeEmployee({ employee, allEmployees = [] }: { employee: Scen
   const HQ_LIVELINESS_DEFAULTS = {
     breatheSpeed: 1.35,
     breatheAmp: 0.022,
-    idleLeanAmp: 0.035,
+    idleLeanAmp: 0,
     lookAmp: 0.18,
   };
   const livelinessControls = useControls(
@@ -128,7 +129,7 @@ export function OfficeEmployee({ employee, allEmployees = [] }: { employee: Scen
     {
       breatheSpeed: { value: 1.35, min: 0.1, max: 5, step: 0.05 },
       breatheAmp: { value: 0.022, min: 0, max: 0.1, step: 0.001 },
-      idleLeanAmp: { value: 0.035, min: 0, max: 0.2, step: 0.001 },
+      idleLeanAmp: { value: 0, min: 0, max: 0.2, step: 0.001 },
       lookAmp: { value: 0.18, min: 0, max: 1, step: 0.01 },
     },
     { collapsed: true },
@@ -169,11 +170,19 @@ export function OfficeEmployee({ employee, allEmployees = [] }: { employee: Scen
     if (employee.task) {
       return;
     }
-    const [hx, hz] = override ?? [
+    const [rawX, rawZ] = override ?? [
       employee.position[0],
       employee.position[1],
     ];
+    const [hx, hz] = resolvePlacement(
+      clampToScene(rawX),
+      clampToScene(rawZ),
+      getStaticObstacles(),
+      0.28,
+    );
     goal.current.set(hx, 0, hz);
+    posRef.current.x = hx;
+    posRef.current.z = hz;
     arrivedRef.current = false;
   }, [employee.position, override, employee.task]);
 
@@ -328,16 +337,14 @@ export function OfficeEmployee({ employee, allEmployees = [] }: { employee: Scen
     posRef.current.x = clampToScene(posRef.current.x);
     posRef.current.z = clampToScene(posRef.current.z);
 
-    // Only re-resolve while moving — settled seats must not fight desk AABBs.
-    if (movingRef.current) {
+    // Keep feet clear of desks/walls — including settled seats (push-out, not clamp-in).
+    {
       const finalObstacles = getStaticObstacles();
-      const [finalX, finalZ] = resolveMovement(
-        posRef.current.x,
-        posRef.current.z,
+      const [finalX, finalZ] = resolvePlacement(
         posRef.current.x,
         posRef.current.z,
         finalObstacles,
-        0.22,
+        movingRef.current ? 0.24 : 0.28,
       );
       posRef.current.x = finalX;
       posRef.current.z = finalZ;
@@ -349,9 +356,11 @@ export function OfficeEmployee({ employee, allEmployees = [] }: { employee: Scen
     const moving = movingRef.current;
     const animation = employee.plan.animation;
 
+    // Sit only when typing at desk — otherwise stand upright (iso lean reads as "tilted").
     const shouldSit =
       !moving &&
       employee.plan.anchor === "desk" &&
+      animation === "type" &&
       !employee.meetingTarget &&
       !employee.task;
 
@@ -359,29 +368,31 @@ export function OfficeEmployee({ employee, allEmployees = [] }: { employee: Scen
     root.position.y = FLOOR_CLEARANCE + liftY.current + sitOffsetY;
 
     if (bodyRef.current) {
+      // Never apply lateral roll — isometric camera turns pitch into fake left lean.
+      bodyRef.current.rotation.z = 0;
+
       if (moving) {
         bodyRef.current.position.y = Math.abs(Math.sin(time * 9)) * 0.05;
         bodyRef.current.rotation.x = 0;
+        bodyRef.current.rotation.y = 0;
       } else if (animation === "type") {
         bodyRef.current.position.y = Math.sin(time * 6 + idlePhase.current) * 0.035;
-        bodyRef.current.rotation.x = -0.06;
+        bodyRef.current.rotation.x = -0.04;
+        bodyRef.current.rotation.y = 0;
       } else if (animation === "listen") {
         bodyRef.current.position.y = Math.sin(time * 1.2 + idlePhase.current) * 0.025;
-        bodyRef.current.rotation.x = Math.sin(time * 0.9) * 0.035;
-      } else if (animation === "stand") {
-        bodyRef.current.position.y = Math.sin(time * 1 + idlePhase.current) * 0.015;
         bodyRef.current.rotation.x = 0;
+        bodyRef.current.rotation.y =
+          Math.sin(time * 0.18 + idlePhase.current) * 0.03;
       } else {
-        // Default idle at desk — more "alive" breathing + occasional lean
-        // Values are now tunable via leva (HQ Liveliness panel)
-        const breathe = Math.sin(time * liveliness.breatheSpeed + idlePhase.current) * liveliness.breatheAmp;
-        const baseLean = Math.sin(time * 0.22 + idlePhase.current * 0.7) * liveliness.idleLeanAmp;
-        const twist = Math.sin(time * 0.18 + idlePhase.current) * 0.04; // micro torso turn
-        // Extra gentle forward lean when "sitting"
-        const sitLean = shouldSit ? 0.22 : 0;
+        // Stand / idle — upright, breath only
+        const breathe =
+          Math.sin(time * liveliness.breatheSpeed + idlePhase.current) *
+          liveliness.breatheAmp;
         bodyRef.current.position.y = breathe;
-        bodyRef.current.rotation.x = baseLean + sitLean;
-        bodyRef.current.rotation.y = twist;
+        bodyRef.current.rotation.x = 0;
+        bodyRef.current.rotation.y =
+          Math.sin(time * 0.18 + idlePhase.current) * 0.02;
       }
     }
 

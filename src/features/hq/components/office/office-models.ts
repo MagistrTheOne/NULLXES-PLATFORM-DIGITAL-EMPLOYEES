@@ -40,6 +40,12 @@ export const CHARACTER_HEIGHT = 1.05;
 /** Facing correction in radians (flip to Math.PI if models face backwards). */
 export const CHARACTER_YAW = 0;
 
+/**
+ * Rest-pose correction on the GLB group [pitch, yaw, roll].
+ * Use a tiny negative roll if a source mesh leans left in T-pose.
+ */
+export const CHARACTER_POSE_CORRECT: [number, number, number] = [0, 0, 0];
+
 /** Whether any character GLB is configured (enables model rendering). */
 export const HAS_CHARACTER_MODELS =
   HQ_MODELS.characters.female !== null || HQ_MODELS.characters.male !== null;

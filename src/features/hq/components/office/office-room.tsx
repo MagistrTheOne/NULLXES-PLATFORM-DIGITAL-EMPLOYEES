@@ -6,6 +6,7 @@ import { useRef } from "react";
 import type { Group as ThreeGroup, Mesh } from "three";
 import { useControls } from "leva";
 import {
+  DESK_CHAIR_OFFSET_Z,
   WALL_HEIGHT,
   WALL_THICKNESS,
   getDeskPositions,
@@ -481,7 +482,10 @@ export function OfficeRoom({ room }: { room: SceneRoom }) {
         const [dx, dz] = position;
         // simple chair behind desk
         return (
-          <group key={`chair-${index}`} position={[dx, 0, dz + 0.55]}>
+          <group
+            key={`chair-${index}`}
+            position={[dx, 0, dz + DESK_CHAIR_OFFSET_Z]}
+          >
             <mesh position={[0, 0.22, 0]} castShadow>
               <boxGeometry args={[0.38, 0.08, 0.38]} />
               <meshStandardMaterial color={CHAIR_COLOR} roughness={0.7} />

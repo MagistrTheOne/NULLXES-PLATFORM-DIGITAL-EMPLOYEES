@@ -150,6 +150,35 @@ export function getStaticObstacles(): Obstacle[] {
 }
 
 /**
+ * Chair / seat offset on the atrium-facing side of a desk.
+ * Must clear deskHalfD (0.35) + character radius (~0.28) ≈ 0.63.
+ */
+export const DESK_CHAIR_OFFSET_Z = 0.72;
+
+/**
+ * Push a point out of any overlapping obstacles (nearest edge on X then Z).
+ * Use for spawn, drag-drop, and stuck recovery — never clamp *into* AABBs.
+ */
+export function resolvePlacement(
+  x: number,
+  z: number,
+  obstacles: Obstacle[],
+  radius = 0.28,
+): [number, number] {
+  let cx = x;
+  let cz = z;
+  // Iterate a few times — nested obstacles (desk near wall) need multi-pass.
+  for (let pass = 0; pass < 4; pass += 1) {
+    if (!intersectsAny(cx, cz, obstacles, radius)) {
+      return [cx, cz];
+    }
+    cx = pushOutX(cx, cz, obstacles, radius);
+    cz = pushOutZ(cx, cz, obstacles, radius);
+  }
+  return [cx, cz];
+}
+
+/**
  * Resolve a desired movement against a list of axis-aligned obstacles.
  * Simple "slide" resolution: move as far as possible on X then Z (or vice-versa).
  * radius = character collision radius (approx 0.28-0.35 for low-poly figures).
@@ -168,7 +197,9 @@ export function resolveMovement(
   const dx = desiredX - fromX;
   const dz = desiredZ - fromZ;
   const stepLen = Math.hypot(dx, dz);
-  if (stepLen < 0.0001) return [x, z];
+  if (stepLen < 0.0001) {
+    return resolvePlacement(x, z, obstacles, radius);
+  }
 
   // Normalize direction
   const nx = dx / stepLen;
@@ -187,7 +218,6 @@ export function resolveMovement(
   if (!intersectsAny(slideX, z, obstacles, radius)) {
     x = slideX;
   } else {
-    // push out on X
     x = pushOutX(x, z, obstacles, radius);
   }
 
@@ -199,8 +229,7 @@ export function resolveMovement(
     z = pushOutZ(x, z, obstacles, radius);
   }
 
-  // Final clamp against all
-  return [clampAgainst(x, z, obstacles, radius)[0], clampAgainst(x, z, obstacles, radius)[1]];
+  return resolvePlacement(x, z, obstacles, radius);
 }
 
 function intersectsAny(x: number, z: number, obstacles: Obstacle[], r: number): boolean {
@@ -240,20 +269,6 @@ function pushOutZ(x: number, z: number, obstacles: Obstacle[], r: number): numbe
   return best;
 }
 
-function clampAgainst(x: number, z: number, obstacles: Obstacle[], r: number): [number, number] {
-  let cx = x;
-  let cz = z;
-  for (const o of obstacles) {
-    const minX = o.x - o.halfW - r;
-    const maxX = o.x + o.halfW + r;
-    const minZ = o.z - o.halfD - r;
-    const maxZ = o.z + o.halfD + r;
-    cx = Math.max(minX, Math.min(maxX, cx));
-    cz = Math.max(minZ, Math.min(maxZ, cz));
-  }
-  return [cx, cz];
-}
-
 /**
  * Returns desk center positions inside a room (same logic used for visuals).
  * Kept here so collision obstacles stay perfectly in sync with rendered desks.
@@ -272,9 +287,6 @@ export function getDeskPositions(room: RoomDef): Array<[number, number]> {
   });
 }
 
-// Backwards-compatible alias for internal use
-const deskPositions = getDeskPositions;
-
 /**
  * Place N employees on chair-side seats in front of desks (not on desk
  * colliders — sitting on the desk AABB caused walk↔push oscillation).
@@ -288,10 +300,10 @@ export function placeEmployeesInRoom(
   }
 
   const desks = getDeskPositions(room);
-  /** Chair sits on the atrium-facing side of the desk. */
-  const CHAIR_OFFSET_Z = 0.62;
-  const seats = desks.map(([x, z]) => [x, z + CHAIR_OFFSET_Z] as [number, number]);
-
+  const obstacles = getStaticObstacles();
+  const seats = desks.map(([x, z]) =>
+    resolvePlacement(x, z + DESK_CHAIR_OFFSET_Z, obstacles, 0.28),
+  );
   if (count <= seats.length) {
     return seats.slice(0, count);
   }
@@ -307,10 +319,14 @@ export function placeEmployeesInRoom(
     const col = index % columns;
     const row = Math.floor(index / columns);
     const fx = columns === 1 ? 0.5 : col / (columns - 1);
-    extras.push([
-      room.x - usableW / 2 + fx * usableW,
-      baseZ + row * 0.85,
-    ]);
+    extras.push(
+      resolvePlacement(
+        room.x - usableW / 2 + fx * usableW,
+        baseZ + row * 0.85,
+        obstacles,
+        0.28,
+      ),
+    );
   }
 
   return [...seats, ...extras];

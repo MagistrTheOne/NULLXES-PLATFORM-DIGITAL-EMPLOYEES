@@ -9,7 +9,11 @@ import {
   configureGltfLoaderNoTextures,
   ensureGltfTexturesAreStubbed,
 } from "./apply-gltf-materials";
-import { CHARACTER_HEIGHT, CHARACTER_YAW } from "./office-models";
+import {
+  CHARACTER_HEIGHT,
+  CHARACTER_POSE_CORRECT,
+  CHARACTER_YAW,
+} from "./office-models";
 
 // Run as early as this module is evaluated on the client.
 ensureGltfTexturesAreStubbed();
@@ -131,8 +135,10 @@ export function CharacterModel({ url }: { url: string | null }) {
     return { object: cloned, scale: nextScale, offset: nextOffset };
   }, [scene]);
 
+  const [pitch, yawCorrect, roll] = CHARACTER_POSE_CORRECT;
+
   return (
-    <group rotation={[0, CHARACTER_YAW, 0]}>
+    <group rotation={[pitch, CHARACTER_YAW + yawCorrect, roll]}>
       <group position={offset} scale={scale}>
         <primitive object={object} />
       </group>

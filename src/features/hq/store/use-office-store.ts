@@ -1,6 +1,17 @@
 "use client";
 
 import { create } from "zustand";
+import {
+  FLOOR_HALF,
+  getStaticObstacles,
+  resolvePlacement,
+} from "../lib/office-layout";
+
+const SCENE_BOUND = FLOOR_HALF - 1.5;
+
+function clampToScene(value: number): number {
+  return Math.max(-SCENE_BOUND, Math.min(SCENE_BOUND, value));
+}
 
 type OfficeStore = {
   selectedEmployeeId: string | null;
@@ -43,12 +54,19 @@ export const useOfficeStore = create<OfficeStore>((set) => ({
       if (!state.draggingId || !state.dragTarget) {
         return { draggingId: null, dragTarget: null };
       }
+      const [rawX, rawZ] = state.dragTarget;
+      const [x, z] = resolvePlacement(
+        clampToScene(rawX),
+        clampToScene(rawZ),
+        getStaticObstacles(),
+        0.28,
+      );
       return {
         draggingId: null,
         dragTarget: null,
         overrides: {
           ...state.overrides,
-          [state.draggingId]: state.dragTarget,
+          [state.draggingId]: [clampToScene(x), clampToScene(z)],
         },
       };
     }),
