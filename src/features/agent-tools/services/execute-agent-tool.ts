@@ -66,6 +66,32 @@ export async function executeAgentTool(input: {
     return { content: result };
   }
 
+  if (input.toolName === "generate_image") {
+    const prompt = typeof args.prompt === "string" ? args.prompt.trim() : "";
+    if (!prompt) {
+      return { content: "generate_image requires a prompt." };
+    }
+    const size = typeof args.size === "string" ? args.size.trim() : undefined;
+    const { generateImageOpenAi } = await import("./generate-image-openai");
+    const result = await generateImageOpenAi({ prompt, size });
+    return { content: result };
+  }
+
+  if (input.toolName === "analyze_image") {
+    const imageUrl =
+      typeof args.imageUrl === "string" ? args.imageUrl.trim() : "";
+    const question =
+      typeof args.question === "string" ? args.question.trim() : "";
+    if (!imageUrl || !question) {
+      return {
+        content: "analyze_image requires imageUrl and question.",
+      };
+    }
+    const { analyzeImageOpenAi } = await import("./analyze-image-openai");
+    const result = await analyzeImageOpenAi({ imageUrl, question });
+    return { content: result };
+  }
+
   if (input.toolName === "search_knowledge") {
     const query = typeof args.query === "string" ? args.query.trim() : "";
     if (!query) {

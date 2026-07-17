@@ -80,13 +80,18 @@ export async function buildTalkSessionBrainCache(input: {
     maxTokens,
     employeeName: employee.name,
     employeeRole: employee.role,
-    // Always expose grounding read tools in Talk — legacy blueprints may omit list_tasks.
+    // Always expose grounding + research tools in Talk/Conversations —
+    // legacy blueprints may omit list_tasks / search_web / multimodal tools.
     enabledToolSlugs: [
       ...new Set([
         ...blueprint.enabledToolSlugs,
         "list_missions",
         "list_tasks",
         "list_workforce_peers",
+        "search_knowledge",
+        "search_web",
+        "generate_image",
+        "analyze_image",
       ]),
     ],
   };
@@ -115,6 +120,18 @@ export function talkBrainCacheToRequestConfig(
     maxTokens: cache.maxTokens,
     employeeName: cache.employeeName,
     employeeRole: cache.employeeRole,
-    enabledToolSlugs: cache.enabledToolSlugs,
+    // Re-merge every request so warm session caches pick up new tool slugs.
+    enabledToolSlugs: [
+      ...new Set([
+        ...cache.enabledToolSlugs,
+        "list_missions",
+        "list_tasks",
+        "list_workforce_peers",
+        "search_knowledge",
+        "search_web",
+        "generate_image",
+        "analyze_image",
+      ]),
+    ],
   };
 }

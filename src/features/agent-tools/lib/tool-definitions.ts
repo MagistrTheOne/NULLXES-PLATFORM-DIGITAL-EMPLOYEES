@@ -1,4 +1,4 @@
-const SEARCH_KNOWLEDGE_TOOL = {
+export const SEARCH_KNOWLEDGE_TOOL = {
   type: "function" as const,
   function: {
     name: "search_knowledge",
@@ -22,7 +22,7 @@ export const SEARCH_WEB_TOOL = {
   function: {
     name: "search_web",
     description:
-      "Search the public web for up-to-date information, news, prices, or facts not in the knowledge base. Use for current events and live data.",
+      "Search the public web for up-to-date information, news, prices, dates, or facts not in the knowledge base. Use for current events and live data. Never claim you lack internet access — call this tool instead.",
     parameters: {
       type: "object",
       properties: {
@@ -32,6 +32,54 @@ export const SEARCH_WEB_TOOL = {
         },
       },
       required: ["query"],
+    },
+  },
+};
+
+/** OpenAI Responses image_generation — https://developers.openai.com/api/docs/guides/tools-image-generation */
+export const GENERATE_IMAGE_TOOL = {
+  type: "function" as const,
+  function: {
+    name: "generate_image",
+    description:
+      "Generate an image from a text prompt (imagine / draw / create a picture). Use when the user asks to draw, generate, or visualize something.",
+    parameters: {
+      type: "object",
+      properties: {
+        prompt: {
+          type: "string",
+          description: "Detailed image generation prompt.",
+        },
+        size: {
+          type: "string",
+          description: 'Optional size, e.g. "1024x1024" or "auto".',
+        },
+      },
+      required: ["prompt"],
+    },
+  },
+};
+
+/** Vision — analyze an image URL or data URL via OpenAI multimodal input. */
+export const ANALYZE_IMAGE_TOOL = {
+  type: "function" as const,
+  function: {
+    name: "analyze_image",
+    description:
+      "Analyze an image from a public URL or data URL (vision). Use when the user shares or references an image to describe, read text from, or answer questions about it.",
+    parameters: {
+      type: "object",
+      properties: {
+        imageUrl: {
+          type: "string",
+          description: "HTTPS image URL or data:image/...;base64,... URL.",
+        },
+        question: {
+          type: "string",
+          description: "What to look for or answer about the image.",
+        },
+      },
+      required: ["imageUrl", "question"],
     },
   },
 };
@@ -201,11 +249,16 @@ export const TALK_ACTION_TOOLS = [
 export const AGENT_TOOL_DEFINITIONS = [
   SEARCH_KNOWLEDGE_TOOL,
   SEARCH_WEB_TOOL,
+  GENERATE_IMAGE_TOOL,
+  ANALYZE_IMAGE_TOOL,
   ...TALK_ACTION_TOOLS,
 ];
 
 export const TALK_AGENT_TOOL_DEFINITIONS = [
   SEARCH_WEB_TOOL,
+  SEARCH_KNOWLEDGE_TOOL,
+  GENERATE_IMAGE_TOOL,
+  ANALYZE_IMAGE_TOOL,
   ...TALK_ACTION_TOOLS,
 ];
 

@@ -32,6 +32,14 @@ export const NULLXES_MISSION_STATUS_POLICY = `Mission status:
 - If the operator asks to stop, interrupt, or cancel a mission, call cancel_mission with the mission id.
 - If the operator asks to continue with new instructions, call cancel_mission when still running, then restart_mission with the updated brief/goal/skills.`;
 
+export const NULLXES_TOOL_USE_POLICY = `Tools and live information:
+- You have tools. Prefer calling them over saying you lack access.
+- For news, current events, prices, dates, weather, or anything after your training cutoff: call search_web. Never say you have no internet or no realtime updates when search_web is available.
+- For internal docs and employee knowledge: call search_knowledge before answering from memory alone.
+- For draw / imagine / generate a picture: call generate_image.
+- For describe / read / analyze an image URL: call analyze_image.
+- After tools return, answer from the tool results. If a tool fails, say so briefly and offer what you can.`;
+
 /** Default spoken language policy for Anam / talk sessions. */
 export const NULLXES_LANGUAGE_POLICY_RU = `Language policy:
 - Default to Russian for all responses, tone, and explanations.
@@ -163,6 +171,7 @@ STAY IN CHARACTER AT ALL TIMES:
     NULLXES_LANGUAGE_POLICY_RU,
     NULLXES_CONVERSATION_START_POLICY,
     NULLXES_MISSION_STATUS_POLICY,
+    NULLXES_TOOL_USE_POLICY,
   ]
     .filter((section): section is string => Boolean(section?.trim()))
     .join("\n\n");

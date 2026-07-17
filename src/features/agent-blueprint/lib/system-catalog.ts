@@ -318,6 +318,8 @@ Return only qualified investors with verified contacts.`,
 const TOOL_RISK: Record<string, ToolRiskLevel> = {
   search_knowledge: "read",
   search_web: "read",
+  generate_image: "write",
+  analyze_image: "read",
   create_follow_up_task: "write",
   list_missions: "read",
   list_tasks: "read",
@@ -345,6 +347,8 @@ const TOOL_IDS: Record<string, string> = {
   list_workforce_peers: "c3000003-0003-4003-8003-000000000007",
   request_handoff: "c3000003-0003-4003-8003-000000000008",
   draft_email: "c3000003-0003-4003-8003-000000000009",
+  generate_image: "c3000003-0003-4003-8003-00000000000b",
+  analyze_image: "c3000003-0003-4003-8003-00000000000c",
 };
 
 export const SYSTEM_TOOLS: SystemToolSeed[] = AGENT_TOOL_DEFINITIONS.map((tool) => {
@@ -415,6 +419,8 @@ export const DEFAULT_ENABLED_TOOL_SLUGS = [
   "list_workforce_peers",
   "request_handoff",
   "search_web",
+  "generate_image",
+  "analyze_image",
   "draft_email",
 ];
 

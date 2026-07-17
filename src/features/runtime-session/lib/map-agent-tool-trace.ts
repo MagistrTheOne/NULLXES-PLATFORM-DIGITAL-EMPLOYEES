@@ -1,6 +1,8 @@
 const TOOL_TRACE_KEYS: Record<string, string> = {
   search_knowledge: "searchingKnowledge",
   search_web: "searchingWeb",
+  generate_image: "generatingImage",
+  analyze_image: "analyzingImage",
   list_workspace_connectors: "checkingConnectors",
   list_workforce_peers: "checkingWorkforce",
   list_missions: "checkingMissions",

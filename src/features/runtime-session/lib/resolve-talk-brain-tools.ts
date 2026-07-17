@@ -1,11 +1,16 @@
 import {
+  ANALYZE_IMAGE_TOOL,
+  GENERATE_IMAGE_TOOL,
+  SEARCH_KNOWLEDGE_TOOL,
   SEARCH_WEB_TOOL,
   TALK_ACTION_TOOLS,
   type AgentToolDefinition,
 } from "@/features/agent-tools/lib/tool-definitions";
 import {
   shouldRunChatToolLoop,
+  shouldRunTalkImageGen,
   shouldRunTalkToolLoop,
+  shouldRunTalkVision,
   shouldRunTalkWebSearch,
 } from "@/features/runtime-session/lib/should-run-talk-tool-loop";
 
@@ -16,13 +21,19 @@ const TALK_READ_TOOL_SLUGS = new Set([
   "list_missions",
   "list_tasks",
   "list_workforce_peers",
+  "search_knowledge",
 ]);
 
 function collectEnabledTools(
   enabled: Set<string>,
   mode: "read" | "write",
 ): AgentToolDefinition[] {
-  return TALK_ACTION_TOOLS.filter((tool) => {
+  const catalog = [
+    SEARCH_KNOWLEDGE_TOOL,
+    ...TALK_ACTION_TOOLS,
+  ] as AgentToolDefinition[];
+
+  return catalog.filter((tool) => {
     const name = tool.function.name;
     if (!enabled.has(name)) {
       return false;
@@ -33,18 +44,39 @@ function collectEnabledTools(
 }
 
 function resolveBrainToolsForIntent(input: {
+  channel: TalkBrainChannel;
   lastUserMessage: string;
   enabledToolSlugs: string[];
   shouldEnableActionTools: (message: string) => boolean;
 }): AgentToolDefinition[] | undefined {
   const enabled = new Set(input.enabledToolSlugs);
   const tools: AgentToolDefinition[] = [];
+  const isChat = input.channel === "chat";
 
-  // Read tools stay attached every turn so mission/task questions cannot be faked.
+  // Read tools stay attached every turn so mission/task/knowledge cannot be faked.
   tools.push(...collectEnabledTools(enabled, "read"));
 
-  if (enabled.has("search_web") && shouldRunTalkWebSearch(input.lastUserMessage)) {
+  // Conversations (chat): always offer web search when enabled so the model
+  // cannot refuse with "no realtime access". Voice keeps the latency heuristic.
+  if (
+    enabled.has("search_web") &&
+    (isChat || shouldRunTalkWebSearch(input.lastUserMessage))
+  ) {
     tools.push(SEARCH_WEB_TOOL);
+  }
+
+  if (
+    enabled.has("generate_image") &&
+    (isChat || shouldRunTalkImageGen(input.lastUserMessage))
+  ) {
+    tools.push(GENERATE_IMAGE_TOOL);
+  }
+
+  if (
+    enabled.has("analyze_image") &&
+    (isChat || shouldRunTalkVision(input.lastUserMessage))
+  ) {
+    tools.push(ANALYZE_IMAGE_TOOL);
   }
 
   if (input.shouldEnableActionTools(input.lastUserMessage)) {
@@ -60,6 +92,7 @@ export function resolveTalkBrainTools(
   enabledToolSlugs: string[] = [],
 ): AgentToolDefinition[] | undefined {
   return resolveBrainToolsForIntent({
+    channel: "voice",
     lastUserMessage,
     enabledToolSlugs,
     shouldEnableActionTools: shouldRunTalkToolLoop,
@@ -72,6 +105,7 @@ export function resolveChatBrainTools(
   enabledToolSlugs: string[] = [],
 ): AgentToolDefinition[] | undefined {
   return resolveBrainToolsForIntent({
+    channel: "chat",
     lastUserMessage,
     enabledToolSlugs,
     shouldEnableActionTools: shouldRunChatToolLoop,

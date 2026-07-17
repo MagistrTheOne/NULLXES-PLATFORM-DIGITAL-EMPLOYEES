@@ -28,15 +28,23 @@ function extractResponseText(payload: {
   return "";
 }
 
-/** OpenAI Responses API web_search — https://developers.openai.com/api/docs/guides/tools-web-search */
-export async function searchWebOpenAi(query: string): Promise<string> {
+/**
+ * Vision via Responses API multimodal input.
+ * @see https://developers.openai.com/api/docs/guides/images-vision
+ */
+export async function analyzeImageOpenAi(input: {
+  imageUrl: string;
+  question: string;
+}): Promise<string> {
   const apiKey = process.env.OPENAI_API_KEY?.trim();
   if (!apiKey) {
-    return "Web search is not configured (OPENAI_API_KEY missing).";
+    return "Vision is not configured (OPENAI_API_KEY missing).";
   }
 
   const model =
-    process.env.OPENAI_WEB_SEARCH_MODEL?.trim() || "gpt-4.1-mini";
+    process.env.OPENAI_VISION_MODEL?.trim() ||
+    process.env.OPENAI_WEB_SEARCH_MODEL?.trim() ||
+    "gpt-4.1-mini";
 
   const response = await fetch(OPENAI_RESPONSES_URL, {
     method: "POST",
@@ -46,10 +54,19 @@ export async function searchWebOpenAi(query: string): Promise<string> {
     },
     body: JSON.stringify({
       model,
-      // Hosted tool per current OpenAI docs (not web_search_preview).
-      tools: [{ type: "web_search" }],
-      tool_choice: "auto",
-      input: query,
+      input: [
+        {
+          role: "user",
+          content: [
+            { type: "input_text", text: input.question },
+            {
+              type: "input_image",
+              image_url: input.imageUrl,
+              detail: "auto",
+            },
+          ],
+        },
+      ],
     }),
   });
 
@@ -63,7 +80,7 @@ export async function searchWebOpenAi(query: string): Promise<string> {
     } catch {
       // ignore
     }
-    return `Web search failed (${response.status}): ${detail}`;
+    return `Vision analysis failed (${response.status}): ${detail}`;
   }
 
   const payload = (await response.json()) as {
@@ -72,5 +89,5 @@ export async function searchWebOpenAi(query: string): Promise<string> {
   };
 
   const text = extractResponseText(payload);
-  return text || "Web search returned no results.";
+  return text || "Vision analysis returned no description.";
 }
