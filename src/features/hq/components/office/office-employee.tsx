@@ -33,6 +33,7 @@ class ModelErrorBoundary extends Component<
 import {
   FLOOR_HALF,
   STATUS_COLORS,
+  faceYawNearSeat,
   getStaticObstacles,
   resolveMovement,
   resolvePlacement,
@@ -325,10 +326,8 @@ export function OfficeEmployee({ employee, allEmployees = [] }: { employee: Scen
       ) {
         const idleLook =
           Math.sin(time * 0.35 + idlePhase.current) * liveliness.lookAmp * 0.45;
-        const faceDesk = Math.atan2(
-          deskPoint()[0] - posRef.current.x + 0.01,
-          deskPoint()[1] - posRef.current.z - 0.4,
-        );
+        const [hx, hz] = deskPoint();
+        const faceDesk = faceYawNearSeat(hx, hz);
         root.rotation.y +=
           (faceDesk + idleLook - root.rotation.y) * Math.min(1, delta * 3);
       }

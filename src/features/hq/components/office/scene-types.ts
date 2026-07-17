@@ -14,6 +14,8 @@ export type SceneEmployee = {
   status: HqRuntimeStatus;
   /** Desk/seat anchor (where the employee settles). */
   position: [number, number];
+  /** Face desk when idle at seat (from DeskSlot). */
+  seatYaw: number;
   /** Interior bounds the employee roams within (keeps them inside the room). */
   roam: { minX: number; maxX: number; minZ: number; maxZ: number };
   /**

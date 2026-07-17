@@ -3,8 +3,7 @@
 import { create } from "zustand";
 import {
   FLOOR_HALF,
-  getStaticObstacles,
-  resolvePlacement,
+  snapToNearestFreeSeat,
 } from "../lib/office-layout";
 
 const SCENE_BOUND = FLOOR_HALF - 1.5;
@@ -26,6 +25,11 @@ type OfficeStore = {
    * An override becomes the employee's new "home" desk on the floor.
    */
   overrides: Record<string, [number, number]>;
+  /**
+   * Default home seats from layout (updated by canvas). Used with overrides
+   * for occupancy when snapping drag drops.
+   */
+  homeSeats: Record<string, [number, number]>;
   /** Employee whose inline office chat overlay is open, or null. */
   talkEmployeeId: string | null;
   selectEmployee: (id: string | null) => void;
@@ -33,6 +37,7 @@ type OfficeStore = {
   beginDrag: (id: string) => void;
   updateDragTarget: (pos: [number, number]) => void;
   endDrag: () => void;
+  setHomeSeats: (homes: Record<string, [number, number]>) => void;
   openTalk: (id: string) => void;
   closeTalk: () => void;
 };
@@ -43,30 +48,41 @@ export const useOfficeStore = create<OfficeStore>((set) => ({
   draggingId: null,
   dragTarget: null,
   overrides: {},
+  homeSeats: {},
   talkEmployeeId: null,
   selectEmployee: (id) => set({ selectedEmployeeId: id }),
   hoverEmployee: (id) => set({ hoveredEmployeeId: id }),
   beginDrag: (id) =>
     set({ draggingId: id, dragTarget: null, selectedEmployeeId: id }),
   updateDragTarget: (pos) => set({ dragTarget: pos }),
+  setHomeSeats: (homes) => set({ homeSeats: homes }),
   endDrag: () =>
     set((state) => {
       if (!state.draggingId || !state.dragTarget) {
         return { draggingId: null, dragTarget: null };
       }
       const [rawX, rawZ] = state.dragTarget;
-      const [x, z] = resolvePlacement(
+      const taken: Array<[number, number]> = [];
+      const ids = new Set([
+        ...Object.keys(state.homeSeats),
+        ...Object.keys(state.overrides),
+      ]);
+      for (const id of ids) {
+        if (id === state.draggingId) continue;
+        const pos = state.overrides[id] ?? state.homeSeats[id];
+        if (pos) taken.push(pos);
+      }
+      const [sx, sz] = snapToNearestFreeSeat(
         clampToScene(rawX),
         clampToScene(rawZ),
-        getStaticObstacles(),
-        0.28,
+        taken,
       );
       return {
         draggingId: null,
         dragTarget: null,
         overrides: {
           ...state.overrides,
-          [state.draggingId]: [clampToScene(x), clampToScene(z)],
+          [state.draggingId]: [clampToScene(sx), clampToScene(sz)],
         },
       };
     }),

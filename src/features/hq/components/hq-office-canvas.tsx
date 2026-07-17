@@ -10,8 +10,9 @@ import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import {
   OFFICE_ROOMS,
   STATUS_COLORS,
-  placeEmployeesInRoom,
+  placeEmployeeSeatsInRoom,
 } from "../lib/office-layout";
+import { useOfficeStore } from "../store/use-office-store";
 import {
   DEPARTMENT_CAPACITY,
   DEPARTMENT_ORDER,
@@ -118,9 +119,9 @@ export function HqOfficeCanvas({
     return counts;
   }, [state.employees]);
 
-  const employees: SceneEmployee[] = state.departments.flatMap((group) => {
+  const employees: SceneEmployee[] = useMemo(() => state.departments.flatMap((group) => {
     const room = OFFICE_ROOMS[group.department];
-    const positions = placeEmployeesInRoom(room, group.employees.length);
+    const seats = placeEmployeeSeatsInRoom(room, group.employees.length);
     const interiorHalfW = Math.max(0.4, room.w / 2 - 0.8);
     const interiorHalfD = Math.max(0.4, room.d / 2 - 0.8);
     const roam = {
@@ -130,6 +131,8 @@ export function HqOfficeCanvas({
       maxZ: room.z + interiorHalfD,
     };
     return group.employees.map((employee, index) => {
+      const seat = seats[index];
+
       const taskLabel = resolveActivityBadgeLabel(
         employee.activity.badge,
         tActivity,
@@ -179,7 +182,8 @@ export function HqOfficeCanvas({
                 speechText: officeState.label ?? plan.speechText,
               };
       const speechText = officeState.label ?? effectivePlan.speechText ?? null;
-      const deskCoords = positions[index] ?? [room.x, room.z];
+      const deskCoords = seat?.position ?? ([room.x, room.z] as [number, number]);
+      const seatYaw = seat?.faceYaw ?? Math.atan2(0, -1);
       const errandTarget = employee.task
         ? ([
             OFFICE_ROOMS[employee.task.destination].x,
@@ -224,6 +228,7 @@ export function HqOfficeCanvas({
         taskLabel: speechText,
         status: employee.runtimeStatus,
         position: deskCoords,
+        seatYaw,
         roam,
         behavior,
         plan: motionPlan,
@@ -244,7 +249,16 @@ export function HqOfficeCanvas({
         hasLoadout: Boolean(employee.loadout),
       };
     });
-  });
+  }), [state.departments, llmThoughts, meetingLabel, tActivity]);
+
+  const setHomeSeats = useOfficeStore((s) => s.setHomeSeats);
+  useEffect(() => {
+    const homes: Record<string, [number, number]> = {};
+    for (const employee of employees) {
+      homes[employee.id] = employee.position;
+    }
+    setHomeSeats(homes);
+  }, [employees, setHomeSeats]);
 
   const zoomBy = (factor: number) => {
     const controls = controlsRef.current;

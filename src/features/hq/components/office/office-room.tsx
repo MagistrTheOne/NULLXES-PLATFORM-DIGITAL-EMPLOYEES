@@ -6,10 +6,9 @@ import { useRef } from "react";
 import type { Group as ThreeGroup, Mesh } from "three";
 import { useControls } from "leva";
 import {
-  DESK_CHAIR_OFFSET_Z,
   WALL_HEIGHT,
   WALL_THICKNESS,
-  getDeskPositions,
+  getDeskSlots,
   type RoomDef,
 } from "../../lib/office-layout";
 import type { SceneRoom } from "./scene-types";
@@ -468,36 +467,25 @@ export function OfficeRoom({ room }: { room: SceneRoom }) {
         />
       ) : null}
 
-      {/* Richer furniture layout per room */}
-      {getDeskPositions(def).map((position, index) => (
-        <Desk
-          key={`desk-${index}`}
-          position={position}
-          seed={(def.x * 100 + def.z * 10 + index) | 0}
-        />
-      ))}
-
-      {/* Add a few more chairs and small details to make rooms feel occupied */}
-      {getDeskPositions(def).map((position, index) => {
-        const [dx, dz] = position;
-        // simple chair behind desk
-        return (
-          <group
-            key={`chair-${index}`}
-            position={[dx, 0, dz + DESK_CHAIR_OFFSET_Z]}
-          >
+      {/* Desks + chairs from DeskSlot (mesh ↔ collider ↔ seat). */}
+      {getDeskSlots(def).map((slot, index) => (
+        <group key={slot.id}>
+          <Desk
+            position={slot.desk}
+            seed={(def.x * 100 + def.z * 10 + index) | 0}
+          />
+          <group position={[slot.seat[0], 0, slot.seat[1]]}>
             <mesh position={[0, 0.22, 0]} castShadow>
               <boxGeometry args={[0.38, 0.08, 0.38]} />
               <meshStandardMaterial color={CHAIR_COLOR} roughness={0.7} />
             </mesh>
-            {/* backrest */}
             <mesh position={[0, 0.42, -0.12]} castShadow>
               <boxGeometry args={[0.36, 0.32, 0.06]} />
               <meshStandardMaterial color={CHAIR_COLOR} roughness={0.7} />
             </mesh>
           </group>
-        );
-      })}
+        </group>
+      ))}
 
       {def.w * def.d > 28 ? (
         <>

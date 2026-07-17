@@ -3,7 +3,7 @@ import type { HqActivitySignals } from "./hq-behavior-types";
 import {
   OFFICE_ROOMS,
   OPS_TABLE_POINT,
-  placeEmployeesInRoom,
+  placeEmployeeSeatsInRoom,
 } from "./office-layout";
 
 export type AgentOfficeStatus =
@@ -67,8 +67,10 @@ function deskCoords(
   seatCount: number,
 ): [number, number] {
   const room = OFFICE_ROOMS[department];
-  const seats = placeEmployeesInRoom(room, Math.max(seatCount, 1));
-  return seats[Math.min(seatIndex, seats.length - 1)] ?? [room.x, room.z];
+  const seats = placeEmployeeSeatsInRoom(room, Math.max(seatCount, 1));
+  return (
+    seats[Math.min(seatIndex, seats.length - 1)]?.position ?? [room.x, room.z]
+  );
 }
 
 function inferWorkingAction(label: string | null): AgentOfficeAction {
