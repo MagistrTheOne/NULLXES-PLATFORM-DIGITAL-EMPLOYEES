@@ -138,13 +138,7 @@ export function attachTalkVoicePipeline(input: {
 
         let replyText: string;
 
-        // Landing demos pass brainEndpoint — always stream into Anam TTS so
-        // "Thinking" ends on first token. Full ElevenLabs synthesize waits for
-        // the entire reply and stalls the overlay for seconds.
-        const streamIntoAnam =
-          input.voiceMode !== "elevenlabs" || Boolean(input.brainEndpoint);
-
-        if (!streamIntoAnam) {
+        if (input.voiceMode === "elevenlabs") {
           replyText = await streamTalkBrainReply({
             employeeId: input.employeeId,
             sessionId: input.employeeSessionId,
