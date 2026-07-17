@@ -290,9 +290,9 @@ export function LandingAnamDemoOverlay({
         setPipelineState("listening");
       });
 
-      anamClient.addListener(AnamEvent.USER_SPEECH_ENDED, () => {
-        setPipelineState("thinking");
-      });
+      // Do not flip to "thinking" on USER_SPEECH_ENDED — STT + history can lag
+      // several seconds before the brain starts. Thinking is set by the voice
+      // pipeline when the turn actually begins.
 
       anamClient.addListener(
         AnamEvent.MESSAGE_STREAM_EVENT_RECEIVED,

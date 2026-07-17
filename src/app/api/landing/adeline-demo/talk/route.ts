@@ -3,9 +3,9 @@ import { NextResponse } from "next/server";
 import { digitalEmployee } from "@/entities/digital-employee/schema";
 import { LANDING_DEMO_MARKETING_PORTRAIT } from "@/features/landing/lib/adeline-marketing";
 import { mintLandingDemoToken } from "@/features/landing/lib/landing-demo-token";
+import { loadLandingTalkBrainCache } from "@/features/landing/lib/landing-talk-brain-cache";
 import { createAnamTalkSessionTokenForEmployee } from "@/features/runtime-session/services/create-anam-talk-session";
 import { getEmployeeTalkContext } from "@/features/runtime-session/services/get-employee-talk-context";
-import { resolveTalkVoiceMode } from "@/features/runtime-session/services/resolve-talk-voice-mode";
 import { LANDING_DEMO_EMPLOYEE_ID } from "@/shared/config/xai-voice-env";
 import { db } from "@/shared/db/client";
 
@@ -15,7 +15,9 @@ export const LANDING_ADELINE_TALK_TRIAL_SECONDS = 60;
 
 /**
  * Unauthenticated 60s Anam avatar Talk trial for the landing demo employee (Anna).
- * Uses the same employee + ElevenLabs voice as dashboard Talk.
+ * Uses Anam TTS streaming (not ElevenLabs) so the first brain tokens speak
+ * immediately — ElevenLabs waits for full reply + full synthesize and stalls
+ * the "Thinking" UI. Dashboard Talk keeps ElevenLabs when configured.
  * Per-IP trial caps are off.
  */
 export async function POST(_request: Request): Promise<Response> {
@@ -54,9 +56,11 @@ export async function POST(_request: Request): Promise<Response> {
     );
   }
 
-  const voiceMode = talkContext
-    ? resolveTalkVoiceMode(talkContext)
-    : "anam";
+  // Warm persona cache while the avatar connects so turn 1 skips a cold DB build.
+  void loadLandingTalkBrainCache({
+    organizationId: employee.organizationId,
+    employeeId: employee.id,
+  });
 
   return NextResponse.json({
     sessionToken: tokenResult.sessionToken,
@@ -67,6 +71,6 @@ export async function POST(_request: Request): Promise<Response> {
     employeeRole: talkContext?.role ?? null,
     avatarPreviewUrl:
       talkContext?.avatarPreviewUrl?.trim() || LANDING_DEMO_MARKETING_PORTRAIT,
-    voiceMode,
+    voiceMode: "anam",
   });
 }

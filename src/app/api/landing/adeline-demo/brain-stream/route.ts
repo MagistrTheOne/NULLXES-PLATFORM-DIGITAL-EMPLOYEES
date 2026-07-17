@@ -112,10 +112,11 @@ export async function POST(request: Request): Promise<Response> {
         for await (const event of streamTalkBrainResponse({
           brainProvider: config.brainProvider,
           model: config.model,
-          systemPrompt: `${config.systemPrompt}\n\n${identityLock}\n\nYou are in a one-minute public landing demo. Keep answers concise.`,
+          systemPrompt: `${config.systemPrompt}\n\n${identityLock}\n\nYou are in a one-minute public landing demo. Reply in 1–2 short spoken sentences. No lists, no preamble.`,
           messages: openAiMessages,
           temperature: config.temperature,
-          maxTokens: Math.min(config.maxTokens, 400),
+          // Short spoken turns — long maxTokens = long "Thinking" before first audio.
+          maxTokens: Math.min(config.maxTokens, 160),
           tools: undefined,
           toolContext: undefined,
           mode: "talk",

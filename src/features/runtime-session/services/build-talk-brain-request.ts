@@ -11,6 +11,7 @@ import {
 import { hasReadyKnowledge } from "@/features/knowledge-retrieval/services/has-ready-knowledge";
 import { measureTalkPerf } from "../lib/talk-perf-log";
 import type { TalkTurnFlags } from "../types/talk-turn-metrics";
+import { loadLandingTalkBrainCache } from "@/features/landing/lib/landing-talk-brain-cache";
 import {
   buildTalkSessionBrainCache,
   talkBrainCacheToRequestConfig,
@@ -54,6 +55,42 @@ export async function buildTalkBrainRequest(input: {
 
   const userQuery = input.messages.at(-1)?.content.trim() ?? "";
 
+  // Public landing demos: process-local persona cache (no sessionId), no RAG.
+  if (surface === "landing") {
+    const landing = await loadLandingTalkBrainCache({
+      organizationId: input.organizationId,
+      employeeId: input.employeeId,
+    });
+
+    if (!landing.cache) {
+      return {
+        config: null,
+        perf: {
+          buildMs: Math.round(performance.now() - buildStartedAt),
+          ragMs: null,
+          cacheHit: false,
+        },
+        flags: { cacheHit: false, ragUsed: false },
+      };
+    }
+
+    return {
+      config: talkBrainCacheToRequestConfig(
+        landing.cache,
+        landing.cache.systemPromptBase,
+      ),
+      perf: {
+        buildMs: Math.round(performance.now() - buildStartedAt),
+        ragMs: null,
+        cacheHit: landing.cacheHit,
+      },
+      flags: {
+        cacheHit: landing.cacheHit,
+        ragUsed: false,
+      },
+    };
+  }
+
   let cache =
     input.sessionId !== undefined
       ? await loadTalkSessionBrainCache(input.sessionId)
@@ -81,22 +118,6 @@ export async function buildTalkBrainRequest(input: {
         cacheHit: false,
       },
       flags: { cacheHit: false, ragUsed: false },
-    };
-  }
-
-  // Public landing demos must not inject home-org live state or private RAG.
-  if (surface === "landing") {
-    return {
-      config: talkBrainCacheToRequestConfig(cache, cache.systemPromptBase),
-      perf: {
-        buildMs: Math.round(performance.now() - buildStartedAt),
-        ragMs: null,
-        cacheHit,
-      },
-      flags: {
-        cacheHit,
-        ragUsed: false,
-      },
     };
   }
 
