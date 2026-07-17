@@ -56,7 +56,6 @@ import { CapsuleProductVisual } from "@/features/capsules/components/capsule-pro
 const TYPE_FILTERS: Array<{
   id: "all" | "equipped" | "capsules" | RewardType;
   label: string;
-  soon?: boolean;
 }> = [
   { id: "all", label: "All Items" },
   { id: "capsules", label: "Capsules" },
@@ -64,9 +63,9 @@ const TYPE_FILTERS: Array<{
   { id: "skill_chip", label: "Skill Chips" },
   { id: "appearance", label: "Appearance" },
   { id: "voice", label: "Voice" },
-  { id: "idle", label: "Idle", soon: true },
-  { id: "background", label: "Background", soon: true },
-  { id: "frame", label: "Frame", soon: true },
+  { id: "idle", label: "Idle" },
+  { id: "background", label: "Background" },
+  { id: "frame", label: "Frame" },
 ];
 
 const RARITY_RANK: Record<RewardRarity, number> = {
@@ -142,10 +141,14 @@ export function InventoryScreen({
   const [sort, setSort] = useState<SortId>("rarity");
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<Selection | null>(() => {
-    if (initialId && rewards.some((item) => item.id === initialId)) {
+    if (
+      initialId &&
+      rewards.some((item) => item.id === initialId && item.owned > 0)
+    ) {
       return { kind: "reward", id: initialId };
     }
-    if (rewards[0]) return { kind: "reward", id: rewards[0].id };
+    const firstOwned = rewards.find((item) => item.owned > 0);
+    if (firstOwned) return { kind: "reward", id: firstOwned.id };
     if (ownedCapsules[0]) return { kind: "capsule", id: ownedCapsules[0].id };
     return null;
   });
@@ -158,7 +161,8 @@ export function InventoryScreen({
   );
 
   const rewardItems = useMemo(() => {
-    let list = [...rewards];
+    // Inventory = owned holdings only (catalog ×0 gap-fillers stay in Capsules store).
+    let list = rewards.filter((item) => item.owned > 0);
 
     if (filter === "equipped") {
       list = list.filter((item) => isItemEquippedAnywhere(loadouts, item.id));
@@ -322,21 +326,15 @@ export function InventoryScreen({
                 <button
                   key={item.id}
                   type="button"
-                  disabled={item.soon}
-                  onClick={() => {
-                    if (item.soon) return;
-                    setFilter(item.id);
-                  }}
+                  onClick={() => setFilter(item.id)}
                   className={cn(
                     "rounded-lg px-3.5 py-1.5 text-xs tracking-wide transition-colors",
                     filter === item.id
                       ? "bg-white text-black"
                       : "text-white/50 hover:bg-white/5 hover:text-white/80",
-                    item.soon && "cursor-not-allowed opacity-40",
                   )}
                 >
                   {item.label}
-                  {item.soon ? " (Soon)" : ""}
                 </button>
               ))}
             </div>
@@ -482,17 +480,11 @@ export function InventoryScreen({
                       : "No items match the current filters."}
                   </div>
                 </li>
-              ) : (
-                <li>
-                  <div className="flex min-h-48 items-center justify-center rounded-2xl border border-dashed border-white/12 bg-[#161616] p-4 text-center text-xs text-white/35">
-                    More items coming soon
-                  </div>
-                </li>
-              )}
+              ) : null}
             </ul>
             <p className="mt-4 text-xs text-white/30">
-              Showing {totalVisible} of {rewards.length + ownedCapsules.length}{" "}
-              items
+              Showing {totalVisible} owned item
+              {totalVisible === 1 ? "" : "s"}
             </p>
           </div>
 
