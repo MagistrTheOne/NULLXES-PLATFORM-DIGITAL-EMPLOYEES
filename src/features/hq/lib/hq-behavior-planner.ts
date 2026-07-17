@@ -49,7 +49,7 @@ export function planHqBehavior(input: HqBehaviorPlannerInput): HqBehaviorPlan {
       intent: "standup",
       anchor: "meeting",
       animation: "stand",
-      movement: "none",
+      movement: "walk_path",
       focusTarget: taskBadgeLabel ?? undefined,
       speechText: taskBadgeLabel,
     };

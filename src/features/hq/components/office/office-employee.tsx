@@ -38,6 +38,11 @@ import {
   resolveMovement,
   resolvePlacement,
 } from "../../lib/office-layout";
+import {
+  clearLivePosition,
+  publishLivePosition,
+  separateFromOthers,
+} from "../../lib/occupancy";
 import { MEETING_POINT } from "../../lib/standup";
 import { useOfficeStore } from "../../store/use-office-store";
 import { Html } from "@react-three/drei";
@@ -190,14 +195,20 @@ export function OfficeEmployee({ employee, allEmployees = [] }: { employee: Scen
   // Restart path only when the route signature actually changes.
   useEffect(() => {
     const key = employee.task
-      ? employee.task.path.map(([x, z]) => `${x.toFixed(2)},${z.toFixed(2)}`).join("|")
-      : "";
+      ? `t:${employee.task.path.map(([x, z]) => `${x.toFixed(2)},${z.toFixed(2)}`).join("|")}`
+      : employee.meetingPath
+        ? `m:${employee.meetingPath.map(([x, z]) => `${x.toFixed(2)},${z.toFixed(2)}`).join("|")}`
+        : "";
     if (key !== pathKeyRef.current) {
       pathKeyRef.current = key;
       pathIndex.current = 0;
       arrivedRef.current = false;
     }
-  }, [employee.task]);
+  }, [employee.task, employee.meetingPath]);
+
+  useEffect(() => {
+    return () => clearLivePosition(employee.id);
+  }, [employee.id]);
 
   useFrame((state, delta) => {
     const root = rootRef.current;
@@ -242,20 +253,26 @@ export function OfficeEmployee({ employee, allEmployees = [] }: { employee: Scen
     liftY.current += (0 - liftY.current) * Math.min(1, delta * 10);
     root.position.y = FLOOR_CLEARANCE + liftY.current;
 
-    // Follow invisible nav path only when platform state requires relocation.
-    if (employee.task && employee.task.path.length > 0) {
-      const path = employee.task.path;
+    // Follow invisible nav path: floor errand / ops review, else standup ring.
+    const activePath =
+      employee.task && employee.task.path.length > 0
+        ? employee.task.path
+        : employee.meetingPath && employee.meetingPath.length > 0
+          ? employee.meetingPath
+          : null;
+
+    if (activePath) {
       if (arrivedRef.current) {
-        const last = path[path.length - 1]!;
+        const last = activePath[activePath.length - 1]!;
         goal.current.set(last[0], 0, last[1]);
       } else {
-        const idx = Math.min(pathIndex.current, path.length - 1);
-        const node = path[idx]!;
+        const idx = Math.min(pathIndex.current, activePath.length - 1);
+        const node = activePath[idx]!;
         goal.current.set(node[0], 0, node[1]);
         const reach = tmpDir.copy(goal.current).sub(posRef.current);
         reach.y = 0;
         if (reach.length() < 0.22) {
-          if (pathIndex.current < path.length - 1) {
+          if (pathIndex.current < activePath.length - 1) {
             pathIndex.current += 1;
           } else {
             arrivedRef.current = true;
@@ -266,7 +283,11 @@ export function OfficeEmployee({ employee, allEmployees = [] }: { employee: Scen
       pathIndex.current = 0;
       arrivedRef.current = false;
       if (employee.meetingTarget) {
-        goal.current.set(employee.meetingTarget[0], 0, employee.meetingTarget[1]);
+        goal.current.set(
+          employee.meetingTarget[0],
+          0,
+          employee.meetingTarget[1],
+        );
       } else {
         const [x, z] = deskPoint();
         goal.current.set(x, 0, z);
@@ -339,14 +360,28 @@ export function OfficeEmployee({ employee, allEmployees = [] }: { employee: Scen
     // Keep feet clear of desks/walls — including settled seats (push-out, not clamp-in).
     {
       const finalObstacles = getStaticObstacles();
-      const [finalX, finalZ] = resolvePlacement(
+      let [finalX, finalZ] = resolvePlacement(
         posRef.current.x,
         posRef.current.z,
         finalObstacles,
         movingRef.current ? 0.24 : 0.28,
       );
-      posRef.current.x = finalX;
-      posRef.current.z = finalZ;
+      // Soft 1-body separation (does not replace furniture AABBs).
+      [finalX, finalZ] = separateFromOthers(
+        employee.id,
+        finalX,
+        finalZ,
+        0.5,
+      );
+      [finalX, finalZ] = resolvePlacement(
+        finalX,
+        finalZ,
+        finalObstacles,
+        0.24,
+      );
+      posRef.current.x = clampToScene(finalX);
+      posRef.current.z = clampToScene(finalZ);
+      publishLivePosition(employee.id, posRef.current.x, posRef.current.z);
     }
 
     root.position.x = posRef.current.x;
@@ -355,12 +390,13 @@ export function OfficeEmployee({ employee, allEmployees = [] }: { employee: Scen
     const moving = movingRef.current;
     const animation = employee.plan.animation;
 
-    // Sit only when typing at desk — otherwise stand upright (iso lean reads as "tilted").
+    // Sit only when typing at desk — never during standup / walks.
     const shouldSit =
       !moving &&
       employee.plan.anchor === "desk" &&
       animation === "type" &&
       !employee.meetingTarget &&
+      !employee.meetingPath &&
       !employee.task;
 
     const sitOffsetY = shouldSit ? -0.08 : 0;

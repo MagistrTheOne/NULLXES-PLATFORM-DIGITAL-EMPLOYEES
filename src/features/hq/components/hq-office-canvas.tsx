@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { useGLTF } from "@react-three/drei";
 import { useTranslations } from "next-intl";
@@ -18,6 +18,10 @@ import {
   DEPARTMENT_ORDER,
 } from "../lib/department-layout";
 import { buildOfficeNavPath } from "../lib/hq-nav-controller";
+import { ATRIUM_HUB, ROOM_DOORS } from "../lib/nav-graph";
+import { stitchWaypointPath } from "../lib/nav-grid";
+import { resolveExclusiveHomes } from "../lib/occupancy";
+import { computeStandup } from "../lib/standup";
 import { deriveActivitySignals } from "../lib/derive-employee-activity";
 import { resolveAgentOfficeState } from "../lib/agent-office-state";
 import {
@@ -90,9 +94,20 @@ export function HqOfficeCanvas({
     }
   }, []);
 
-  // Coarse clock reserved for future timed floor events.
   const controlsRef = useRef<OrbitControlsImpl | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  /** Wall-clock for deterministic standup windows (tick every 2s). */
+  const [nowSec, setNowSec] = useState(() => Date.now() / 1000);
+  useEffect(() => {
+    const id = window.setInterval(() => setNowSec(Date.now() / 1000), 2000);
+    return () => window.clearInterval(id);
+  }, []);
+
+  const standupMap = useMemo(
+    () => computeStandup(state.employees, nowSec),
+    [state.employees, nowSec],
+  );
 
   const rooms: SceneRoom[] = DEPARTMENT_ORDER.map((department) => {
     const metrics = state.departmentMetrics.find(
@@ -119,20 +134,51 @@ export function HqOfficeCanvas({
     return counts;
   }, [state.employees]);
 
-  const employees: SceneEmployee[] = useMemo(() => state.departments.flatMap((group) => {
-    const room = OFFICE_ROOMS[group.department];
-    const seats = placeEmployeeSeatsInRoom(room, group.employees.length);
-    const interiorHalfW = Math.max(0.4, room.w / 2 - 0.8);
-    const interiorHalfD = Math.max(0.4, room.d / 2 - 0.8);
-    const roam = {
-      minX: room.x - interiorHalfW,
-      maxX: room.x + interiorHalfW,
-      minZ: room.z - interiorHalfD,
-      maxZ: room.z + interiorHalfD,
-    };
-    return group.employees.map((employee, index) => {
-      const seat = seats[index];
+  const employees: SceneEmployee[] = useMemo(() => {
+    // Pass 1 — layout seats per room, then exclusive claim globally (1 body / seat).
+    const preferred: Array<{
+      id: string;
+      preferred: [number, number];
+      faceYaw: number;
+      department: (typeof state.departments)[number]["department"];
+      employee: (typeof state.departments)[number]["employees"][number];
+      index: number;
+      groupSize: number;
+    }> = [];
 
+    for (const group of state.departments) {
+      const room = OFFICE_ROOMS[group.department];
+      const seats = placeEmployeeSeatsInRoom(room, group.employees.length);
+      group.employees.forEach((employee, index) => {
+        const seat = seats[index];
+        preferred.push({
+          id: employee.id,
+          preferred: seat?.position ?? [room.x, room.z],
+          faceYaw: seat?.faceYaw ?? Math.atan2(0, -1),
+          department: group.department,
+          employee,
+          index,
+          groupSize: group.employees.length,
+        });
+      });
+    }
+
+    const exclusiveHomes = resolveExclusiveHomes(
+      preferred.map((row) => ({ id: row.id, preferred: row.preferred })),
+    );
+
+    return preferred.map((row) => {
+      const room = OFFICE_ROOMS[row.department];
+      const interiorHalfW = Math.max(0.4, room.w / 2 - 0.8);
+      const interiorHalfD = Math.max(0.4, room.d / 2 - 0.8);
+      const roam = {
+        minX: room.x - interiorHalfW,
+        maxX: room.x + interiorHalfW,
+        minZ: room.z - interiorHalfD,
+        maxZ: room.z + interiorHalfD,
+      };
+
+      const employee = row.employee;
       const taskLabel = resolveActivityBadgeLabel(
         employee.activity.badge,
         tActivity,
@@ -146,20 +192,42 @@ export function HqOfficeCanvas({
       const officeState = resolveAgentOfficeState({
         employee,
         signals,
-        seatIndex: index,
-        seatCount: group.employees.length,
+        seatIndex: row.index,
+        seatCount: row.groupSize,
         missionHint: employee.mission,
         taskBadgeLabel: taskLabel,
       });
+
+      const deskCoords =
+        exclusiveHomes[employee.id] ?? row.preferred;
+      const seatYaw = row.faceYaw;
+      const errandTarget = employee.task
+        ? ([
+            OFFICE_ROOMS[employee.task.destination].x,
+            OFFICE_ROOMS[employee.task.destination].z,
+          ] as [number, number])
+        : null;
+      const navPath = buildOfficeNavPath({
+        fromDepartment: employee.department,
+        officeState,
+        deskCoords,
+        errandDestination: employee.task?.destination ?? null,
+        errandTarget,
+      });
+
+      const standupSlot = standupMap.get(employee.id) ?? null;
+      const inStandup = Boolean(standupSlot) && !navPath;
+
       const plan = planHqBehavior({
         employee,
         signals,
         taskBadgeLabel: officeState.label ?? taskLabel,
-        hasStandup: false,
+        hasStandup: inStandup,
       });
-      // Override plan when office state requires ops-table review walk.
-      const effectivePlan =
-        officeState.action === "review" && officeState.zone === "ops_table"
+
+      const effectivePlan = inStandup
+        ? plan
+        : officeState.action === "review" && officeState.zone === "ops_table"
           ? {
               ...plan,
               intent: "move" as const,
@@ -181,22 +249,18 @@ export function HqOfficeCanvas({
                 ...plan,
                 speechText: officeState.label ?? plan.speechText,
               };
+
       const speechText = officeState.label ?? effectivePlan.speechText ?? null;
-      const deskCoords = seat?.position ?? ([room.x, room.z] as [number, number]);
-      const seatYaw = seat?.faceYaw ?? Math.atan2(0, -1);
-      const errandTarget = employee.task
-        ? ([
-            OFFICE_ROOMS[employee.task.destination].x,
-            OFFICE_ROOMS[employee.task.destination].z,
-          ] as [number, number])
-        : null;
-      const navPath = buildOfficeNavPath({
-        fromDepartment: employee.department,
-        officeState,
-        deskCoords,
-        errandDestination: employee.task?.destination ?? null,
-        errandTarget,
-      });
+
+      const meetingPath =
+        inStandup && standupSlot
+          ? stitchWaypointPath([
+              deskCoords,
+              ROOM_DOORS[employee.department],
+              ATRIUM_HUB,
+              standupSlot,
+            ])
+          : null;
 
       const task: SceneEmployee["task"] = navPath
         ? {
@@ -210,7 +274,6 @@ export function HqOfficeCanvas({
           }
         : null;
 
-      // Path-following plan when nav controller issued a route.
       const motionPlan = task
         ? {
             ...effectivePlan,
@@ -219,13 +282,23 @@ export function HqOfficeCanvas({
             animation: "walk" as const,
             movement: "walk_path" as const,
           }
-        : effectivePlan;
+        : inStandup && meetingPath
+          ? {
+              ...effectivePlan,
+              intent: "standup" as const,
+              anchor: "meeting" as const,
+              animation: "stand" as const,
+              movement: "walk_path" as const,
+              speechText: meetingLabel,
+            }
+          : effectivePlan;
+
       const behavior = behaviorFromPlan(motionPlan, employee.runtimeStatus);
 
       return {
         id: employee.id,
         name: employee.name,
-        taskLabel: speechText,
+        taskLabel: inStandup ? meetingLabel : speechText,
         status: employee.runtimeStatus,
         position: deskCoords,
         seatYaw,
@@ -233,12 +306,13 @@ export function HqOfficeCanvas({
         behavior,
         plan: motionPlan,
         officeState,
-        speechText,
+        speechText: inStandup ? meetingLabel : speechText,
         thoughts:
           llmThoughts[employee.id] && llmThoughts[employee.id].length > 0
             ? llmThoughts[employee.id]
             : [],
-        meetingTarget: null,
+        meetingTarget: standupSlot,
+        meetingPath,
         meetingLabel,
         modelUrl: pickCharacterModel(employee.name),
         task,
@@ -249,7 +323,13 @@ export function HqOfficeCanvas({
         hasLoadout: Boolean(employee.loadout),
       };
     });
-  }), [state.departments, llmThoughts, meetingLabel, tActivity]);
+  }, [
+    state.departments,
+    llmThoughts,
+    meetingLabel,
+    tActivity,
+    standupMap,
+  ]);
 
   const setHomeSeats = useOfficeStore((s) => s.setHomeSeats);
   useEffect(() => {

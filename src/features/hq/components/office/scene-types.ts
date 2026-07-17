@@ -48,6 +48,8 @@ export type SceneEmployee = {
   } | null;
   /** Atrium ring slot during a standup, or null when not gathering. */
   meetingTarget: [number, number] | null;
+  /** Grid path to the standup slot (door → atrium → ring). */
+  meetingPath: [number, number][] | null;
   /** Localized standup badge label (e.g. "Standup"). */
   meetingLabel: string;
   /** Soft desk highlight when working. */
