@@ -1,38 +1,45 @@
 "use client";
 
+import type { CapsuleTierId } from "@/features/rewards/lib/catalog";
 import type { CapsuleRevealPhase } from "./capsule-open-reveal";
 
 /**
- * Optional SFX for open reveal.
- * Drop files under public/audio/ and set SFX_ENABLED = true.
+ * Capsule open SFX from public/Capsules/capsul_open.
+ * Paths are case-sensitive on Linux (Vercel).
  */
-const SFX_ENABLED = false;
+const SFX_ENABLED = true;
 
-const SFX_SRC: Record<CapsuleRevealPhase, string> = {
-  charge: "/audio/capsule-charge.mp3",
-  open: "/audio/capsule-crack.mp3",
-  reveal: "/audio/capsule-reveal.mp3",
+const OPEN_SFX_BY_TIER: Record<CapsuleTierId, string> = {
+  daily: "/Capsules/capsul_open/base.wav",
+  standard: "/Capsules/capsul_open/premium.wav",
+  executive: "/Capsules/capsul_open/legendary.wav",
 };
+
+/** Soft pre-open charge uses the base crack for all tiers. */
+const CHARGE_SFX = "/Capsules/capsul_open/base.wav";
 
 const cache = new Map<string, HTMLAudioElement>();
 
-function getAudio(src: string): HTMLAudioElement | null {
-  if (typeof window === "undefined") return null;
+function getAudio(src: string, volume: number): HTMLAudioElement | null {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
   let audio = cache.get(src);
   if (!audio) {
     audio = new Audio(src);
-    audio.volume = 0.45;
     cache.set(src, audio);
   }
+  audio.volume = volume;
   return audio;
 }
 
-/** Play phase SFX when enabled; no-ops / swallows missing files. */
-export function playCapsuleRevealSfx(phase: CapsuleRevealPhase): void {
-  if (!SFX_ENABLED) return;
-  const src = SFX_SRC[phase];
-  const audio = getAudio(src);
-  if (!audio) return;
+function playSrc(src: string, volume: number): void {
+  const audio = getAudio(src, volume);
+  if (!audio) {
+    return;
+  }
+
   try {
     audio.currentTime = 0;
     void audio.play().catch(() => {
@@ -40,5 +47,30 @@ export function playCapsuleRevealSfx(phase: CapsuleRevealPhase): void {
     });
   } catch {
     /* ignore */
+  }
+}
+
+/**
+ * Play phase SFX for a capsule open reveal.
+ * - charge: soft base
+ * - open: tier-specific crack
+ * - reveal: silent (visual only)
+ */
+export function playCapsuleRevealSfx(
+  phase: CapsuleRevealPhase,
+  tierId?: CapsuleTierId | null,
+): void {
+  if (!SFX_ENABLED) {
+    return;
+  }
+
+  if (phase === "charge") {
+    playSrc(CHARGE_SFX, 0.28);
+    return;
+  }
+
+  if (phase === "open") {
+    const tier = tierId ?? "daily";
+    playSrc(OPEN_SFX_BY_TIER[tier], 0.5);
   }
 }

@@ -711,7 +711,7 @@ export function InventoryScreen({
         open={revealOpen}
         tierId={revealTierId}
         reward={revealReward}
-        onPhaseChange={playCapsuleRevealSfx}
+        onPhaseChange={(phase) => playCapsuleRevealSfx(phase, revealTierId)}
         onOpenChange={(next) => {
           setRevealOpen(next);
           if (!next) {
