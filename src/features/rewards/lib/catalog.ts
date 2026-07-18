@@ -102,30 +102,12 @@ export const REWARD_TYPE_LABELS: Record<RewardType, string> = {
   frame: "Frame",
 };
 
-/** Seed / fallback catalog (also source for DB seed). */
+/**
+ * Live catalog for capsules / inventory.
+ * Appearance + skill_chip purged for now (restore when plates/chips ship).
+ * PG enum values remain; do not seed those types.
+ */
 export const SEED_REWARD_ITEMS: Omit<RewardItem, "owned">[] = [
-  {
-    id: "exec-black",
-    name: "Executive Black",
-    type: "appearance",
-    rarity: "founders",
-    description:
-      "A signature look for elite performers. Crafted for leadership. Worn by founders.",
-    compatible: "All Employees",
-    featured: true,
-  },
-  {
-    id: "neg-mastery",
-    name: "Negotiation Mastery",
-    type: "skill_chip",
-    rarity: "executive",
-    description:
-      "Grants Objection Handling skill — structured pushback responses in Talk.",
-    compatible: "All Employees",
-    boostLabel: "objection_handling",
-    linkedSkillSlug: "objection_handling",
-    featured: true,
-  },
   {
     id: "exec-voice",
     name: "Executive Voice",
@@ -146,17 +128,6 @@ export const SEED_REWARD_ITEMS: Omit<RewardItem, "owned">[] = [
     featured: true,
   },
   {
-    id: "sales-eff",
-    name: "Sales Efficiency",
-    type: "skill_chip",
-    rarity: "premium",
-    description:
-      "Grants B2B Discovery skill — qualification and discovery prompts.",
-    compatible: "All Employees",
-    boostLabel: "b2b_discovery",
-    linkedSkillSlug: "b2b_discovery",
-  },
-  {
     id: "calm-voice",
     name: "Calm & Confident",
     type: "voice",
@@ -168,33 +139,11 @@ export const SEED_REWARD_ITEMS: Omit<RewardItem, "owned">[] = [
   },
   {
     id: "minimal-frame",
-    name: "Minimalist Frame",
+    name: "Base Frame",
     type: "frame",
     rarity: "professional",
-    description: "Clean nameplate frame for employee cards.",
+    description: "Clean white nameplate frame for employee cards.",
     compatible: "All Employees",
-  },
-  {
-    id: "knowledge-recall",
-    name: "Knowledge Recall",
-    type: "skill_chip",
-    rarity: "core",
-    description:
-      "Grants Knowledge First Answer skill — prioritize org knowledge in Talk.",
-    compatible: "All Employees",
-    boostLabel: "knowledge_first_answer",
-    linkedSkillSlug: "knowledge_first_answer",
-  },
-  {
-    id: "support-spec",
-    name: "Support Specialist",
-    type: "skill_chip",
-    rarity: "core",
-    description:
-      "Grants Support Escalation skill — clear handoff and escalation paths.",
-    compatible: "All Employees",
-    boostLabel: "support_escalation",
-    linkedSkillSlug: "support_escalation",
   },
   {
     id: "board-presence",
@@ -203,15 +152,6 @@ export const SEED_REWARD_ITEMS: Omit<RewardItem, "owned">[] = [
     rarity: "professional",
     description:
       "ElevenLabs voice pack — measured leadership briefings. Male/female via Voice Design.",
-    compatible: "All Employees",
-  },
-  // Beta gap-fillers — slot coverage for drop tests (assets later).
-  {
-    id: "studio-neutral",
-    name: "Studio Neutral",
-    type: "appearance",
-    rarity: "professional",
-    description: "Clean studio look for day-to-day workforce presence.",
     compatible: "All Employees",
   },
   {
@@ -224,11 +164,21 @@ export const SEED_REWARD_ITEMS: Omit<RewardItem, "owned">[] = [
   },
   {
     id: "thin-line",
-    name: "Thin Line",
+    name: "Gold Frame",
     type: "frame",
-    rarity: "core",
-    description: "Hairline nameplate frame for employee cards.",
+    rarity: "executive",
+    description: "Gold glow nameplate frame for executive presence.",
     compatible: "All Employees",
+    featured: true,
+  },
+  {
+    id: "legendary-frame",
+    name: "Legendary Frame",
+    type: "frame",
+    rarity: "founders",
+    description: "Icy legendary bezel for founder-tier employee cards.",
+    compatible: "All Employees",
+    featured: true,
   },
   {
     id: "briefing-tone",
@@ -243,16 +193,14 @@ export const SEED_REWARD_ITEMS: Omit<RewardItem, "owned">[] = [
 
 /** Default owned counts for first-time org bootstrap. */
 export const SEED_ORG_OWNED: Record<string, number> = {
-  "exec-black": 1,
-  "neg-mastery": 2,
   "exec-voice": 1,
   "board-room": 1,
-  "sales-eff": 3,
   "calm-voice": 1,
   "minimal-frame": 2,
-  "knowledge-recall": 4,
-  "support-spec": 2,
   "board-presence": 1,
+  "office-soft": 1,
+  "thin-line": 1,
+  "legendary-frame": 1,
 };
 
 export const SEED_CAPSULE_TIERS: Array<
@@ -268,7 +216,7 @@ export const SEED_CAPSULE_TIERS: Array<
     priceLabel: "Free",
     blurb: "Daily Base drop — Core rewards for steady progress.",
     activateLabel: "Claim",
-    rewardPreviewIds: ["knowledge-recall", "office-soft", "thin-line"],
+    rewardPreviewIds: ["office-soft", "minimal-frame", "calm-voice"],
     daily: true,
     featured: true,
     sortOrder: 0,
@@ -280,7 +228,7 @@ export const SEED_CAPSULE_TIERS: Array<
     priceLabel: "10 ₽",
     blurb: "Diamond tier — high chance for Professional or Premium rewards.",
     activateLabel: "Activate",
-    rewardPreviewIds: ["studio-neutral", "calm-voice", "sales-eff"],
+    rewardPreviewIds: ["board-room", "calm-voice", "thin-line"],
     store: true,
     featured: true,
     sortOrder: 1,
@@ -292,7 +240,7 @@ export const SEED_CAPSULE_TIERS: Array<
     priceLabel: "10 ₽",
     blurb: "Legendary Gold — guaranteed Premium. Chance for Executive or Founder's.",
     activateLabel: "Activate",
-    rewardPreviewIds: ["exec-black", "neg-mastery", "briefing-tone"],
+    rewardPreviewIds: ["exec-voice", "legendary-frame", "briefing-tone"],
     store: true,
     featured: true,
     sortOrder: 2,

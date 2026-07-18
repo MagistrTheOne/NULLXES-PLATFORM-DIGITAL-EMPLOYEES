@@ -18,8 +18,8 @@ const STORAGE_KEY = "nullxes.mock.loadout.v1";
 let snapshot: LoadoutStoreSnapshot = {
   loadouts: seedDemoLoadouts(),
   favorites: {
-    "exec-black": true,
-    "neg-mastery": true,
+    "board-room": true,
+    "exec-voice": true,
   },
   recent: [
     {
@@ -29,7 +29,7 @@ let snapshot: LoadoutStoreSnapshot = {
       at: Date.now() - 2 * 60 * 1000,
     },
     {
-      itemId: "neg-mastery",
+      itemId: "board-room",
       employeeId: "adeline",
       employeeName: "Adeline Kalen",
       at: Date.now() - 24 * 60 * 60 * 1000,

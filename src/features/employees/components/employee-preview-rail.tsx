@@ -23,6 +23,7 @@ import {
   COSMETIC_EQUIP_BADGE,
   hasAnyLoadoutEquipped,
   resolveCosmeticBackgroundSrc,
+  resolveCosmeticFrameSrc,
 } from "@/features/rewards/lib/cosmetic-assets";
 import Image from "next/image";
 
@@ -90,6 +91,7 @@ export async function EmployeePreviewRail({
     authGateHref ?? `/dashboard/employees/${employee.id}/scenarios`;
   const canActivateTalk = Boolean(authGateHref) || employee.canTalk;
   const backgroundSrc = resolveCosmeticBackgroundSrc(loadout.backgroundId);
+  const frameSrc = resolveCosmeticFrameSrc(loadout.frameId);
   const showEquipBadge = hasAnyLoadoutEquipped(loadout);
 
   return (
@@ -130,6 +132,16 @@ export async function EmployeePreviewRail({
             </span>
           </div>
         )}
+        {frameSrc ? (
+          <Image
+            src={frameSrc}
+            alt=""
+            fill
+            sizes="320px"
+            className="pointer-events-none z-[15] object-fill"
+            aria-hidden
+          />
+        ) : null}
         {showEquipBadge ? (
           <Image
             src={COSMETIC_EQUIP_BADGE}

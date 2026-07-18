@@ -26,7 +26,7 @@ import {
   type RewardType,
   type RewardsFilterState,
 } from "@/features/rewards/lib/catalog";
-import { resolveCosmeticBackgroundSrc } from "@/features/rewards/lib/cosmetic-assets";
+import { resolveRewardPreviewSrc } from "@/features/rewards/lib/cosmetic-assets";
 import {
   rewardsSecondaryButtonClass,
   rewardsWorkspaceClass,
@@ -41,8 +41,6 @@ const RARITY_OPTIONS: Array<{ id: RewardRarity; label: string }> = [
 ];
 
 const TYPE_OPTIONS: Array<{ id: RewardType; label: string }> = [
-  { id: "skill_chip", label: "Skill Chip" },
-  { id: "appearance", label: "Appearance" },
   { id: "voice", label: "Voice Pack" },
   { id: "background", label: "Background" },
   { id: "frame", label: "Frame" },
@@ -243,9 +241,8 @@ export function CollectionScreen({ rewards }: { rewards: RewardItem[] }) {
                 <ul className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
                   {featuredRewards.map((item) => {
                     const style = RARITY_STYLES[item.rarity];
-                    const bg = resolveCosmeticBackgroundSrc(
-                      item.type === "background" ? item.id : null,
-                    );
+                    const preview = resolveRewardPreviewSrc(item);
+                    const isFrame = item.type === "frame";
                     return (
                       <li key={item.id}>
                         <Link
@@ -255,12 +252,16 @@ export function CollectionScreen({ rewards }: { rewards: RewardItem[] }) {
                             style.border,
                           )}
                         >
-                          {bg ? (
+                          {preview ? (
                             <Image
-                              src={bg}
+                              src={preview}
                               alt=""
                               fill
-                              className="object-cover opacity-25"
+                              className={cn(
+                                isFrame
+                                  ? "object-contain p-6 opacity-70"
+                                  : "object-cover opacity-25",
+                              )}
                               sizes="200px"
                             />
                           ) : null}
@@ -273,7 +274,7 @@ export function CollectionScreen({ rewards }: { rewards: RewardItem[] }) {
                             >
                               {style.label}
                             </p>
-                            {!bg ? (
+                            {!preview ? (
                               <Hexagon
                                 className={cn("mt-3 size-8", style.text)}
                               />
@@ -305,28 +306,45 @@ export function CollectionScreen({ rewards }: { rewards: RewardItem[] }) {
               <ul className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
                 {filteredCatalog.map((item) => {
                   const style = RARITY_STYLES[item.rarity];
+                  const preview = resolveRewardPreviewSrc(item);
+                  const isFrame = item.type === "frame";
                   return (
                     <li key={item.id}>
                       <Link
                         href={`/dashboard/inventory?item=${item.id}`}
                         className={cn(
-                          "flex h-full flex-col rounded-xl border bg-[#1a1a1a] p-4 transition hover:bg-[#1f1f1f]",
+                          "relative flex h-full min-h-36 flex-col overflow-hidden rounded-xl border bg-[#1a1a1a] p-4 transition hover:bg-[#1f1f1f]",
                           style.border,
                           item.owned < 1 && "opacity-50",
                         )}
                       >
-                        <p
-                          className={cn(
-                            "text-[10px] tracking-[0.18em] uppercase",
-                            style.text,
-                          )}
-                        >
-                          {style.label}
-                        </p>
-                        <p className="mt-3 text-sm text-white">{item.name}</p>
-                        <p className="mt-1 text-[11px] text-white/40">
-                          {REWARD_TYPE_LABELS[item.type]} · ×{item.owned}
-                        </p>
+                        {preview ? (
+                          <Image
+                            src={preview}
+                            alt=""
+                            fill
+                            className={cn(
+                              isFrame
+                                ? "object-contain p-8 opacity-55"
+                                : "object-cover opacity-20",
+                            )}
+                            sizes="180px"
+                          />
+                        ) : null}
+                        <div className="relative z-10">
+                          <p
+                            className={cn(
+                              "text-[10px] tracking-[0.18em] uppercase",
+                              style.text,
+                            )}
+                          >
+                            {style.label}
+                          </p>
+                          <p className="mt-3 text-sm text-white">{item.name}</p>
+                          <p className="mt-1 text-[11px] text-white/40">
+                            {REWARD_TYPE_LABELS[item.type]} · ×{item.owned}
+                          </p>
+                        </div>
                       </Link>
                     </li>
                   );

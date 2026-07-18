@@ -190,7 +190,12 @@ export async function getRewardsWorkspaceState(
     const dailyClaimed = dailySecondsLeft > 0;
 
     const rewards: RewardItem[] = definitions
-      .filter((row) => row.type !== "idle")
+      .filter(
+        (row) =>
+          row.type !== "idle" &&
+          row.type !== "appearance" &&
+          row.type !== "skill_chip",
+      )
       .map((row) => ({
         id: row.slug,
         name: row.name,

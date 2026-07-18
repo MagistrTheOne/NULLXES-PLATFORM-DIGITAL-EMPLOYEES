@@ -20,9 +20,7 @@ import {
 import {
   cloneLoadout,
   emptyLoadout,
-  equippedSkillCount,
   loadoutsEqual,
-  SKILL_SLOT_COUNT,
   type EmployeeLoadout,
 } from "@/features/rewards/lib/loadout";
 import { saveEmployeeLoadoutAction } from "@/features/rewards/actions/equip-reward";
@@ -33,7 +31,7 @@ import {
 
 const DEFAULT_VALUE = "__default__";
 
-type SlotKey = "appearance" | "voice" | "background" | "frame";
+type SlotKey = "voice" | "background" | "frame";
 
 function optionsForType(rewards: RewardItem[], type: RewardType) {
   return rewards.filter((item) => item.type === type && item.owned > 0);
@@ -124,13 +122,9 @@ export function EmployeeCustomizationPanel({
     [draft, applied],
   );
 
-  const skillFilled = equippedSkillCount(draft);
-
   function patchSlot(key: SlotKey, next: string | null) {
     setDraft((prev) => {
       switch (key) {
-        case "appearance":
-          return { ...prev, appearanceId: next };
         case "voice":
           return { ...prev, voiceId: next };
         case "background":
@@ -140,14 +134,6 @@ export function EmployeeCustomizationPanel({
         default:
           return prev;
       }
-    });
-  }
-
-  function patchSkill(index: number, next: string | null) {
-    setDraft((prev) => {
-      const skillChipIds = [...prev.skillChipIds];
-      skillChipIds[index] = next;
-      return { ...prev, skillChipIds };
     });
   }
 
@@ -161,7 +147,13 @@ export function EmployeeCustomizationPanel({
         setToast(result.message);
         return;
       }
-      setApplied(cloneLoadout(draft));
+      const cleaned: EmployeeLoadout = {
+        ...draft,
+        appearanceId: null,
+        skillChipIds: emptyLoadout().skillChipIds,
+      };
+      setDraft(cloneLoadout(cleaned));
+      setApplied(cloneLoadout(cleaned));
       setToast(`Loadout applied for ${employeeName}.`);
       router.refresh();
     });
@@ -193,14 +185,7 @@ export function EmployeeCustomizationPanel({
           </p>
         ) : null}
 
-        <div className="mt-5 grid gap-3 sm:grid-cols-2">
-          <LoadoutSelect
-            label="Appearance"
-            type="appearance"
-            value={draft.appearanceId}
-            rewards={rewards}
-            onChange={(next) => patchSlot("appearance", next)}
-          />
+        <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <LoadoutSelect
             label="Voice Pack"
             type="voice"
@@ -222,51 +207,6 @@ export function EmployeeCustomizationPanel({
             rewards={rewards}
             onChange={(next) => patchSlot("frame", next)}
           />
-        </div>
-
-        <div className="mt-5">
-          <p className="text-[10px] tracking-[0.18em] text-white/40 uppercase">
-            Skill chips · {skillFilled}/{SKILL_SLOT_COUNT}
-          </p>
-          <div className="mt-3 grid gap-3 sm:grid-cols-3">
-            {Array.from({ length: SKILL_SLOT_COUNT }, (_, index) => {
-              const value = draft.skillChipIds[index] ?? null;
-              const options = optionsForType(rewards, "skill_chip");
-              const current =
-                rewards.find((item) => item.id === value) ?? null;
-              return (
-                <div
-                  key={`skill-${index}`}
-                  className="rounded-xl border border-white/8 bg-black/20 p-4"
-                >
-                  <p className="text-[10px] tracking-[0.18em] text-white/40 uppercase">
-                    Slot {index + 1}
-                  </p>
-                  <p className="mt-1 text-sm text-white">
-                    {current?.name ?? "Empty"}
-                  </p>
-                  <Select
-                    value={value ?? DEFAULT_VALUE}
-                    onValueChange={(next) =>
-                      patchSkill(index, next === DEFAULT_VALUE ? null : next)
-                    }
-                  >
-                    <SelectTrigger className="mt-3 h-9 rounded-lg border-white/12 bg-black/40 text-white">
-                      <SelectValue placeholder="Empty" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value={DEFAULT_VALUE}>Empty</SelectItem>
-                      {options.map((item) => (
-                        <SelectItem key={item.id} value={item.id}>
-                          {item.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              );
-            })}
-          </div>
         </div>
 
         <div className="mt-5 flex flex-wrap gap-2">

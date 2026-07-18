@@ -24,16 +24,13 @@ function rowToLoadout(
   row: typeof employeeRewardLoadout.$inferSelect | undefined,
 ): EmployeeLoadout {
   if (!row) return emptyLoadout();
-  const chips = row.skillChipSlugs ?? [];
+  // Appearance + skill chips temporarily hidden from loadouts.
   return {
-    appearanceId: row.appearanceSlug,
+    appearanceId: null,
     voiceId: row.voiceSlug,
     backgroundId: row.backgroundSlug,
     frameId: row.frameSlug,
-    skillChipIds: Array.from(
-      { length: SKILL_SLOT_COUNT },
-      (_, index) => chips[index] || null,
-    ),
+    skillChipIds: Array.from({ length: SKILL_SLOT_COUNT }, () => null),
   };
 }
 
@@ -111,35 +108,29 @@ export async function upsertEmployeeLoadout(input: {
   employeeId: string;
   loadout: EmployeeLoadout;
 }): Promise<{ ok: true } | { ok: false; message: string }> {
-  const { loadout } = input;
+  // Appearance + skill chips temporarily disabled — always clear on save.
+  const loadout: EmployeeLoadout = {
+    ...input.loadout,
+    appearanceId: null,
+    skillChipIds: Array.from({ length: SKILL_SLOT_COUNT }, () => null),
+  };
   const previous = await getEmployeeLoadout({
     organizationId: input.organizationId,
     employeeId: input.employeeId,
   });
 
   const checks = await Promise.all([
-    assertOwned(input.organizationId, loadout.appearanceId),
     assertOwned(input.organizationId, loadout.voiceId),
     assertOwned(input.organizationId, loadout.backgroundId),
     assertOwned(input.organizationId, loadout.frameId),
-    ...loadout.skillChipIds.map((id) =>
-      assertOwned(input.organizationId, id),
-    ),
-    assertType(loadout.appearanceId, "appearance"),
     assertType(loadout.voiceId, "voice"),
     assertType(loadout.backgroundId, "background"),
     assertType(loadout.frameId, "frame"),
-    ...loadout.skillChipIds.map((id) => assertType(id, "skill_chip")),
   ]);
 
   for (const check of checks) {
     if (!check.ok) return check;
   }
-
-  const skillChipSlugs = loadout.skillChipIds
-    .map((id) => id ?? "")
-    .filter(Boolean)
-    .slice(0, SKILL_SLOT_COUNT);
 
   const existing = await db
     .select({ id: employeeRewardLoadout.id })
@@ -150,11 +141,11 @@ export async function upsertEmployeeLoadout(input: {
   const values = {
     organizationId: input.organizationId,
     employeeId: input.employeeId,
-    appearanceSlug: loadout.appearanceId,
+    appearanceSlug: null as string | null,
     voiceSlug: loadout.voiceId,
     backgroundSlug: loadout.backgroundId,
     frameSlug: loadout.frameId,
-    skillChipSlugs,
+    skillChipSlugs: [] as string[],
     updatedAt: new Date(),
   };
 
@@ -230,14 +221,21 @@ export async function equipRewardOnEmployee(input: {
   if (def.type === "idle") {
     return { ok: false, message: "Idle rewards have been removed." };
   }
+  if (def.type === "appearance" || def.type === "skill_chip") {
+    return {
+      ok: false,
+      message: "Appearance and skill chips are temporarily unavailable.",
+    };
+  }
 
   const current = await getEmployeeLoadout(input);
-  const next = { ...current, skillChipIds: [...current.skillChipIds] };
+  const next = {
+    ...current,
+    appearanceId: null,
+    skillChipIds: Array.from({ length: SKILL_SLOT_COUNT }, () => null),
+  };
 
   switch (def.type) {
-    case "appearance":
-      next.appearanceId = input.rewardSlug;
-      break;
     case "voice":
       next.voiceId = input.rewardSlug;
       break;
@@ -247,15 +245,6 @@ export async function equipRewardOnEmployee(input: {
     case "frame":
       next.frameId = input.rewardSlug;
       break;
-    case "skill_chip": {
-      const emptyIndex = next.skillChipIds.findIndex((id) => !id);
-      if (emptyIndex >= 0) {
-        next.skillChipIds[emptyIndex] = input.rewardSlug;
-      } else {
-        next.skillChipIds[0] = input.rewardSlug;
-      }
-      break;
-    }
     default:
       return { ok: false, message: "Unsupported reward type." };
   }

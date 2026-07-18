@@ -26,7 +26,11 @@ export async function grantRolledReward(input: {
   organizationId: string;
   tierId: CapsuleTierId;
 }): Promise<GrantedReward | null> {
-  const definitions = await db.select().from(rewardDefinition);
+  const definitions = (
+    await db.select().from(rewardDefinition)
+  ).filter(
+    (d) => d.type !== "appearance" && d.type !== "skill_chip",
+  );
   if (definitions.length === 0) {
     return null;
   }

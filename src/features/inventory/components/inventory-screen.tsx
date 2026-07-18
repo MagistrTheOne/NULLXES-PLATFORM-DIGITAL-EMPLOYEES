@@ -53,7 +53,7 @@ import { playCapsuleRevealSfx } from "@/features/capsules/components/capsule-ope
 import { CapsuleProductVisual } from "@/features/capsules/components/capsule-product-visual";
 import {
   COSMETIC_EQUIP_BADGE,
-  resolveCosmeticBackgroundSrc,
+  resolveRewardPreviewSrc,
 } from "@/features/rewards/lib/cosmetic-assets";
 import Image from "next/image";
 
@@ -64,8 +64,6 @@ const TYPE_FILTERS: Array<{
   { id: "all", label: "All Items" },
   { id: "capsules", label: "Capsules" },
   { id: "equipped", label: "Equipped" },
-  { id: "skill_chip", label: "Skill Chips" },
-  { id: "appearance", label: "Appearance" },
   { id: "voice", label: "Voice Packs" },
   { id: "background", label: "Background" },
   { id: "frame", label: "Frame" },
@@ -252,9 +250,6 @@ export function InventoryScreen({
         const current = prev[employeeId] ?? emptyLoadout();
         const next = { ...current, skillChipIds: [...current.skillChipIds] };
         switch (selectedReward.type) {
-          case "appearance":
-            next.appearanceId = selectedReward.id;
-            break;
           case "voice":
             next.voiceId = selectedReward.id;
             break;
@@ -264,12 +259,8 @@ export function InventoryScreen({
           case "frame":
             next.frameId = selectedReward.id;
             break;
-          case "skill_chip": {
-            const emptyIndex = next.skillChipIds.findIndex((id) => !id);
-            if (emptyIndex >= 0) next.skillChipIds[emptyIndex] = selectedReward.id;
-            else next.skillChipIds[0] = selectedReward.id;
+          default:
             break;
-          }
         }
         return { ...prev, [employeeId]: next };
       });
@@ -451,19 +442,28 @@ export function InventoryScreen({
                           ) : null}
                         </div>
                       </div>
-                      <div className="relative mt-4 flex min-h-24 flex-1 items-center justify-center overflow-hidden rounded-xl">
-                        {item.type === "background" &&
-                        resolveCosmeticBackgroundSrc(item.id) ? (
-                          <Image
-                            src={resolveCosmeticBackgroundSrc(item.id)!}
-                            alt=""
-                            fill
-                            sizes="160px"
-                            className="object-cover opacity-80"
-                          />
-                        ) : (
-                          <Icon className={cn("size-10", style.text)} />
-                        )}
+                      <div className="relative mt-4 flex min-h-24 flex-1 items-center justify-center overflow-hidden rounded-xl bg-black/30">
+                        {(() => {
+                          const preview = resolveRewardPreviewSrc(item);
+                          if (!preview) {
+                            return (
+                              <Icon className={cn("size-10", style.text)} />
+                            );
+                          }
+                          return (
+                            <Image
+                              src={preview}
+                              alt=""
+                              fill
+                              sizes="160px"
+                              className={cn(
+                                item.type === "frame"
+                                  ? "object-contain p-3 opacity-90"
+                                  : "object-cover opacity-80",
+                              )}
+                            />
+                          );
+                        })()}
                       </div>
                       <p className="mt-3 text-sm font-medium text-white">
                         {item.name}
@@ -540,11 +540,27 @@ export function InventoryScreen({
                 <>
                   <div
                     className={cn(
-                      "mx-auto flex size-28 items-center justify-center rounded-2xl border bg-black/40",
+                      "relative mx-auto flex size-36 items-center justify-center overflow-hidden rounded-2xl border bg-black/40",
                       selectedStyle.border,
                     )}
                   >
                     {(() => {
+                      const preview = resolveRewardPreviewSrc(selectedReward);
+                      if (preview) {
+                        return (
+                          <Image
+                            src={preview}
+                            alt=""
+                            fill
+                            sizes="144px"
+                            className={cn(
+                              selectedReward.type === "frame"
+                                ? "object-contain p-4"
+                                : "object-cover",
+                            )}
+                          />
+                        );
+                      }
                       const Icon = typeIcon(selectedReward.type);
                       return (
                         <Icon className={cn("size-12", selectedStyle.text)} />
@@ -694,11 +710,9 @@ export function InventoryScreen({
                   employees.slice(0, 5).map((employee) => {
                     const loadout = loadouts[employee.id] ?? emptyLoadout();
                     const equippedCount = [
-                      loadout.appearanceId,
                       loadout.voiceId,
                       loadout.backgroundId,
                       loadout.frameId,
-                      ...loadout.skillChipIds,
                     ].filter(Boolean).length;
                     return (
                       <li

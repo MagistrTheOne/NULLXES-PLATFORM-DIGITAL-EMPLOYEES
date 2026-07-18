@@ -159,16 +159,16 @@ export function loadoutsEqual(a: EmployeeLoadout, b: EmployeeLoadout): boolean {
 export function seedDemoLoadouts(): Record<string, EmployeeLoadout> {
   return {
     adeline: {
-      appearanceId: "exec-black",
+      appearanceId: null,
       voiceId: "exec-voice",
-      skillChipIds: ["neg-mastery", "sales-eff", null],
+      skillChipIds: Array.from({ length: SKILL_SLOT_COUNT }, () => null),
       backgroundId: "board-room",
       frameId: null,
     },
     somnia: {
       appearanceId: null,
       voiceId: "calm-voice",
-      skillChipIds: ["support-spec", null, null],
+      skillChipIds: Array.from({ length: SKILL_SLOT_COUNT }, () => null),
       backgroundId: null,
       frameId: "minimal-frame",
     },

@@ -13,6 +13,7 @@ import {
   COSMETIC_EQUIP_BADGE,
   hasAnyLoadoutEquipped,
   resolveCosmeticBackgroundSrc,
+  resolveCosmeticFrameSrc,
 } from "@/features/rewards/lib/cosmetic-assets";
 import type { EmployeeListItem } from "../types";
 import { AvatarIdlePreview } from "./avatar-idle-preview";
@@ -71,6 +72,7 @@ export function EmployeeCard({
     employee.avatarProvisioningStatus === "ready" &&
     !isMaterializing;
   const backgroundSrc = resolveCosmeticBackgroundSrc(loadout?.backgroundId);
+  const frameSrc = resolveCosmeticFrameSrc(loadout?.frameId);
   const showEquipBadge = loadout ? hasAnyLoadoutEquipped(loadout) : false;
 
   return (
@@ -115,6 +117,16 @@ export function EmployeeCard({
             </span>
           </div>
         )}
+        {frameSrc ? (
+          <Image
+            src={frameSrc}
+            alt=""
+            fill
+            sizes="(max-width: 768px) 100vw, 320px"
+            className="pointer-events-none z-[15] object-fill"
+            aria-hidden
+          />
+        ) : null}
         {showEquipBadge ? (
           <Image
             src={COSMETIC_EQUIP_BADGE}
