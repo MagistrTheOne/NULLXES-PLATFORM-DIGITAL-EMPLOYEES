@@ -9,7 +9,6 @@ export type RewardType =
   | "skill_chip"
   | "appearance"
   | "voice"
-  | "idle"
   | "background"
   | "frame";
 
@@ -98,8 +97,7 @@ export const RARITY_ODDS: Array<{ rarity: RewardRarity; percent: string }> = [
 export const REWARD_TYPE_LABELS: Record<RewardType, string> = {
   skill_chip: "Skill Chip",
   appearance: "Appearance",
-  voice: "Voice",
-  idle: "Idle Animation",
+  voice: "Voice Pack",
   background: "Background",
   frame: "Frame",
 };
@@ -133,9 +131,10 @@ export const SEED_REWARD_ITEMS: Omit<RewardItem, "owned">[] = [
     name: "Executive Voice",
     type: "voice",
     rarity: "executive",
-    description: "Corporate tone pack for executive presence.",
+    description:
+      "ElevenLabs voice pack — corporate tone. Equips male/female variant via Voice Design.",
     compatible: "All Employees",
-    comingSoon: true,
+    featured: true,
   },
   {
     id: "board-room",
@@ -162,9 +161,10 @@ export const SEED_REWARD_ITEMS: Omit<RewardItem, "owned">[] = [
     name: "Calm & Confident",
     type: "voice",
     rarity: "professional",
-    description: "Steady delivery for support and reception roles.",
+    description:
+      "ElevenLabs voice pack — steady support tone. Male/female via Voice Design.",
     compatible: "All Employees",
-    comingSoon: true,
+    featured: true,
   },
   {
     id: "minimal-frame",
@@ -186,15 +186,6 @@ export const SEED_REWARD_ITEMS: Omit<RewardItem, "owned">[] = [
     linkedSkillSlug: "knowledge_first_answer",
   },
   {
-    id: "classic-idle",
-    name: "Classic Idle",
-    type: "idle",
-    rarity: "core",
-    description: "Default standing idle pose.",
-    compatible: "All Employees",
-    comingSoon: true,
-  },
-  {
     id: "support-spec",
     name: "Support Specialist",
     type: "skill_chip",
@@ -210,18 +201,9 @@ export const SEED_REWARD_ITEMS: Omit<RewardItem, "owned">[] = [
     name: "Board Presence",
     type: "voice",
     rarity: "professional",
-    description: "Measured delivery for leadership briefings.",
+    description:
+      "ElevenLabs voice pack — measured leadership briefings. Male/female via Voice Design.",
     compatible: "All Employees",
-    comingSoon: true,
-  },
-  {
-    id: "quiet-focus",
-    name: "Quiet Focus",
-    type: "idle",
-    rarity: "professional",
-    description: "Subtle idle for analytical roles.",
-    compatible: "All Employees",
-    comingSoon: true,
   },
   // Beta gap-fillers — slot coverage for drop tests (assets later).
   {
@@ -249,22 +231,13 @@ export const SEED_REWARD_ITEMS: Omit<RewardItem, "owned">[] = [
     compatible: "All Employees",
   },
   {
-    id: "measured-pace",
-    name: "Measured Pace",
-    type: "idle",
-    rarity: "premium",
-    description: "Composed idle cadence for premium presence.",
-    compatible: "All Employees",
-    comingSoon: true,
-  },
-  {
     id: "briefing-tone",
     name: "Briefing Tone",
     type: "voice",
     rarity: "executive",
-    description: "Sharp briefing delivery for leadership updates.",
+    description:
+      "ElevenLabs voice pack — sharp status briefings. Male/female via Voice Design.",
     compatible: "All Employees",
-    comingSoon: true,
   },
 ];
 
@@ -278,10 +251,8 @@ export const SEED_ORG_OWNED: Record<string, number> = {
   "calm-voice": 1,
   "minimal-frame": 2,
   "knowledge-recall": 4,
-  "classic-idle": 1,
   "support-spec": 2,
   "board-presence": 1,
-  "quiet-focus": 1,
 };
 
 export const SEED_CAPSULE_TIERS: Array<
@@ -321,7 +292,7 @@ export const SEED_CAPSULE_TIERS: Array<
     priceLabel: "10 ₽",
     blurb: "Legendary Gold — guaranteed Premium. Chance for Executive or Founder's.",
     activateLabel: "Activate",
-    rewardPreviewIds: ["exec-black", "measured-pace", "briefing-tone"],
+    rewardPreviewIds: ["exec-black", "neg-mastery", "briefing-tone"],
     store: true,
     featured: true,
     sortOrder: 2,

@@ -12,7 +12,6 @@ export type EmployeeLoadout = {
   voiceId: string | null;
   skillChipIds: Array<string | null>;
   backgroundId: string | null;
-  idleId: string | null;
   frameId: string | null;
 };
 
@@ -35,7 +34,6 @@ export function emptyLoadout(): EmployeeLoadout {
     voiceId: null,
     skillChipIds: Array.from({ length: SKILL_SLOT_COUNT }, () => null),
     backgroundId: null,
-    idleId: null,
     frameId: null,
   };
 }
@@ -59,13 +57,11 @@ export function slotLabelForType(type: RewardType): string {
     case "appearance":
       return "Appearance";
     case "voice":
-      return "Voice";
+      return "Voice Pack";
     case "skill_chip":
       return "Skill Chip";
     case "background":
       return "Background";
-    case "idle":
-      return "Idle";
     case "frame":
       return "Frame";
     default:
@@ -80,7 +76,6 @@ export function isItemEquippedOnLoadout(
   if (loadout.appearanceId === itemId) return true;
   if (loadout.voiceId === itemId) return true;
   if (loadout.backgroundId === itemId) return true;
-  if (loadout.idleId === itemId) return true;
   if (loadout.frameId === itemId) return true;
   return loadout.skillChipIds.includes(itemId);
 }
@@ -118,9 +113,6 @@ export function applyItemToLoadout(
     case "background":
       next.backgroundId = item.id;
       break;
-    case "idle":
-      next.idleId = item.id;
-      break;
     case "frame":
       next.frameId = item.id;
       break;
@@ -157,7 +149,6 @@ export function loadoutsEqual(a: EmployeeLoadout, b: EmployeeLoadout): boolean {
     a.appearanceId === b.appearanceId &&
     a.voiceId === b.voiceId &&
     a.backgroundId === b.backgroundId &&
-    a.idleId === b.idleId &&
     a.frameId === b.frameId &&
     a.skillChipIds.length === b.skillChipIds.length &&
     a.skillChipIds.every((id, index) => id === b.skillChipIds[index])
@@ -172,7 +163,6 @@ export function seedDemoLoadouts(): Record<string, EmployeeLoadout> {
       voiceId: "exec-voice",
       skillChipIds: ["neg-mastery", "sales-eff", null],
       backgroundId: "board-room",
-      idleId: null,
       frameId: null,
     },
     somnia: {
@@ -180,7 +170,6 @@ export function seedDemoLoadouts(): Record<string, EmployeeLoadout> {
       voiceId: "calm-voice",
       skillChipIds: ["support-spec", null, null],
       backgroundId: null,
-      idleId: "classic-idle",
       frameId: "minimal-frame",
     },
     yuki: emptyLoadout(),

@@ -12,6 +12,12 @@ import {
   type EmployeeLoadout,
 } from "@/features/rewards/lib/loadout";
 import { syncEmployeeSkillsFromChips } from "@/features/rewards/services/sync-skill-chip-skills";
+import {
+  applyVoicePackToEmployee,
+  resolveVoicePackElevenLabsId,
+} from "@/features/rewards/services/voice-pack-elevenlabs";
+import { resolveCharacterGender } from "@/features/hq/lib/resolve-character-gender";
+import { digitalEmployee } from "@/entities/digital-employee/schema";
 import { db } from "@/shared/db/client";
 
 function rowToLoadout(
@@ -23,7 +29,6 @@ function rowToLoadout(
     appearanceId: row.appearanceSlug,
     voiceId: row.voiceSlug,
     backgroundId: row.backgroundSlug,
-    idleId: row.idleSlug,
     frameId: row.frameSlug,
     skillChipIds: Array.from(
       { length: SKILL_SLOT_COUNT },
@@ -116,7 +121,6 @@ export async function upsertEmployeeLoadout(input: {
     assertOwned(input.organizationId, loadout.appearanceId),
     assertOwned(input.organizationId, loadout.voiceId),
     assertOwned(input.organizationId, loadout.backgroundId),
-    assertOwned(input.organizationId, loadout.idleId),
     assertOwned(input.organizationId, loadout.frameId),
     ...loadout.skillChipIds.map((id) =>
       assertOwned(input.organizationId, id),
@@ -124,7 +128,6 @@ export async function upsertEmployeeLoadout(input: {
     assertType(loadout.appearanceId, "appearance"),
     assertType(loadout.voiceId, "voice"),
     assertType(loadout.backgroundId, "background"),
-    assertType(loadout.idleId, "idle"),
     assertType(loadout.frameId, "frame"),
     ...loadout.skillChipIds.map((id) => assertType(id, "skill_chip")),
   ]);
@@ -150,7 +153,6 @@ export async function upsertEmployeeLoadout(input: {
     appearanceSlug: loadout.appearanceId,
     voiceSlug: loadout.voiceId,
     backgroundSlug: loadout.backgroundId,
-    idleSlug: loadout.idleId,
     frameSlug: loadout.frameId,
     skillChipSlugs,
     updatedAt: new Date(),
@@ -172,7 +174,40 @@ export async function upsertEmployeeLoadout(input: {
     nextChipSlugs: loadout.skillChipIds,
   });
 
+  if (loadout.voiceId && loadout.voiceId !== previous.voiceId) {
+    const voiceApplied = await applyEquippedVoicePack({
+      organizationId: input.organizationId,
+      employeeId: input.employeeId,
+      rewardSlug: loadout.voiceId,
+    });
+    if (!voiceApplied.ok) return voiceApplied;
+  }
+
   return { ok: true };
+}
+
+async function applyEquippedVoicePack(input: {
+  organizationId: string;
+  employeeId: string;
+  rewardSlug: string;
+}): Promise<{ ok: true } | { ok: false; message: string }> {
+  const [employee] = await db
+    .select({ name: digitalEmployee.name })
+    .from(digitalEmployee)
+    .where(eq(digitalEmployee.id, input.employeeId))
+    .limit(1);
+  const gender = resolveCharacterGender(employee?.name ?? "Agent");
+  const resolved = await resolveVoicePackElevenLabsId({
+    rewardSlug: input.rewardSlug,
+    gender,
+  });
+  if (!resolved.ok) return resolved;
+  return applyVoicePackToEmployee({
+    employeeId: input.employeeId,
+    organizationId: input.organizationId,
+    voiceId: resolved.voiceId,
+    rewardSlug: input.rewardSlug,
+  });
 }
 
 export async function equipRewardOnEmployee(input: {
@@ -192,6 +227,9 @@ export async function equipRewardOnEmployee(input: {
   if (!def) {
     return { ok: false, message: "Unknown reward." };
   }
+  if (def.type === "idle") {
+    return { ok: false, message: "Idle rewards have been removed." };
+  }
 
   const current = await getEmployeeLoadout(input);
   const next = { ...current, skillChipIds: [...current.skillChipIds] };
@@ -205,9 +243,6 @@ export async function equipRewardOnEmployee(input: {
       break;
     case "background":
       next.backgroundId = input.rewardSlug;
-      break;
-    case "idle":
-      next.idleId = input.rewardSlug;
       break;
     case "frame":
       next.frameId = input.rewardSlug;

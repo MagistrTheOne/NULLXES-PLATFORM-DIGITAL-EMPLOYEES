@@ -19,6 +19,7 @@ export const rewardRarityEnum = pgEnum("reward_rarity", [
   "founders",
 ]);
 
+// "idle" retained in PG enum for migration compatibility; catalog no longer seeds it.
 export const rewardTypeEnum = pgEnum("reward_type", [
   "skill_chip",
   "appearance",
@@ -186,7 +187,6 @@ export const employeeRewardLoadout = pgTable(
     appearanceSlug: text("appearance_slug"),
     voiceSlug: text("voice_slug"),
     backgroundSlug: text("background_slug"),
-    idleSlug: text("idle_slug"),
     frameSlug: text("frame_slug"),
     skillChipSlugs: text("skill_chip_slugs").array().notNull().default([]),
     createdAt: timestamp("created_at", { withTimezone: true })

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   Hexagon,
+  Mic,
   Search,
   Shirt,
   Sparkles,
@@ -65,6 +66,7 @@ const TYPE_FILTERS: Array<{
   { id: "equipped", label: "Equipped" },
   { id: "skill_chip", label: "Skill Chips" },
   { id: "appearance", label: "Appearance" },
+  { id: "voice", label: "Voice Packs" },
   { id: "background", label: "Background" },
   { id: "frame", label: "Frame" },
 ];
@@ -95,6 +97,8 @@ function typeIcon(type: RewardType) {
       return Sparkles;
     case "appearance":
       return Shirt;
+    case "voice":
+      return Mic;
     case "background":
       return Square;
     case "frame":
@@ -158,11 +162,8 @@ export function InventoryScreen({
   );
 
   const rewardItems = useMemo(() => {
-    // Inventory = owned holdings only (Idle / Voice retired from UI).
-    let list = rewards.filter(
-      (item) =>
-        item.owned > 0 && item.type !== "idle" && item.type !== "voice",
-    );
+    // Inventory = owned holdings only.
+    let list = rewards.filter((item) => item.owned > 0);
 
     if (filter === "equipped") {
       list = list.filter((item) => isItemEquippedAnywhere(loadouts, item.id));
@@ -253,6 +254,9 @@ export function InventoryScreen({
         switch (selectedReward.type) {
           case "appearance":
             next.appearanceId = selectedReward.id;
+            break;
+          case "voice":
+            next.voiceId = selectedReward.id;
             break;
           case "background":
             next.backgroundId = selectedReward.id;
@@ -691,6 +695,7 @@ export function InventoryScreen({
                     const loadout = loadouts[employee.id] ?? emptyLoadout();
                     const equippedCount = [
                       loadout.appearanceId,
+                      loadout.voiceId,
                       loadout.backgroundId,
                       loadout.frameId,
                       ...loadout.skillChipIds,

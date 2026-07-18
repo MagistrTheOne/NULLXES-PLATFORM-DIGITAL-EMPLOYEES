@@ -33,7 +33,7 @@ import {
 
 const DEFAULT_VALUE = "__default__";
 
-type SlotKey = "appearance" | "background" | "frame";
+type SlotKey = "appearance" | "voice" | "background" | "frame";
 
 function optionsForType(rewards: RewardItem[], type: RewardType) {
   return rewards.filter((item) => item.type === type && item.owned > 0);
@@ -131,6 +131,8 @@ export function EmployeeCustomizationPanel({
       switch (key) {
         case "appearance":
           return { ...prev, appearanceId: next };
+        case "voice":
+          return { ...prev, voiceId: next };
         case "background":
           return { ...prev, backgroundId: next };
         case "frame":
@@ -198,6 +200,13 @@ export function EmployeeCustomizationPanel({
             value={draft.appearanceId}
             rewards={rewards}
             onChange={(next) => patchSlot("appearance", next)}
+          />
+          <LoadoutSelect
+            label="Voice Pack"
+            type="voice"
+            value={draft.voiceId}
+            rewards={rewards}
+            onChange={(next) => patchSlot("voice", next)}
           />
           <LoadoutSelect
             label="Background"

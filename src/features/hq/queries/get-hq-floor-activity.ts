@@ -54,7 +54,6 @@ export async function getHqFloorActivity(
         appearanceSlug: employeeRewardLoadout.appearanceSlug,
         voiceSlug: employeeRewardLoadout.voiceSlug,
         backgroundSlug: employeeRewardLoadout.backgroundSlug,
-        idleSlug: employeeRewardLoadout.idleSlug,
         frameSlug: employeeRewardLoadout.frameSlug,
         updatedAt: employeeRewardLoadout.updatedAt,
       })
@@ -76,7 +75,6 @@ export async function getHqFloorActivity(
           row.appearanceSlug,
           row.voiceSlug,
           row.backgroundSlug,
-          row.idleSlug,
           row.frameSlug,
         ].filter((value): value is string => Boolean(value)),
       ),
@@ -113,7 +111,6 @@ export async function getHqFloorActivity(
       row.appearanceSlug,
       row.voiceSlug,
       row.backgroundSlug,
-      row.idleSlug,
       row.frameSlug,
     ].filter((value): value is string => Boolean(value));
     const primary = equipped[0];

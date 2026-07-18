@@ -30,7 +30,6 @@ export function hasAnyLoadoutEquipped(loadout: {
   appearanceId: string | null;
   voiceId: string | null;
   backgroundId: string | null;
-  idleId: string | null;
   frameId: string | null;
   skillChipIds: Array<string | null>;
 }): boolean {
@@ -38,7 +37,6 @@ export function hasAnyLoadoutEquipped(loadout: {
     loadout.appearanceId ||
       loadout.voiceId ||
       loadout.backgroundId ||
-      loadout.idleId ||
       loadout.frameId ||
       loadout.skillChipIds.some(Boolean),
   );

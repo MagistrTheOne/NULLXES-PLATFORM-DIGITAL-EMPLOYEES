@@ -189,19 +189,21 @@ export async function getRewardsWorkspaceState(
     const dailySecondsLeft = secondsUntil(daily?.nextAvailableAt ?? null, now);
     const dailyClaimed = dailySecondsLeft > 0;
 
-    const rewards: RewardItem[] = definitions.map((row) => ({
-      id: row.slug,
-      name: row.name,
-      type: row.type,
-      rarity: row.rarity,
-      description: row.description,
-      compatible: row.compatible,
-      boostLabel: row.boostLabel ?? undefined,
-      linkedSkillSlug: linkedSkillSlugForChip(row.slug) ?? undefined,
-      featured: row.featured,
-      comingSoon: row.comingSoon,
-      owned: ownedBySlug.get(row.slug) ?? 0,
-    }));
+    const rewards: RewardItem[] = definitions
+      .filter((row) => row.type !== "idle")
+      .map((row) => ({
+        id: row.slug,
+        name: row.name,
+        type: row.type as RewardItem["type"],
+        rarity: row.rarity,
+        description: row.description,
+        compatible: row.compatible,
+        boostLabel: row.boostLabel ?? undefined,
+        linkedSkillSlug: linkedSkillSlugForChip(row.slug) ?? undefined,
+        featured: row.featured,
+        comingSoon: row.comingSoon,
+        owned: ownedBySlug.get(row.slug) ?? 0,
+      }));
 
     const offers: CapsuleOffer[] = tiers.map((tier) => {
       const ownedCount = holdingsByTier.get(tier.id) ?? 0;

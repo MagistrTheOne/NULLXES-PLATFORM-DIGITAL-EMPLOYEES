@@ -351,6 +351,13 @@
       "when": 1785300000000,
       "tag": "0049_security_2fa_audit_actions",
       "breakpoints": true
+    },
+    {
+      "idx": 50,
+      "version": "7",
+      "when": 1785400000000,
+      "tag": "0050_purge_idle_voice_packs",
+      "breakpoints": true
     }
   ]
 }

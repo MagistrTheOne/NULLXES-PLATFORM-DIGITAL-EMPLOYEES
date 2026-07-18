@@ -93,7 +93,6 @@ export async function getHqState(organizationId: string): Promise<HqState> {
           loadout.appearanceId,
           loadout.voiceId,
           loadout.backgroundId,
-          loadout.idleId,
           loadout.frameId,
         ].filter(Boolean).length + equippedSkillCount(loadout);
       const hasLoadout = equippedSlots > 0;

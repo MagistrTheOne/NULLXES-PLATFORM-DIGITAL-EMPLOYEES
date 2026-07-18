@@ -40,10 +40,10 @@ const RARITY_OPTIONS: Array<{ id: RewardRarity; label: string }> = [
   { id: "founders", label: "Founder's" },
 ];
 
-/** Idle / Voice omitted — not product surfaces for this pass. */
 const TYPE_OPTIONS: Array<{ id: RewardType; label: string }> = [
   { id: "skill_chip", label: "Skill Chip" },
   { id: "appearance", label: "Appearance" },
+  { id: "voice", label: "Voice Pack" },
   { id: "background", label: "Background" },
   { id: "frame", label: "Frame" },
 ];
@@ -92,13 +92,7 @@ export function CollectionScreen({ rewards }: { rewards: RewardItem[] }) {
   const [filter, setFilter] = useState<RewardsFilterState>(DEFAULT_REWARDS_FILTER);
   const [toast, setToast] = useState<string | null>(null);
 
-  const catalogRewards = useMemo(
-    () =>
-      rewards.filter(
-        (item) => item.type !== "idle" && item.type !== "voice",
-      ),
-    [rewards],
-  );
+  const catalogRewards = useMemo(() => rewards, [rewards]);
 
   const progress = useMemo(
     () => getCollectionProgress(catalogRewards),
