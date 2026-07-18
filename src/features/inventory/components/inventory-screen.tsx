@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState, useTransition } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Hexagon, Search, Square, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import {
   RARITY_STYLES,
@@ -47,7 +56,6 @@ import {
   COSMETIC_EQUIP_BADGE,
   resolveRewardPreviewSrc,
 } from "@/features/rewards/lib/cosmetic-assets";
-import Image from "next/image";
 
 const TYPE_FILTERS: Array<{
   id: "all" | "equipped" | "capsules" | RewardType;
@@ -131,11 +139,16 @@ export function InventoryScreen({
     ) {
       return { kind: "reward", id: initialId };
     }
-    const firstOwned = rewards.find((item) => item.owned > 0);
-    if (firstOwned) return { kind: "reward", id: firstOwned.id };
-    if (ownedCapsules[0]) return { kind: "capsule", id: ownedCapsules[0].id };
     return null;
   });
+  const [inspectOpen, setInspectOpen] = useState(() => {
+    return Boolean(
+      initialId &&
+        rewards.some((item) => item.id === initialId && item.owned > 0),
+    );
+  });
+  const [assignEmployeeId, setAssignEmployeeId] = useState<string>("");
+  const [sheetSide, setSheetSide] = useState<"right" | "bottom">("right");
   const [toast, setToast] = useState<string | null>(null);
   const [favorites, setFavorites] = useState<Record<string, boolean>>({});
   const [revealOpen, setRevealOpen] = useState(false);
@@ -144,8 +157,25 @@ export function InventoryScreen({
     null,
   );
 
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 640px)");
+    const sync = () => setSheetSide(mq.matches ? "bottom" : "right");
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
+
+  useEffect(() => {
+    if (employees.length === 0) {
+      setAssignEmployeeId("");
+      return;
+    }
+    setAssignEmployeeId((prev) =>
+      prev && employees.some((e) => e.id === prev) ? prev : employees[0]!.id,
+    );
+  }, [employees]);
+
   const rewardItems = useMemo(() => {
-    // Inventory = owned holdings only.
     let list = rewards.filter((item) => item.owned > 0);
 
     if (filter === "equipped") {
@@ -218,13 +248,38 @@ export function InventoryScreen({
     ? Boolean(favorites[selectedReward.id])
     : false;
 
+  const equippedOnEmployees = useMemo(() => {
+    if (!selectedReward) return [];
+    return employees.filter((employee) =>
+      isItemEquippedOnLoadout(
+        loadouts[employee.id] ?? emptyLoadout(),
+        selectedReward.id,
+      ),
+    );
+  }, [employees, loadouts, selectedReward]);
+
+  const assignEquipped = selectedReward
+    ? Boolean(assignEmployeeId) &&
+      isItemEquippedOnLoadout(
+        loadouts[assignEmployeeId] ?? emptyLoadout(),
+        selectedReward.id,
+      )
+    : false;
+
   const totalVisible = rewardItems.length + capsuleItems.length;
 
-  function onEquip(employeeId: string, employeeName: string) {
-    if (!selectedReward) return;
+  function openInspect(next: Selection) {
+    setSelected(next);
+    setInspectOpen(true);
+  }
+
+  function onEquip() {
+    if (!selectedReward || !assignEmployeeId) return;
+    const employee = employees.find((e) => e.id === assignEmployeeId);
+    if (!employee) return;
     startTransition(async () => {
       const result = await equipRewardOnEmployeeAction({
-        employeeId,
+        employeeId: employee.id,
         rewardSlug: selectedReward.id,
       });
       if (!result.ok) {
@@ -232,7 +287,7 @@ export function InventoryScreen({
         return;
       }
       setLoadouts((prev) => {
-        const current = prev[employeeId] ?? emptyLoadout();
+        const current = prev[employee.id] ?? emptyLoadout();
         const next = { ...current, skillChipIds: [...current.skillChipIds] };
         switch (selectedReward.type) {
           case "background":
@@ -244,9 +299,9 @@ export function InventoryScreen({
           default:
             break;
         }
-        return { ...prev, [employeeId]: next };
+        return { ...prev, [employee.id]: next };
       });
-      setToast(`${selectedReward.name} → ${employeeName}`);
+      setToast(`${selectedReward.name} → ${employee.name}`);
       router.refresh();
     });
   }
@@ -265,6 +320,7 @@ export function InventoryScreen({
         type: catalog?.type,
       });
       setRevealOpen(true);
+      setInspectOpen(false);
     });
   }
 
@@ -319,7 +375,10 @@ export function InventoryScreen({
                   className="h-9 rounded-xl border-white/12 bg-black/30 pl-9 text-sm text-white placeholder:text-white/35"
                 />
               </div>
-              <Select value={sort} onValueChange={(value) => setSort(value as SortId)}>
+              <Select
+                value={sort}
+                onValueChange={(value) => setSort(value as SortId)}
+              >
                 <SelectTrigger className="h-9 w-full rounded-xl border-white/12 bg-black/30 text-white sm:w-44">
                   <SelectValue placeholder="Sort" />
                 </SelectTrigger>
@@ -336,393 +395,366 @@ export function InventoryScreen({
           </div>
         </div>
 
-        <div className="grid w-full gap-6 xl:grid-cols-[minmax(0,1fr)_360px] xl:gap-8">
-          <div className="min-w-0">
-            <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 lg:gap-4">
-              {capsuleItems.map((offer) => {
-                const active =
-                  selected?.kind === "capsule" && selected.id === offer.id;
-                return (
-                  <li key={`capsule-${offer.id}`}>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setSelected({ kind: "capsule", id: offer.id })
-                      }
-                      className={cn(
-                        "relative flex h-full min-h-48 w-full flex-col rounded-2xl border border-white/12 bg-[#1a1a1a] p-4 text-left transition-[border-color,background-color,transform] duration-200 hover:-translate-y-0.5 hover:bg-[#1f1f1f]",
-                        active && "ring-1 ring-white/30",
-                      )}
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <p className="text-[10px] tracking-[0.18em] text-white/45 uppercase">
-                          Capsule
-                        </p>
-                        <span className="rounded bg-white/10 px-1.5 py-0.5 font-mono text-[9px] text-white/60">
-                          ×{offer.ownedCount ?? 0}
-                        </span>
-                      </div>
-                      <div className="mt-2 flex flex-1 items-center justify-center overflow-hidden rounded-xl bg-black/30">
-                        <CapsuleProductVisual
-                          tier={offer.id}
-                          className="h-28 w-full rounded-none"
-                        />
-                      </div>
-                      <p className="mt-3 text-sm font-medium text-white">
-                        {offer.name}
-                      </p>
-                      <p className="mt-1 text-[11px] text-white/40">
-                        {offer.priceLabel}
-                      </p>
-                    </button>
-                  </li>
-                );
-              })}
-
-              {rewardItems.map((item) => {
-                const style = RARITY_STYLES[item.rarity];
-                const Icon = typeIcon(item.type);
-                const active =
-                  selected?.kind === "reward" && selected.id === item.id;
-                const equipped = isItemEquippedAnywhere(loadouts, item.id);
-                const favorite = Boolean(favorites[item.id]);
-                return (
-                  <li key={item.id}>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setSelected({ kind: "reward", id: item.id })
-                      }
-                      className={cn(
-                        "relative flex h-full min-h-48 w-full flex-col rounded-2xl border bg-[#1a1a1a] p-4 text-left transition-[border-color,background-color,transform] duration-200 hover:-translate-y-0.5 hover:bg-[#1f1f1f]",
-                        style.border,
-                        active && "ring-1 ring-white/30",
-                      )}
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <p
-                          className={cn(
-                            "text-[10px] tracking-[0.18em] uppercase",
-                            style.text,
-                          )}
-                        >
-                          {style.label}
-                        </p>
-                        <div className="flex items-center gap-1">
-                          {favorite ? (
-                            <Star className="size-3 fill-white text-white" />
-                          ) : null}
-                          {equipped ? (
-                            <Image
-                              src={COSMETIC_EQUIP_BADGE}
-                              alt=""
-                              width={18}
-                              height={18}
-                              className="size-4.5 drop-shadow-[0_1px_4px_rgba(0,0,0,0.7)]"
-                              aria-hidden
-                            />
-                          ) : null}
-                        </div>
-                      </div>
-                      <div className="relative mt-4 flex min-h-24 flex-1 items-center justify-center overflow-hidden rounded-xl bg-black/30">
-                        {(() => {
-                          const preview = resolveRewardPreviewSrc(item);
-                          if (!preview) {
-                            return (
-                              <Icon className={cn("size-10", style.text)} />
-                            );
-                          }
-                          return (
-                            <Image
-                              src={preview}
-                              alt=""
-                              fill
-                              sizes="160px"
-                              className={cn(
-                                item.type === "frame"
-                                  ? "object-contain p-3 opacity-90"
-                                  : "object-cover opacity-80",
-                              )}
-                            />
-                          );
-                        })()}
-                      </div>
-                      <p className="mt-3 text-sm font-medium text-white">
-                        {item.name}
-                      </p>
-                      <div className="mt-1 flex items-end justify-between gap-2">
-                        <p className="text-[11px] text-white/40">
-                          {REWARD_TYPE_LABELS[item.type]}
-                        </p>
-                        <span className="font-mono text-[10px] text-white/35">
-                          ×{item.owned}
-                        </span>
-                      </div>
-                      {item.boostLabel ? (
-                        <p className={cn("mt-2 text-xs font-mono", style.text)}>
-                          {item.boostLabel}
-                        </p>
-                      ) : null}
-                    </button>
-                  </li>
-                );
-              })}
-
-              {totalVisible === 0 ? (
-                <li className="col-span-full">
-                  <div className="flex min-h-48 items-center justify-center rounded-2xl border border-dashed border-white/12 bg-[#161616] p-4 text-center text-sm text-white/40">
-                    {filter === "capsules"
-                      ? "No owned capsules. Activate on Capsules store."
-                      : "No items match the current filters."}
-                  </div>
-                </li>
-              ) : null}
-            </ul>
-            <p className="mt-4 text-xs text-white/30">
-              Showing {totalVisible} owned item
-              {totalVisible === 1 ? "" : "s"}
-            </p>
-          </div>
-
-          <aside className="space-y-4 xl:sticky xl:top-6 xl:self-start">
-            <div className="rounded-2xl border border-white/10 bg-[#1a1a1a] p-5">
-              {selectedCapsule ? (
-                <>
-                  <div className="mx-auto overflow-hidden rounded-2xl border border-white/12 bg-black/40">
-                    <CapsuleProductVisual
-                      tier={selectedCapsule.id}
-                      className="h-36 w-full rounded-none"
-                    />
-                  </div>
-                  <p className="mt-4 text-center text-[10px] tracking-[0.22em] text-white/45 uppercase">
-                    Capsule
-                  </p>
-                  <h2 className="mt-2 text-center text-xl font-medium text-white">
-                    {selectedCapsule.name}
-                  </h2>
-                  <p className="mt-2 text-center text-[11px] text-white/40">
-                    Owned · {selectedCapsule.ownedCount ?? 0}
-                  </p>
-                  <p className="mt-3 text-sm leading-relaxed text-white/50">
-                    {selectedCapsule.blurb}
-                  </p>
-                  <Button
+        <div className="min-w-0 w-full">
+          <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 lg:gap-4">
+            {capsuleItems.map((offer) => {
+              const active =
+                selected?.kind === "capsule" && selected.id === offer.id;
+              return (
+                <li key={`capsule-${offer.id}`}>
+                  <button
                     type="button"
-                    disabled={pending || (selectedCapsule.ownedCount ?? 0) < 1}
-                    className={cn("mt-5", rewardsPrimaryButtonClass)}
-                    onClick={() => onOpenCapsule(selectedCapsule)}
-                  >
-                    Open
-                  </Button>
-                  <Button asChild className={cn("mt-2", rewardsSecondaryButtonClass)}>
-                    <Link href="/dashboard/capsules">Back to Capsules</Link>
-                  </Button>
-                </>
-              ) : selectedReward && selectedStyle ? (
-                <>
-                  <div
+                    onClick={() =>
+                      openInspect({ kind: "capsule", id: offer.id })
+                    }
                     className={cn(
-                      "relative mx-auto flex size-36 items-center justify-center overflow-hidden rounded-2xl border bg-black/40",
-                      selectedStyle.border,
+                      "relative flex h-full min-h-48 w-full flex-col rounded-2xl border border-white/12 bg-[#1a1a1a] p-4 text-left transition-[border-color,background-color,transform] duration-200 hover:-translate-y-0.5 hover:bg-[#1f1f1f]",
+                      active && "ring-1 ring-white/30",
                     )}
                   >
-                    {(() => {
-                      const preview = resolveRewardPreviewSrc(selectedReward);
-                      if (preview) {
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="text-[10px] tracking-[0.18em] text-white/45 uppercase">
+                        Capsule
+                      </p>
+                      <span className="rounded bg-white/10 px-1.5 py-0.5 font-mono text-[9px] text-white/60">
+                        ×{offer.ownedCount ?? 0}
+                      </span>
+                    </div>
+                    <div className="mt-2 flex flex-1 items-center justify-center overflow-hidden rounded-xl bg-black/30">
+                      <CapsuleProductVisual
+                        tier={offer.id}
+                        className="h-28 w-full rounded-none"
+                      />
+                    </div>
+                    <p className="mt-3 text-sm font-medium text-white">
+                      {offer.name}
+                    </p>
+                    <p className="mt-1 text-[11px] text-white/40">
+                      {offer.priceLabel}
+                    </p>
+                  </button>
+                </li>
+              );
+            })}
+
+            {rewardItems.map((item) => {
+              const style = RARITY_STYLES[item.rarity];
+              const Icon = typeIcon(item.type);
+              const active =
+                selected?.kind === "reward" && selected.id === item.id;
+              const equipped = isItemEquippedAnywhere(loadouts, item.id);
+              const favorite = Boolean(favorites[item.id]);
+              return (
+                <li key={item.id}>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      openInspect({ kind: "reward", id: item.id })
+                    }
+                    className={cn(
+                      "relative flex h-full min-h-48 w-full flex-col rounded-2xl border bg-[#1a1a1a] p-4 text-left transition-[border-color,background-color,transform] duration-200 hover:-translate-y-0.5 hover:bg-[#1f1f1f]",
+                      style.border,
+                      active && "ring-1 ring-white/30",
+                    )}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <p
+                        className={cn(
+                          "text-[10px] tracking-[0.18em] uppercase",
+                          style.text,
+                        )}
+                      >
+                        {style.label}
+                      </p>
+                      <div className="flex items-center gap-1">
+                        {favorite ? (
+                          <Star className="size-3 fill-white text-white" />
+                        ) : null}
+                        {equipped ? (
+                          <Image
+                            src={COSMETIC_EQUIP_BADGE}
+                            alt=""
+                            width={18}
+                            height={18}
+                            className="size-4.5 drop-shadow-[0_1px_4px_rgba(0,0,0,0.7)]"
+                            aria-hidden
+                          />
+                        ) : null}
+                      </div>
+                    </div>
+                    <div className="relative mt-4 flex min-h-24 flex-1 items-center justify-center overflow-hidden rounded-xl bg-black/30">
+                      {(() => {
+                        const preview = resolveRewardPreviewSrc(item);
+                        if (!preview) {
+                          return (
+                            <Icon className={cn("size-10", style.text)} />
+                          );
+                        }
                         return (
                           <Image
                             src={preview}
                             alt=""
                             fill
-                            sizes="144px"
+                            sizes="160px"
                             className={cn(
-                              selectedReward.type === "frame"
-                                ? "object-contain p-4"
-                                : "object-cover",
+                              item.type === "frame"
+                                ? "object-contain p-3 opacity-90"
+                                : "object-cover opacity-80",
                             )}
                           />
                         );
-                      }
-                      const Icon = typeIcon(selectedReward.type);
-                      return (
-                        <Icon className={cn("size-12", selectedStyle.text)} />
-                      );
-                    })()}
-                  </div>
-                  <p
-                    className={cn(
-                      "mt-4 text-center text-[10px] tracking-[0.22em] uppercase",
-                      selectedStyle.text,
-                    )}
-                  >
-                    {selectedStyle.label}
-                  </p>
-                  <h2 className="mt-2 text-center text-xl font-medium text-white">
-                    {selectedReward.name}
-                  </h2>
-                  <p className="mt-2 text-center text-[11px] text-white/40">
-                    Preview · {REWARD_TYPE_LABELS[selectedReward.type]}
-                  </p>
-                  <p className="mt-3 text-sm leading-relaxed text-white/50">
-                    {selectedReward.description}
-                  </p>
-
-                  <dl className="mt-5 space-y-2 border-t border-white/8 pt-4 text-sm">
-                    <div className="flex justify-between gap-3">
-                      <dt className="text-white/40">Owned</dt>
-                      <dd className="font-mono text-white/80">
-                        ×{selectedReward.owned}
-                      </dd>
+                      })()}
                     </div>
-                    <div className="flex justify-between gap-3">
-                      <dt className="text-white/40">Compatible</dt>
-                      <dd className="text-white/80">
-                        {selectedReward.compatible}
-                      </dd>
+                    <p className="mt-3 text-sm font-medium text-white">
+                      {item.name}
+                    </p>
+                    <div className="mt-1 flex items-end justify-between gap-2">
+                      <p className="text-[11px] text-white/40">
+                        {REWARD_TYPE_LABELS[item.type]}
+                      </p>
+                      <span className="font-mono text-[10px] text-white/35">
+                        ×{item.owned}
+                      </span>
                     </div>
-                    {selectedReward.type === "skill_chip" &&
-                    selectedReward.linkedSkillSlug ? (
-                      <div className="flex justify-between gap-3">
-                        <dt className="text-white/40">Blueprint skill</dt>
-                        <dd className="font-mono text-xs text-white/80">
-                          {selectedReward.linkedSkillSlug}
-                        </dd>
-                      </div>
+                    {item.boostLabel ? (
+                      <p className={cn("mt-2 text-xs font-mono", style.text)}>
+                        {item.boostLabel}
+                      </p>
                     ) : null}
-                  </dl>
+                  </button>
+                </li>
+              );
+            })}
 
-                  <Button
-                    type="button"
-                    className={cn("mt-4", rewardsSecondaryButtonClass)}
-                    onClick={() => {
-                      setFavorites((prev) => ({
-                        ...prev,
-                        [selectedReward.id]: !prev[selectedReward.id],
-                      }));
-                      setToast(
-                        isFavorite
-                          ? `Removed ${selectedReward.name} from favorites.`
-                          : `Favorited ${selectedReward.name}.`,
+            {totalVisible === 0 ? (
+              <li className="col-span-full">
+                <div className="flex min-h-48 items-center justify-center rounded-2xl border border-dashed border-white/12 bg-[#161616] p-4 text-center text-sm text-white/40">
+                  {filter === "capsules"
+                    ? "No owned capsules. Activate on Capsules store."
+                    : "No items match the current filters."}
+                </div>
+              </li>
+            ) : null}
+          </ul>
+          <p className="mt-4 text-xs text-white/30">
+            Showing {totalVisible} owned item
+            {totalVisible === 1 ? "" : "s"}
+            {totalVisible > 0 ? " · Select an item to inspect" : ""}
+          </p>
+        </div>
+      </div>
+
+      <Sheet
+        open={inspectOpen}
+        onOpenChange={(open) => {
+          setInspectOpen(open);
+        }}
+      >
+        <SheetContent
+          side={sheetSide}
+          className={cn(
+            "border-white/10 bg-[#121212] text-white",
+            sheetSide === "right" && "w-full sm:max-w-md",
+            sheetSide === "bottom" &&
+              "max-h-[85vh] overflow-y-auto rounded-t-2xl sm:max-w-none",
+          )}
+        >
+          {selectedCapsule ? (
+            <>
+              <SheetHeader className="border-b border-white/8 pb-4">
+                <SheetTitle className="text-white">
+                  {selectedCapsule.name}
+                </SheetTitle>
+                <SheetDescription className="text-white/45">
+                  Capsule · Owned ×{selectedCapsule.ownedCount ?? 0}
+                </SheetDescription>
+              </SheetHeader>
+              <div className="flex flex-1 flex-col gap-4 overflow-y-auto px-6 py-5">
+                <div className="overflow-hidden rounded-2xl border border-white/12 bg-black/40">
+                  <CapsuleProductVisual
+                    tier={selectedCapsule.id}
+                    className="h-40 w-full rounded-none"
+                  />
+                </div>
+                <p className="text-sm leading-relaxed text-white/50">
+                  {selectedCapsule.blurb}
+                </p>
+              </div>
+              <SheetFooter className="border-t border-white/8">
+                <Button
+                  type="button"
+                  disabled={pending || (selectedCapsule.ownedCount ?? 0) < 1}
+                  className={rewardsPrimaryButtonClass}
+                  onClick={() => onOpenCapsule(selectedCapsule)}
+                >
+                  Open
+                </Button>
+                <Button asChild className={rewardsSecondaryButtonClass}>
+                  <Link href="/dashboard/capsules">Capsules store</Link>
+                </Button>
+              </SheetFooter>
+            </>
+          ) : selectedReward && selectedStyle ? (
+            <>
+              <SheetHeader className="border-b border-white/8 pb-4">
+                <p
+                  className={cn(
+                    "text-[10px] tracking-[0.22em] uppercase",
+                    selectedStyle.text,
+                  )}
+                >
+                  {selectedStyle.label}
+                </p>
+                <SheetTitle className="text-xl text-white">
+                  {selectedReward.name}
+                </SheetTitle>
+                <SheetDescription className="text-white/45">
+                  {REWARD_TYPE_LABELS[selectedReward.type]} · Owned ×
+                  {selectedReward.owned}
+                </SheetDescription>
+              </SheetHeader>
+
+              <div className="flex flex-1 flex-col gap-5 overflow-y-auto px-6 py-5">
+                <div
+                  className={cn(
+                    "relative mx-auto aspect-video w-full max-w-sm overflow-hidden rounded-2xl border bg-black/40",
+                    selectedStyle.border,
+                  )}
+                >
+                  {(() => {
+                    const preview = resolveRewardPreviewSrc(selectedReward);
+                    if (preview) {
+                      return (
+                        <Image
+                          src={preview}
+                          alt=""
+                          fill
+                          sizes="360px"
+                          className={cn(
+                            selectedReward.type === "frame"
+                              ? "object-contain p-6"
+                              : "object-cover",
+                          )}
+                        />
                       );
-                    }}
-                  >
-                    <Star
-                      className={cn(
-                        "size-4",
-                        isFavorite && "fill-white text-white",
-                      )}
-                    />
-                    {isFavorite ? "Favorited" : "Favorite"}
-                  </Button>
+                    }
+                    const Icon = typeIcon(selectedReward.type);
+                    return (
+                      <div className="flex size-full items-center justify-center">
+                        <Icon
+                          className={cn("size-12", selectedStyle.text)}
+                        />
+                      </div>
+                    );
+                  })()}
+                </div>
 
-                  <div className="mt-5 space-y-3 border-t border-white/8 pt-4">
-                    <p className="text-xs tracking-wide text-white/40 uppercase">
-                      Compatible Employees
+                <p className="text-sm leading-relaxed text-white/50">
+                  {selectedReward.description}
+                </p>
+
+                <Button
+                  type="button"
+                  className={cn(rewardsSecondaryButtonClass, "w-full")}
+                  onClick={() => {
+                    setFavorites((prev) => ({
+                      ...prev,
+                      [selectedReward.id]: !prev[selectedReward.id],
+                    }));
+                    setToast(
+                      isFavorite
+                        ? `Removed ${selectedReward.name} from favorites.`
+                        : `Favorited ${selectedReward.name}.`,
+                    );
+                  }}
+                >
+                  <Star
+                    className={cn(
+                      "size-4",
+                      isFavorite && "fill-white text-white",
+                    )}
+                  />
+                  {isFavorite ? "Favorited" : "Favorite"}
+                </Button>
+
+                <div className="space-y-3 border-t border-white/8 pt-4">
+                  <p className="text-[10px] tracking-[0.18em] text-white/40 uppercase">
+                    Assign
+                  </p>
+                  {employees.length === 0 ? (
+                    <p className="text-sm text-white/40">
+                      No digital employees yet.
                     </p>
-                    <ul className="space-y-2">
-                      {employees.length === 0 ? (
-                        <li className="text-sm text-white/40">
-                          No digital employees yet.
-                        </li>
-                      ) : (
-                        employees.map((employee) => {
-                          const loadout =
-                            loadouts[employee.id] ?? emptyLoadout();
-                          const equipped = isItemEquippedOnLoadout(
-                            loadout,
-                            selectedReward.id,
-                          );
-                          return (
-                            <li
-                              key={employee.id}
-                              className="flex items-center justify-between gap-3 rounded-xl border border-white/8 bg-black/20 px-3 py-2.5"
-                            >
-                              <div className="min-w-0 flex-1">
-                                <p className="truncate text-sm text-white">
-                                  {employee.name}
-                                </p>
-                                {equipped ? (
-                                  <p className="text-[11px] text-white/40">
-                                    On loadout
-                                  </p>
-                                ) : null}
-                              </div>
-                              <Button
-                                type="button"
-                                disabled={pending}
-                                className={cn(
-                                  "h-9 shrink-0 rounded-lg px-3.5 text-xs font-medium",
-                                  equipped
-                                    ? "border border-white/12 bg-transparent text-white/70 hover:bg-white/5"
-                                    : "bg-white text-black hover:bg-white/90",
-                                )}
-                                onClick={() =>
-                                  onEquip(employee.id, employee.name)
-                                }
-                              >
-                                {equipped ? "Equipped" : "Equip"}
-                              </Button>
-                            </li>
-                          );
-                        })
-                      )}
-                    </ul>
-                    <p className="text-[11px] leading-relaxed text-white/35">
-                      Full loadout editing lives on the employee → Customization.
-                      Unequip = choose Default there.
+                  ) : (
+                    <>
+                      <Select
+                        value={assignEmployeeId}
+                        onValueChange={setAssignEmployeeId}
+                      >
+                        <SelectTrigger className="h-10 w-full rounded-xl border-white/12 bg-black/40 text-white">
+                          <SelectValue placeholder="Select employee" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {employees.map((employee) => (
+                            <SelectItem key={employee.id} value={employee.id}>
+                              {employee.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Button
+                        type="button"
+                        disabled={pending || !assignEmployeeId || assignEquipped}
+                        className={cn(rewardsPrimaryButtonClass, "w-full")}
+                        onClick={onEquip}
+                      >
+                        {assignEquipped ? "Equipped" : "Equip"}
+                      </Button>
+                    </>
+                  )}
+
+                  {equippedOnEmployees.length > 0 ? (
+                    <p className="text-[11px] leading-relaxed text-white/40">
+                      On loadout:{" "}
+                      <span className="text-white/70">
+                        {equippedOnEmployees.map((e) => e.name).join(", ")}
+                      </span>
                     </p>
+                  ) : (
+                    <p className="text-[11px] text-white/35">
+                      Not equipped on any employee yet.
+                    </p>
+                  )}
+
+                  <p className="text-[11px] leading-relaxed text-white/35">
+                    Unequip from employee → Customization (Default).
+                  </p>
+                  {assignEmployeeId ? (
+                    <Button asChild className={rewardsSecondaryButtonClass}>
+                      <Link href={`/dashboard/employees/${assignEmployeeId}`}>
+                        Edit loadout on employee
+                      </Link>
+                    </Button>
+                  ) : (
                     <Button asChild className={rewardsSecondaryButtonClass}>
                       <Link href="/dashboard/employees">
                         Open Digital Employees
                       </Link>
                     </Button>
-                  </div>
-                </>
-              ) : (
-                <p className="text-sm text-white/45">Select an item.</p>
-              )}
-            </div>
-
-            <div className="rounded-2xl border border-white/10 bg-[#1a1a1a] p-5">
-              <h3 className="text-sm font-medium text-white">Loadouts</h3>
-              <ul className="mt-4 space-y-3">
-                {employees.length === 0 ? (
-                  <li className="text-sm text-white/40">No employees yet.</li>
-                ) : (
-                  employees.slice(0, 5).map((employee) => {
-                    const loadout = loadouts[employee.id] ?? emptyLoadout();
-                    const equippedCount = [
-                      loadout.backgroundId,
-                      loadout.frameId,
-                    ].filter(Boolean).length;
-                    return (
-                      <li
-                        key={employee.id}
-                        className="flex items-start justify-between gap-3 text-sm"
-                      >
-                        <div className="min-w-0">
-                          <p className="truncate text-white/85">
-                            {employee.name}
-                          </p>
-                          <p className="text-[11px] text-white/40">
-                            {equippedCount} slots filled
-                          </p>
-                        </div>
-                        <Link
-                          href={`/dashboard/employees/${employee.id}`}
-                          className="shrink-0 text-[11px] text-white/45 hover:text-white"
-                        >
-                          Edit
-                        </Link>
-                      </li>
-                    );
-                  })
-                )}
-              </ul>
-            </div>
-          </aside>
-        </div>
-      </div>
+                  )}
+                </div>
+              </div>
+            </>
+          ) : (
+            <SheetHeader>
+              <SheetTitle className="text-white">Inspect</SheetTitle>
+              <SheetDescription className="text-white/45">
+                Select an item from inventory.
+              </SheetDescription>
+            </SheetHeader>
+          )}
+        </SheetContent>
+      </Sheet>
 
       <CapsuleOpenReveal
         open={revealOpen}
