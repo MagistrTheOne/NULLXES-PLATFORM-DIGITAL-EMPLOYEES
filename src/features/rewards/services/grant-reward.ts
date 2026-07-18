@@ -29,7 +29,10 @@ export async function grantRolledReward(input: {
   const definitions = (
     await db.select().from(rewardDefinition)
   ).filter(
-    (d) => d.type !== "appearance" && d.type !== "skill_chip",
+    (d) =>
+      d.type !== "appearance" &&
+      d.type !== "skill_chip" &&
+      d.type !== "voice",
   );
   if (definitions.length === 0) {
     return null;

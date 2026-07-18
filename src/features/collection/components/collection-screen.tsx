@@ -41,7 +41,6 @@ const RARITY_OPTIONS: Array<{ id: RewardRarity; label: string }> = [
 ];
 
 const TYPE_OPTIONS: Array<{ id: RewardType; label: string }> = [
-  { id: "voice", label: "Voice Pack" },
   { id: "background", label: "Background" },
   { id: "frame", label: "Frame" },
 ];

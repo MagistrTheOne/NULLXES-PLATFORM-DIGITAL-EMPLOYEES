@@ -194,7 +194,8 @@ export async function getRewardsWorkspaceState(
         (row) =>
           row.type !== "idle" &&
           row.type !== "appearance" &&
-          row.type !== "skill_chip",
+          row.type !== "skill_chip" &&
+          row.type !== "voice",
       )
       .map((row) => ({
         id: row.slug,

@@ -31,7 +31,7 @@ import {
 
 const DEFAULT_VALUE = "__default__";
 
-type SlotKey = "voice" | "background" | "frame";
+type SlotKey = "background" | "frame";
 
 function optionsForType(rewards: RewardItem[], type: RewardType) {
   return rewards.filter((item) => item.type === type && item.owned > 0);
@@ -125,8 +125,6 @@ export function EmployeeCustomizationPanel({
   function patchSlot(key: SlotKey, next: string | null) {
     setDraft((prev) => {
       switch (key) {
-        case "voice":
-          return { ...prev, voiceId: next };
         case "background":
           return { ...prev, backgroundId: next };
         case "frame":
@@ -150,6 +148,7 @@ export function EmployeeCustomizationPanel({
       const cleaned: EmployeeLoadout = {
         ...draft,
         appearanceId: null,
+        voiceId: null,
         skillChipIds: emptyLoadout().skillChipIds,
       };
       setDraft(cloneLoadout(cleaned));
@@ -185,14 +184,7 @@ export function EmployeeCustomizationPanel({
           </p>
         ) : null}
 
-        <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          <LoadoutSelect
-            label="Voice Pack"
-            type="voice"
-            value={draft.voiceId}
-            rewards={rewards}
-            onChange={(next) => patchSlot("voice", next)}
-          />
+        <div className="mt-5 grid gap-3 sm:grid-cols-2">
           <LoadoutSelect
             label="Background"
             type="background"

@@ -104,20 +104,10 @@ export const REWARD_TYPE_LABELS: Record<RewardType, string> = {
 
 /**
  * Live catalog for capsules / inventory.
- * Appearance + skill_chip purged for now (restore when plates/chips ship).
+ * Appearance, skill_chip, and voice purged for now (restore when ready).
  * PG enum values remain; do not seed those types.
  */
 export const SEED_REWARD_ITEMS: Omit<RewardItem, "owned">[] = [
-  {
-    id: "exec-voice",
-    name: "Executive Voice",
-    type: "voice",
-    rarity: "executive",
-    description:
-      "ElevenLabs voice pack — corporate tone. Equips male/female variant via Voice Design.",
-    compatible: "All Employees",
-    featured: true,
-  },
   {
     id: "board-room",
     name: "Board Room",
@@ -128,30 +118,11 @@ export const SEED_REWARD_ITEMS: Omit<RewardItem, "owned">[] = [
     featured: true,
   },
   {
-    id: "calm-voice",
-    name: "Calm & Confident",
-    type: "voice",
-    rarity: "professional",
-    description:
-      "ElevenLabs voice pack — steady support tone. Male/female via Voice Design.",
-    compatible: "All Employees",
-    featured: true,
-  },
-  {
     id: "minimal-frame",
     name: "Base Frame",
     type: "frame",
     rarity: "professional",
     description: "Clean white nameplate frame for employee cards.",
-    compatible: "All Employees",
-  },
-  {
-    id: "board-presence",
-    name: "Board Presence",
-    type: "voice",
-    rarity: "professional",
-    description:
-      "ElevenLabs voice pack — measured leadership briefings. Male/female via Voice Design.",
     compatible: "All Employees",
   },
   {
@@ -180,24 +151,12 @@ export const SEED_REWARD_ITEMS: Omit<RewardItem, "owned">[] = [
     compatible: "All Employees",
     featured: true,
   },
-  {
-    id: "briefing-tone",
-    name: "Briefing Tone",
-    type: "voice",
-    rarity: "executive",
-    description:
-      "ElevenLabs voice pack — sharp status briefings. Male/female via Voice Design.",
-    compatible: "All Employees",
-  },
 ];
 
 /** Default owned counts for first-time org bootstrap. */
 export const SEED_ORG_OWNED: Record<string, number> = {
-  "exec-voice": 1,
   "board-room": 1,
-  "calm-voice": 1,
   "minimal-frame": 2,
-  "board-presence": 1,
   "office-soft": 1,
   "thin-line": 1,
   "legendary-frame": 1,
@@ -216,7 +175,7 @@ export const SEED_CAPSULE_TIERS: Array<
     priceLabel: "Free",
     blurb: "Daily Base drop — Core rewards for steady progress.",
     activateLabel: "Claim",
-    rewardPreviewIds: ["office-soft", "minimal-frame", "calm-voice"],
+    rewardPreviewIds: ["office-soft", "minimal-frame", "board-room"],
     daily: true,
     featured: true,
     sortOrder: 0,
@@ -228,7 +187,7 @@ export const SEED_CAPSULE_TIERS: Array<
     priceLabel: "10 ₽",
     blurb: "Diamond tier — high chance for Professional or Premium rewards.",
     activateLabel: "Activate",
-    rewardPreviewIds: ["board-room", "calm-voice", "thin-line"],
+    rewardPreviewIds: ["board-room", "thin-line", "office-soft"],
     store: true,
     featured: true,
     sortOrder: 1,
@@ -240,7 +199,7 @@ export const SEED_CAPSULE_TIERS: Array<
     priceLabel: "10 ₽",
     blurb: "Legendary Gold — guaranteed Premium. Chance for Executive or Founder's.",
     activateLabel: "Activate",
-    rewardPreviewIds: ["exec-voice", "legendary-frame", "briefing-tone"],
+    rewardPreviewIds: ["legendary-frame", "board-room", "thin-line"],
     store: true,
     featured: true,
     sortOrder: 2,

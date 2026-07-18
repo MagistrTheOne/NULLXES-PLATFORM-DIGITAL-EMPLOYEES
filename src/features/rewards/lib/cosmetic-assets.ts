@@ -88,5 +88,5 @@ export function hasAnyLoadoutEquipped(loadout: {
   frameId: string | null;
   skillChipIds: Array<string | null>;
 }): boolean {
-  return Boolean(loadout.voiceId || loadout.backgroundId || loadout.frameId);
+  return Boolean(loadout.backgroundId || loadout.frameId);
 }

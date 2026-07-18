@@ -160,14 +160,14 @@ export function seedDemoLoadouts(): Record<string, EmployeeLoadout> {
   return {
     adeline: {
       appearanceId: null,
-      voiceId: "exec-voice",
+      voiceId: null,
       skillChipIds: Array.from({ length: SKILL_SLOT_COUNT }, () => null),
       backgroundId: "board-room",
       frameId: null,
     },
     somnia: {
       appearanceId: null,
-      voiceId: "calm-voice",
+      voiceId: null,
       skillChipIds: Array.from({ length: SKILL_SLOT_COUNT }, () => null),
       backgroundId: null,
       frameId: "minimal-frame",

@@ -3,15 +3,7 @@
 import { useEffect, useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import {
-  Hexagon,
-  Mic,
-  Search,
-  Shirt,
-  Sparkles,
-  Square,
-  Star,
-} from "lucide-react";
+import { Hexagon, Search, Square, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -64,7 +56,6 @@ const TYPE_FILTERS: Array<{
   { id: "all", label: "All Items" },
   { id: "capsules", label: "Capsules" },
   { id: "equipped", label: "Equipped" },
-  { id: "voice", label: "Voice Packs" },
   { id: "background", label: "Background" },
   { id: "frame", label: "Frame" },
 ];
@@ -91,12 +82,6 @@ type Selection =
 
 function typeIcon(type: RewardType) {
   switch (type) {
-    case "skill_chip":
-      return Sparkles;
-    case "appearance":
-      return Shirt;
-    case "voice":
-      return Mic;
     case "background":
       return Square;
     case "frame":
@@ -250,9 +235,6 @@ export function InventoryScreen({
         const current = prev[employeeId] ?? emptyLoadout();
         const next = { ...current, skillChipIds: [...current.skillChipIds] };
         switch (selectedReward.type) {
-          case "voice":
-            next.voiceId = selectedReward.id;
-            break;
           case "background":
             next.backgroundId = selectedReward.id;
             break;
@@ -710,7 +692,6 @@ export function InventoryScreen({
                   employees.slice(0, 5).map((employee) => {
                     const loadout = loadouts[employee.id] ?? emptyLoadout();
                     const equippedCount = [
-                      loadout.voiceId,
                       loadout.backgroundId,
                       loadout.frameId,
                     ].filter(Boolean).length;

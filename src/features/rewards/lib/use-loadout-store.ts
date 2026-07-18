@@ -19,17 +19,17 @@ let snapshot: LoadoutStoreSnapshot = {
   loadouts: seedDemoLoadouts(),
   favorites: {
     "board-room": true,
-    "exec-voice": true,
+    "thin-line": true,
   },
   recent: [
     {
-      itemId: "exec-voice",
+      itemId: "board-room",
       employeeId: "adeline",
       employeeName: "Adeline Kalen",
       at: Date.now() - 2 * 60 * 1000,
     },
     {
-      itemId: "board-room",
+      itemId: "thin-line",
       employeeId: "adeline",
       employeeName: "Adeline Kalen",
       at: Date.now() - 24 * 60 * 60 * 1000,

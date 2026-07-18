@@ -12,22 +12,16 @@ import {
   type EmployeeLoadout,
 } from "@/features/rewards/lib/loadout";
 import { syncEmployeeSkillsFromChips } from "@/features/rewards/services/sync-skill-chip-skills";
-import {
-  applyVoicePackToEmployee,
-  resolveVoicePackElevenLabsId,
-} from "@/features/rewards/services/voice-pack-elevenlabs";
-import { resolveCharacterGender } from "@/features/hq/lib/resolve-character-gender";
-import { digitalEmployee } from "@/entities/digital-employee/schema";
 import { db } from "@/shared/db/client";
 
 function rowToLoadout(
   row: typeof employeeRewardLoadout.$inferSelect | undefined,
 ): EmployeeLoadout {
   if (!row) return emptyLoadout();
-  // Appearance + skill chips temporarily hidden from loadouts.
+  // Appearance, skill chips, and voice packs temporarily hidden from loadouts.
   return {
     appearanceId: null,
-    voiceId: row.voiceSlug,
+    voiceId: null,
     backgroundId: row.backgroundSlug,
     frameId: row.frameSlug,
     skillChipIds: Array.from({ length: SKILL_SLOT_COUNT }, () => null),
@@ -108,10 +102,11 @@ export async function upsertEmployeeLoadout(input: {
   employeeId: string;
   loadout: EmployeeLoadout;
 }): Promise<{ ok: true } | { ok: false; message: string }> {
-  // Appearance + skill chips temporarily disabled — always clear on save.
+  // Appearance, skill chips, and voice packs temporarily disabled — clear on save.
   const loadout: EmployeeLoadout = {
     ...input.loadout,
     appearanceId: null,
+    voiceId: null,
     skillChipIds: Array.from({ length: SKILL_SLOT_COUNT }, () => null),
   };
   const previous = await getEmployeeLoadout({
@@ -120,10 +115,8 @@ export async function upsertEmployeeLoadout(input: {
   });
 
   const checks = await Promise.all([
-    assertOwned(input.organizationId, loadout.voiceId),
     assertOwned(input.organizationId, loadout.backgroundId),
     assertOwned(input.organizationId, loadout.frameId),
-    assertType(loadout.voiceId, "voice"),
     assertType(loadout.backgroundId, "background"),
     assertType(loadout.frameId, "frame"),
   ]);
@@ -142,7 +135,7 @@ export async function upsertEmployeeLoadout(input: {
     organizationId: input.organizationId,
     employeeId: input.employeeId,
     appearanceSlug: null as string | null,
-    voiceSlug: loadout.voiceId,
+    voiceSlug: null as string | null,
     backgroundSlug: loadout.backgroundId,
     frameSlug: loadout.frameId,
     skillChipSlugs: [] as string[],
@@ -165,40 +158,7 @@ export async function upsertEmployeeLoadout(input: {
     nextChipSlugs: loadout.skillChipIds,
   });
 
-  if (loadout.voiceId && loadout.voiceId !== previous.voiceId) {
-    const voiceApplied = await applyEquippedVoicePack({
-      organizationId: input.organizationId,
-      employeeId: input.employeeId,
-      rewardSlug: loadout.voiceId,
-    });
-    if (!voiceApplied.ok) return voiceApplied;
-  }
-
   return { ok: true };
-}
-
-async function applyEquippedVoicePack(input: {
-  organizationId: string;
-  employeeId: string;
-  rewardSlug: string;
-}): Promise<{ ok: true } | { ok: false; message: string }> {
-  const [employee] = await db
-    .select({ name: digitalEmployee.name })
-    .from(digitalEmployee)
-    .where(eq(digitalEmployee.id, input.employeeId))
-    .limit(1);
-  const gender = resolveCharacterGender(employee?.name ?? "Agent");
-  const resolved = await resolveVoicePackElevenLabsId({
-    rewardSlug: input.rewardSlug,
-    gender,
-  });
-  if (!resolved.ok) return resolved;
-  return applyVoicePackToEmployee({
-    employeeId: input.employeeId,
-    organizationId: input.organizationId,
-    voiceId: resolved.voiceId,
-    rewardSlug: input.rewardSlug,
-  });
 }
 
 export async function equipRewardOnEmployee(input: {
@@ -221,10 +181,15 @@ export async function equipRewardOnEmployee(input: {
   if (def.type === "idle") {
     return { ok: false, message: "Idle rewards have been removed." };
   }
-  if (def.type === "appearance" || def.type === "skill_chip") {
+  if (
+    def.type === "appearance" ||
+    def.type === "skill_chip" ||
+    def.type === "voice"
+  ) {
     return {
       ok: false,
-      message: "Appearance and skill chips are temporarily unavailable.",
+      message:
+        "Appearance, skill chips, and voice packs are temporarily unavailable.",
     };
   }
 
@@ -232,13 +197,11 @@ export async function equipRewardOnEmployee(input: {
   const next = {
     ...current,
     appearanceId: null,
+    voiceId: null,
     skillChipIds: Array.from({ length: SKILL_SLOT_COUNT }, () => null),
   };
 
   switch (def.type) {
-    case "voice":
-      next.voiceId = input.rewardSlug;
-      break;
     case "background":
       next.backgroundId = input.rewardSlug;
       break;

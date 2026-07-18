@@ -2,10 +2,7 @@ import { getOrganizationAnalyticsRange } from "@/features/analytics/lib/get-orga
 import { getEmployeeSessionSummaries } from "@/features/overview/queries/get-employee-session-summaries";
 import { getLiveSessions } from "@/features/overview/queries/get-live-sessions";
 import { listOrganizationEmployees } from "@/features/employees/services/list-organization-employees";
-import {
-  emptyLoadout,
-  equippedSkillCount,
-} from "@/features/rewards/lib/loadout";
+import { emptyLoadout } from "@/features/rewards/lib/loadout";
 import { listOrganizationLoadouts } from "@/features/rewards/services/employee-loadout";
 import { getRewardsWorkspaceState } from "@/features/rewards/services/get-rewards-workspace-state";
 import { withDatabaseRetry } from "@/shared/db/with-database-retry";
@@ -88,13 +85,10 @@ export async function getHqState(organizationId: string): Promise<HqState> {
       const activityInput = { isLive, status: employee.status, tasks };
       const missionHint = floorActivity.missionByEmployeeId.get(employee.id);
       const loadout = loadouts[employee.id] ?? emptyLoadout();
-      const equippedSlots =
-        [
-          loadout.appearanceId,
-          loadout.voiceId,
-          loadout.backgroundId,
-          loadout.frameId,
-        ].filter(Boolean).length + equippedSkillCount(loadout);
+      const equippedSlots = [
+        loadout.backgroundId,
+        loadout.frameId,
+      ].filter(Boolean).length;
       const hasLoadout = equippedSlots > 0;
 
       return {
