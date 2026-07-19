@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useLocale } from "next-intl";
 import { ArrowRight, History, Hexagon } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { Button } from "@/components/ui/button";
@@ -194,6 +195,7 @@ export function CapsulesScreen({
   history,
 }: CapsulesScreenProps) {
   const router = useRouter();
+  const locale = useLocale();
   const [pending, startTransition] = useTransition();
   const [checkoutLock, setCheckoutLock] = useState(false);
   const [tab, setTab] = useState<TabId>("store");
@@ -276,7 +278,11 @@ export function CapsulesScreen({
           const response = await fetch("/api/billing/tbank/init", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ product: "capsule", tierId: offer.id }),
+            body: JSON.stringify({
+              product: "capsule",
+              tierId: offer.id,
+              locale,
+            }),
           });
           const data = (await response.json()) as {
             paymentUrl?: string;

@@ -23,7 +23,7 @@ import {
   type PricingTier,
   type PricingTierId,
 } from "@/features/billing/config/pricing-tiers";
-import { getRubTierPrice } from "@/features/billing/config/rub-pricing";
+import { getTierDisplayPrice } from "@/features/billing/config/display-pricing";
 import { resolveBillingPlanId } from "@/features/billing/lib/resolve-billing-plan";
 import type {
   BillingSnapshot,
@@ -100,15 +100,15 @@ export function SettingsBillingTab({
     priceLabel: string;
     priceNote: string;
   } {
-    const rub = getRubTierPrice(tier.id, billingInterval, locale);
-    if (rub) {
+    const displayed = getTierDisplayPrice(tier.id, billingInterval, locale);
+    if (displayed) {
       const note =
-        rub.priceNoteKey === "rfNoCard"
+        displayed.priceNoteKey === "rfNoCard"
           ? t("rfNoCard")
-          : rub.priceNoteKey === "perMonth"
+          : displayed.priceNoteKey === "perMonth"
             ? t("priceNoteMonth")
             : t("priceNoteYear");
-      return { priceLabel: rub.priceLabel, priceNote: note };
+      return { priceLabel: displayed.priceLabel, priceNote: note };
     }
 
     if (tier.engagement === "sales") {

@@ -1,6 +1,7 @@
 import "server-only";
 
 import { eq } from "drizzle-orm";
+import { getLocale } from "next-intl/server";
 import {
   capsuleTier,
   organizationCapsuleHolding,
@@ -151,6 +152,13 @@ export type RewardsWorkspaceState = {
 export async function getRewardsWorkspaceState(
   organizationId: string,
 ): Promise<RewardsWorkspaceState> {
+  let locale = "ru";
+  try {
+    locale = await getLocale();
+  } catch {
+    locale = "ru";
+  }
+
   return withDatabaseRetry(async () => {
     await ensureRewardsCatalogSeeded();
     await ensureOrgRewardsBootstrapped(organizationId);
@@ -229,7 +237,7 @@ export async function getRewardsWorkspaceState(
         id: tier.id,
         name: tier.name,
         priceKey: tier.priceKey,
-        priceLabel: getCapsulePriceLabel(tier.id) ?? tier.priceLabel,
+        priceLabel: getCapsulePriceLabel(tier.id, locale) ?? tier.priceLabel,
         blurb: tier.blurb,
         activateLabel,
         claimed,

@@ -2,7 +2,8 @@ import type { BillingInterval, BillingPlanId } from "./plans";
 import type { PricingTierId } from "./pricing-tiers";
 
 /**
- * Provisional RUB presentment for T-Bank checkout (same merchant for en + ru).
+ * RUB charge amounts for T-Bank (kopecks via getRubAmountKopecks).
+ * UI presentment for EN uses USD — see display-pricing.ts.
  * Charm pricing; annual ≈ −20%.
  */
 const RUB_MONTHLY: Partial<Record<PricingTierId, number>> = {

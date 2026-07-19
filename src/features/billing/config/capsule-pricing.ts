@@ -3,14 +3,25 @@
  * Example: nx-cap-standard-1720000000-a1b2c3d4
  *
  * Beta smoke: paid capsules charge 10 ₽ until real pricing is restored.
+ * EN UI shows USD cents presentment; charge stays RUB.
  */
 
 import type { CapsuleTierId } from "@/features/rewards/lib/catalog";
+import {
+  formatUsdCents,
+  isRubPresentmentLocale,
+} from "@/features/billing/config/display-pricing";
 
 export type PaidCapsuleTierId = Extract<CapsuleTierId, "standard" | "executive">;
 
-/** Temporary checkout amount for Diamond / Gold smoke tests. */
+/** Temporary checkout amount for Diamond / Gold smoke tests (RUB). */
 const CAPSULE_RUB: Record<PaidCapsuleTierId, number> = {
+  standard: 10,
+  executive: 10,
+};
+
+/** EN presentment while smoke charge is 10 ₽. */
+const CAPSULE_USD_CENTS: Record<PaidCapsuleTierId, number> = {
   standard: 10,
   executive: 10,
 };
@@ -30,10 +41,18 @@ export function getCapsuleRubAmountKopecks(tierId: PaidCapsuleTierId): number {
   return getCapsuleRubAmount(tierId) * 100;
 }
 
-export function getCapsulePriceLabel(tierId: CapsuleTierId): string | null {
+export function getCapsulePriceLabel(
+  tierId: CapsuleTierId,
+  locale = "ru",
+): string | null {
   if (tierId === "daily") return null;
   if (!isPaidCapsuleTierId(tierId)) return null;
-  return `${CAPSULE_RUB[tierId].toLocaleString("ru-RU")} ₽`;
+
+  if (isRubPresentmentLocale(locale)) {
+    return `${CAPSULE_RUB[tierId].toLocaleString("ru-RU")} ₽`;
+  }
+
+  return formatUsdCents(CAPSULE_USD_CENTS[tierId], locale);
 }
 
 export function buildTbankCapsuleOrderId(input: {

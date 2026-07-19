@@ -7,7 +7,7 @@ import {
   getSalesPricingTiers,
   getSelfServePricingTiers,
 } from "@/features/billing/config/pricing-tiers";
-import { getRubTierPrice } from "@/features/billing/config/rub-pricing";
+import { getTierDisplayPrice } from "@/features/billing/config/display-pricing";
 import { cn } from "@/lib/utils";
 
 const SALES_CONTACT = "mailto:ceo@nullxes.com?subject=NULLXES%20Enterprise";
@@ -48,8 +48,8 @@ export function PricingSection() {
 
           <ul className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
             {selfServe.map((tier) => {
-              const monthly = getRubTierPrice(tier.id, "month", locale);
-              const annual = getRubTierPrice(tier.id, "year", locale);
+              const monthly = getTierDisplayPrice(tier.id, "month", locale);
+              const annual = getTierDisplayPrice(tier.id, "year", locale);
               const isRecommended = Boolean(tier.recommended);
 
               return (

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useLocale } from "next-intl";
 import { Button } from "@/components/ui/button";
 import type { BillingInterval } from "@/features/billing/config/plans";
 import type { SelfServeCheckoutPlanId } from "@/features/billing/config/rub-pricing";
@@ -19,6 +20,7 @@ export function TbankPayButton({
   interval?: BillingInterval;
   pendingLabel?: string;
 }) {
+  const locale = useLocale();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -32,6 +34,7 @@ export function TbankPayButton({
         body: JSON.stringify({
           planId,
           interval,
+          locale,
         }),
       });
       const data = (await response.json()) as {

@@ -13,6 +13,7 @@ import {
   getRubAmountKopecks,
   type SelfServeCheckoutPlanId,
 } from "@/features/billing/config/rub-pricing";
+import { tbankFormLanguage } from "@/features/billing/config/display-pricing";
 import type { BillingInterval } from "@/features/billing/config/plans";
 import { isTbankConfigured } from "@/features/billing/tbank/config";
 import { initTbankPayment } from "@/features/billing/tbank/client";
@@ -83,6 +84,7 @@ async function requireCheckoutWorkspace(): Promise<
 async function createPlanPayment(input: {
   planId: SelfServeCheckoutPlanId;
   interval: BillingInterval;
+  locale?: string | null;
 }): Promise<Response> {
   const auth = await requireCheckoutWorkspace();
   if (!auth.ok) return auth.response;
@@ -99,7 +101,11 @@ async function createPlanPayment(input: {
     suffix,
   });
 
-  const description = `NULLXES — ${input.planId} (${input.interval === "year" ? "год" : "месяц"})`;
+  const language = tbankFormLanguage(input.locale);
+  const description =
+    language === "en"
+      ? `NULLXES — ${input.planId} (${input.interval === "year" ? "year" : "month"})`
+      : `NULLXES — ${input.planId} (${input.interval === "year" ? "год" : "месяц"})`;
 
   try {
     const result = await initTbankPayment({
@@ -108,7 +114,7 @@ async function createPlanPayment(input: {
       description,
       customerKey: auth.organizationId,
       customerEmail: auth.email,
-      language: "ru",
+      language,
     });
 
     if (!result.Success || !result.PaymentURL) {
@@ -140,13 +146,17 @@ async function createPlanPayment(input: {
   }
 }
 
-async function createCapsulePayment(tierId: PaidCapsuleTierId): Promise<Response> {
+async function createCapsulePayment(
+  tierId: PaidCapsuleTierId,
+  locale?: string | null,
+): Promise<Response> {
   const auth = await requireCheckoutWorkspace();
   if (!auth.ok) return auth.response;
 
   const amountKopecks = getCapsuleRubAmountKopecks(tierId);
   const suffix = `${Date.now()}-${randomUUID().slice(0, 8)}`;
   const orderId = buildTbankCapsuleOrderId({ tierId, suffix });
+  const language = tbankFormLanguage(locale);
   const label = tierId === "standard" ? "Diamond Capsule" : "Gold Capsule";
 
   try {
@@ -156,7 +166,7 @@ async function createCapsulePayment(tierId: PaidCapsuleTierId): Promise<Response
       description: `NULLXES — ${label}`,
       customerKey: auth.organizationId,
       customerEmail: auth.email,
-      language: "ru",
+      language,
     });
 
     if (!result.Success || !result.PaymentURL) {
@@ -194,6 +204,7 @@ export async function POST(request: Request): Promise<Response> {
     interval?: string;
     product?: string;
     tierId?: string;
+    locale?: string;
   };
 
   if (raw.product === "capsule") {
@@ -203,7 +214,7 @@ export async function POST(request: Request): Promise<Response> {
         { status: 400 },
       );
     }
-    return createCapsulePayment(raw.tierId);
+    return createCapsulePayment(raw.tierId, raw.locale);
   }
 
   const parsed = parsePlan(raw.planId ?? null, raw.interval ?? null);
@@ -213,7 +224,11 @@ export async function POST(request: Request): Promise<Response> {
       { status: 400 },
     );
   }
-  return createPlanPayment({ planId: parsed.planId, interval: parsed.interval });
+  return createPlanPayment({
+    planId: parsed.planId,
+    interval: parsed.interval,
+    locale: raw.locale,
+  });
 }
 
 /** GET ?planId=&interval= → redirect to PaymentURL. */
@@ -228,7 +243,10 @@ export async function GET(request: Request): Promise<Response> {
         { status: 400 },
       );
     }
-    const init = await createCapsulePayment(tierId);
+    const init = await createCapsulePayment(
+      tierId,
+      url.searchParams.get("locale"),
+    );
     if (!init.ok) {
       const body = await init.text();
       return new NextResponse(body, {
@@ -257,6 +275,7 @@ export async function GET(request: Request): Promise<Response> {
   const init = await createPlanPayment({
     planId: parsed.planId,
     interval: parsed.interval,
+    locale: url.searchParams.get("locale"),
   });
   if (!init.ok) {
     const body = await init.text();
