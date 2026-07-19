@@ -31,6 +31,24 @@ export function resolveApiScopeBundle(bundleId: ApiScopeBundleId): ApiScope[] {
   return [...API_SCOPE_BUNDLES[bundleId].scopes];
 }
 
+/** Bundles the org may create for a given plan API access level. */
+export function bundlesForApiAccess(
+  access: "none" | "read" | "full",
+): ApiScopeBundleId[] {
+  if (access === "none") return [];
+  if (access === "read") return ["readOnly"];
+  return ["readOnly", "workforceOperator", "adminIntegration"];
+}
+
+/** Infer create-key bundle from stored scopes (for rotate). */
+export function inferApiScopeBundle(
+  scopes: readonly string[],
+): ApiScopeBundleId {
+  if (scopes.includes("employees:write")) return "adminIntegration";
+  if (scopes.includes("tasks:write")) return "workforceOperator";
+  return "readOnly";
+}
+
 export function hasApiScope(
   grantedScopes: readonly string[],
   requiredScope: ApiScope,

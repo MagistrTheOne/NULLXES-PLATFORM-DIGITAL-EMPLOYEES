@@ -6,7 +6,19 @@
 **Live OpenAPI:** `GET /api/docs`  
 **Human docs (platform):** `/docs/api`  
 **Auth:** `Authorization: Bearer nx_live_...`  
-**Updated:** 2026-07-10
+**Updated:** 2026-07-19
+
+---
+
+## 0. Public visibility (probe)
+
+| Surface | Public without login | Notes |
+|---------|----------------------|--------|
+| `/docs/api` | Yes | Human documentation |
+| `GET /api/docs` | Yes | OpenAPI YAML (cacheable) |
+| `/api/v1/*` | Reachable, **401 without Bearer** | Workforce data requires `nx_live_…` key + scopes + plan |
+
+Docs/OpenAPI are intentionally public. Data endpoints are not open: no valid key ⇒ no payload. Dashboard Settings and Anam Key Pool remain session-gated.
 
 ---
 

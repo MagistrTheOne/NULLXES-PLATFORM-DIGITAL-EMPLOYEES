@@ -9,8 +9,14 @@ import { Switch } from "@/components/ui/switch";
 import { authClient } from "@/features/auth/client";
 import { TotpQrCode } from "@/features/auth/ui/totp-qr-code";
 import { createApiKeyAction } from "@/features/security/actions/create-api-key";
+import { rotateApiKeyAction } from "@/features/security/actions/rotate-api-key";
 import type { ApiScopeBundleId } from "@/features/public-api/lib/api-scopes";
-import { API_SCOPE_BUNDLES } from "@/features/public-api/lib/api-scopes";
+import {
+  API_SCOPE_BUNDLES,
+  bundlesForApiAccess,
+} from "@/features/public-api/lib/api-scopes";
+import type { BillingPlanId } from "@/features/billing/config/plans";
+import { planApiAccessLevel } from "@/features/billing/lib/plan-capabilities";
 import { recordTwoFactorAuditAction } from "@/features/security/actions/record-two-factor-audit";
 import { revokeApiKeyAction } from "@/features/security/actions/revoke-api-key";
 import { updateApiSecuritySettingsAction } from "@/features/security/actions/update-api-security-settings";
@@ -41,18 +47,27 @@ export function SettingsSecurityTab({
   pendingApprovals,
   canManageOrganization,
   require2faAdmin = false,
+  billingPlanId,
 }: {
   security: SecuritySnapshot;
   pendingApprovals: PendingApprovalRow[];
   canManageOrganization: boolean;
   require2faAdmin?: boolean;
+  billingPlanId: BillingPlanId;
 }) {
   const t = useTranslations("settings.security");
+  const apiAccess = planApiAccessLevel(billingPlanId);
+  const allowedBundles = bundlesForApiAccess(apiAccess);
   const [keyName, setKeyName] = useState("Production API");
-  const [scopeBundle, setScopeBundle] = useState<ApiScopeBundleId>(
-    "workforceOperator",
+  const [scopeBundle, setScopeBundle] = useState<ApiScopeBundleId>(() =>
+    allowedBundles.includes("workforceOperator")
+      ? "workforceOperator"
+      : (allowedBundles[0] ?? "readOnly"),
   );
   const [createdKey, setCreatedKey] = useState<string | null>(null);
+  const [pendingRevokeKeyId, setPendingRevokeKeyId] = useState<string | null>(
+    null,
+  );
   const [message, setMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [twoFactorSetup, setTwoFactorSetup] = useState<TwoFactorSetup | null>(
@@ -112,6 +127,14 @@ export function SettingsSecurityTab({
   }
 
   function handleCreateKey(): void {
+    if (allowedBundles.length === 0) {
+      setMessage(t("apiPlanNone"));
+      return;
+    }
+    if (!allowedBundles.includes(scopeBundle)) {
+      setMessage(t("apiBundleUnavailable"));
+      return;
+    }
     startTransition(async () => {
       const result = await createApiKeyAction({
         name: keyName,
@@ -280,7 +303,27 @@ export function SettingsSecurityTab({
   function handleRevokeKey(keyId: string): void {
     startTransition(async () => {
       const result = await revokeApiKeyAction(keyId);
-      setMessage(result.ok ? t("keyRevoked") : result.message);
+      if (result.ok) {
+        if (pendingRevokeKeyId === keyId) {
+          setPendingRevokeKeyId(null);
+        }
+        setMessage(t("keyRevoked"));
+        return;
+      }
+      setMessage(result.message);
+    });
+  }
+
+  function handleRotateKey(keyId: string): void {
+    startTransition(async () => {
+      const result = await rotateApiKeyAction({ keyId });
+      if (!result.ok) {
+        setMessage(result.message);
+        return;
+      }
+      setCreatedKey(result.rawKey);
+      setPendingRevokeKeyId(result.previousKeyId);
+      setMessage(t("rotateKeyDone", { name: result.previousKeyName }));
     });
   }
 
@@ -296,10 +339,13 @@ export function SettingsSecurityTab({
           </div>
         ) : null}
         <div className="grid gap-3">
-          <StatusRow
-            label={t("twoFactor")}
-            value={security.twoFactorEnabled ? t("enabled") : t("notEnabled")}
-          />
+          <div className="grid gap-1">
+            <StatusRow
+              label={t("twoFactor")}
+              value={security.twoFactorEnabled ? t("enabled") : t("notEnabled")}
+            />
+            <p className="px-1 text-xs text-muted-foreground">{t("twoFactorHint")}</p>
+          </div>
           <StatusRow
             label={t("activeSessions")}
             value={t("devices", { count: security.activeAuthSessions })}
@@ -609,8 +655,21 @@ export function SettingsSecurityTab({
         </div>
       </SettingsCard>
 
-      <SettingsCard title={t("apiAccess")}>
+      <SettingsCard title={t("apiAccess")} description={t("apiAccessDesc")}>
         <div className="grid gap-3">
+          {!canManageOrganization ? (
+            <p className="text-xs text-muted-foreground">{t("apiOwnerOnly")}</p>
+          ) : null}
+          <StatusRow
+            label={t("apiPlanAccess")}
+            value={
+              apiAccess === "none"
+                ? t("apiPlanNoneLabel")
+                : apiAccess === "read"
+                  ? t("apiPlanReadLabel")
+                  : t("apiPlanFullLabel")
+            }
+          />
           <StatusRow
             label={t("apiKeys")}
             value={security.apiKeysConfigured ? t("configured") : t("notConfigured")}
@@ -644,7 +703,12 @@ export function SettingsSecurityTab({
               </Button>
             </div>
           ) : null}
-          {canManageOrganization ? (
+          {canManageOrganization && allowedBundles.length === 0 ? (
+            <p className="rounded-xl border border-border bg-background/40 px-4 py-3 text-sm text-muted-foreground">
+              {t("apiPlanNone")}
+            </p>
+          ) : null}
+          {canManageOrganization && allowedBundles.length > 0 ? (
             <div className="grid gap-3 rounded-xl border border-border bg-background/40 p-4">
               <div className="grid gap-2">
                 <label className="text-sm text-muted-foreground" htmlFor="api-key-name">
@@ -660,24 +724,43 @@ export function SettingsSecurityTab({
                 <Label htmlFor="api-scope-bundle">{t("scopeBundle")}</Label>
                 <select
                   id="api-scope-bundle"
-                  value={scopeBundle}
+                  value={
+                    allowedBundles.includes(scopeBundle)
+                      ? scopeBundle
+                      : allowedBundles[0]
+                  }
                   onChange={(event) =>
                     setScopeBundle(event.target.value as ApiScopeBundleId)
                   }
                   className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                 >
-                  {Object.entries(API_SCOPE_BUNDLES).map(([id, bundle]) => (
+                  {allowedBundles.map((id) => (
                     <option key={id} value={id}>
-                      {bundle.label}
+                      {API_SCOPE_BUNDLES[id].label}
                     </option>
                   ))}
                 </select>
                 <p className="text-xs text-muted-foreground">
-                  {API_SCOPE_BUNDLES[scopeBundle].description}
+                  {
+                    API_SCOPE_BUNDLES[
+                      allowedBundles.includes(scopeBundle)
+                        ? scopeBundle
+                        : allowedBundles[0]!
+                    ].description
+                  }
                 </p>
                 <p className="font-mono text-xs text-muted-foreground">
-                  {API_SCOPE_BUNDLES[scopeBundle].scopes.join(", ")}
+                  {API_SCOPE_BUNDLES[
+                    allowedBundles.includes(scopeBundle)
+                      ? scopeBundle
+                      : allowedBundles[0]!
+                  ].scopes.join(", ")}
                 </p>
+                {apiAccess === "read" ? (
+                  <p className="text-xs text-muted-foreground">
+                    {t("apiPlanReadHint")}
+                  </p>
+                ) : null}
               </div>
               <div className="rounded-lg border border-border bg-background/40 p-3 text-xs text-muted-foreground">
                 <p className="text-foreground">{t("apiDocsTitle")}</p>
@@ -706,6 +789,7 @@ export function SettingsSecurityTab({
                     /api/docs
                   </a>
                 </div>
+                <p className="mt-3 text-muted-foreground">{t("apiRotationHint")}</p>
               </div>
               <Button
                 type="button"
@@ -722,9 +806,9 @@ export function SettingsSecurityTab({
               {security.apiKeys.map((key) => (
                 <div
                   key={key.id}
-                  className="flex items-center justify-between gap-3 rounded-lg border border-border bg-background/40 px-3 py-2 text-sm"
+                  className="flex flex-col gap-2 rounded-lg border border-border bg-background/40 px-3 py-2 text-sm sm:flex-row sm:items-center sm:justify-between"
                 >
-                  <div>
+                  <div className="min-w-0">
                     <p className="text-foreground">{key.name}</p>
                     <p className="font-mono text-xs text-muted-foreground">
                       {key.keyPrefix}…
@@ -734,24 +818,50 @@ export function SettingsSecurityTab({
                     </p>
                   </div>
                   {canManageOrganization ? (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      disabled={isPending}
-                      onClick={() => handleRevokeKey(key.id)}
-                    >
-                      {t("revokeKey")}
-                    </Button>
+                    <div className="flex shrink-0 flex-wrap gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={isPending}
+                        onClick={() => handleRotateKey(key.id)}
+                      >
+                        {t("rotateKey")}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={isPending}
+                        onClick={() => handleRevokeKey(key.id)}
+                      >
+                        {t("revokeKey")}
+                      </Button>
+                    </div>
                   ) : null}
                 </div>
               ))}
             </div>
           ) : null}
           {createdKey ? (
-            <p className="rounded-lg border border-border bg-background/40 p-3 font-mono text-xs text-foreground">
-              {createdKey}
-            </p>
+            <div className="grid gap-2 rounded-lg border border-border bg-background/40 p-3">
+              <p className="text-xs text-muted-foreground">{t("copyKeyNow")}</p>
+              <p className="break-all font-mono text-xs text-foreground">
+                {createdKey}
+              </p>
+              {pendingRevokeKeyId ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="w-fit"
+                  disabled={isPending}
+                  onClick={() => handleRevokeKey(pendingRevokeKeyId)}
+                >
+                  {t("revokePreviousKey")}
+                </Button>
+              ) : null}
+            </div>
           ) : null}
           {message ? <p className="text-xs text-muted-foreground">{message}</p> : null}
         </div>

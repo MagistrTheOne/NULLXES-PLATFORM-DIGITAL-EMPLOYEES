@@ -1,21 +1,37 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useLocale, useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
-import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   revokeAuthSessionAction,
   revokeOtherAuthSessionsAction,
 } from "../actions/revoke-auth-sessions";
+import { formatUserAgentLabel } from "../lib/format-user-agent";
 import type { AuthSessionListItem } from "../types";
 
 function formatSessionLabel(session: AuthSessionListItem): string {
-  const agent = session.userAgent?.split(" ")[0] ?? "Unknown device";
+  const agent = formatUserAgentLabel(session.userAgent);
   const ip = session.ipAddress ?? "unknown IP";
   return `${agent} · ${ip}`;
+}
+
+function formatRelativeTime(date: Date, locale: string): string {
+  const diffMs = date.getTime() - Date.now();
+  const diffSec = Math.round(diffMs / 1000);
+  const absSec = Math.abs(diffSec);
+  const rtf = new Intl.RelativeTimeFormat(locale === "ru" ? "ru" : "en", {
+    numeric: "auto",
+  });
+
+  if (absSec < 60) return rtf.format(diffSec, "second");
+  const diffMin = Math.round(diffSec / 60);
+  if (Math.abs(diffMin) < 60) return rtf.format(diffMin, "minute");
+  const diffHour = Math.round(diffMin / 60);
+  if (Math.abs(diffHour) < 48) return rtf.format(diffHour, "hour");
+  const diffDay = Math.round(diffHour / 24);
+  return rtf.format(diffDay, "day");
 }
 
 export function SettingsActiveSessionsSection({
@@ -26,6 +42,7 @@ export function SettingsActiveSessionsSection({
   currentSessionId: string | null;
 }) {
   const t = useTranslations("settings.security.sessions");
+  const locale = useLocale();
   const router = useRouter();
   const [message, setMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -78,7 +95,10 @@ export function SettingsActiveSessionsSection({
                 ) : null}
               </p>
               <p className="text-xs text-muted-foreground">
-                {new Intl.DateTimeFormat(undefined, {
+                {t("signedIn")}{" "}
+                {formatRelativeTime(new Date(item.createdAt), locale)}
+                {" · "}
+                {new Intl.DateTimeFormat(locale === "ru" ? "ru-RU" : "en-US", {
                   dateStyle: "medium",
                   timeStyle: "short",
                 }).format(new Date(item.createdAt))}

@@ -233,6 +233,9 @@ export function SettingsScreen({
                 pendingApprovals={data.pendingApprovals}
                 canManageOrganization={data.canManageOrganization}
                 require2faAdmin={require2faAdmin}
+                billingPlanId={resolveBillingPlanId(
+                  data.organization.billingPlan,
+                )}
               />
             </TabsContent>
 
