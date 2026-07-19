@@ -52,10 +52,10 @@ Agent markdown: docs/ARCHITECTURE.md.`,
     ],
     body: `Тарифы (id → имя), лимиты из plans.ts:
 - free → Evaluation (0 ₽): catalog only, без create; Talk 2 мин/сессия, 30 мин/мес; chunks 5000; API none
-- starter → Starter (599 ₽/mo): 2 employees; Talk 10 мин/сессия, 60 мин/мес; chunks 2500; API none
-- studio → Studio (4 999 ₽/mo): 5 employees; Talk 10 мин, 180 мин/мес; chunks 15000; API none
-- operator → Team (19 999 ₽/mo): 10 employees; Talk 20 мин, 600 мин/мес; chunks 50000; API read
-- scale → Scale (59 999 ₽/mo): 20 employees; Talk 30 мин, 2000 мин/мес; chunks 150000; API full
+- starter → Starter (4 990 ₽/mo): 3 employees; Talk 15 мин/сессия, 120 мин/мес; chunks 5000; API none
+- studio → Studio (14 990 ₽/mo): 8 employees; Talk 15 мин, 400 мин/мес; chunks 25000; API none
+- operator → Team (49 990 ₽/mo): 20 employees; Talk 30 мин, 1500 мин/мес; chunks 100000; API read
+- scale → Scale (149 990 ₽/mo): 50 employees; Talk 60 мин, 5000 мин/мес; chunks 300000; API full
 - enterprise → Enterprise (Contact sales): unlimited employees/Talk; chunks 100000; API full
 - government → Holding (Contact sales): unlimited; API full
 API keys: Evaluation/Starter/Studio — нет; Team — read; Scale/Enterprise/Holding — full.`,

@@ -206,7 +206,25 @@ Text Primary:    #FFFFFF
 Text Secondary:  rgba(255,255,255,0.60)
 
 Hover:           rgba(255,255,255,0.04)
-The interface should feel like enterprise software used daily by executives operating digital employees.
+
+The interface should feel sharp and operational — a control center for digital employees, not soft Fortune-500 SaaS wallpaper.
+
+---
+
+## Voice Rules (REBURN)
+
+Dual voice. Do not collapse them into one tone.
+
+| Surface | Tone |
+|---------|------|
+| Landing, pricing, marketing, product UI (dashboard copy, empty states) | Direct, sharp, confident. Digital workforce — not chatbots. No Fortune-500 water. |
+| Checkout / billing errors / legal / ToS | Neutral and clear |
+| Enterprise / Holding / sales / integration docs / partner API | Polite for $$$ — calm enterprise tone |
+
+Tagline (EN): **Digital employees. Not another chat wrapper.**  
+Tagline (RU): **Цифровые сотрудники. Не очередная обёртка над чатом.**
+
+Do not write product copy as if NULLXES is “quiet Fortune-500 dashboard software.” That voice is reserved for sales and integrations.
 
 ---
 

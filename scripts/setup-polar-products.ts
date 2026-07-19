@@ -88,7 +88,9 @@ const VERIFICATION_PRODUCT_SPEC: ProductSpec = {
 const INTERVALS: BillingInterval[] = ["month", "year"];
 
 const BILLING_PLAN_SPECS: ProductSpec[] = (
-  SELF_SERVE_CHECKOUT_PLAN_IDS as Array<"studio" | "operator" | "scale">
+  SELF_SERVE_CHECKOUT_PLAN_IDS as Array<
+    "starter" | "studio" | "operator" | "scale"
+  >
 ).flatMap((planId) => {
   const plan = BILLING_PLANS[planId];
   return INTERVALS.map((interval) => {

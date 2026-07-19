@@ -71,13 +71,25 @@ Avoid:
 The interface should feel:
 
 * premium
-* quiet
+* sharp
 * confident
-* enterprise
-* futuristic
+* operational
 * minimal
+* black & white
 
-The product must look like software used by Fortune 500 companies.
+REBURN: digital workforce operating system — not a soft Fortune-500 SaaS brochure.
+
+---
+
+## Voice Rules (REBURN)
+
+Dual voice:
+
+* **Product** (landing, pricing, dashboard copy, empty states): direct, sharp. “Digital employees. Not another chat wrapper.” / RU: “Цифровые сотрудники. Не очередная обёртка над чатом.”
+* **Checkout / legal / ToS**: neutral-clear
+* **Enterprise / Holding / sales / integrations / partner API**: polite for $$$ — calm enterprise tone
+
+Do not use “quiet Fortune-500 only” as the single product voice.
 
 ---
 
@@ -115,11 +127,10 @@ Accent:
 
 Cards:
 
-* Large radius
-* Glossmorphism
-* Soft reflections
+* Medium radius
 * Subtle borders
 * Layered depth
+* Less soft glass — clearer hierarchy
 
 Examples:
 
@@ -135,6 +146,8 @@ rgba(255,255,255,0.04)
 No heavy blur abuse.
 
 No fake futuristic effects.
+
+Landing / pricing: denser type, explicit price and employee capacity.
 
 ---
 
@@ -313,9 +326,11 @@ Digital Workforce Operating System
 
 Tagline:
 
-Build, deploy and manage digital employees at enterprise scale.
+Digital employees. Not another chat wrapper.
 
-The product should feel like the control center of a digital civilization.
+RU: Цифровые сотрудники. Не очередная обёртка над чатом.
+
+The product should feel like the control center of a digital workforce.
 
 
 

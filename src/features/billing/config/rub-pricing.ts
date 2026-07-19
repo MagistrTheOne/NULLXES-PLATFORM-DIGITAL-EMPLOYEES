@@ -8,17 +8,17 @@ import type { PricingTierId } from "./pricing-tiers";
  */
 const RUB_MONTHLY: Partial<Record<PricingTierId, number>> = {
   free: 0,
-  starter: 599,
-  studio: 4_999,
-  operator: 19_999,
-  scale: 59_999,
+  starter: 4_990,
+  studio: 14_990,
+  operator: 49_990,
+  scale: 149_990,
 };
 
 const RUB_ANNUAL: Partial<Record<PricingTierId, number>> = {
-  starter: 5_759,
-  studio: 47_999,
-  operator: 191_999,
-  scale: 575_999,
+  starter: 47_904,
+  studio: 143_904,
+  operator: 479_904,
+  scale: 1_439_904,
 };
 
 export type SelfServeCheckoutPlanId =

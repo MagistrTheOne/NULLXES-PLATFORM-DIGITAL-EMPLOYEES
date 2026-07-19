@@ -57,7 +57,7 @@
       "logout": "Logout"
     },
     "subtitle": {
-      "workforce": "Manage and operate your digital workforce."
+      "workforce": "Run your digital employees. Cut the fluff."
     },
     "cookieConsent": {
       "title": "We use cookies",
@@ -1176,28 +1176,28 @@
       "tier": {
         "free": {
           "name": "Evaluation",
-          "description": "Meet NULLXES employees. Build your own on paid plans.",
+          "description": "Talk to demo employees. Hire your own on a paid plan.",
           "features": "2 demo employees: Adeline + Yuki|30 Talk minutes / month|AI chat|No custom employees"
         },
         "starter": {
           "name": "Starter",
-          "description": "Starter catalog plus your first custom digital employees.",
-          "features": "Starter catalog: Adeline + Yuki|2 custom digital employees|Up to 60 Talk minutes / month|Up to 2,500 knowledge chunks|1 custom avatar included|Dialog history"
+          "description": "Your first custom digital employees. Not a toy chat seat.",
+          "features": "Starter catalog: Adeline + Yuki|3 custom digital employees|Up to 120 Talk minutes / month|Up to 5,000 knowledge chunks|1 custom avatar included|Dialog history"
         },
         "studio": {
           "name": "Studio",
-          "description": "Starter catalog access with room for a personal digital team.",
-          "features": "Starter catalog: Adeline + Yuki|5 custom digital employees|Up to 180 Talk minutes / month|Up to 15,000 knowledge chunks|1 custom avatar included|History and dialog search"
+          "description": "A personal digital team you actually run day to day.",
+          "features": "Starter catalog: Adeline + Yuki|8 custom digital employees|Up to 400 Talk minutes / month|Up to 25,000 knowledge chunks|2 custom avatars included|History and dialog search"
         },
         "operator": {
           "name": "Team",
-          "description": "A digital team with extended catalog and first integrations.",
-          "features": "Full NULLXES employee marketplace access|10 custom digital employees|Up to 600 Talk minutes / month|Shared workspace|Up to 50,000 knowledge chunks|Read API"
+          "description": "A department of digital employees with seats and read API.",
+          "features": "Full NULLXES employee marketplace access|20 custom digital employees|Up to 1,500 Talk minutes / month|Shared workspace · 10 seats|Up to 100,000 knowledge chunks|Read API"
         },
         "scale": {
           "name": "Scale",
-          "description": "Full catalog access for companies growing a digital workforce.",
-          "features": "Full NULLXES catalog|20 custom digital employees|Up to 2,000 Talk minutes / month|Full API|Up to 10 custom avatars|Priority support"
+          "description": "Grow a real digital workforce with full API access.",
+          "features": "Full NULLXES catalog|50 custom digital employees|Up to 5,000 Talk minutes / month|Full API|Up to 20 custom avatars|Priority support"
         },
         "discovery": {
           "name": "Discovery",
@@ -1988,10 +1988,10 @@
       "localeRu": "RU"
     },
     "hero": {
-      "eyebrow": "Enterprise Digital Employees",
-      "titleLine1": "One platform.",
-      "titleLine2": "Every digital employee.",
-      "body": "Build, deploy and operate digital employees across your organization from one secure platform.",
+      "eyebrow": "Digital Employees",
+      "titleLine1": "Digital employees.",
+      "titleLine2": "Not another chat wrapper.",
+      "body": "Build, deploy, and run digital employees. Not chatbots. Not wrappers.",
       "explore": "Explore Platform",
       "oneTapTalk": "One Tap to Talk"
     },
@@ -2006,7 +2006,7 @@
     "workforce": {
       "label": "Workforce",
       "title": "Digital Workforce",
-      "subtitle": "Deploy specialized digital employees across your organization.",
+      "subtitle": "Specialized digital employees. Roles, not chat windows.",
       "categories": {
         "support": {
           "title": "Digital Support",
@@ -2084,7 +2084,7 @@
     },
     "pricing": {
       "label": "Pricing",
-      "title": "Plans and enterprise.",
+      "title": "Hire capacity. Not seats for chat.",
       "platformTitle": "Platform",
       "platformNote": "RUB · annual −20%",
       "enterpriseTitle": "Enterprise",
@@ -2097,6 +2097,13 @@
       "subscribe": "Subscribe",
       "contactSales": "Contact sales",
       "flagship": "Flagship",
+      "capacity": {
+        "free": "0 custom",
+        "starter": "3 employees",
+        "studio": "8 employees",
+        "operator": "20 employees",
+        "scale": "50 employees"
+      },
       "tiers": {
         "free": "Evaluation",
         "starter": "Starter",
