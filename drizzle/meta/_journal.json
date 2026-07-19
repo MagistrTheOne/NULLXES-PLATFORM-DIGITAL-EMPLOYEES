@@ -379,6 +379,13 @@
       "when": 1785700000000,
       "tag": "0053_brain_provider_xai",
       "breakpoints": true
+    },
+    {
+      "idx": 54,
+      "version": "7",
+      "when": 1785700001000,
+      "tag": "0054_organization_provider_xai",
+      "breakpoints": true
     }
   ]
 }
