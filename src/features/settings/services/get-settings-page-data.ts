@@ -162,7 +162,7 @@ export async function getSettingsPageData(
       })),
       auditTotal: auditResult.total,
       pendingApprovals,
-      brainProviderReadiness: getBrainProviderReadinessMap(),
+      brainProviderReadiness: await getBrainProviderReadinessMap(organizationId),
       providerKeyStatuses,
     };
   });

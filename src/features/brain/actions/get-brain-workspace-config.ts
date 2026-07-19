@@ -37,7 +37,9 @@ export async function getBrainWorkspaceConfigAction(): Promise<GetBrainWorkspace
     config: {
       defaultBrainProvider: defaults.defaultBrainProvider,
       defaultBrainModel: defaults.defaultBrainModel,
-      providerReadiness: getBrainProviderReadinessMap(),
+      providerReadiness: await getBrainProviderReadinessMap(
+        workspace.organization.id,
+      ),
     },
   };
 }

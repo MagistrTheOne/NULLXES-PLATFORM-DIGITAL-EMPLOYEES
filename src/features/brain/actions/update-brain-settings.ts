@@ -10,7 +10,7 @@ import {
 import { resolveBrainModelForProvider } from "@/features/settings/lib/brain-model-defaults";
 import {
   getBrainProviderReadinessMap,
-  isBrainProviderSelectable,
+  isBrainProviderConfigured,
 } from "../lib/brain-provider-readiness";
 
 export type UpdateBrainSettingsInput = {
@@ -41,12 +41,15 @@ export async function updateBrainSettingsAction(
     return { ok: false, message: "Select a valid LLM provider." };
   }
 
-  const readiness = getBrainProviderReadinessMap()[defaultBrainProvider];
+  const readiness = (
+    await getBrainProviderReadinessMap(workspace.organization.id)
+  )[defaultBrainProvider];
 
-  if (!isBrainProviderSelectable(defaultBrainProvider, readiness)) {
+  if (!isBrainProviderConfigured(readiness)) {
     return {
       ok: false,
-      message: "Selected provider is not configured for this workspace.",
+      message:
+        "Selected provider is not configured. Add an API key under Provider API keys, or set the platform env key.",
     };
   }
 

@@ -74,7 +74,8 @@ export async function EmployeeDetailScreen({
   const session = await getCurrentSession();
   const isPlatformAdmin = isPlatformAdminEmail(session?.user.email);
   const empty = "—";
-  const brainProviderReadiness = getBrainProviderReadinessMap();
+  const brainProviderReadiness =
+    await getBrainProviderReadinessMap(organizationId);
 
   const provisioningFailed =
     employee.avatarProvisioningStatus === "failed" ||

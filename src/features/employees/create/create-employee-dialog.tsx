@@ -54,7 +54,7 @@ import {
   readCreateEmployeeWizardDraft,
   writeCreateEmployeeWizardDraft,
 } from "./wizard-persistence";
-import { isBrainProviderSelectable } from "@/features/brain";
+import { isBrainProviderConfigured } from "@/features/brain";
 import {
   getBrainWorkspaceConfigAction,
   type BrainWorkspaceConfig,
@@ -331,7 +331,7 @@ export function CreateEmployeeDialog({
         const readiness =
           brainWorkspaceConfig.providerReadiness[form.orgDefaultBrainProvider];
 
-        if (!isBrainProviderSelectable(form.orgDefaultBrainProvider, readiness)) {
+        if (!isBrainProviderConfigured(readiness)) {
           setError(t("errors.brainOrgDefaultNotConfigured"));
           return false;
         }
@@ -339,7 +339,7 @@ export function CreateEmployeeDialog({
         const readiness =
           brainWorkspaceConfig.providerReadiness[form.brainProvider];
 
-        if (!isBrainProviderSelectable(form.brainProvider, readiness)) {
+        if (!isBrainProviderConfigured(readiness)) {
           setError(t("errors.brainProviderNotConfigured"));
           return false;
         }

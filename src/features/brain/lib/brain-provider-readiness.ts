@@ -1,10 +1,6 @@
 import type { BrainProvider } from "@/entities/digital-employee";
-import {
-  hasAnthropicCredentials,
-  hasGoogleCredentials,
-  hasOpenAiCredentials,
-  hasXaiCredentials,
-} from "@/shared/config/provider-env";
+import type { OrganizationProvider } from "@/entities/organization-provider-credential";
+import { resolveOrganizationProviderKey } from "@/features/provider-credentials";
 import { hasNullxesApiCredentials } from "@/shared/nullxes-sdk";
 import type {
   BrainProviderReadiness,
@@ -14,32 +10,61 @@ import { BRAIN_PROVIDERS } from "./brain-model-catalog";
 
 export type { BrainProviderReadiness, BrainProviderReadinessMap };
 
-function resolveProviderReadiness(
+function toOrganizationProvider(
   provider: BrainProvider,
-): BrainProviderReadiness {
-  switch (provider) {
-    case "openai":
-      return hasOpenAiCredentials() ? "ready" : "configure";
-    case "anthropic":
-      return hasAnthropicCredentials() ? "ready" : "configure";
-    case "google":
-      return hasGoogleCredentials() ? "ready" : "configure";
-    case "nullxes":
-      return hasNullxesApiCredentials() ? "managed" : "configure";
-    case "xai":
-      return hasXaiCredentials() ? "ready" : "configure";
+): OrganizationProvider {
+  return provider;
+}
+
+async function resolveProviderReadiness(
+  provider: BrainProvider,
+  organizationId?: string,
+): Promise<BrainProviderReadiness> {
+  if (provider === "nullxes") {
+    if (hasNullxesApiCredentials()) {
+      return "managed";
+    }
+
+    const key = await resolveOrganizationProviderKey(
+      organizationId,
+      "nullxes",
+    );
+    return key ? "ready" : "configure";
   }
+
+  const key = await resolveOrganizationProviderKey(
+    organizationId,
+    toOrganizationProvider(provider),
+  );
+  return key ? "ready" : "configure";
 }
 
-export function getBrainProviderReadinessMap(): BrainProviderReadinessMap {
-  return BRAIN_PROVIDERS.reduce<BrainProviderReadinessMap>((map, provider) => {
-    map[provider] = resolveProviderReadiness(provider);
-    return map;
-  }, {} as BrainProviderReadinessMap);
+/** Platform env + organization Provider API keys. */
+export async function getBrainProviderReadinessMap(
+  organizationId?: string,
+): Promise<BrainProviderReadinessMap> {
+  const entries = await Promise.all(
+    BRAIN_PROVIDERS.map(async (provider) => {
+      const readiness = await resolveProviderReadiness(
+        provider,
+        organizationId,
+      );
+      return [provider, readiness] as const;
+    }),
+  );
+
+  return Object.fromEntries(entries) as BrainProviderReadinessMap;
 }
 
+/** Card can be selected in UI. Save still requires ready/managed credentials. */
 export function isBrainProviderSelectable(
-  provider: BrainProvider,
+  _provider: BrainProvider,
+  _readiness: BrainProviderReadiness,
+): boolean {
+  return true;
+}
+
+export function isBrainProviderConfigured(
   readiness: BrainProviderReadiness,
 ): boolean {
   return readiness === "ready" || readiness === "managed";

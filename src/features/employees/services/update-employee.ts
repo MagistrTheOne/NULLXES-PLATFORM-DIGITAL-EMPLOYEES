@@ -15,7 +15,7 @@ import { recordLifecycleEvent } from "@/features/employee/services/record-lifecy
 import {
   resolveBrainModelForProvider,
 } from "@/features/settings/lib/brain-model-defaults";
-import { isBrainProviderSelectable } from "@/features/brain/lib/brain-provider-readiness";
+import { isBrainProviderConfigured } from "@/features/brain/lib/brain-provider-readiness";
 import { getBrainProviderReadinessMap } from "@/features/brain/lib/brain-provider-readiness";
 import { db } from "@/shared/db/client";
 import { withTenantContext } from "@/shared/db/with-tenant-context";
@@ -91,11 +91,14 @@ export async function updateEmployee(
     return { ok: false, message: "Brain model is required" };
   }
 
-  const readiness = getBrainProviderReadinessMap()[input.brainProvider];
-  if (!isBrainProviderSelectable(input.brainProvider, readiness)) {
+  const readiness = (
+    await getBrainProviderReadinessMap(input.organizationId)
+  )[input.brainProvider];
+  if (!isBrainProviderConfigured(readiness)) {
     return {
       ok: false,
-      message: "Selected brain provider is not configured for this workspace.",
+      message:
+        "Selected brain provider is not configured. Add an API key under Settings → AI → Provider API keys.",
     };
   }
 
