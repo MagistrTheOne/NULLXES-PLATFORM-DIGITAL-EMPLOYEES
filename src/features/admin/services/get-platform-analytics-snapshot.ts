@@ -1,4 +1,4 @@
-import { count, desc, eq, ne } from "drizzle-orm";
+import { count, desc, eq, inArray, sql } from "drizzle-orm";
 import { digitalEmployee } from "@/entities/digital-employee/schema";
 import { membership } from "@/entities/membership/schema";
 import { organization } from "@/entities/organization/schema";
@@ -7,6 +7,7 @@ import type { BillingPlanId } from "@/features/billing/config/plans";
 import { BILLING_PLANS } from "@/features/billing/config/plans";
 import { resolveBillingPlanId } from "@/features/billing/lib/resolve-billing-plan";
 import { db } from "@/shared/db/client";
+import { isEphemeralVerifyOrganizationName } from "../lib/is-ephemeral-verify-organization";
 
 const TENANT_ROW_LIMIT = 200;
 
@@ -49,64 +50,46 @@ export type PlatformAnalyticsSnapshot = {
 };
 
 export async function getPlatformAnalyticsSnapshot(): Promise<PlatformAnalyticsSnapshot> {
-  const [
-    userCountRow,
-    orgCountRow,
-    agentCountRow,
-    paidOrgCountRow,
-    planRows,
-    memberCountRows,
-    agentCountRows,
-    ownerRows,
-    orgRows,
-  ] = await Promise.all([
-    db.select({ total: count() }).from(user),
-    db.select({ total: count() }).from(organization),
-    db.select({ total: count() }).from(digitalEmployee),
-    db
-      .select({ total: count() })
-      .from(organization)
-      .where(ne(organization.billingPlan, "free")),
-    db
-      .select({
-        plan: organization.billingPlan,
-        total: count(),
-      })
-      .from(organization)
-      .groupBy(organization.billingPlan),
-    db
-      .select({
-        organizationId: membership.organizationId,
-        total: count(),
-      })
-      .from(membership)
-      .groupBy(membership.organizationId),
-    db
-      .select({
-        organizationId: digitalEmployee.organizationId,
-        total: count(),
-      })
-      .from(digitalEmployee)
-      .groupBy(digitalEmployee.organizationId),
-    db
-      .select({
-        organizationId: membership.organizationId,
-        ownerName: user.name,
-        ownerEmail: user.email,
-      })
-      .from(membership)
-      .innerJoin(user, eq(membership.userId, user.id))
-      .where(eq(membership.role, "owner")),
-    db
-      .select({
-        id: organization.id,
-        name: organization.name,
-        billingPlan: organization.billingPlan,
-        createdAt: organization.createdAt,
-      })
-      .from(organization)
-      .orderBy(desc(organization.createdAt)),
-  ]);
+  const [orgRows, memberCountRows, agentCountRows, ownerRows] =
+    await Promise.all([
+      db
+        .select({
+          id: organization.id,
+          name: organization.name,
+          billingPlan: organization.billingPlan,
+          createdAt: organization.createdAt,
+        })
+        .from(organization)
+        .orderBy(desc(organization.createdAt)),
+      db
+        .select({
+          organizationId: membership.organizationId,
+          total: count(),
+        })
+        .from(membership)
+        .groupBy(membership.organizationId),
+      db
+        .select({
+          organizationId: digitalEmployee.organizationId,
+          total: count(),
+        })
+        .from(digitalEmployee)
+        .groupBy(digitalEmployee.organizationId),
+      db
+        .select({
+          organizationId: membership.organizationId,
+          ownerName: user.name,
+          ownerEmail: user.email,
+        })
+        .from(membership)
+        .innerJoin(user, eq(membership.userId, user.id))
+        .where(eq(membership.role, "owner")),
+    ]);
+
+  const realOrgs = orgRows.filter(
+    (org) => !isEphemeralVerifyOrganizationName(org.name),
+  );
+  const realOrgIds = new Set(realOrgs.map((org) => org.id));
 
   const memberCountByOrg = new Map(
     memberCountRows.map((row) => [row.organizationId, Number(row.total)]),
@@ -121,13 +104,17 @@ export async function getPlatformAnalyticsSnapshot(): Promise<PlatformAnalyticsS
     ]),
   );
 
+  let totalAgents = 0;
+  let paidOrganizations = 0;
   const planCountById = new Map<BillingPlanId, number>();
-  for (const row of planRows) {
-    const planId = resolveBillingPlanId(row.plan);
-    planCountById.set(
-      planId,
-      (planCountById.get(planId) ?? 0) + Number(row.total),
-    );
+
+  for (const org of realOrgs) {
+    const planId = resolveBillingPlanId(org.billingPlan);
+    planCountById.set(planId, (planCountById.get(planId) ?? 0) + 1);
+    totalAgents += agentCountByOrg.get(org.id) ?? 0;
+    if (planId !== "free") {
+      paidOrganizations += 1;
+    }
   }
 
   const planMix: PlatformPlanMixRow[] = PLAN_ORDER.map((planId) => ({
@@ -136,7 +123,7 @@ export async function getPlatformAnalyticsSnapshot(): Promise<PlatformAnalyticsS
     organizationCount: planCountById.get(planId) ?? 0,
   }));
 
-  const tenantsUnsorted: PlatformTenantRow[] = orgRows.map((org) => {
+  const tenantsUnsorted: PlatformTenantRow[] = realOrgs.map((org) => {
     const planId = resolveBillingPlanId(org.billingPlan);
     const owner = ownerByOrg.get(org.id);
     return {
@@ -162,11 +149,23 @@ export async function getPlatformAnalyticsSnapshot(): Promise<PlatformAnalyticsS
   const tenantsTruncated = tenantsUnsorted.length > TENANT_ROW_LIMIT;
   const tenants = tenantsUnsorted.slice(0, TENANT_ROW_LIMIT);
 
+  const realOrgIdList = [...realOrgIds];
+  let totalUsers = 0;
+  if (realOrgIdList.length > 0) {
+    const [userCountRow] = await db
+      .select({
+        total: sql<number>`count(distinct ${membership.userId})::int`,
+      })
+      .from(membership)
+      .where(inArray(membership.organizationId, realOrgIdList));
+    totalUsers = Number(userCountRow?.total ?? 0);
+  }
+
   return {
-    totalUsers: Number(userCountRow[0]?.total ?? 0),
-    totalOrganizations: Number(orgCountRow[0]?.total ?? 0),
-    totalAgents: Number(agentCountRow[0]?.total ?? 0),
-    paidOrganizations: Number(paidOrgCountRow[0]?.total ?? 0),
+    totalUsers,
+    totalOrganizations: realOrgs.length,
+    totalAgents,
+    paidOrganizations,
     planMix,
     tenants,
     tenantsTruncated,

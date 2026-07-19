@@ -4,6 +4,7 @@ export {
   getPlatformAdminEmails,
   isPlatformAdminEmail,
 } from "./lib/is-platform-admin";
+export { isEphemeralVerifyOrganizationName } from "./lib/is-ephemeral-verify-organization";
 export {
   getAnamPoolStatus,
   type AnamPoolStatus,
