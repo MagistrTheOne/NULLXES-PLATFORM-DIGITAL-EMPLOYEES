@@ -16,7 +16,7 @@ import {
   resolveBrainModelForProvider,
 } from "@/features/settings/lib/brain-model-defaults";
 import { isBrainProviderConfigured } from "@/features/brain/lib/brain-provider-readiness";
-import { getBrainProviderReadinessMap } from "@/features/brain/lib/brain-provider-readiness";
+import { getBrainProviderReadinessMap } from "@/features/brain/lib/get-brain-provider-readiness-map";
 import { db } from "@/shared/db/client";
 import { withTenantContext } from "@/shared/db/with-tenant-context";
 import { assertEmployeeWritableInOrg } from "./platform-employee-catalog";

@@ -3,10 +3,8 @@
 import { requireAuth } from "@/features/auth/services/require-auth";
 import { ensureWorkspace } from "@/features/auth/services/ensure-workspace";
 import type { BrainProvider } from "@/entities/digital-employee";
-import {
-  getBrainProviderReadinessMap,
-  type BrainProviderReadinessMap,
-} from "../lib/brain-provider-readiness";
+import type { BrainProviderReadinessMap } from "../lib/brain-provider-readiness";
+import { getBrainProviderReadinessMap } from "../lib/get-brain-provider-readiness-map";
 import { getOrganizationBrainDefaults } from "../services/get-organization-brain-defaults";
 
 export type BrainWorkspaceConfig = {

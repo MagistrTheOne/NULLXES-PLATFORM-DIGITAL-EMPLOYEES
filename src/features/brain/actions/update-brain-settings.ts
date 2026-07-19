@@ -8,10 +8,8 @@ import {
   updateOrganizationSettings,
 } from "@/features/settings/services/update-organization-settings";
 import { resolveBrainModelForProvider } from "@/features/settings/lib/brain-model-defaults";
-import {
-  getBrainProviderReadinessMap,
-  isBrainProviderConfigured,
-} from "../lib/brain-provider-readiness";
+import { isBrainProviderConfigured } from "../lib/brain-provider-readiness";
+import { getBrainProviderReadinessMap } from "../lib/get-brain-provider-readiness-map";
 
 export type UpdateBrainSettingsInput = {
   defaultBrainProvider: string;

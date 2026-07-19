@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { isPlatformAdminEmail } from "@/features/admin";
 import { getCurrentSession } from "@/features/auth/services/get-current-session";
-import { getBrainProviderReadinessMap } from "@/features/brain/lib/brain-provider-readiness";
+import { getBrainProviderReadinessMap } from "@/features/brain/lib/get-brain-provider-readiness-map";
 import type { OrganizationDisplayPreferences } from "@/features/workspace/types/display-preferences";
 import { resolveTalkReadinessBlockers } from "../lib/resolve-talk-readiness";
 import { isAnamAvatarTalkReady } from "../lib/resolve-anam-avatar-talk-readiness";
