@@ -119,6 +119,13 @@ export const MOBILE_MORE_ITEMS: MobileMoreItem[] = [
     icon: BookText,
   },
   {
+    id: "platformAnalytics",
+    href: "/dashboard/admin/analytics",
+    labelKey: "platformAnalytics",
+    icon: BarChart3,
+    adminOnly: true,
+  },
+  {
     id: "anamAdmin",
     href: "/dashboard/admin/anam",
     labelKey: "anamAdmin",

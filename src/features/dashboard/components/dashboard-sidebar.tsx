@@ -136,6 +136,22 @@ export function DashboardSidebar({
                     asChild
                     isActive={isNavItemActive(
                       pathname,
+                      "/dashboard/admin/analytics",
+                    )}
+                    tooltip={t("platformAnalytics")}
+                    className="text-white/80 transition-none hover:bg-white/5 hover:text-white data-active:bg-white/10 data-active:text-white"
+                  >
+                    <Link href="/dashboard/admin/analytics">
+                      <BarChart3 />
+                      <span>{t("platformAnalytics")}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={isNavItemActive(
+                      pathname,
                       "/dashboard/admin/anam",
                     )}
                     tooltip={t("anamAdmin")}
