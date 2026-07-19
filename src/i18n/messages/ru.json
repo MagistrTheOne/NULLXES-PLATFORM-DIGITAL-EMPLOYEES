@@ -912,10 +912,12 @@
         "anthropic": "Anthropic",
         "google": "Google",
         "nullxes": "NULLXES",
+        "xai": "xAI",
         "openAiDescription": "Модели GPT через настроенный ключ OpenAI API.",
         "anthropicDescription": "Модели Claude через настроенный ключ Anthropic API.",
         "googleDescription": "Модели Gemini через настроенный ключ Google API.",
         "nullxesDescription": "Управляемый платформой интеллект NULLXES. Ключ API не нужен.",
+        "xaiDescription": "Модели Grok через настроенный ключ xAI API.",
         "badgeReady": "Готов",
         "badgeConfigure": "Настроить",
         "badgeManaged": "Управляемый",
@@ -1444,10 +1446,12 @@
       "anthropic": "Anthropic",
       "google": "Google",
       "nullxes": "NULLXES",
+      "xai": "xAI",
       "openAiDescription": "Модели GPT через настроенный ключ OpenAI API.",
       "anthropicDescription": "Модели Claude через настроенный ключ Anthropic API.",
       "googleDescription": "Модели Gemini через настроенный ключ Google API.",
       "nullxesDescription": "Управляемый платформой интеллект NULLXES. Ключ API не нужен.",
+      "xaiDescription": "Модели Grok через ключ xAI API (тот же XAI_API_KEY, что и для Voice, если задан на платформе).",
       "badgeReady": "Готов",
       "badgeConfigure": "Настроить",
       "badgeManaged": "Управляемый"
@@ -1486,7 +1490,8 @@
       "brainOpenai": "OpenAI GPT-4.1",
       "brainAnthropic": "Anthropic Claude",
       "brainGoogle": "Google Gemini",
-      "brainNullxes": "NULLXES Brain"
+      "brainNullxes": "NULLXES Brain",
+      "brainXai": "xAI Grok"
     }
   },
   "missions": {

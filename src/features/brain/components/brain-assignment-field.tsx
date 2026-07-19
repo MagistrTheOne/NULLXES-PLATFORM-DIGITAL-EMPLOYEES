@@ -13,12 +13,17 @@ export type BrainAssignmentMode = "org_default" | "custom";
 
 const PROVIDER_OPTION_KEYS: Record<
   BrainProvider,
-  "brainOpenai" | "brainAnthropic" | "brainGoogle" | "brainNullxes"
+  | "brainOpenai"
+  | "brainAnthropic"
+  | "brainGoogle"
+  | "brainNullxes"
+  | "brainXai"
 > = {
   openai: "brainOpenai",
   anthropic: "brainAnthropic",
   google: "brainGoogle",
   nullxes: "brainNullxes",
+  xai: "brainXai",
 };
 
 export function BrainAssignmentField({

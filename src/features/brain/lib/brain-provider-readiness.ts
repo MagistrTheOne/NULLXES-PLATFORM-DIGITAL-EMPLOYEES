@@ -3,6 +3,7 @@ import {
   hasAnthropicCredentials,
   hasGoogleCredentials,
   hasOpenAiCredentials,
+  hasXaiCredentials,
 } from "@/shared/config/provider-env";
 import { hasNullxesApiCredentials } from "@/shared/nullxes-sdk";
 import type {
@@ -25,6 +26,8 @@ function resolveProviderReadiness(
       return hasGoogleCredentials() ? "ready" : "configure";
     case "nullxes":
       return hasNullxesApiCredentials() ? "managed" : "configure";
+    case "xai":
+      return hasXaiCredentials() ? "ready" : "configure";
   }
 }
 

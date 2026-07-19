@@ -9,22 +9,28 @@ import { isBrainProviderSelectable } from "../lib/brain-provider-readiness";
 
 const PROVIDER_LABEL_KEYS: Record<
   BrainProvider,
-  "openAi" | "anthropic" | "google" | "nullxes"
+  "openAi" | "anthropic" | "google" | "nullxes" | "xai"
 > = {
   openai: "openAi",
   anthropic: "anthropic",
   google: "google",
   nullxes: "nullxes",
+  xai: "xai",
 };
 
 const PROVIDER_DESCRIPTION_KEYS: Record<
   BrainProvider,
-  "openAiDescription" | "anthropicDescription" | "googleDescription" | "nullxesDescription"
+  | "openAiDescription"
+  | "anthropicDescription"
+  | "googleDescription"
+  | "nullxesDescription"
+  | "xaiDescription"
 > = {
   openai: "openAiDescription",
   anthropic: "anthropicDescription",
   google: "googleDescription",
   nullxes: "nullxesDescription",
+  xai: "xaiDescription",
 };
 
 const READINESS_BADGE_KEYS: Record<

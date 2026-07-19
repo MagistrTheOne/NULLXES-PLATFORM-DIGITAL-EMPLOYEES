@@ -8,6 +8,7 @@ export const BRAIN_PROVIDER_OPTIONS: Array<{
   { value: "anthropic", labelKey: "brainAnthropic" },
   { value: "google", labelKey: "brainGoogle" },
   { value: "nullxes", labelKey: "brainNullxes" },
+  { value: "xai", labelKey: "brainXai" },
 ];
 
 const BRAIN_LABEL_FALLBACK: Record<BrainProvider, string> = {
@@ -15,6 +16,7 @@ const BRAIN_LABEL_FALLBACK: Record<BrainProvider, string> = {
   anthropic: "Anthropic Claude",
   google: "Google Gemini",
   nullxes: "NULLXES Brain",
+  xai: "xAI Grok",
 };
 
 export function getBrainProviderLabel(provider: BrainProvider): string {

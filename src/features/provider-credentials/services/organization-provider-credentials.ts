@@ -7,6 +7,7 @@ import {
   getAnthropicApiKey,
   getGoogleApiKey,
   getOpenAiApiKey,
+  getXaiLlmApiKey,
 } from "@/shared/config/provider-env";
 import { getNullxesApiKey } from "@/shared/nullxes-sdk";
 import { decryptField, encryptField } from "@/shared/crypto/field-encryption";
@@ -20,6 +21,7 @@ const PROVIDER_KEY_ORDER: OrganizationProvider[] = [
   "openai",
   "anthropic",
   "google",
+  "xai",
 ];
 
 function platformKeyForProvider(
@@ -34,6 +36,8 @@ function platformKeyForProvider(
       return getAnthropicApiKey();
     case "google":
       return getGoogleApiKey();
+    case "xai":
+      return getXaiLlmApiKey();
   }
 }
 

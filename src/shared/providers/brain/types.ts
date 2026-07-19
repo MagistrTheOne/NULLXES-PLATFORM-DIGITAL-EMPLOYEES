@@ -1,4 +1,9 @@
-export type BrainProviderId = "openai" | "anthropic" | "google" | "nullxes";
+export type BrainProviderId =
+  | "openai"
+  | "anthropic"
+  | "google"
+  | "nullxes"
+  | "xai";
 
 export type BrainProviderMetadata = {
   id: BrainProviderId;

@@ -12,6 +12,7 @@ export const BRAIN_PROVIDERS: BrainProvider[] = [
   "anthropic",
   "google",
   "nullxes",
+  "xai",
 ];
 
 const CURATED_MODELS: Record<
@@ -62,6 +63,23 @@ const CURATED_MODELS: Record<
       id: "nullxes-brain-v1",
       label: "SHUTEN-DŌJI (alias)",
       groupKey: "managed",
+    },
+  ],
+  xai: [
+    {
+      id: "grok-4.5",
+      label: "Grok 4.5",
+      groupKey: "recommended",
+    },
+    {
+      id: "grok-4.3",
+      label: "Grok 4.3",
+      groupKey: "balanced",
+    },
+    {
+      id: "grok-4",
+      label: "Grok 4",
+      groupKey: "fast",
     },
   ],
 };

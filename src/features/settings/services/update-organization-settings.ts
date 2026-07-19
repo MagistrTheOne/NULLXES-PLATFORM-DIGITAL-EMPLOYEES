@@ -44,7 +44,8 @@ export function parseBrainProvider(value: string): BrainProvider | null {
     value === "openai" ||
     value === "anthropic" ||
     value === "google" ||
-    value === "nullxes"
+    value === "nullxes" ||
+    value === "xai"
   ) {
     return value;
   }

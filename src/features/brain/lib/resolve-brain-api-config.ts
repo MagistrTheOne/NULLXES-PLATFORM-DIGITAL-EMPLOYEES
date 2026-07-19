@@ -3,6 +3,7 @@ import { resolveBrainModelForProvider } from "@/features/settings/lib/brain-mode
 import { resolveOrganizationProviderKey } from "@/features/provider-credentials";
 import {
   getOpenAiApiBaseUrl,
+  getXaiApiBaseUrl,
   resolveNullxesBrainModel,
 } from "@/shared/config/provider-env";
 import {
@@ -106,6 +107,27 @@ export async function resolveBrainApiConfig(input: {
     };
   }
 
+  if (input.provider === "xai") {
+    const apiKey = await resolveOrganizationProviderKey(
+      input.organizationId,
+      "xai",
+    );
+    if (!apiKey) {
+      throw new Error(
+        "XAI_API_KEY is not configured. Set the platform key or save an organization xAI key.",
+      );
+    }
+
+    return {
+      provider: "xai",
+      transport: "openai-compatible",
+      baseUrl: getXaiApiBaseUrl().replace(/\/$/, ""),
+      apiKey,
+      model: curatedModel,
+      supportsTools: true,
+    };
+  }
+
   const apiKey = await resolveOrganizationProviderKey(
     input.organizationId,
     "openai",
@@ -115,7 +137,7 @@ export async function resolveBrainApiConfig(input: {
   }
 
   return {
-    provider: input.provider,
+    provider: "openai",
     transport: "openai-compatible",
     baseUrl: getOpenAiApiBaseUrl().replace(/\/$/, ""),
     apiKey,

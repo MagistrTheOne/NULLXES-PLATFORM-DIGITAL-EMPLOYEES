@@ -28,6 +28,7 @@ export const CUSTOM_BRAIN_PROVIDER_OPTIONS = [
   { value: "anthropic" as const, label: "Anthropic" },
   { value: "google" as const, label: "Google" },
   { value: "nullxes" as const, label: "NULLXES" },
+  { value: "xai" as const, label: "xAI" },
 ] as const;
 
 export function createInitialFormState(): CreateEmployeeFormState {

@@ -16,6 +16,7 @@ const PROVIDER_LABELS: Record<OrganizationProvider, string> = {
   anthropic: "Anthropic",
   google: "Google",
   nullxes: "NULLXES",
+  xai: "xAI",
 };
 
 function sourceLabel(status: ProviderKeyStatus): string {

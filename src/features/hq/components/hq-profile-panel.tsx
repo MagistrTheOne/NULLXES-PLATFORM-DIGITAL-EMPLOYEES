@@ -25,6 +25,7 @@ const BRAIN_LABELS: Record<BrainProvider, string> = {
   anthropic: "Anthropic",
   google: "Google",
   nullxes: "NULLXES Brain",
+  xai: "xAI Grok",
 };
 
 const STAGE_ORDER: HqMissionStage[] = [

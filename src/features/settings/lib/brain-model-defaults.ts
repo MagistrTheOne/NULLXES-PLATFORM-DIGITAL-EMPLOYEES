@@ -9,6 +9,7 @@ export const BRAIN_MODEL_DEFAULTS: Record<BrainProvider, string> = {
   anthropic: "claude-sonnet-4-20250514",
   google: "gemini-2.0-flash",
   nullxes: "MagistrTheOne/SHUTEN-DOJI",
+  xai: "grok-4.5",
 };
 
 export function resolveBrainModelForProvider(

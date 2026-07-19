@@ -18,6 +18,7 @@ const SUPPORTED_PROVIDERS: OrganizationProvider[] = [
   "openai",
   "anthropic",
   "google",
+  "xai",
 ];
 
 function isSupportedProvider(value: string): value is OrganizationProvider {

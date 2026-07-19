@@ -912,10 +912,12 @@
         "anthropic": "Anthropic",
         "google": "Google",
         "nullxes": "NULLXES",
+        "xai": "xAI",
         "openAiDescription": "GPT models via your configured OpenAI API key.",
         "anthropicDescription": "Claude models via your configured Anthropic API key.",
         "googleDescription": "Gemini models via your configured Google API key.",
         "nullxesDescription": "Platform-managed NULLXES brain. No API key required.",
+        "xaiDescription": "Grok models via your configured xAI API key.",
         "badgeReady": "Ready",
         "badgeConfigure": "Configure",
         "badgeManaged": "Managed",
@@ -1444,10 +1446,12 @@
       "anthropic": "Anthropic",
       "google": "Google",
       "nullxes": "NULLXES",
+      "xai": "xAI",
       "openAiDescription": "GPT models via your configured OpenAI API key.",
       "anthropicDescription": "Claude models via your configured Anthropic API key.",
       "googleDescription": "Gemini models via your configured Google API key.",
       "nullxesDescription": "Platform-managed NULLXES brain. No API key required.",
+      "xaiDescription": "Grok models via your configured xAI API key (same XAI_API_KEY as Voice when set on the platform).",
       "badgeReady": "Ready",
       "badgeConfigure": "Configure",
       "badgeManaged": "Managed"
@@ -1486,7 +1490,8 @@
       "brainOpenai": "OpenAI GPT-4.1",
       "brainAnthropic": "Anthropic Claude",
       "brainGoogle": "Google Gemini",
-      "brainNullxes": "NULLXES Brain"
+      "brainNullxes": "NULLXES Brain",
+      "brainXai": "xAI Grok"
     }
   },
   "missions": {

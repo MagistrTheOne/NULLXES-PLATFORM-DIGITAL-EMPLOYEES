@@ -14,6 +14,7 @@ export const organizationProviderEnum = pgEnum("organization_provider", [
   "openai",
   "anthropic",
   "google",
+  "xai",
 ]);
 
 export const organizationProviderCredential = pgTable(

@@ -89,6 +89,22 @@ export function hasElevenLabsCredentials(): boolean {
   return Boolean(getElevenLabsApiKey());
 }
 
+const XAI_API_BASE_URL_DEFAULT = "https://api.x.ai/v1";
+
+/** xAI Grok — OpenAI-compatible chat at api.x.ai (same key as Voice when set). */
+export function getXaiLlmApiKey(): string | undefined {
+  const key = process.env.XAI_API_KEY?.trim();
+  return key || undefined;
+}
+
+export function getXaiApiBaseUrl(): string {
+  return process.env.XAI_API_BASE_URL?.trim() || XAI_API_BASE_URL_DEFAULT;
+}
+
+export function hasXaiCredentials(): boolean {
+  return Boolean(getXaiLlmApiKey());
+}
+
 const NULLXES_BRAIN_MODEL_DEFAULT = "MagistrTheOne/SHUTEN-DOJI";
 
 /** NULLXES SHUTEN-DŌJI on RunPod vLLM — OpenAI-compatible /v1/chat/completions */

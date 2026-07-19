@@ -19,6 +19,7 @@ export const brainProviderEnum = pgEnum("brain_provider", [
   "anthropic",
   "google",
   "nullxes",
+  "xai",
 ]);
 
 export const digitalEmployee = pgTable("digital_employee", {

@@ -372,6 +372,13 @@
       "when": 1785600000000,
       "tag": "0052_purge_voice_packs",
       "breakpoints": true
+    },
+    {
+      "idx": 53,
+      "version": "7",
+      "when": 1785700000000,
+      "tag": "0053_brain_provider_xai",
+      "breakpoints": true
     }
   ]
 }
