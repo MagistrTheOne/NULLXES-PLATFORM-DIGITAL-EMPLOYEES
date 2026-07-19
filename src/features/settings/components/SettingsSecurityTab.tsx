@@ -5,6 +5,13 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { authClient } from "@/features/auth/client";
 import { TotpQrCode } from "@/features/auth/ui/totp-qr-code";
@@ -722,24 +729,27 @@ export function SettingsSecurityTab({
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="api-scope-bundle">{t("scopeBundle")}</Label>
-                <select
-                  id="api-scope-bundle"
+                <Select
                   value={
                     allowedBundles.includes(scopeBundle)
                       ? scopeBundle
                       : allowedBundles[0]
                   }
-                  onChange={(event) =>
-                    setScopeBundle(event.target.value as ApiScopeBundleId)
+                  onValueChange={(value) =>
+                    setScopeBundle(value as ApiScopeBundleId)
                   }
-                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                 >
-                  {allowedBundles.map((id) => (
-                    <option key={id} value={id}>
-                      {API_SCOPE_BUNDLES[id].label}
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger id="api-scope-bundle" className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {allowedBundles.map((id) => (
+                      <SelectItem key={id} value={id}>
+                        {API_SCOPE_BUNDLES[id].label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <p className="text-xs text-muted-foreground">
                   {
                     API_SCOPE_BUNDLES[
