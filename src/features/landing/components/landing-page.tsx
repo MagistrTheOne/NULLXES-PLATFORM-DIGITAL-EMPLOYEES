@@ -86,12 +86,21 @@ export function LandingPage({
         .landing-nav-reveal {
           animation: landing-nav-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
         }
+        @keyframes landing-cinema-title {
+          from { opacity: 0; letter-spacing: 0.18em; }
+          to { opacity: 1; letter-spacing: 0.06em; }
+        }
+        .landing-cinema-title {
+          animation: landing-cinema-title 1.1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
         @media (prefers-reduced-motion: reduce) {
           .landing-reveal,
-          .landing-nav-reveal {
+          .landing-nav-reveal,
+          .landing-cinema-title {
             opacity: 1;
             animation: none;
             transform: none;
+            letter-spacing: 0.06em;
           }
         }
       `}</style>

@@ -31,6 +31,8 @@ const DEMO_ENDPOINT = "/api/landing/adeline-demo/talk";
 const DEMO_BRAIN_ENDPOINT = "/api/landing/adeline-demo/brain-stream";
 const DEMO_TTS_ENDPOINT = "/api/landing/adeline-demo/synthesize";
 const DEFAULT_MAX_SEC = 60;
+/** Cinema title card before portrait reveal. */
+const TITLE_CARD_MS = 1400;
 
 function formatDuration(seconds: number): string {
   const minutes = Math.floor(seconds / 60);
@@ -104,6 +106,7 @@ export function LandingAnamDemoOverlay({
   const [status, setStatus] = useState<
     "idle" | "connecting" | "live" | "ended" | "error"
   >("idle");
+  const [intro, setIntro] = useState<"title" | "stage">("title");
   const [error, setError] = useState<string | null>(null);
   const [elapsedSec, setElapsedSec] = useState(0);
   const [maxDurationSec, setMaxDurationSec] = useState(DEFAULT_MAX_SEC);
@@ -370,13 +373,22 @@ export function LandingAnamDemoOverlay({
     if (!open) {
       void stopDemo();
       setStatus("idle");
+      setIntro("title");
       setError(null);
       setElapsedSec(0);
       setPipelineState("idle");
       setLiveName(employeeName);
       setLivePreview(avatarPreviewUrl);
       setLiveRole(null);
+      return;
     }
+
+    setIntro("title");
+    const timer = window.setTimeout(() => {
+      setIntro("stage");
+    }, TITLE_CARD_MS);
+
+    return () => window.clearTimeout(timer);
   }, [avatarPreviewUrl, employeeName, open, stopDemo]);
 
   useEffect(() => {
@@ -415,6 +427,8 @@ export function LandingAnamDemoOverlay({
   };
 
   const isLive = status === "live";
+  const showTitleCard = open && intro === "title";
+  const showStage = !showTitleCard;
   const canClose = status !== "connecting" && status !== "live";
   const micHearing = isLive && micPermission === "granted" && !micMuted;
   const micListening = pipelineState === "listening";
@@ -428,11 +442,9 @@ export function LandingAnamDemoOverlay({
       <DialogContent
         showCloseButton={false}
         className={cn(
-          "gap-0 overflow-hidden border-0 bg-[#050505] p-0 text-white ring-0",
-          // Mobile: full-bleed minimalism
+          "gap-0 overflow-hidden border-0 bg-black p-0 text-white ring-0",
           "fixed inset-0 top-0 left-0 flex h-dvh max-h-dvh w-full max-w-none translate-x-0 translate-y-0 flex-col rounded-none",
-          // Desktop: dashboard-like centered stage (not a skinny left strip)
-          "md:inset-auto md:top-1/2 md:left-1/2 md:h-[min(780px,88dvh)] md:max-h-[88dvh] md:w-[min(1080px,94vw)] md:max-w-[1080px] md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-2xl md:border md:border-white/10 md:shadow-[0_40px_120px_rgba(0,0,0,0.65)]",
+          "md:inset-auto md:top-1/2 md:left-1/2 md:h-[min(820px,90dvh)] md:max-h-[90dvh] md:w-[min(980px,92vw)] md:max-w-[980px] md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-none md:border md:border-white/12 md:shadow-[0_48px_140px_rgba(0,0,0,0.75)]",
           "data-open:zoom-in-100 data-closed:zoom-out-100",
         )}
         onInteractOutside={(event) => event.preventDefault()}
@@ -443,14 +455,62 @@ export function LandingAnamDemoOverlay({
           }
         }}
       >
-        <header className="relative z-20 flex shrink-0 items-start justify-between gap-3 border-b border-white/10 px-4 py-3.5 sm:px-5 md:px-6">
-          <div className="min-w-0 space-y-1">
-            <DialogTitle className="truncate text-base font-medium tracking-[0.04em] text-white uppercase md:text-lg">
+        {/* Cinema title card — black frame, name, 01:00 */}
+        <div
+          aria-hidden={!showTitleCard}
+          className={cn(
+            "absolute inset-0 z-40 flex flex-col bg-black transition-opacity duration-700 ease-out",
+            showTitleCard
+              ? "pointer-events-auto opacity-100"
+              : "pointer-events-none opacity-0",
+          )}
+        >
+          {canClose ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              className="absolute top-4 right-4 z-10 text-white/40 hover:bg-white/8 hover:text-white"
+              aria-label="Close"
+              onClick={() => handleOpenChange(false)}
+            >
+              <X className="size-4" />
+            </Button>
+          ) : null}
+          <div className="flex flex-1 flex-col items-center justify-center px-8 text-center">
+            <p className="text-[10px] tracking-[0.42em] text-white/35 uppercase">
+              NULLXES
+            </p>
+            <DialogTitle
+              className={cn(
+                "mt-8 max-w-[18ch] font-(family-name:--font-landing-serif) text-[2rem] leading-[1.05] tracking-[0.06em] text-white uppercase sm:text-4xl md:text-[2.75rem]",
+                showTitleCard && "landing-cinema-title",
+              )}
+            >
               {liveName}
             </DialogTitle>
-            <DialogDescription className="truncate text-[11px] tracking-wide text-white/40 md:text-xs">
-              {liveRole?.trim() || "Private session"}
+            <DialogDescription className="sr-only">
+              Private session · one minute
             </DialogDescription>
+          </div>
+          <p className="pb-10 text-center font-mono text-sm tabular-nums tracking-[0.28em] text-white/55 sm:pb-12 sm:text-base">
+            {formatDuration(maxDurationSec)}
+          </p>
+        </div>
+
+        <header
+          className={cn(
+            "relative z-20 flex shrink-0 items-start justify-between gap-3 border-b border-white/10 px-4 py-3.5 transition-opacity duration-500 sm:px-5 md:px-6",
+            showStage ? "opacity-100" : "opacity-0",
+          )}
+        >
+          <div className="min-w-0 space-y-1">
+            <p className="truncate text-base font-medium tracking-[0.04em] text-white uppercase md:text-lg">
+              {liveName}
+            </p>
+            <p className="truncate text-[11px] tracking-wide text-white/40 md:text-xs">
+              {liveRole?.trim() || "Private session"}
+            </p>
           </div>
           <div className="flex shrink-0 items-start gap-2">
             <p
@@ -461,7 +521,7 @@ export function LandingAnamDemoOverlay({
               <span className="text-white/35"> / </span>
               {formatDuration(maxDurationSec)}
             </p>
-            {canClose ? (
+            {canClose && showStage ? (
               <Button
                 type="button"
                 variant="ghost"
@@ -483,10 +543,10 @@ export function LandingAnamDemoOverlay({
               alt={liveName}
               fill
               className={cn(
-                "object-cover object-[50%_18%] transition-opacity duration-500",
-                isLive ? "opacity-0" : "opacity-100",
+                "object-cover object-[50%_18%] transition-opacity duration-700 ease-out",
+                showStage && !isLive ? "opacity-100" : "opacity-0",
               )}
-              sizes="(max-width: 768px) 100vw, 1080px"
+              sizes="(max-width: 768px) 100vw, 980px"
               priority
             />
           </div>
@@ -501,7 +561,6 @@ export function LandingAnamDemoOverlay({
             )}
           />
 
-          {/* Desktop pipeline HUD — dashboard-style readability */}
           {isLive ? (
             <div className="pointer-events-none absolute inset-x-0 top-0 z-20 hidden justify-between p-4 md:flex">
               <p className="text-[10px] font-semibold tracking-[0.28em] text-white/35 uppercase">
@@ -510,12 +569,9 @@ export function LandingAnamDemoOverlay({
               <div
                 className={cn(
                   "rounded-full border px-3 py-1 text-[11px] font-medium tracking-wide uppercase backdrop-blur-sm transition-colors",
-                  speaking &&
-                    "border-white/25 bg-white/15 text-white",
-                  listening &&
-                    "border-white/30 bg-white/10 text-white",
-                  thinking &&
-                    "border-white/20 bg-black/55 text-white/80",
+                  speaking && "border-white/25 bg-white/15 text-white",
+                  listening && "border-white/30 bg-white/10 text-white",
+                  thinking && "border-white/20 bg-black/55 text-white/80",
                   !speaking &&
                     !listening &&
                     !thinking &&
@@ -556,7 +612,6 @@ export function LandingAnamDemoOverlay({
             </div>
           ) : null}
 
-          {/* Mobile minimal status */}
           {isLive ? (
             <div className="pointer-events-none absolute top-3 left-1/2 z-20 -translate-x-1/2 md:hidden">
               <div
@@ -577,24 +632,29 @@ export function LandingAnamDemoOverlay({
           ) : null}
 
           {status === "connecting" ? (
-            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 bg-black/55">
-              <Loader2 className="size-6 animate-spin text-white/70" />
-              <p className="text-xs tracking-wide text-white/55">
-                Opening session…
+            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-black/70">
+              <div className="h-px w-16 animate-pulse bg-white/40" />
+              <p className="text-[11px] tracking-[0.28em] text-white/45 uppercase">
+                Opening
               </p>
             </div>
           ) : null}
 
           {isLive && micPermission === "denied" ? (
-            <p className="absolute inset-x-0 bottom-28 z-20 flex justify-center px-4 text-center text-[11px] text-red-300/80">
-              Microphone permission denied — allow mic to talk.
+            <p className="absolute inset-x-0 bottom-28 z-20 flex justify-center px-4 text-center text-[11px] text-white/55">
+              Microphone permission required.
             </p>
           ) : null}
         </div>
 
-        <footer className="relative z-20 flex shrink-0 flex-col items-center gap-2 border-t border-white/8 px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-5 md:px-6 md:py-5">
+        <footer
+          className={cn(
+            "relative z-20 flex shrink-0 flex-col items-center gap-2 border-t border-white/8 px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] transition-opacity duration-500 sm:px-5 md:px-6 md:py-5",
+            showStage ? "opacity-100" : "pointer-events-none opacity-0",
+          )}
+        >
           {error ? (
-            <p className="text-center text-sm text-red-300/90" role="alert">
+            <p className="text-center text-sm text-white/70" role="alert">
               {error}
             </p>
           ) : null}
@@ -602,14 +662,14 @@ export function LandingAnamDemoOverlay({
           {status === "idle" || status === "ended" || status === "error" ? (
             <Button
               type="button"
-              className="h-12 rounded-full border border-white/10 bg-white px-10 text-sm font-medium text-black shadow-none hover:bg-white/92 md:h-[52px]"
+              disabled={!showStage}
+              className="h-12 rounded-none border border-white/10 bg-white px-10 text-sm font-medium tracking-wide text-black shadow-none hover:bg-white/92 md:h-[52px]"
               onClick={() => void startDemo()}
             >
-              <Mic className="mr-2.5 size-4" />
               Begin · 1:00
             </Button>
           ) : (
-            <div className="flex items-center gap-2 rounded-2xl border border-white/12 bg-black/70 px-2 py-1.5 backdrop-blur-md">
+            <div className="flex items-center gap-2 rounded-none border border-white/12 bg-black/70 px-2 py-1.5 backdrop-blur-md">
               <button
                 type="button"
                 aria-label={micMuted ? "Unmute microphone" : "Mute microphone"}
@@ -621,7 +681,7 @@ export function LandingAnamDemoOverlay({
                 disabled={!isLive}
                 onClick={toggleMic}
                 className={cn(
-                  "relative flex size-11 items-center justify-center rounded-xl border bg-white/5 text-white transition hover:bg-white/10 disabled:opacity-40",
+                  "relative flex size-11 items-center justify-center rounded-none border bg-white/5 text-white transition hover:bg-white/10 disabled:opacity-40",
                   micHearing ? "border-white/45" : "border-white/20 opacity-70",
                 )}
               >
@@ -642,7 +702,7 @@ export function LandingAnamDemoOverlay({
 
               <Button
                 type="button"
-                className="h-11 rounded-full border border-white/10 bg-white px-8 text-sm font-medium text-black shadow-none hover:bg-white/92"
+                className="h-11 rounded-none border border-white/10 bg-white px-8 text-sm font-medium text-black shadow-none hover:bg-white/92"
                 onClick={() => void stopDemo()}
               >
                 End session
