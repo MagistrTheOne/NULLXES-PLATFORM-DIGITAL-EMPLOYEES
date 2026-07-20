@@ -666,7 +666,7 @@ export function LandingAnamDemoOverlay({
               className="h-12 rounded-none border border-white/10 bg-white px-10 text-sm font-medium tracking-wide text-black shadow-none hover:bg-white/92 md:h-[52px]"
               onClick={() => void startDemo()}
             >
-              Begin · 1:00
+              TALK
             </Button>
           ) : (
             <div className="flex items-center gap-2 rounded-none border border-white/12 bg-black/70 px-2 py-1.5 backdrop-blur-md">
