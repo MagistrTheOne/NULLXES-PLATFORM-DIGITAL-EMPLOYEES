@@ -1988,10 +1988,7 @@
       "localeRu": "RU"
     },
     "hero": {
-      "eyebrow": "Цифровые сотрудники",
-      "titleLine1": "Цифровые сотрудники.",
-      "titleLine2": "Не очередная обёртка над чатом.",
-      "body": "Строим цифровых сотрудников — не чатботов. Не обёртки над LLM.",
+      "title": "Luxury digital employees for enterprise.",
       "explore": "Смотреть платформу",
       "oneTapTalk": "Поговорить в один клик"
     },

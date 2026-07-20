@@ -1988,10 +1988,7 @@
       "localeRu": "RU"
     },
     "hero": {
-      "eyebrow": "Digital Employees",
-      "titleLine1": "Digital employees.",
-      "titleLine2": "Not another chat wrapper.",
-      "body": "Build, deploy, and run digital employees. Not chatbots. Not wrappers.",
+      "title": "Luxury digital employees for enterprise.",
       "explore": "Explore Platform",
       "oneTapTalk": "One Tap to Talk"
     },
