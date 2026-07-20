@@ -1996,9 +1996,9 @@
       "role": "Digital Executive",
       "talking": "Talking",
       "available": "Available",
-      "talkCta": "Talk · 1 min",
-      "voiceCta": "Voice · 1 min",
-      "trialLabel": "1 minute demo"
+      "talkCta": "Talk · 1:00",
+      "voiceCta": "Voice · 1:00",
+      "trialLabel": "1:00 private session"
     },
     "workforce": {
       "label": "Workforce",

@@ -1996,9 +1996,9 @@
       "role": "Цифровой руководитель",
       "talking": "Говорит",
       "available": "Доступна",
-      "talkCta": "Поговорить · 1 мин",
-      "voiceCta": "Голос · 1 мин",
-      "trialLabel": "Демо 1 минута"
+      "talkCta": "Talk · 1:00",
+      "voiceCta": "Voice · 1:00",
+      "trialLabel": "Сессия 1:00"
     },
     "workforce": {
       "label": "Workforce",

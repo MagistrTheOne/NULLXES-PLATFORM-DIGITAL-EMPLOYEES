@@ -392,7 +392,7 @@ export function LandingAnamDemoOverlay({
       setElapsedSec(elapsed);
       if (elapsed >= maxDurationSec) {
         void stopDemo();
-        setError("Trial ended — 1 minute complete.");
+        setError("Session ended — 1:00 complete.");
       }
     }, 1000);
 
@@ -443,32 +443,37 @@ export function LandingAnamDemoOverlay({
           }
         }}
       >
-        <header className="relative z-20 flex shrink-0 items-start justify-between gap-3 border-b border-white/8 px-4 py-3 sm:px-5 md:px-6">
-          <div className="min-w-0 space-y-0.5">
-            <DialogTitle className="truncate text-base font-medium tracking-tight text-white md:text-lg">
+        <header className="relative z-20 flex shrink-0 items-start justify-between gap-3 border-b border-white/10 px-4 py-3.5 sm:px-5 md:px-6">
+          <div className="min-w-0 space-y-1">
+            <DialogTitle className="truncate text-base font-medium tracking-[0.04em] text-white uppercase md:text-lg">
               {liveName}
             </DialogTitle>
-            <DialogDescription className="truncate text-[11px] text-white/45 md:text-xs">
-              {liveRole?.trim() || "Avatar Talk · live demo"}
+            <DialogDescription className="truncate text-[11px] tracking-wide text-white/40 md:text-xs">
+              {liveRole?.trim() || "Private session"}
             </DialogDescription>
-            {isLive ? (
-              <p className="font-mono text-xs tabular-nums text-white/50">
-                {formatDuration(elapsedSec)} / {formatDuration(maxDurationSec)}
-              </p>
+          </div>
+          <div className="flex shrink-0 items-start gap-2">
+            <p
+              className="font-mono text-[11px] tabular-nums tracking-wide text-white/70 md:text-xs"
+              aria-label="Session time limit one minute"
+            >
+              {formatDuration(isLive ? elapsedSec : 0)}
+              <span className="text-white/35"> / </span>
+              {formatDuration(maxDurationSec)}
+            </p>
+            {canClose ? (
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                className="shrink-0 text-white/55 hover:bg-white/8 hover:text-white"
+                aria-label="Close"
+                onClick={() => handleOpenChange(false)}
+              >
+                <X className="size-4" />
+              </Button>
             ) : null}
           </div>
-          {canClose ? (
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-sm"
-              className="shrink-0 text-white/55 hover:bg-white/8 hover:text-white"
-              aria-label="Close"
-              onClick={() => handleOpenChange(false)}
-            >
-              <X className="size-4" />
-            </Button>
-          ) : null}
         </header>
 
         <div className="relative min-h-0 flex-1 bg-black">
@@ -508,7 +513,7 @@ export function LandingAnamDemoOverlay({
                   speaking &&
                     "border-white/25 bg-white/15 text-white",
                   listening &&
-                    "border-emerald-400/40 bg-emerald-500/10 text-emerald-200",
+                    "border-white/30 bg-white/10 text-white",
                   thinking &&
                     "border-white/20 bg-black/55 text-white/80",
                   !speaking &&
@@ -528,7 +533,7 @@ export function LandingAnamDemoOverlay({
                 className={cn(
                   "flex items-center gap-3 rounded-2xl border px-4 py-2.5 backdrop-blur-md transition-colors",
                   speaking && "border-white/25 bg-black/70",
-                  listening && "border-emerald-400/35 bg-black/70",
+                  listening && "border-white/30 bg-black/70",
                   thinking && "border-white/15 bg-black/70",
                   !speaking &&
                     !listening &&
@@ -558,8 +563,7 @@ export function LandingAnamDemoOverlay({
                 className={cn(
                   "rounded-full border px-3 py-1 text-[11px] font-medium uppercase backdrop-blur-sm",
                   speaking && "border-white/25 bg-black/65 text-white",
-                  listening &&
-                    "border-emerald-400/40 bg-black/65 text-emerald-200",
+                  listening && "border-white/30 bg-black/65 text-white",
                   thinking && "border-white/15 bg-black/65 text-white/80",
                   !speaking &&
                     !listening &&
@@ -575,7 +579,9 @@ export function LandingAnamDemoOverlay({
           {status === "connecting" ? (
             <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 bg-black/55">
               <Loader2 className="size-6 animate-spin text-white/70" />
-              <p className="text-xs text-white/55">Connecting {liveName}…</p>
+              <p className="text-xs tracking-wide text-white/55">
+                Opening session…
+              </p>
             </div>
           ) : null}
 
@@ -600,7 +606,7 @@ export function LandingAnamDemoOverlay({
               onClick={() => void startDemo()}
             >
               <Mic className="mr-2.5 size-4" />
-              Start Talk demo
+              Begin · 1:00
             </Button>
           ) : (
             <div className="flex items-center gap-2 rounded-2xl border border-white/12 bg-black/70 px-2 py-1.5 backdrop-blur-md">
@@ -616,7 +622,7 @@ export function LandingAnamDemoOverlay({
                 onClick={toggleMic}
                 className={cn(
                   "relative flex size-11 items-center justify-center rounded-xl border bg-white/5 text-white transition hover:bg-white/10 disabled:opacity-40",
-                  micHearing ? "border-emerald-400/50" : "border-red-500/50",
+                  micHearing ? "border-white/45" : "border-white/20 opacity-70",
                 )}
               >
                 {micMuted ? (
@@ -628,7 +634,7 @@ export function LandingAnamDemoOverlay({
                   aria-hidden
                   className={cn(
                     "absolute -top-0.5 -right-0.5 size-2.5 rounded-full border-2 border-black",
-                    micHearing ? "bg-emerald-400" : "bg-red-500",
+                    micHearing ? "bg-white" : "bg-white/35",
                     micHearing && micListening && "animate-pulse",
                   )}
                 />
@@ -639,7 +645,7 @@ export function LandingAnamDemoOverlay({
                 className="h-11 rounded-full border border-white/10 bg-white px-8 text-sm font-medium text-black shadow-none hover:bg-white/92"
                 onClick={() => void stopDemo()}
               >
-                End demo
+                End session
               </Button>
             </div>
           )}
