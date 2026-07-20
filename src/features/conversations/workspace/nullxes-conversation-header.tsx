@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { Info, MoreHorizontal, Video } from "lucide-react";
+import { ArrowLeft, Info, MoreHorizontal, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -29,6 +29,7 @@ export function NullxesConversationHeader({
   online = true,
   detailsOpen,
   onToggleDetails,
+  onBack,
   modelLabel,
 }: {
   employeeId: string;
@@ -40,6 +41,7 @@ export function NullxesConversationHeader({
   online?: boolean;
   detailsOpen?: boolean;
   onToggleDetails?: () => void;
+  onBack?: () => void;
   modelLabel?: string | null;
 }) {
   const t = useTranslations("conversations");
@@ -47,8 +49,20 @@ export function NullxesConversationHeader({
   const metaParts = [role, departmentLabel, modelLabel].filter(Boolean);
 
   return (
-    <header className="flex h-16 shrink-0 items-center justify-between gap-6 border-b border-white/6 px-6">
-      <div className="flex min-w-0 items-center gap-4">
+    <header className="flex h-14 shrink-0 items-center justify-between gap-3 border-b border-white/6 px-3 sm:h-16 sm:gap-6 sm:px-6">
+      <div className="flex min-w-0 items-center gap-2.5 sm:gap-4">
+        {onBack ? (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-sm"
+            className="size-9 shrink-0 text-white/70 hover:bg-white/4 hover:text-white lg:hidden"
+            aria-label={t("backToInbox")}
+            onClick={onBack}
+          >
+            <ArrowLeft className="size-4 stroke-[1.5]" />
+          </Button>
+        ) : null}
         <ConversationAvatar
           name={name}
           previewUrl={avatarPreviewUrl}
@@ -65,7 +79,7 @@ export function NullxesConversationHeader({
               labelClassName="text-white/55"
             />
             {metaParts.length > 0 ? (
-              <span className="truncate text-white/40">
+              <span className="hidden truncate text-white/40 sm:inline">
                 · {metaParts.join(" · ")}
               </span>
             ) : null}
@@ -73,7 +87,7 @@ export function NullxesConversationHeader({
         </div>
       </div>
 
-      <div className="flex shrink-0 items-center gap-1">
+      <div className="flex shrink-0 items-center gap-0.5 sm:gap-1">
         <Tooltip>
           <TooltipTrigger asChild>
             <Button

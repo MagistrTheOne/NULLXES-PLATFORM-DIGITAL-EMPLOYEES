@@ -401,20 +401,20 @@ export function NullxesMessage({
   return (
     <article
       className={cn(
-        "group mx-auto w-full max-w-3xl px-6 py-8",
+        "group mx-auto w-full max-w-3xl px-3 py-3 sm:px-6 sm:py-6",
         mine ? "nullxes-message--mine" : "nullxes-message--agent",
       )}
     >
-      <div className="flex gap-4">
-        <NullxesMessageAvatar imageUrl={avatarImage} name={senderLabel} />
+      <div className="flex gap-2.5 sm:gap-4">
+        <NullxesMessageAvatar imageUrl={avatarImage} name={senderLabel} compact />
 
         <div className="min-w-0 flex-1">
-          <div className="mb-3 flex items-center gap-2">
-            <span className="truncate text-sm font-medium text-white">
+          <div className="mb-1.5 flex items-center gap-2 sm:mb-3">
+            <span className="truncate text-[13px] font-medium text-white sm:text-sm">
               {senderLabel}
             </span>
             <time
-              className="shrink-0 text-xs font-normal tabular-nums text-white/35"
+              className="shrink-0 text-[10px] font-normal tabular-nums text-white/35 sm:text-xs"
               dateTime={createdAt?.toISOString()}
             >
               {formatMessageTime(createdAt)}
@@ -433,7 +433,7 @@ export function NullxesMessage({
               transcript={text || undefined}
             />
           ) : text ? (
-            <p className="whitespace-pre-wrap text-sm font-normal leading-relaxed text-white/85">
+            <p className="whitespace-pre-wrap text-[13px] font-normal leading-snug text-white/85 sm:text-sm sm:leading-relaxed">
               {text}
             </p>
           ) : null}

@@ -67,6 +67,10 @@ export function ConversationsScreen({
   const [mobileDetailsOpen, setMobileDetailsOpen] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [threadsVersion, setThreadsVersion] = useState(0);
+  /** Mobile Telegram stack: list OR chat — never both. */
+  const [mobilePane, setMobilePane] = useState<"inbox" | "chat">(() =>
+    selectedEmployeeId ? "chat" : "inbox",
+  );
 
   const [conversationFilter, setConversationFilter] = useState<ConversationsFilterState>({
     departments: [],
@@ -77,6 +81,10 @@ export function ConversationsScreen({
   useEffect(() => {
     setDetailsOpen(readStoredDetailsOpen());
   }, []);
+
+  useEffect(() => {
+    setMobilePane(selectedEmployeeId ? "chat" : "inbox");
+  }, [selectedEmployeeId]);
 
   function handleToggleDetails(): void {
     setDetailsOpen((open) => {
@@ -97,7 +105,6 @@ export function ConversationsScreen({
 
     const { departments, employeeIds, onlyReady } = conversationFilter;
 
-    // Explicit employee selection takes precedence (user picked specific ones)
     if (employeeIds.length > 0) {
       list = list.filter((e) => employeeIds.includes(e.id));
     }
@@ -114,9 +121,7 @@ export function ConversationsScreen({
   }, [conversationFilter, talkReady]);
 
   const selected =
-    talkReady.find((employee) => employee.id === selectedEmployeeId) ??
-    talkReady[0] ??
-    null;
+    talkReady.find((employee) => employee.id === selectedEmployeeId) ?? null;
 
   const { activeThreadId, selectThread, createThread } =
     useConversationsThreads(selected?.id ?? null);
@@ -127,7 +132,14 @@ export function ConversationsScreen({
       : agentDetails;
 
   const handleSelectEmployee = (employeeId: string) => {
+    setMobilePane("chat");
     router.push(`/dashboard/conversations?employee=${employeeId}`);
+  };
+
+  const handleMobileBack = () => {
+    setMobilePane("inbox");
+    setMobileDetailsOpen(false);
+    router.push("/dashboard/conversations");
   };
 
   const handleNewConversation = () => {
@@ -135,19 +147,29 @@ export function ConversationsScreen({
       return;
     }
     const threadId = createThread();
-    // Sync/create the thread channel in Stream (and any related metadata).
-    // Fire-and-forget so the UI feels instant; the chat connect will also ensure it.
     void connectTalkChatSessionAction(selected.id, threadId).catch(() => undefined);
-    // Bump to force the inbox to re-fetch threads list (for real sync from Stream)
     setThreadsVersion((v) => v + 1);
   };
 
+  const showMobileChat = mobilePane === "chat" && selected;
+  const showMobileInbox = mobilePane === "inbox";
+
   return (
     <TooltipProvider delayDuration={300}>
-      {/* Fill the dashboard viewport on 27"+ so the page itself does not scroll;
-          the inbox / message list / inspector scroll inside their panes. */}
-      <div className="conversations-screen flex h-[calc(100svh-6.5rem)] min-h-[520px] flex-col gap-5 sm:gap-6 min-[1800px]:h-[calc(100svh-5.5rem)]">
-        <div className="flex shrink-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div
+        className={cn(
+          "conversations-screen flex min-h-0 flex-col",
+          showMobileChat
+            ? "h-[calc(100svh-5.5rem)] gap-0 sm:h-[calc(100svh-6.5rem)]"
+            : "h-[calc(100svh-6.5rem)] min-h-[520px] gap-4 sm:gap-6 min-[1800px]:h-[calc(100svh-5.5rem)]",
+        )}
+      >
+        <div
+          className={cn(
+            "shrink-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between",
+            showMobileChat ? "hidden lg:flex" : "flex",
+          )}
+        >
           <div className="min-w-0 shrink-0">
             <h1 className="text-2xl font-medium tracking-tight text-white">
               {t("title")}
@@ -170,13 +192,18 @@ export function ConversationsScreen({
         <div
           className={cn(
             "conversations-workspace grid min-h-0 flex-1 overflow-hidden rounded-2xl lg:grid-cols-[280px_minmax(0,1fr)]",
+            showMobileChat && "rounded-none lg:rounded-2xl",
             detailsOpen
               ? "xl:grid-cols-[300px_minmax(0,1fr)_320px] 2xl:grid-cols-[320px_minmax(0,1fr)_340px] min-[1800px]:grid-cols-[340px_minmax(0,1fr)_360px]"
               : "xl:grid-cols-[300px_minmax(0,1fr)] 2xl:grid-cols-[320px_minmax(0,1fr)] min-[1800px]:grid-cols-[340px_minmax(0,1fr)]",
           )}
         >
           <ConversationsInbox
-            className="hidden lg:flex"
+            className={cn(
+              "min-h-0",
+              showMobileInbox ? "flex" : "hidden",
+              "lg:flex",
+            )}
             employees={filteredForList}
             selectedEmployee={selected}
             activeThreadId={activeThreadId}
@@ -186,7 +213,13 @@ export function ConversationsScreen({
             threadsVersion={threadsVersion}
           />
 
-          <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col">
+          <div
+            className={cn(
+              "h-full min-h-0 min-w-0 flex-1 flex-col",
+              showMobileChat ? "flex" : "hidden",
+              "lg:flex",
+            )}
+          >
             {selected ? (
               <TalkAnamProvider>
                 <ConversationsChatPane
@@ -197,8 +230,12 @@ export function ConversationsScreen({
                   viewerName={viewer.name}
                   viewerImage={viewer.image}
                   detailsOpen={detailsOpen || mobileDetailsOpen}
+                  onBack={handleMobileBack}
                   onToggleDetails={() => {
-                    if (typeof window !== "undefined" && window.matchMedia("(min-width: 1280px)").matches) {
+                    if (
+                      typeof window !== "undefined" &&
+                      window.matchMedia("(min-width: 1280px)").matches
+                    ) {
                       handleToggleDetails();
                       return;
                     }
@@ -241,17 +278,6 @@ export function ConversationsScreen({
             </SheetContent>
           </Sheet>
         ) : null}
-
-        <div className="max-h-40 shrink-0 overflow-hidden border border-white/8 bg-[#0a0a0a] lg:hidden">
-          <ConversationsInbox
-            employees={filteredForList}
-            selectedEmployee={selected}
-            activeThreadId={activeThreadId}
-            onSelectEmployee={handleSelectEmployee}
-            onSelectThread={selectThread}
-            searchQuery={searchQuery}
-          />
-        </div>
       </div>
     </TooltipProvider>
   );

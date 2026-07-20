@@ -49,7 +49,7 @@ export default async function ConversationsPage({
     requestedEmployeeId &&
     talkReady.some((employee) => employee.id === requestedEmployeeId)
       ? requestedEmployeeId
-      : (talkReady[0]?.id ?? null);
+      : null;
 
   if (requestedEmployeeId && !selectedId) {
     redirect("/dashboard/conversations");

@@ -29,6 +29,7 @@ export function ConversationsChatPane({
   viewerImage,
   detailsOpen,
   onToggleDetails,
+  onBack,
 }: {
   employee: ConversationEmployee;
   threadId: string | null;
@@ -38,6 +39,7 @@ export function ConversationsChatPane({
   viewerImage: string | null;
   detailsOpen: boolean;
   onToggleDetails: () => void;
+  onBack?: () => void;
 }) {
   return (
     <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-transparent">
@@ -50,11 +52,10 @@ export function ConversationsChatPane({
         avatarReady={employee.avatarProvisioningStatus === "ready"}
         detailsOpen={detailsOpen}
         onToggleDetails={onToggleDetails}
+        onBack={onBack}
         modelLabel={brainModelLabel}
       />
 
-      {/* The actual chat "сетка". Force it to claim all remaining vertical space
-          so on tall 27" 100% the list + composer don't sink or leave a floating gap. */}
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
         <EmployeeTalkChat
           key={`${employee.id}-${threadId ?? "main"}`}
