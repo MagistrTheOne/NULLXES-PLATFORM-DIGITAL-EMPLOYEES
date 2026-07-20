@@ -160,8 +160,8 @@ export function ConversationsScreen({
         className={cn(
           "conversations-screen flex min-h-0 flex-col",
           showMobileChat
-            ? "h-[calc(100svh-5.5rem)] gap-0 sm:h-[calc(100svh-6.5rem)]"
-            : "h-[calc(100svh-6.5rem)] min-h-[520px] gap-4 sm:gap-6 min-[1800px]:h-[calc(100svh-5.5rem)]",
+            ? "max-md:h-full max-md:flex-1 max-md:gap-0 md:h-[calc(100svh-6.5rem)] md:gap-0"
+            : "h-[calc(100svh-6.5rem)] min-h-0 flex-1 gap-4 sm:gap-6 max-md:h-auto max-md:min-h-[min(100%,calc(100svh-8.5rem-env(safe-area-inset-bottom)))] md:min-h-[520px] min-[1800px]:h-[calc(100svh-5.5rem)]",
         )}
       >
         <div
@@ -192,7 +192,8 @@ export function ConversationsScreen({
         <div
           className={cn(
             "conversations-workspace grid min-h-0 flex-1 overflow-hidden rounded-2xl lg:grid-cols-[280px_minmax(0,1fr)]",
-            showMobileChat && "rounded-none lg:rounded-2xl",
+            showMobileChat &&
+              "max-md:-mx-4 max-md:rounded-none max-md:border-0 sm:max-md:-mx-5 lg:rounded-2xl",
             detailsOpen
               ? "xl:grid-cols-[300px_minmax(0,1fr)_320px] 2xl:grid-cols-[320px_minmax(0,1fr)_340px] min-[1800px]:grid-cols-[340px_minmax(0,1fr)_360px]"
               : "xl:grid-cols-[300px_minmax(0,1fr)] 2xl:grid-cols-[320px_minmax(0,1fr)] min-[1800px]:grid-cols-[340px_minmax(0,1fr)]",

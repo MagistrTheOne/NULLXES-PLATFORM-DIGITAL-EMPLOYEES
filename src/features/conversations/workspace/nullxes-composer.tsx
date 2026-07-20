@@ -35,7 +35,7 @@ export function NullxesComposerUI({
         className={cn(
           "flex shrink-0 flex-col items-center border-t border-white/8 bg-black",
           isConversations
-            ? "px-3 py-2.5 pb-[max(0.65rem,env(safe-area-inset-bottom))] sm:px-4 sm:py-3"
+            ? "px-3 py-2.5 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-4 sm:py-3 sm:pb-3"
             : "px-6 py-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]",
         )}
       >
@@ -49,7 +49,7 @@ export function NullxesComposerUI({
       className={cn(
         "flex shrink-0 flex-col items-center border-t border-white/8 bg-black",
         isConversations
-          ? "px-3 py-2.5 pb-[max(0.65rem,env(safe-area-inset-bottom))] sm:px-4 sm:py-3"
+          ? "px-3 py-2.5 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-4 sm:py-3 sm:pb-3"
           : "px-6 py-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]",
       )}
     >

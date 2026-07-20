@@ -16,7 +16,7 @@ import { cn } from "@/lib/utils";
 import {
   isMobileMoreItemActive,
   isMobilePrimaryActive,
-  isMobileTalkRoute,
+  isMobileImmersiveChatRoute,
   MOBILE_MORE_ITEMS,
   MOBILE_PRIMARY_TABS,
 } from "../lib/mobile-nav";
@@ -33,7 +33,7 @@ export function DashboardMobileNav({
   const tNav = useTranslations("common.nav");
   const [moreOpen, setMoreOpen] = useState(false);
 
-  if (isMobileTalkRoute(pathname)) {
+  if (isMobileImmersiveChatRoute(pathname, searchParams)) {
     return null;
   }
 

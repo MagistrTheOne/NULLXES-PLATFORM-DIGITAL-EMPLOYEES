@@ -138,6 +138,20 @@ export function isMobileTalkRoute(pathname: string): boolean {
   return /\/talk(?:\/|$)/.test(pathname);
 }
 
+/** Full-screen chat / talk — hide the fixed mobile tab bar. */
+export function isMobileImmersiveChatRoute(
+  pathname: string,
+  searchParams?: URLSearchParams | { get(name: string): string | null },
+): boolean {
+  if (isMobileTalkRoute(pathname)) {
+    return true;
+  }
+  if (!pathname.startsWith("/dashboard/conversations")) {
+    return false;
+  }
+  return Boolean(searchParams?.get("employee"));
+}
+
 export function isMobilePrimaryActive(
   pathname: string,
   tab: MobilePrimaryTab,

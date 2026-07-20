@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { WorkspaceDisplayPreferencesProvider } from "@/features/workspace/components/workspace-display-preferences-provider";
@@ -9,7 +9,7 @@ import { WorkspaceBillingProvider } from "@/features/workspace/components/worksp
 import { cn } from "@/lib/utils";
 import { platformPageShellClass } from "@/shared/layout/platform-layout";
 import { dashboardSidebarCssVars } from "../constants";
-import { isMobileTalkRoute } from "../lib/mobile-nav";
+import { isMobileImmersiveChatRoute } from "../lib/mobile-nav";
 import type { DashboardLayoutProps } from "../types";
 import { DashboardMobileNav } from "./dashboard-mobile-nav";
 import { DashboardSidebar } from "./dashboard-sidebar";
@@ -24,7 +24,8 @@ export function DashboardLayout({
   children,
 }: DashboardLayoutProps) {
   const pathname = usePathname();
-  const talkRoute = isMobileTalkRoute(pathname);
+  const searchParams = useSearchParams();
+  const immersiveChat = isMobileImmersiveChatRoute(pathname, searchParams);
 
   return (
     <WorkspacePermissionsProvider permissions={permissions}>
@@ -44,16 +45,20 @@ export function DashboardLayout({
               <SidebarInset
                 className={cn(
                   "flex min-h-svh min-w-0 flex-1 flex-col bg-black",
-                  !talkRoute &&
-                    "max-md:pb-[calc(4rem+env(safe-area-inset-bottom))]",
+                  immersiveChat
+                    ? "max-md:h-dvh max-md:max-h-dvh max-md:overflow-hidden"
+                    : "max-md:pb-[calc(4rem+env(safe-area-inset-bottom))]",
                 )}
               >
                 <DashboardTopbar />
                 <div
-                  className={platformPageShellClass({
-                    width: "wide",
-                    compact: displayPreferences.compactMode,
-                  })}
+                  className={cn(
+                    platformPageShellClass({
+                      width: "wide",
+                      compact: displayPreferences.compactMode,
+                    }),
+                    immersiveChat && "max-md:min-h-0 max-md:flex-1 max-md:overflow-hidden max-md:pb-0",
+                  )}
                 >
                   {children}
                 </div>
