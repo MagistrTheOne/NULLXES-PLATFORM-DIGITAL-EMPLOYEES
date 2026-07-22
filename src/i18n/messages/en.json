@@ -1568,7 +1568,6 @@
   },
   "conversations": {
     "title": "Conversations",
-    "subtitle": "Message your digital employees across threads — text-first workspace.",
     "searchPlaceholder": "Search conversations…",
     "newConversation": "New conversation",
     "tabs": {
@@ -1845,7 +1844,6 @@
   },
   "analytics": {
     "title": "Analytics",
-    "subtitle": "Real-time insights into your digital employees and conversations.",
     "exportReport": "Export Report",
     "applyRange": "Apply range",
     "openHq": "Open HQ floor",

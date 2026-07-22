@@ -174,9 +174,6 @@ export function ConversationsScreen({
             <h1 className="text-2xl font-medium tracking-tight text-white">
               {t("title")}
             </h1>
-            <p className="mt-1.5 text-sm font-normal text-white/55">
-              {t("subtitle")}
-            </p>
           </div>
           <ConversationsToolbar
             query={searchQuery}

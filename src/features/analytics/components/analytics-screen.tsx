@@ -39,13 +39,13 @@ export function AnalyticsScreen({ data }: { data: DashboardAnalytics }) {
           <h1 className="text-2xl font-medium tracking-tight text-foreground">
             {t("title")}
           </h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            {data.department
-              ? t("departmentScope.viewing", {
-                  department: tDepartments(data.department),
-                })
-              : t("subtitle")}
-          </p>
+          {data.department ? (
+            <p className="mt-2 text-sm text-muted-foreground">
+              {t("departmentScope.viewing", {
+                department: tDepartments(data.department),
+              })}
+            </p>
+          ) : null}
         </div>
         <AnalyticsHeaderControls range={data.range} data={data} />
       </header>
