@@ -202,6 +202,10 @@ export async function createAnamTalkSessionTokenForEmployee(
   employeeId: string,
   talkContext?: EmployeeTalkContext | null,
   videoOptionsOverride?: AnamTalkSessionVideoOptions | null,
+  options?: {
+    /** Landing demo: release Anam engine sooner after silence. */
+    silenceBeforeSessionEndSeconds?: number;
+  },
 ): Promise<AnamTalkSessionTokenResult> {
   const employee =
     talkContext ??
@@ -261,6 +265,7 @@ export async function createAnamTalkSessionTokenForEmployee(
     avatarId: employee.avatarId,
     voiceId: employee.anamVoiceId,
     languageCode,
+    silenceBeforeSessionEndSeconds: options?.silenceBeforeSessionEndSeconds,
   });
 
   let videoOptions = await resolveVideoOptionsForAvatar({

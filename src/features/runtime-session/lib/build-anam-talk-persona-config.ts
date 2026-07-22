@@ -12,7 +12,20 @@ export function buildAnamTalkEphemeralPersonaConfig(input: {
   voiceId: string;
   languageCode?: string;
   enableAudioPassthrough?: boolean;
+  /** Override Anam silence auto-end (seconds). Landing demos use a shorter value. */
+  silenceBeforeSessionEndSeconds?: number;
 }): Record<string, unknown> {
+  const voiceDetectionOptions = buildAnamVoiceDetectionOptions();
+  if (
+    typeof input.silenceBeforeSessionEndSeconds === "number" &&
+    Number.isFinite(input.silenceBeforeSessionEndSeconds)
+  ) {
+    voiceDetectionOptions.silenceBeforeSessionEndSeconds = Math.max(
+      5,
+      Math.min(7200, Math.floor(input.silenceBeforeSessionEndSeconds)),
+    );
+  }
+
   return {
     name: input.name,
     avatarId: input.avatarId,
@@ -21,7 +34,7 @@ export function buildAnamTalkEphemeralPersonaConfig(input: {
     skipGreeting: true,
     systemPrompt: ANAM_AVATAR_ONLY_SYSTEM_PROMPT,
     languageCode: input.languageCode ?? "en",
-    voiceDetectionOptions: buildAnamVoiceDetectionOptions(),
+    voiceDetectionOptions,
     ...(input.enableAudioPassthrough ? { enableAudioPassthrough: true } : {}),
   };
 }

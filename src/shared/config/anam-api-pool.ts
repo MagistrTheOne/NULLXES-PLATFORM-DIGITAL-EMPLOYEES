@@ -12,6 +12,15 @@ export const ANAM_API_KEY_SLOTS = [
   "ANAM_API_KEY_9",
   "ANAM_API_KEY_10",
   "ANAM_API_KEY_11",
+  "ANAM_API_KEY_12",
+  "ANAM_API_KEY_13",
+  "ANAM_API_KEY_14",
+  "ANAM_API_KEY_15",
+  "ANAM_API_KEY_16",
+  "ANAM_API_KEY_17",
+  "ANAM_API_KEY_18",
+  "ANAM_API_KEY_19",
+  "ANAM_API_KEY_20",
 ] as const;
 
 export type AnamApiKeySlot = (typeof ANAM_API_KEY_SLOTS)[number];

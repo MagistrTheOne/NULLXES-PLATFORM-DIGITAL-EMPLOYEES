@@ -4,6 +4,7 @@ import { digitalEmployee } from "@/entities/digital-employee/schema";
 import { LANDING_DEMO_MARKETING_PORTRAIT } from "@/features/landing/lib/adeline-marketing";
 import { mintLandingDemoToken } from "@/features/landing/lib/landing-demo-token";
 import { loadLandingTalkBrainCache } from "@/features/landing/lib/landing-talk-brain-cache";
+import { ensureLandingDemoAnamAvatar } from "@/features/landing/services/ensure-landing-demo-anam-avatar";
 import { createAnamTalkSessionTokenForEmployee } from "@/features/runtime-session/services/create-anam-talk-session";
 import { getEmployeeTalkContext } from "@/features/runtime-session/services/get-employee-talk-context";
 import { resolveTalkVoiceMode } from "@/features/runtime-session/services/resolve-talk-voice-mode";
@@ -37,6 +38,17 @@ export async function POST(_request: Request): Promise<Response> {
     );
   }
 
+  try {
+    await ensureLandingDemoAnamAvatar({ employeeId: employee.id });
+  } catch (error: unknown) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Talk trial avatar is temporarily unavailable.";
+    return NextResponse.json({ error: message }, { status: 503 });
+  }
+
+  // Re-read after possible avatar repair so mint uses the live avatarId.
   const talkContext = await getEmployeeTalkContext(
     employee.organizationId,
     employee.id,
@@ -46,6 +58,11 @@ export async function POST(_request: Request): Promise<Response> {
     employee.organizationId,
     employee.id,
     talkContext,
+    null,
+    {
+      // Free Anam concurrency faster if the tab dies without stopStreaming.
+      silenceBeforeSessionEndSeconds: 20,
+    },
   );
 
   if (!tokenResult.ok) {

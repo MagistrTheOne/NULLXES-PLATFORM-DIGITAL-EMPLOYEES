@@ -391,6 +391,23 @@ export function LandingAnamDemoOverlay({
     return () => window.clearTimeout(timer);
   }, [avatarPreviewUrl, employeeName, open, stopDemo]);
 
+  // Tab kill / navigate away must release Anam concurrency on lab-2.
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    const onPageHide = () => {
+      void stopDemo();
+    };
+
+    window.addEventListener("pagehide", onPageHide);
+    return () => {
+      window.removeEventListener("pagehide", onPageHide);
+      void stopDemo();
+    };
+  }, [open, stopDemo]);
+
   useEffect(() => {
     if (status !== "live" || startedAtRef.current === null) {
       return;
