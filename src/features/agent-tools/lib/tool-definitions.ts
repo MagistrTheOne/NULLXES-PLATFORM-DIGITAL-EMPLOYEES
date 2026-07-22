@@ -244,6 +244,39 @@ export const TALK_ACTION_TOOLS = [
       },
     },
   },
+  {
+    type: "function" as const,
+    function: {
+      name: "create_and_assign_skill",
+      description:
+        "Create a new skill for this digital employee and assign it immediately. Use when the operator asks you to learn, remember, or save a reusable capability/skill for yourself.",
+      parameters: {
+        type: "object",
+        properties: {
+          name: {
+            type: "string",
+            description: "Short skill name (e.g. EUR/USD live brief).",
+          },
+          instructions: {
+            type: "string",
+            description:
+              "Clear operating instructions the employee should follow when this skill applies.",
+          },
+          description: {
+            type: "string",
+            description: "Optional one-line summary of the skill.",
+          },
+          keywords: {
+            type: "array",
+            items: { type: "string" },
+            description:
+              "Optional trigger keywords that activate this skill (e.g. EUR/USD, FX).",
+          },
+        },
+        required: ["name", "instructions"],
+      },
+    },
+  },
 ];
 
 export const AGENT_TOOL_DEFINITIONS = [

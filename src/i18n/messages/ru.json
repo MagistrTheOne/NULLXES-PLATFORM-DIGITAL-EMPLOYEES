@@ -715,6 +715,21 @@
         "copied": "Скопировано",
         "regenerate": "Перегенерировать"
       },
+      "toolTrace": {
+        "working": "В работе",
+        "searchingKnowledge": "Ищет в знаниях",
+        "searchingWeb": "Ищет в сети",
+        "generatingImage": "Генерирует изображение",
+        "analyzingImage": "Анализирует изображение",
+        "checkingConnectors": "Проверяет коннекторы",
+        "checkingWorkforce": "Проверяет команду",
+        "checkingMissions": "Проверяет миссии",
+        "updatingMission": "Обновляет миссию",
+        "schedulingTask": "Ставит задачу",
+        "handingOff": "Передаёт задачу",
+        "draftingEmail": "Черновик письма",
+        "creatingSkill": "Создаёт навык"
+      },
       "controls": {
         "muteMic": "Выключить микрофон",
         "unmuteMic": "Включить микрофон",
@@ -1579,6 +1594,11 @@
     "composerPlaceholder": "Спросите цифрового сотрудника…",
     "emptyChat": "Сообщений пока нет. Начните переписку ниже.",
     "emptyPrompt": "Чем займёмся сегодня?",
+    "liveBrief": {
+      "label": "Живой market brief",
+      "composerLabel": "Live brief",
+      "prompt": "Дай актуальный market brief прямо сейчас: ключевые курсы (USD, EUR, RUB), основные фондовые индексы и 3 главных рыночных новости. Используй live web search. Коротко, буллетами, укажи что данные из сети."
+    },
     "suggestions": [
       "Чем ты можешь помочь сегодня?",
       "Составь для меня письмо",

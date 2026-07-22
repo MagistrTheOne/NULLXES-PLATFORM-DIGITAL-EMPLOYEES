@@ -5,6 +5,7 @@ import { TextareaComposer, useMessageComposerContext } from "stream-chat-react";
 import { cn } from "@/lib/utils";
 import {
   NullxesAttachButton,
+  NullxesLiveBriefButton,
   NullxesSendButton,
   NullxesVoiceButton,
 } from "./nullxes-composer-actions";
@@ -53,6 +54,12 @@ export function NullxesComposerUI({
           : "px-6 py-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]",
       )}
     >
+      {isConversations ? (
+        <div className="mb-2 flex w-full max-w-2xl justify-start">
+          <NullxesLiveBriefButton />
+        </div>
+      ) : null}
+
       <div
         className={cn(
           "flex w-full items-end gap-1.5 border border-white/8 bg-white/3 transition-colors focus-within:border-white/20",

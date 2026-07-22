@@ -371,5 +371,86 @@ export async function executeAgentTool(input: {
     });
   }
 
+  if (input.toolName === "create_and_assign_skill") {
+    const name = typeof args.name === "string" ? args.name.trim() : "";
+    const instructions =
+      typeof args.instructions === "string" ? args.instructions.trim() : "";
+    const description =
+      typeof args.description === "string" ? args.description.trim() : undefined;
+    const keywords = Array.isArray(args.keywords)
+      ? args.keywords
+          .filter((item): item is string => typeof item === "string")
+          .map((item) => item.trim())
+          .filter(Boolean)
+          .slice(0, 12)
+      : [];
+
+    if (!name || !instructions) {
+      return {
+        content: "create_and_assign_skill requires name and instructions.",
+      };
+    }
+
+    try {
+      const { createSkill } = await import(
+        "@/features/agent-blueprint/services/create-skill"
+      );
+      const { assignEmployeeSkills } = await import(
+        "@/features/agent-blueprint/services/assign-employee-skills"
+      );
+
+      const skillId = await createSkill({
+        organizationId: input.context.organizationId,
+        name,
+        description,
+        instructions,
+        triggers: {
+          keywords,
+          intents: ["self_created_skill"],
+        },
+        requiredToolSlugs: [],
+        category: "custom",
+        slug: `${name
+          .trim()
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "_")
+          .replace(/^_|_$/g, "")
+          .slice(0, 48)}_${Date.now().toString(36)}`,
+      });
+
+      await assignEmployeeSkills({
+        organizationId: input.context.organizationId,
+        employeeId: input.context.employeeId,
+        assignments: [{ skillId, proficiency: "standard", priority: 0 }],
+      });
+
+      if (input.context.sessionId) {
+        const { buildTalkSessionBrainCache } = await import(
+          "@/features/runtime-session/services/build-talk-session-brain-cache"
+        );
+        const { saveTalkSessionBrainCache } = await import(
+          "@/features/runtime-session/services/talk-session-brain-cache"
+        );
+        const cache = await buildTalkSessionBrainCache({
+          organizationId: input.context.organizationId,
+          employeeId: input.context.employeeId,
+        });
+        if (cache) {
+          await saveTalkSessionBrainCache(input.context.sessionId, cache);
+        }
+      }
+
+      return {
+        content: `Skill created and assigned: "${name}" (id=${skillId}). It is active for this employee on the next turn.`,
+      };
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Unknown skill create error";
+      return {
+        content: `Failed to create and assign skill: ${message}`,
+      };
+    }
+  }
+
   return { content: `Unknown tool: ${input.toolName}` };
 }

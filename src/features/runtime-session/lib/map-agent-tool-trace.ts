@@ -11,6 +11,7 @@ const TOOL_TRACE_KEYS: Record<string, string> = {
   create_follow_up_task: "schedulingTask",
   request_handoff: "handingOff",
   draft_email: "draftingEmail",
+  create_and_assign_skill: "creatingSkill",
 };
 
 export function resolveAgentToolTraceKey(toolName: string): string {

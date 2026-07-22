@@ -110,5 +110,16 @@ export async function isSystemBlueprintSeeded(): Promise<boolean> {
     .where(isNull(characterPreset.organizationId))
     .limit(1);
 
-  return Boolean(row);
+  if (!row) {
+    return false;
+  }
+
+  // Re-seed when catalog grew (e.g. new builtin tools) so upserts land.
+  const [skillCreateTool] = await db
+    .select({ id: toolDefinition.id })
+    .from(toolDefinition)
+    .where(eq(toolDefinition.slug, "create_and_assign_skill"))
+    .limit(1);
+
+  return Boolean(skillCreateTool);
 }

@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useId, useRef } from "react";
+import { useCallback, useId, useRef, useState } from "react";
 import { ArrowUp, Mic, Paperclip } from "lucide-react";
+import { useTranslations } from "next-intl";
 import {
   FileInput,
   useAttachmentManagerState,
@@ -138,6 +139,44 @@ export function NullxesSendButton({ className }: { className?: string }) {
       aria-label="Send message"
     >
       <ArrowUp className="size-4 stroke-2" />
+    </Button>
+  );
+}
+
+export function NullxesLiveBriefButton({ className }: { className?: string }) {
+  const t = useTranslations("conversations");
+  const { channel } = useChannelStateContext();
+  const [sending, setSending] = useState(false);
+
+  const handleClick = useCallback(async () => {
+    if (!channel || sending) {
+      return;
+    }
+    setSending(true);
+    try {
+      await channel.sendMessage({ text: t("liveBrief.prompt") });
+    } catch {
+      // Composer remains available for a manual retry.
+    } finally {
+      setSending(false);
+    }
+  }, [channel, sending, t]);
+
+  return (
+    <Button
+      type="button"
+      variant="outline"
+      size="sm"
+      disabled={sending || !channel}
+      onClick={() => {
+        void handleClick();
+      }}
+      className={cn(
+        "h-7 shrink-0 rounded-full border-white/15 bg-transparent px-3 text-[11px] font-medium tracking-tight text-white/70 hover:border-white/25 hover:bg-white/4 hover:text-white",
+        className,
+      )}
+    >
+      {t("liveBrief.composerLabel")}
     </Button>
   );
 }

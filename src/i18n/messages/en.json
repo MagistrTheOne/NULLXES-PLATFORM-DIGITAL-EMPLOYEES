@@ -715,6 +715,21 @@
         "copied": "Copied",
         "regenerate": "Regenerate"
       },
+      "toolTrace": {
+        "working": "Working",
+        "searchingKnowledge": "Searching knowledge",
+        "searchingWeb": "Searching the web",
+        "generatingImage": "Generating image",
+        "analyzingImage": "Analyzing image",
+        "checkingConnectors": "Checking connectors",
+        "checkingWorkforce": "Checking workforce",
+        "checkingMissions": "Checking missions",
+        "updatingMission": "Updating mission",
+        "schedulingTask": "Scheduling task",
+        "handingOff": "Handing off",
+        "draftingEmail": "Drafting email",
+        "creatingSkill": "Creating skill"
+      },
       "controls": {
         "muteMic": "Mute microphone",
         "unmuteMic": "Unmute microphone",
@@ -1579,6 +1594,11 @@
     "composerPlaceholder": "Ask your digital employee…",
     "emptyChat": "No messages yet. Start the conversation below.",
     "emptyPrompt": "What would you like to do today?",
+    "liveBrief": {
+      "label": "Live market brief",
+      "composerLabel": "Live brief",
+      "prompt": "Give me today's live market brief right now: major FX rates (USD, EUR, RUB), key stock indices, and 3 headline market news. Use live web search. Keep it to short bullets and note the data is from the web."
+    },
     "suggestions": [
       "What can you help me with today?",
       "Draft an email for me",

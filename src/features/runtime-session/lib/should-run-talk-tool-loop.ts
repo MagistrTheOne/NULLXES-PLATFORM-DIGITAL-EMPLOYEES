@@ -4,6 +4,9 @@ const HANDOFF_PATTERN =
 const FOLLOW_UP_TASK_PATTERN =
   /\b(remind\s+me|follow[\s-]?up|create\s+(?:a\s+)?task|schedule\s+(?:a\s+)?|напомни|создай\s+задач|поставь\s+задач)/iu;
 
+const SKILL_CREATE_PATTERN =
+  /(?:\b(?:create\s+(?:a\s+)?skill|save\s+(?:a\s+)?skill|learn\s+(?:this|a)\s+skill|teach\s+yourself|add\s+(?:a\s+)?skill|remember\s+(?:this\s+)?(?:as\s+a\s+)?skill|skill\s+for\s+yourself)\b|создай\s+(?:себе\s+)?навык|сохрани\s+(?:себе\s+)?навык|выучи|научись|добавь\s+навык|запомни\s+(?:как\s+)?навык)/iu;
+
 const MISSION_PATTERN =
   /\b(mission|missions|outbound|prospect(?:ing)?|assignment|assignments|campaign|outreach|lead|leads|task|tasks|очеред\w*|мисси\w*|задани\w*|задач\w*|поручени\w*|проспект\w*|аутрич|лид\w*|кампани\w*)/iu;
 
@@ -12,7 +15,7 @@ const CHAT_PLATFORM_STATUS_PATTERN =
 
 /** Broader than before — Conversations often asks without "search the web". */
 const WEB_SEARCH_PATTERN =
-  /\b(search\s+(?:the\s+)?web|look\s+up|google|bing|find\s+(?:out\s+)?(?:the\s+)?latest|what(?:'s|\s+is)\s+(?:the\s+)?(?:latest|current|today)|current\s+(?:news|price|rate|events?)|today(?:'s)?|right\s+now|news\s+about|weather|stock\s+price|курс|новости|найди\s+(?:в\s+)?(?:интернет|сети)|поищи|погугли|что\s+(?:сейчас|происходит|нового)|актуальн|свеж\w*\s+новост|на\s+\d{1,2}\s+(?:январ|феврал|март|апрел|ма[йя]|июн|июл|август|сентябр|октябр|ноябр|декабр)|20\d{2}\s*год|внешн\w*\s+новост|real[\s-]?time|up[\s-]?to[\s-]?date)/iu;
+  /(?:\b(?:search\s+(?:the\s+)?web|look\s+up|google|bing|find\s+(?:out\s+)?(?:the\s+)?latest|what(?:'s|\s+is)\s+(?:the\s+)?(?:latest|current|today)|current\s+(?:news|price|rate|events?)|today(?:'s)?|right\s+now|news\s+about|weather|stock\s+price|live\s+web\s+search|real[\s-]?time|up[\s-]?to[\s-]?date)\b|курс|новости|найди\s+(?:в\s+)?(?:интернет|сети)|поищи|погугли|что\s+(?:сейчас|происходит|нового)|актуальн|свеж\w*\s+новост|на\s+\d{1,2}\s+(?:январ|феврал|март|апрел|ма[йя]|июн|июл|август|сентябр|октябр|ноябр|декабр)|20\d{2}\s*год|внешн\w*\s+новост)/iu;
 
 const IMAGE_GEN_PATTERN =
   /\b(generat(?:e|ing)\s+(?:an?\s+)?image|draw(?:\s+me)?|imagine|create\s+(?:an?\s+)?(?:image|picture|illustration)|сделай\s+(?:картин|изображен|иллюстрац)|нарисуй|сгенерируй\s+(?:картин|изображен)|imagine\s+)/iu;
@@ -56,6 +59,15 @@ export function shouldRunMissionTools(lastUserMessage: string): boolean {
   return MISSION_PATTERN.test(trimmed);
 }
 
+export function shouldRunSkillCreateTools(lastUserMessage: string): boolean {
+  const trimmed = lastUserMessage.trim();
+  if (!trimmed) {
+    return false;
+  }
+
+  return SKILL_CREATE_PATTERN.test(trimmed);
+}
+
 /** Text chat (Conversations / sidebar): broader platform queries than voice. */
 export function shouldRunChatToolLoop(lastUserMessage: string): boolean {
   const trimmed = lastUserMessage.trim();
@@ -79,6 +91,7 @@ export function shouldRunTalkToolLoop(lastUserMessage: string): boolean {
   return (
     HANDOFF_PATTERN.test(trimmed) ||
     FOLLOW_UP_TASK_PATTERN.test(trimmed) ||
+    shouldRunSkillCreateTools(trimmed) ||
     shouldRunMissionTools(trimmed)
   );
 }

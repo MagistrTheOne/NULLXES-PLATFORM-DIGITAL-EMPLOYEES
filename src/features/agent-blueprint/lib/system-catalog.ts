@@ -328,6 +328,7 @@ const TOOL_RISK: Record<string, ToolRiskLevel> = {
   list_workforce_peers: "read",
   request_handoff: "write",
   draft_email: "write",
+  create_and_assign_skill: "write",
 };
 
 const TOOL_APPROVAL: Record<string, boolean> = {
@@ -349,6 +350,7 @@ const TOOL_IDS: Record<string, string> = {
   draft_email: "c3000003-0003-4003-8003-000000000009",
   generate_image: "c3000003-0003-4003-8003-00000000000b",
   analyze_image: "c3000003-0003-4003-8003-00000000000c",
+  create_and_assign_skill: "c3000003-0003-4003-8003-00000000000d",
 };
 
 export const SYSTEM_TOOLS: SystemToolSeed[] = AGENT_TOOL_DEFINITIONS.map((tool) => {
@@ -422,6 +424,7 @@ export const DEFAULT_ENABLED_TOOL_SLUGS = [
   "generate_image",
   "analyze_image",
   "draft_email",
+  "create_and_assign_skill",
 ];
 
 export const RESTRICTED_TOOL_SLUGS = ["cancel_mission", "restart_mission"];

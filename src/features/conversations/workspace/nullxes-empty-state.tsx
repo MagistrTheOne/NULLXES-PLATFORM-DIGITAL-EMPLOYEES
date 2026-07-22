@@ -65,20 +65,33 @@ export function NullxesEmptyState({
         </p>
       </div>
 
-      <div className="grid w-full grid-cols-1 gap-2 sm:grid-cols-2">
-        {suggestions.map((suggestion) => (
-          <button
-            key={suggestion}
-            type="button"
-            disabled={sending || !channel}
-            onClick={() => {
-              void handleSuggestion(suggestion);
-            }}
-            className="rounded-xl border border-white/8 bg-white/1.5 px-4 py-3 text-left text-sm font-normal text-white/70 transition-colors hover:border-white/15 hover:bg-white/4 hover:text-white disabled:opacity-40"
-          >
-            {suggestion}
-          </button>
-        ))}
+      <div className="flex w-full flex-col gap-2">
+        <button
+          type="button"
+          disabled={sending || !channel}
+          onClick={() => {
+            void handleSuggestion(t("liveBrief.prompt"));
+          }}
+          className="rounded-xl border border-white/20 bg-white px-4 py-3.5 text-left text-sm font-medium tracking-tight text-black transition-colors hover:bg-white/90 disabled:opacity-40"
+        >
+          {t("liveBrief.label")}
+        </button>
+
+        <div className="grid w-full grid-cols-1 gap-2 sm:grid-cols-2">
+          {suggestions.map((suggestion) => (
+            <button
+              key={suggestion}
+              type="button"
+              disabled={sending || !channel}
+              onClick={() => {
+                void handleSuggestion(suggestion);
+              }}
+              className="rounded-xl border border-white/8 bg-white/1.5 px-4 py-3 text-left text-sm font-normal text-white/70 transition-colors hover:border-white/15 hover:bg-white/4 hover:text-white disabled:opacity-40"
+            >
+              {suggestion}
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );

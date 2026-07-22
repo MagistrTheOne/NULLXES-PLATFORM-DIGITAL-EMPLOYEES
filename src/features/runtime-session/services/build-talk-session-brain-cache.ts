@@ -92,6 +92,7 @@ export async function buildTalkSessionBrainCache(input: {
         "search_web",
         "generate_image",
         "analyze_image",
+        "create_and_assign_skill",
       ]),
     ],
   };
@@ -131,6 +132,7 @@ export function talkBrainCacheToRequestConfig(
         "search_web",
         "generate_image",
         "analyze_image",
+        "create_and_assign_skill",
       ]),
     ],
   };
