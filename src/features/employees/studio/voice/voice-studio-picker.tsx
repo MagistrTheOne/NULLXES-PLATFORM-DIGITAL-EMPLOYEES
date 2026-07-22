@@ -1,12 +1,18 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Loader2, Play, Search } from "lucide-react";
+import { Loader2, Play, Search, Sparkles } from "lucide-react";
 import { listElevenLabsStudioVoices } from "@/features/employees/actions/list-elevenlabs-studio-voices";
+import {
+  createElevenLabsVoiceFromPreview,
+  designElevenLabsVoiceFromDescription,
+  type ElevenLabsVoiceDesignPreview,
+} from "@/features/employees/actions/design-elevenlabs-voice";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -99,10 +105,217 @@ function VoiceDetailPanel({
   );
 }
 
+function VoiceDesignPanel({
+  defaultName,
+  onVoiceCreated,
+}: {
+  defaultName?: string;
+  onVoiceCreated: (input: { voiceId: string; name: string }) => void;
+}) {
+  const t = useTranslations("employees.studio.voice");
+  const [open, setOpen] = useState(false);
+  const [description, setDescription] = useState("");
+  const [voiceName, setVoiceName] = useState(defaultName?.trim() || "");
+  const [isDesigning, setIsDesigning] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [previews, setPreviews] = useState<ElevenLabsVoiceDesignPreview[]>([]);
+  const [previewText, setPreviewText] = useState("");
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    if (defaultName?.trim() && !voiceName.trim()) {
+      setVoiceName(defaultName.trim());
+    }
+  }, [defaultName, voiceName]);
+
+  useEffect(() => {
+    return () => {
+      audioRef.current?.pause();
+      audioRef.current = null;
+    };
+  }, []);
+
+  function playPreview(preview: ElevenLabsVoiceDesignPreview): void {
+    audioRef.current?.pause();
+    const audio = new Audio(
+      `data:${preview.mediaType};base64,${preview.audioBase64}`,
+    );
+    audioRef.current = audio;
+    void audio.play().catch(() => undefined);
+  }
+
+  async function handleGenerate(): Promise<void> {
+    setError(null);
+    setSuccess(null);
+    setIsDesigning(true);
+    setPreviews([]);
+
+    try {
+      const result = await designElevenLabsVoiceFromDescription({
+        voiceDescription: description,
+        voiceName,
+      });
+
+      if (!result.ok) {
+        setError(result.message || t("designFailed"));
+        return;
+      }
+
+      setPreviews(result.previews);
+      setPreviewText(result.previewText);
+    } finally {
+      setIsDesigning(false);
+    }
+  }
+
+  async function handleUsePreview(
+    preview: ElevenLabsVoiceDesignPreview,
+  ): Promise<void> {
+    setError(null);
+    setSuccess(null);
+    setIsCreating(true);
+
+    try {
+      const name = voiceName.trim() || "NULLXES Voice";
+      const result = await createElevenLabsVoiceFromPreview({
+        voiceName: name,
+        voiceDescription: description.trim(),
+        generatedVoiceId: preview.generatedVoiceId,
+      });
+
+      if (!result.ok) {
+        setError(result.message || t("designFailed"));
+        return;
+      }
+
+      onVoiceCreated({ voiceId: result.voiceId, name: result.name });
+      setSuccess(t("designCreated"));
+    } finally {
+      setIsCreating(false);
+    }
+  }
+
+  return (
+    <Collapsible open={open} onOpenChange={setOpen}>
+      <CollapsibleTrigger asChild>
+        <Button
+          type="button"
+          variant="ghost"
+          className="h-auto w-full justify-between px-0 text-sm text-white/60 hover:bg-transparent hover:text-white"
+        >
+          <span className="inline-flex items-center gap-2">
+            <Sparkles className="size-3.5" />
+            {t("designFromDescription")}
+          </span>
+          <span className="text-xs text-white/40">{open ? "Hide" : "Show"}</span>
+        </Button>
+      </CollapsibleTrigger>
+      <CollapsibleContent className="flex flex-col gap-3 pt-2">
+        <p className="text-xs text-white/45">{t("designFromDescriptionHint")}</p>
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="voice-design-name" className="text-white/80">
+            {t("designVoiceNameLabel")}
+          </Label>
+          <Input
+            id="voice-design-name"
+            value={voiceName}
+            onChange={(event) => setVoiceName(event.target.value)}
+            placeholder={t("designVoiceNamePlaceholder")}
+            className="border-white/10 bg-black/40 text-white placeholder:text-white/35"
+          />
+        </div>
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="voice-design-description" className="text-white/80">
+            {t("designDescriptionLabel")}
+          </Label>
+          <Textarea
+            id="voice-design-description"
+            value={description}
+            onChange={(event) => setDescription(event.target.value)}
+            placeholder={t("designDescriptionPlaceholder")}
+            rows={3}
+            className="border-white/10 bg-black/40 text-white placeholder:text-white/35"
+          />
+        </div>
+        <Button
+          type="button"
+          variant="outline"
+          disabled={isDesigning || description.trim().length < 8}
+          onClick={() => void handleGenerate()}
+          className="border-white/10 bg-transparent text-white hover:bg-white/5"
+        >
+          {isDesigning ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <Sparkles className="size-4" />
+          )}
+          {isDesigning ? t("designGenerating") : t("designGenerate")}
+        </Button>
+
+        {error ? <p className="text-xs text-white/55">{error}</p> : null}
+        {success ? <p className="text-xs text-white/70">{success}</p> : null}
+
+        {previews.length > 0 ? (
+          <div className="flex flex-col gap-2">
+            <p className="text-xs uppercase tracking-wide text-white/40">
+              {t("designPickPreview")}
+            </p>
+            {previewText ? (
+              <p className="text-[11px] leading-relaxed text-white/40">
+                {previewText}
+              </p>
+            ) : null}
+            <ul className="flex flex-col gap-2">
+              {previews.map((preview, index) => (
+                <li
+                  key={preview.generatedVoiceId}
+                  className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-white/10 bg-black/40 px-3 py-2"
+                >
+                  <span className="text-sm text-white/80">
+                    Preview {index + 1}
+                    {preview.language ? ` · ${preview.language}` : ""}
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      className="text-white/70 hover:bg-white/5 hover:text-white"
+                      onClick={() => playPreview(preview)}
+                    >
+                      <Play className="size-3.5" />
+                      {t("designListen")}
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      disabled={isCreating}
+                      onClick={() => void handleUsePreview(preview)}
+                      className="bg-white text-black hover:bg-white/90"
+                    >
+                      {isCreating ? (
+                        <Loader2 className="size-3.5 animate-spin" />
+                      ) : null}
+                      {isCreating ? t("designCreating") : t("designUsePreview")}
+                    </Button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+      </CollapsibleContent>
+    </Collapsible>
+  );
+}
+
 export function VoiceStudioPicker({
   selectedVoiceId,
   customElevenLabsVoiceId,
   previewingVoiceId,
+  employeeName,
   onSelectVoice,
   onApplyCustomVoice,
   onPreviewVoice,
@@ -110,6 +323,7 @@ export function VoiceStudioPicker({
   selectedVoiceId: string | null;
   customElevenLabsVoiceId: string;
   previewingVoiceId: string | null;
+  employeeName?: string;
   onSelectVoice: (input: {
     studioVoiceId: string;
     voiceName: string;
@@ -250,6 +464,17 @@ export function VoiceStudioPicker({
     }
     onApplyCustomVoice(trimmed);
     setCustomOpen(true);
+  }
+
+  function handleDesignedVoice(input: { voiceId: string; name: string }): void {
+    setCustomDraftId(input.voiceId);
+    onApplyCustomVoice(input.voiceId);
+    setCustomOpen(true);
+    void listElevenLabsStudioVoices().then((result) => {
+      if (result.ok) {
+        setApiElevenLabsVoices(result.voices);
+      }
+    });
   }
 
   return (
@@ -419,6 +644,11 @@ export function VoiceStudioPicker({
         </p>
       )}
 
+      <VoiceDesignPanel
+        defaultName={employeeName}
+        onVoiceCreated={handleDesignedVoice}
+      />
+
       <Collapsible open={customOpen} onOpenChange={setCustomOpen}>
         <CollapsibleTrigger asChild>
           <Button
@@ -433,9 +663,7 @@ export function VoiceStudioPicker({
           </Button>
         </CollapsibleTrigger>
         <CollapsibleContent className="flex flex-col gap-3 pt-2">
-          <p className="text-xs text-white/45">
-            {t("customVoiceIdHint")}
-          </p>
+          <p className="text-xs text-white/45">{t("customVoiceIdHint")}</p>
           <div className="flex flex-col gap-2">
             <Label htmlFor="custom-elevenlabs-voice-id" className="text-white/80">
               Voice ID

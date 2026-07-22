@@ -750,6 +750,7 @@ export function CreateEmployeeDialog({
                 selectedVoiceId={form.studioVoiceId}
                 customElevenLabsVoiceId={form.customElevenLabsVoiceId}
                 previewingVoiceId={previewingVoiceId}
+                employeeName={form.name}
                 onSelectVoice={({ studioVoiceId, voiceName, provider }) =>
                   updateForm({
                     studioVoiceId,

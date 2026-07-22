@@ -901,7 +901,21 @@
         "customVoiceIdHint": "Paste a voice ID from your account if it is not in the catalog.",
         "noCatalogMatches": "No catalog voices match. Try another filter or use a custom voice ID below.",
         "selectCatalogVoice": "Select a voice from the list or add a custom voice ID.",
-        "useCustomVoice": "Use custom voice"
+        "useCustomVoice": "Use custom voice",
+        "designFromDescription": "Create voice from description",
+        "designFromDescriptionHint": "ElevenLabs Voice Design — describe age, accent, tone. Generate previews, pick one, save to your library.",
+        "designDescriptionLabel": "Voice description",
+        "designDescriptionPlaceholder": "Warm mid-30s female executive, calm confident Russian-English bilingual tone…",
+        "designVoiceNameLabel": "Voice name",
+        "designVoiceNamePlaceholder": "Megan Executive",
+        "designGenerate": "Generate previews",
+        "designGenerating": "Designing voice…",
+        "designPickPreview": "Pick a preview",
+        "designListen": "Play",
+        "designUsePreview": "Use this voice",
+        "designCreating": "Saving voice…",
+        "designCreated": "Voice created and selected",
+        "designFailed": "Voice design failed"
       },
       "brain": {
         "useOrgDefault": "Use organization default",
