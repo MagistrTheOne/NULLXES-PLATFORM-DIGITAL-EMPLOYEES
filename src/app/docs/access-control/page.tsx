@@ -1,27 +1,33 @@
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import { docsPageMetadata } from "../_lib/docs-page-metadata";
 
-export const metadata = docsPageMetadata("/docs/access-control");
+export async function generateMetadata() {
+  return docsPageMetadata("/docs/access-control");
+}
 
-export default function DocsAccessControlPage() {
+export default async function DocsAccessControlPage() {
+  const t = await getTranslations("docs.accessControl");
+  const isolationItems = t.raw("isolationItems") as string[];
+
   return (
     <article className="flex flex-col gap-8 text-sm leading-relaxed text-white/60">
       <header>
         <h2 className="text-2xl font-medium tracking-tight text-white">
-          Управление доступом
+          {t("title")}
         </h2>
-        <p className="mt-4">Owner · Roles · Permissions · Organization isolation.</p>
+        <p className="mt-4">{t("intro")}</p>
       </header>
 
       <section
         id="rbac"
         className="scroll-mt-24 rounded-2xl border border-white/10 bg-[#111111] p-6"
       >
-        <h3 className="font-medium text-white">RBAC</h3>
+        <h3 className="font-medium text-white">{t("rbacTitle")}</h3>
         <p className="mt-3">
-          Права вычисляются из membership role. Матрица:{" "}
+          {t("rbacText")}{" "}
           <Link href="/docs/roles" className="text-white underline">
-            /docs/roles
+            {t("rolesLink")}
           </Link>
           .
         </p>
@@ -31,12 +37,13 @@ export default function DocsAccessControlPage() {
         id="isolation"
         className="scroll-mt-24 rounded-2xl border border-white/10 bg-[#111111] p-6"
       >
-        <h3 className="font-medium text-white">Изоляция org</h3>
+        <h3 className="font-medium text-white">{t("isolationTitle")}</h3>
         <ul className="mt-4 list-disc space-y-2 pl-5">
-          <li>Все бизнес-сущности привязаны к organizationId</li>
-          <li>Public API ключ всегда принадлежит одной org</li>
-          <li>Кросс-tenant доступ запрещён</li>
+          {isolationItems.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
         </ul>
       </section>
     </article>
-  );}
+  );
+}

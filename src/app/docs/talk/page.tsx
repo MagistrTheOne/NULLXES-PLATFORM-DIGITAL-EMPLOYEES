@@ -1,34 +1,41 @@
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import { docsPageMetadata } from "../_lib/docs-page-metadata";
 
-export const metadata = docsPageMetadata("/docs/talk");
+export async function generateMetadata() {
+  return docsPageMetadata("/docs/talk");
+}
 
-export default function DocsTalkPage() {
+export default async function DocsTalkPage() {
+  const t = await getTranslations("docs.talk");
+  const startSteps = t.raw("startSteps") as string[];
+
   return (
     <article className="flex flex-col gap-8 text-sm leading-relaxed text-white/60">
       <header>
-        <h2 className="text-2xl font-medium tracking-tight text-white">Talk</h2>
-        <p className="mt-4">
-          Премиальный диалог с digital employee: текст и голос. Когниция
-          принадлежит платформе; аватар Anam — визуальный слой.
-        </p>
+        <h2 className="text-2xl font-medium tracking-tight text-white">
+          {t("title")}
+        </h2>
+        <p className="mt-4">{t("intro")}</p>
       </header>
 
       <section
         id="overview"
         className="scroll-mt-24 rounded-2xl border border-white/10 bg-[#111111] p-6"
       >
-        <h3 className="font-medium text-white">1. Обзор</h3>
+        <h3 className="font-medium text-white">{t("overviewTitle")}</h3>
         <ul className="mt-4 list-disc space-y-2 pl-5">
           <li>
-            Brain:{" "}
-            <span className="font-mono text-white">POST /api/talk/brain-stream</span>
+            {t("overviewBrain")}{" "}
+            <span className="font-mono text-white">
+              POST /api/talk/brain-stream
+            </span>
           </li>
-          <li>Anam — avatar-only (без встроенного LLM persona)</li>
+          <li>{t("overviewAnam")}</li>
           <li>
-            История:{" "}
+            {t("overviewHistoryPrefix")}{" "}
             <Link href="/dashboard/conversations" className="text-white underline">
-              /dashboard/conversations
+              {t("overviewHistoryLink")}
             </Link>
           </li>
         </ul>
@@ -38,12 +45,11 @@ export default function DocsTalkPage() {
         id="start"
         className="scroll-mt-24 rounded-2xl border border-white/10 bg-[#111111] p-6"
       >
-        <h3 className="font-medium text-white">2. Как начать</h3>
+        <h3 className="font-medium text-white">{t("startTitle")}</h3>
         <ol className="mt-4 list-decimal space-y-2 pl-5">
-          <li>Откройте карточку сотрудника</li>
-          <li>Убедитесь, что статус Talk Ready</li>
-          <li>Нажмите Talk и начните сессию</li>
-          <li>Завершите сессию кнопкой End session</li>
+          {startSteps.map((step) => (
+            <li key={step}>{step}</li>
+          ))}
         </ol>
       </section>
 
@@ -51,11 +57,11 @@ export default function DocsTalkPage() {
         id="limits"
         className="scroll-mt-24 rounded-2xl border border-white/10 bg-[#111111] p-6"
       >
-        <h3 className="font-medium text-white">3. Лимиты</h3>
+        <h3 className="font-medium text-white">{t("limitsTitle")}</h3>
         <p className="mt-3">
-          Длительность сессии и месячный бюджет минут зависят от тарифа. См.{" "}
+          {t("limitsBody")}{" "}
           <Link href="/docs/plans" className="text-white underline">
-            /docs/plans
+            {t("plansLink")}
           </Link>
           .
         </p>
@@ -65,15 +71,15 @@ export default function DocsTalkPage() {
         id="ready"
         className="scroll-mt-24 rounded-2xl border border-white/10 bg-[#111111] p-6"
       >
-        <h3 className="font-medium text-white">4. Talk Ready</h3>
+        <h3 className="font-medium text-white">{t("readyTitle")}</h3>
         <p className="mt-3">
-          Готовность = avatar provisioning ready + session provisioning ready.
-          Если Talk недоступен — см.{" "}
+          {t("readyBody")}{" "}
           <Link href="/docs/troubleshooting#talk" className="text-white underline">
-            устранение неполадок
+            {t("troubleshootingLink")}
           </Link>
           .
         </p>
       </section>
     </article>
-  );}
+  );
+}

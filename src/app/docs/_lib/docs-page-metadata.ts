@@ -1,22 +1,25 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { buildPageMetadata } from "@/shared/seo";
 import { findDocsNavItem } from "./docs-nav";
 
 /**
  * Build Metadata for a docs route from the nav label.
- * Use in page.tsx: `export const metadata = docsPageMetadata("/docs/talk")`
+ * Use in page.tsx: `export const generateMetadata = () => docsPageMetadata("/docs/talk")`
  */
-export function docsPageMetadata(
+export async function docsPageMetadata(
   path: string,
   description?: string,
-): Metadata {
+): Promise<Metadata> {
+  const tNav = await getTranslations("docs.nav");
+  const tMeta = await getTranslations("docs.meta");
   const item = findDocsNavItem(path);
-  const title = item?.breadcrumb ?? item?.label ?? "Документация";
+  const title = item
+    ? tNav(`items.${item.key}.breadcrumb`)
+    : tMeta("fallbackTitle");
   return buildPageMetadata({
     title,
-    description:
-      description ??
-      `${title} — документация NULLXES Digital Employees (Digital Workforce Operating System).`,
+    description: description ?? `${title} ${tMeta("descriptionSuffix")}`,
     path,
   });
 }

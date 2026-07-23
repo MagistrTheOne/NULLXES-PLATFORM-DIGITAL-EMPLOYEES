@@ -2147,5 +2147,1184 @@
         "flagship": "Digital corporation"
       }
     }
+  },
+  "docs": {
+    "organizations": {
+      "title": "Organizations",
+      "intro": "Data and limits are scoped to an organization.",
+      "modelTitle": "Model",
+      "isolationTitle": "Isolation",
+      "isolationItems": [
+        "UI and API requests are scoped by organizationId",
+        "RLS (defense-in-depth) on org tables",
+        "NULLXES catalog — read for Talk, definition immutable"
+      ],
+      "seeAccessControl": "See",
+      "accessControlLink": "access control",
+      "modelTree": "Organization\n├ Owner (membership)\n├ Members (admin / operator / viewer)\n├ Digital employees\n├ Knowledge / Missions / Sessions\n├ API keys\n└ Billing plan + limits"
+    },
+    "workspaces": {
+      "title": "Workspaces",
+      "intro": "Workspace is the user session context: active organization, permissions, billing.",
+      "overviewTitle": "Overview",
+      "overviewTree": "User\n  ↓ membership\nOrganization\n  ↓ workspace context\nDashboard / Talk / API",
+      "overviewDetail": "One user can belong to multiple organizations. The active workspace is selected at sign-in. See also:",
+      "organizationsLink": "organizations",
+      "rolesLink": "roles"
+    },
+    "accessControl": {
+      "title": "Access control",
+      "intro": "Owner · Roles · Permissions · Organization isolation.",
+      "rbacTitle": "RBAC",
+      "rbacText": "Permissions are derived from membership role. Matrix:",
+      "rolesLink": "/docs/roles",
+      "isolationTitle": "Org isolation",
+      "isolationItems": [
+        "All business entities are bound to organizationId",
+        "Every Public API key belongs to one org",
+        "Cross-tenant access is forbidden"
+      ]
+    },
+    "analytics": {
+      "title": "Analytics",
+      "intro": "Secondary layer relative to the workforce. The dashboard shows employee activity, sessions, and limit usage.",
+      "overviewTitle": "Overview",
+      "overviewItems": [
+        "UI: Analytics in dashboard",
+        "Metrics scoped by organization",
+        "Does not replace audit log — see Audit"
+      ]
+    },
+    "audit": {
+      "title": "Audit log",
+      "intro": "Records significant actions in the organization: keys, members, export, settings.",
+      "overviewTitle": "Overview",
+      "overviewItems": [
+        "audit_event table, scoped by organizationId",
+        "Examples: api_key.created / revoked, member.*, data.exported"
+      ],
+      "relatedPrefix": "Related to",
+      "securityLink": "security",
+      "and": "and",
+      "personalDataLink": "personal data"
+    },
+    "integrations": {
+      "title": "Integrations",
+      "intro": "Platform extension points for external systems.",
+      "overviewTitle": "Overview",
+      "publicApiLink": "Public API",
+      "publicApiSuffix": "— CRUD workforce, tasks, sessions",
+      "webhooksLink": "Webhooks",
+      "webhooksSuffix": "— event push",
+      "avatarItem": "Avatar / voice providers — provisioning via the platform (not client lab keys)",
+      "billingItem": "Billing webhooks (Polar / T-Bank) — internal platform hooks"
+    },
+    "missions": {
+      "title": "Missions",
+      "intro": "Scheduled and manual tasks for a digital employee outside live Talk.",
+      "overviewTitle": "Overview",
+      "overviewItems": [
+        "Bound to employee and organization",
+        "Skill IDs / schedule — per mission configuration",
+        "UI: Mission Control in dashboard"
+      ],
+      "runtimeTitle": "Execution",
+      "runtimeText": "Runs via platform background workers. Results and statuses are available in the missions UI. For external automation —",
+      "apiTasksLink": "Public API tasks"
+    },
+    "knowledge": {
+      "title": "Knowledge",
+      "intro": "Digital employee knowledge base: sources are indexed and used in Talk (RAG).",
+      "overviewTitle": "1. Overview",
+      "overviewText": "Knowledge sources are bound to an employee. Indexing runs via Inngest background jobs. During a session, retrieval injects relevant fragments into the brain-stream context.",
+      "uploadTitle": "2. Upload",
+      "uploadSteps": [
+        "Open employee → Knowledge / Studio",
+        "Add a URL or file",
+        "Wait for indexing → ready status"
+      ],
+      "limitsTitle": "3. Chunk limits",
+      "limitsText": "Maximum knowledge chunks are set by plan. Matrix:",
+      "plansLink": "/docs/plans"
+    },
+    "apiSecurity": {
+      "title": "API Security",
+      "intro": "Controls for Public API integrators.",
+      "keysTitle": "Keys",
+      "keysItems": [
+        "Bearer / header auth with nx_live_ key",
+        "Least-privilege scopes",
+        "Revocation is immediate"
+      ],
+      "keysMore": "Details:",
+      "apiKeysLink": "/docs/api-keys",
+      "webhooksTitle": "Webhooks",
+      "webhooksItems": [
+        "HTTPS endpoints only",
+        "HMAC signature verification required"
+      ],
+      "webhooksSpec": "Spec:",
+      "webhooksLink": "/docs/webhooks"
+    },
+    "changelog": {
+      "title": "Documentation changelog",
+      "intro": "Changes to the /docs portal and Public API. Portal version: 2.1.0.",
+      "v210Title": "July 13, 2026 — 2.1.0",
+      "v210Items": [
+        "IA developer portal: Start · Workforce · Platform · Admin · Security · Legal · Developers · Enterprise",
+        "New pages: architecture, organizations, roles, API keys, webhooks, limits, security, enterprise",
+        "Assistant: Yuki Nakora (no model branding in UI)"
+      ],
+      "v200Title": "July 10, 2026 — 2.0.0",
+      "v200Items": [
+        "First /docs portal + Public API human docs"
+      ],
+      "agentReadable": "Agent-readable:"
+    },
+    "privacy": {
+      "title": "Privacy policy",
+      "intro": "Short index. Full personal data package — in personal data and terms sections.",
+      "overviewTitle": "Overview",
+      "personalDataLink": "Personal data processing policy",
+      "termsLink": "Terms of service",
+      "cookiesLink": "Cookie",
+      "companyLink": "Operator details"
+    },
+    "apiKeys": {
+      "title": "API Keys",
+      "introPrefix": "Organization keys for the Public API. Prefix",
+      "introSuffix": ". The full value is shown once on creation.",
+      "createTitle": "Creation",
+      "createItems": [
+        "Settings → Security → API keys",
+        "Owner only",
+        "Access depends on plan (none / read / full)"
+      ],
+      "scopesTitle": "Scopes",
+      "scopeItems": [
+        "employees:read / employees:write",
+        "sessions:read",
+        "tasks:write"
+      ],
+      "scopesBundles": "Bundles: Read-only · Workforce Operator · Admin Integration. See",
+      "apiLink": "API reference",
+      "revokeTitle": "Revoke and rotation",
+      "revokeBody": "Revoke — immediate invalidation. Rotation: create a new key → switch integrations → revoke the old one. Store secrets outside the repository."
+    },
+    "company": {
+      "label": "Legal details",
+      "requisitesTitle": "Legal requisites",
+      "ogrnLabel": "OGRN",
+      "innKppLabel": "INN / KPP",
+      "okpoLabel": "OKPO",
+      "registeredAtLabel": "Registration date",
+      "addressLabel": "Legal address",
+      "activityLabel": "Primary OKVED",
+      "contactsTitle": "Contacts",
+      "emailLabel": "Email",
+      "telegramLabel": "Telegram",
+      "siteLabel": "Website",
+      "egrulLabel": "EGRUL",
+      "egrulLink": "Rusprofile",
+      "offerLink": "Public offer",
+      "personalDataLink": "Personal data",
+      "termsLink": "Terms of service"
+    },
+    "cookies": {
+      "title": "Cookie policy",
+      "intro": "NULLXES Digital Employees uses cookies and similar technologies to run the platform, save preferences, and (with consent) anonymized visit analytics.",
+      "overviewTitle": "Categories",
+      "categoryNecessaryLabel": "Necessary",
+      "categoryNecessaryBody": "— Better Auth session, UI language (NEXT_LOCALE), consent record (nx_cookie_consent). Without them, sign-in and basic site operation are impossible or severely limited.",
+      "categoryAnalyticsLabel": "Analytics",
+      "categoryAnalyticsBody": "— Vercel Analytics only after choosing Accept in the consent banner. No ad tracking or third-party profiling cookies.",
+      "consentTitle": "Consent",
+      "consentBody1": "On first visit a banner is shown. The choice is stored in the first-party cookie",
+      "consentBody2": "for 12 months:",
+      "consentOr": "or",
+      "consentBody3": "To change your decision, delete the cookie in the browser and refresh the page — the banner will appear again.",
+      "registryTitle": "Registry (main)",
+      "registryItems": [
+        "Better Auth session cookie — authentication",
+        "NEXT_LOCALE — UI language",
+        "nx_cookie_consent — cookie choice"
+      ]
+    },
+    "dataStorage": {
+      "title": "Data storage",
+      "intro": "For Enterprise and 152-FZ path — where and how data lives.",
+      "whereTitle": "Where data is stored",
+      "whereItems": [
+        "PostgreSQL (Neon) — primary Global contour",
+        "Object storage — avatars / knowledge files (per configuration)",
+        "dataRegion on org — product flag; RU contour — separate deployment"
+      ],
+      "whereNote": "We do not claim residency in Russia until a separate RU DB contour is connected.",
+      "retentionTitle": "Deletion and export",
+      "retentionExport": "Organization data export — Settings / security flows",
+      "retentionPurge": "Deletion / purge — on request and per retention policies",
+      "retentionPersonalDataPrefix": "Personal data:",
+      "personalDataLink": "Personal data"
+    },
+    "employees": {
+      "title": "Digital employees",
+      "intro": "The core platform entity. Everything else is services around the workforce.",
+      "modelTitle": "Model",
+      "modelItems": [
+        "Belongs to an organization (tenant boundary)",
+        "Character / Skills / Tools — blueprint",
+        "Knowledge — corporate context",
+        "Talk — runtime session with a user",
+        "Missions — background and scheduled tasks"
+      ],
+      "catalogTitle": "NULLXES catalog",
+      "catalogBody": "Published platform employees (for example Adeline, Yuki) are available for Talk. Their definition is immutable: changing the definition via Public API and UI is prohibited. Custom employees are created within plan limits.",
+      "lifecycleTitle": "Lifecycle",
+      "lifecycleStatus": "draft → active → paused → archived",
+      "lifecycleTalkPrefix": "Talk:",
+      "talkLink": "Talk",
+      "lifecycleLimitsPrefix": "Limits:",
+      "limitsLink": "Limits"
+    },
+    "enterprise": {
+      "title": "Enterprise",
+      "intro": "Contour for banks, holdings, and regulated deployments. Some items are available now, some are roadmap (clearly marked).",
+      "deploymentTitle": "Deployment",
+      "deploymentItems": [
+        "Enterprise Deployment (managed)",
+        "Private Cloud / VPC",
+        "On-Premise — by contract",
+        "RU data contour — separate DB + object storage (cutover)"
+      ],
+      "identityTitle": "Identity",
+      "identityItems": [
+        "SSO — Enterprise",
+        "SAML — roadmap",
+        "SCIM — roadmap"
+      ],
+      "complianceTitle": "Compliance",
+      "complianceAuditLink": "Audit",
+      "compliancePersonalDataLink": "152-FZ / Personal data",
+      "complianceSecurityLink": "Security controls",
+      "complianceDataStorageLink": "Data storage",
+      "contactPrefix": "Contact:"
+    },
+    "roles": {
+      "title": "Users and roles",
+      "intro": "Membership role in an organization. Implemented: owner, admin, operator, viewer.",
+      "rolesTitle": "Roles",
+      "roleOwner": "Owner — organization, billing, API keys, webhooks, org deletion",
+      "roleAdmin": "Administrator — members and employees",
+      "roleOperator": "Operator — employee operations (Talk, missions)",
+      "roleViewer": "Viewer — read-only",
+      "matrixTitle": "Permission matrix",
+      "matrixHeaderRight": "Permission",
+      "matrixHeaderOwner": "Owner",
+      "matrixHeaderAdmin": "Admin",
+      "matrixHeaderOperator": "Operator",
+      "matrixHeaderViewer": "Viewer",
+      "matrixRows": [
+        [
+          "Manage organization",
+          "✓",
+          "—",
+          "—",
+          "—"
+        ],
+        [
+          "Manage members",
+          "✓",
+          "✓",
+          "—",
+          "—"
+        ],
+        [
+          "Manage employees",
+          "✓",
+          "✓",
+          "—",
+          "—"
+        ],
+        [
+          "Operate employees",
+          "✓",
+          "✓",
+          "✓",
+          "—"
+        ],
+        [
+          "View employees",
+          "✓",
+          "✓",
+          "✓",
+          "✓"
+        ]
+      ]
+    },
+    "security": {
+      "title": "Platform security",
+      "intro": "Controls without fluff. What actually exists in the product.",
+      "transportTitle": "Transport and sessions",
+      "transportItems": [
+        "TLS at edge / hosting",
+        "Better Auth session cookies",
+        "CSP and application security headers"
+      ],
+      "accessTitle": "Access",
+      "accessItems": [
+        "RBAC: owner / admin / operator / viewer",
+        "Organization isolation (+ RLS defense-in-depth)",
+        "2FA — in account security settings (if enabled)"
+      ],
+      "controlsTitle": "Controls",
+      "controlsApiKeysLink": "API Keys",
+      "controlsApiKeysSuffix": "+ scopes",
+      "controlsWebhooksPrefix": "Signed",
+      "controlsWebhooksLink": "Webhooks",
+      "controlsAuditLink": "Audit",
+      "controlsCatalogItem": "Catalog employees — immutable definition"
+    },
+    "talk": {
+      "title": "Talk",
+      "intro": "Premium dialogue with a digital employee: text and voice. Cognition belongs to the platform; the Anam avatar is the visual layer.",
+      "overviewTitle": "1. Overview",
+      "overviewBrain": "Brain:",
+      "overviewAnam": "Anam — avatar-only (no built-in LLM persona)",
+      "overviewHistoryPrefix": "History:",
+      "overviewHistoryLink": "Conversations",
+      "startTitle": "2. Getting started",
+      "startSteps": [
+        "Open the employee card",
+        "Make sure the status is Talk Ready",
+        "Click Talk and start a session",
+        "End the session with the End session button"
+      ],
+      "limitsTitle": "3. Limits",
+      "limitsBody": "Session duration and monthly minute budget depend on the plan. See",
+      "plansLink": "Plans",
+      "readyTitle": "4. Talk Ready",
+      "readyBody": "Readiness = avatar provisioning ready + session provisioning ready. If Talk is unavailable — see",
+      "troubleshootingLink": "troubleshooting"
+    },
+    "troubleshooting": {
+      "title": "Troubleshooting",
+      "introPrefix": "Common failures and what to check. If that does not help —",
+      "introMiddle": "or",
+      "assistantLink": "Yuki Nakora assistant",
+      "talkTitle": "Talk",
+      "talkNotReady": "No Talk Ready — wait for avatar/session provisioning",
+      "talkLimitsPrefix": "Minute limit — check your plan at",
+      "plansLink": "Plans",
+      "talkRateLimit": "429 on brain-stream — wait and retry",
+      "apiTitle": "Public API",
+      "apiItems": [
+        "401 — invalid or revoked key",
+        "403 — insufficient scopes or plan without API (Evaluation/Starter/Studio)"
+      ],
+      "apiSpecPrefix": "Spec:",
+      "apiLink": "API reference",
+      "missionsTitle": "Missions",
+      "missionsItems": [
+        "Status not updating — refresh the page (Inngest async)",
+        "Approval required — Settings → Security → Approvals",
+        "Evaluation: create/missions for catalog are limited"
+      ],
+      "billingTitle": "Plans",
+      "billingItems": [
+        "No Create button on Evaluation — expected (catalog only)",
+        "Checkout — Starter / Studio / Team / Scale; Enterprise — Contact sales"
+      ]
+    },
+    "webhooks": {
+      "title": "Webhooks",
+      "intro": "Outbound organization events to your HTTPS endpoint. HMAC-SHA256 signature.",
+      "eventsTitle": "Events",
+      "events": [
+        "employee.created",
+        "employee.deleted",
+        "session.completed",
+        "session.summarized",
+        "task.completed",
+        "handoff.accepted"
+      ],
+      "signingTitle": "Signing",
+      "signingItems": [
+        "Headers: X-NULLXES-Event, X-NULLXES-Timestamp, X-NULLXES-Signature",
+        "Signature: HMAC-SHA256 of ${timestamp}.${body}",
+        "Verify timestamp (replay window) and signature (timing-safe)"
+      ],
+      "setupTitle": "Setup",
+      "setupPrefix": "Settings → Security → Outbound webhook (Owner). See",
+      "apiSecurityLink": "API Security"
+    },
+    "overview": {
+      "title": "Overview",
+      "intro": "Documentation for <strong>NULLXES Digital Employees</strong> — for clients, integrators, security teams, and developers. One topic per page. No tutorials on how to use a computer.",
+      "domainTitle": "Domain",
+      "domainDocsLabel": "Documentation",
+      "domainRightsHolderLabel": "Rights holder",
+      "domainContactLabel": "Contact",
+      "sectionsTitle": "Sections",
+      "sections": [
+        {
+          "title": "Architecture",
+          "description": "User → Workspace → Employees → Knowledge → Talk → LLM → Logs."
+        },
+        {
+          "title": "Digital employees",
+          "description": "Workforce model, NULLXES catalog, lifecycle."
+        },
+        {
+          "title": "Talk",
+          "description": "Sessions, limits, Talk Ready."
+        },
+        {
+          "title": "Organizations",
+          "description": "Tenant boundary, Owner, Members."
+        },
+        {
+          "title": "Roles",
+          "description": "Owner · Admin · Operator · Viewer."
+        },
+        {
+          "title": "Public API",
+          "description": "Authentication, endpoints, errors."
+        },
+        {
+          "title": "API Keys",
+          "description": "Creation, scopes, revocation, rotation."
+        },
+        {
+          "title": "Webhooks",
+          "description": "Events and HMAC signature."
+        },
+        {
+          "title": "Limits",
+          "description": "Employees, Talk, Knowledge, API — enforcement."
+        },
+        {
+          "title": "Security",
+          "description": "TLS, RBAC, audit, keys, signed webhooks."
+        },
+        {
+          "title": "Enterprise",
+          "description": "Deployment, VPC, SSO, compliance."
+        },
+        {
+          "title": "Yuki Nakora",
+          "description": "Documentation assistant."
+        }
+      ]
+    },
+    "api": {
+      "title": "Public API v1",
+      "intro": "REST API for external integrations: employees, Talk sessions, and task assignment. Contract — OpenAPI; keys are created in Settings → Security.",
+      "operationLink": "Operations → API",
+      "overviewTitle": "1. Overview",
+      "baseUrlLabel": "Base URL",
+      "productionLabel": "Production",
+      "authLabel": "Authentication",
+      "specLabel": "Specification",
+      "specSuffix": "(OpenAPI YAML)",
+      "overviewNote": "The public surface is /api/v1/* only. Internal Talk, Anam, Inngest, billing, and auth routes are not part of Public API.",
+      "authTitle": "2. Keys and scopes",
+      "authSteps": [
+        "Open Settings → Security",
+        "Create an API key (organization owner permissions required)",
+        "Choose a bundle: Read-only, Workforce Operator, or Admin Integration",
+        "Pass the key only in the Authorization header"
+      ],
+      "scopeHeader": "Scope",
+      "accessHeader": "Access",
+      "scopeEmployeesRead": "List and employee card",
+      "scopeEmployeesWrite": "Create, update, delete",
+      "scopeSessionsRead": "Talk sessions",
+      "scopeTasksWrite": "Employee tasks and workforce assign",
+      "planNote": "API access depends on plan: Evaluation / Starter / Studio — no keys; Team — read; Scale / Enterprise / Holding — full access.",
+      "endpointsTitle": "3. Endpoints",
+      "methodHeader": "Method",
+      "pathHeader": "Path",
+      "responsesTitle": "4. Response format",
+      "successLabel": "Success:",
+      "errorLabel": "Error:",
+      "requestIdNote": "The X-Request-Id header duplicates requestId.",
+      "examplesTitle": "5. Examples",
+      "exampleListEmployees": "List employees",
+      "exampleCreateEmployee": "Create employee (draft)",
+      "exampleWorkforceAssign": "Task routing (workforce assign)",
+      "sdkTitle": "6. Typed SDK (Orval)",
+      "sdkIntro": "When source access is granted (on request), the client is generated from public/openapi.yaml:",
+      "sdkImport": "Import: @/features/public-api/sdk. OpenAPI spec is also public: GET /api/docs.",
+      "securityTitle": "7. Security",
+      "securityItems": [
+        "Do not pass the key in query string or client bundle unless necessary",
+        "Limit scopes to the minimally required bundle",
+        "Enable IP allowlist in Settings → Security when needed",
+        "Access denials are recorded in Audit (api.access.denied)"
+      ]
+    },
+    "architecture": {
+      "title": "Platform architecture",
+      "intro": "NULLXES Digital Employees — a digital workforce operating system. Diagrams in Mermaid (source of truth for agents and review).",
+      "stackTitle": "Stack",
+      "stackItems": [
+        "App — Next.js 16 App Router, React 19, TypeScript",
+        "Data — Neon PostgreSQL, Drizzle ORM",
+        "Auth — Better Auth, org RBAC, 2FA",
+        "Jobs — Inngest (missions, tasks, outbound)",
+        "Runtime — Talk brain-stream + avatar/voice providers"
+      ],
+      "c4Title": "C4 — Containers",
+      "c4Text": "The operator uses the web app; API and workers split synchronous and background paths over one database.",
+      "talkTitle": "Talk — sequence",
+      "talkText": "Each turn receives a live snapshot of missions/tasks; read-tools are always available to the model.",
+      "missionsTitle": "Missions — flow",
+      "erdTitle": "ERD — core",
+      "erdText": "Catalog employees are published via platform_employee_catalog and are not duplicated in the home-org list.",
+      "erdSeeAlso": "See also",
+      "organizationsLink": "organizations",
+      "securityLink": "security",
+      "talkLink": "Talk"
+    },
+    "functional": {
+      "title": "Functional characteristics",
+      "intro": "<strong>NULLXES Digital Employees</strong> is an enterprise platform for creating, managing, and operating digital employees in organizational business processes.",
+      "purposeTitle": "1. Platform purpose",
+      "purposeText": "NULLXES enables organizations to deploy digital employees for customer inquiries, internal knowledge, tasks, communications, and operational scenarios. The platform combines role configuration, action control, analytics, and integrations in a single operational environment.",
+      "capabilitiesTitle": "2. Functional capabilities",
+      "capabilitiesItems": [
+        "Digital employee management — profile creation, role definition, responsibility scope, tone of voice, and interaction scenarios.",
+        "Dialogues and inquiry handling — text and voice sessions, interaction history, and communication quality control.",
+        "Corporate knowledge — connecting organizational documents and materials for use within permitted work context.",
+        "Tasks and workflows — assigning tasks to digital employees, tracking status, routing results, and handoff to responsible specialists.",
+        "Control and approval — review of actions requiring human involvement, plus management of outbound communications and execution rules.",
+        "Operations center — unified space for monitoring digital workforce activity, current tasks, and key events.",
+        "Analytics — usage, activity, dialogue, task, and knowledge base metrics for evaluating deployment effectiveness.",
+        "Integrations — connection to corporate systems and external services via API according to organizational policies."
+      ],
+      "governanceTitle": "3. Governance and control",
+      "governanceText1": "The platform provides tools for managing organizations, workspaces, members, and access rights. Digital employee settings, data processing rules, and interaction scenarios are controlled at the organization level.",
+      "governanceText2": "For critical operations, human-in-the-loop may apply: result approval, action confirmation, or handoff to a responsible specialist.",
+      "securityTitle": "4. Security",
+      "securityItems": [
+        "User access separation within the organization.",
+        "Management of access keys and integration connections.",
+        "Monitoring of events and activity in the workspace.",
+        "Configuration of access policies and network interaction restrictions.",
+        "Data export and retention management within available configuration."
+      ],
+      "deploymentTitle": "5. Deployment options",
+      "deploymentText1": "NULLXES supports phased deployment: from evaluating a single scenario to scaling digital employees across customer service, sales, HR, support, and internal operations.",
+      "deploymentText2": "Integration scope, security requirements, access procedures, and support parameters are defined within the selected enterprise contour. For text generation and analysis, organizations may connect various LLM providers (including OpenAI, Anthropic, Google, and the platform NULLXES brain) via Settings → AI.",
+      "rolesTitle": "6. User roles",
+      "roleAdmin": "Administrator — manages the organization, members, access policies, settings, and integrations.",
+      "roleUser": "User — works with digital employees, dialogues, tasks, and available work materials within granted permissions."
+    },
+    "installation": {
+      "title": "Quick start",
+      "intro": "The software is deployed as a web application (SaaS). No end-user installation is required — a modern browser is sufficient. Below are requirements and deployment steps for infrastructure administrators.",
+      "requirementsTitle": "Requirements",
+      "requirementsItems": [
+        "Node.js 20+ (build and local development)",
+        "PostgreSQL 15+ (Neon serverless recommended)",
+        "Hosting with Next.js support (Vercel or equivalent)",
+        "Inngest Cloud access for background jobs",
+        "OpenAI API key for LLM features"
+      ],
+      "sourceTitle": "Source code",
+      "sourcePolicy": "Platform source code is not publicly available. Access is granted only upon request to the rights holder.",
+      "sourceRequest": "Request:",
+      "envTitle": "Environment",
+      "envVarHeader": "Variable",
+      "envPurposeHeader": "Purpose",
+      "envDatabaseUrl": "PostgreSQL connection string",
+      "envBetterAuthSecret": "Session secret",
+      "envBetterAuthUrl": "https://www.nullxesdai.online",
+      "envNextPublicBetterAuthUrl": "Public auth URL",
+      "envDataEncryptionKey": "AES-256-GCM, base64",
+      "envOpenAiApiKey": "OpenAI GPT API",
+      "envInngestEventKey": "Inngest event dispatch",
+      "envInngestSigningKey": "Inngest webhook verification",
+      "envResendApiKey": "Email (auth, outbound)",
+      "envNote": "The full list of variables is provided together with source access (on request).",
+      "verifyTitle": "Verification",
+      "verifySteps": [
+        "GET /api/health/db → {\"ok\":true}",
+        "Sign in at /login, create an organization",
+        "Create a digital employee",
+        "Test mission (Mission Control)"
+      ]
+    },
+    "limits": {
+      "title": "Platform limits",
+      "introPrefix": "Enforcement numbers from",
+      "introSuffix": "Full matrix:",
+      "plansLink": "/docs/plans",
+      "workforceTitle": "Workforce",
+      "planHeader": "Plan",
+      "employeesHeader": "Employees",
+      "seatsHeader": "Seats",
+      "createHeader": "Create",
+      "yes": "yes",
+      "no": "no",
+      "talkTitle": "Talk",
+      "sessionHeader": "Session",
+      "monthHeader": "Month",
+      "minutesUnit": "min",
+      "knowledgeTitle": "Knowledge",
+      "knowledgeItems": [
+        "maxKnowledgeChunks — index per organization (see plan matrix)",
+        "Starter: 2,500 · Studio: 15,000 · Team: 50,000 · Scale: 150,000"
+      ],
+      "apiTitle": "API",
+      "apiItems": [
+        "none — Evaluation / Starter / Studio",
+        "read — Team",
+        "full — Scale / Enterprise / Holding"
+      ]
+    },
+    "offer": {
+      "label": "Public offer",
+      "title": "Offer agreement for access to the {brand} platform",
+      "intro": "This document is an official offer to conclude an agreement on the terms below. Payment for a plan or registration with acceptance of the terms constitutes acceptance of the offer (Civil Code of the Russian Federation, Articles 435, 438).",
+      "sellerTitle": "Provider",
+      "fullNameLabel": "Full legal name",
+      "ogrnLabel": "OGRN",
+      "innKppLabel": "INN / KPP",
+      "addressLabel": "Legal address",
+      "contactLabel": "Contact",
+      "subjectTitle": "Subject",
+      "subjectText": "The Provider grants the Customer access to the {brand} Digital Employees cloud platform (creation and operation of digital employees) under the selected plan. The service is provided remotely via",
+      "pricesTitle": "Prices and service period",
+      "pricesItem1Prefix": "Current self-serve plan prices (Evaluation / Studio / Team / Scale) are published in",
+      "pricesItem1Suffix": "and in platform Billing settings (in rubles).",
+      "pricesItem2": "Enterprise plans (Discovery, Pilot, Department, Holding, Flagship) — by individual agreement.",
+      "pricesItem3": "Access for the paid period (month or year) opens after payment confirmation. The digital service is provided immediately after plan activation.",
+      "plansLink": "Plans and limits",
+      "orderTitle": "Order and payment procedure",
+      "orderSteps": [
+        "Register an account or sign in to your workspace.",
+        "In Settings → Billing, select a plan and period (month / year).",
+        "Pay via the bank payment form (card, SBP, and other methods available on the terminal).",
+        "After successful payment, the plan is activated; an electronic receipt is issued when an online cash register is connected (Federal Law 54-FZ)."
+      ],
+      "noPhysicalDelivery": "Physical goods are not delivered — the service is digital.",
+      "refundTitle": "Refunds and claims",
+      "refundItem1Prefix": "Send refund requests to",
+      "refundItem1Suffix": "with your account email, OrderId / PaymentId, and reason.",
+      "refundItems": [
+        "Claims are reviewed within 10 business days. Full or partial refunds are returned via the bank using the same payment method.",
+        "If plan access has been substantially used (employee creation, Talk, API), refunds may be proportional or declined — with a reasoned response.",
+        "Parties seek to resolve disputes through negotiation; if no agreement is reached — at the Provider's location."
+      ],
+      "personalDataTitle": "Personal data",
+      "personalDataText": "Personal data processing — under the",
+      "personalDataLink": "personal data policy (152-FZ)",
+      "personalDataSuffix": "Consent is recorded at registration.",
+      "footerRequisites": "Requisites:",
+      "rusprofileLink": "Rusprofile",
+      "footerAlso": "Also:",
+      "termsLink": "terms of service"
+    },
+    "operation": {
+      "title": "Operations guide",
+      "intro": "User and administrator guide for operating NULLXES Digital Employees in the production environment nullxesdai.online.",
+      "loginTitle": "1. Sign in",
+      "loginSteps": [
+        "Open /login",
+        "Enter email and password or register at /register",
+        "If 2FA is enabled, confirm the code (Settings → Security)",
+        "After sign-in, the Dashboard opens — /dashboard"
+      ],
+      "createTitle": "2. Creating a digital employee",
+      "createSteps": [
+        "Sidebar → Digital Employees → New Digital Employee",
+        "Specify name, role, department, system prompt",
+        "In Studio, configure Brain provider (OpenAI GPT recommended for production), model, avatar, voice",
+        "Upload knowledge sources if needed",
+        "Wait for provisioning status → Ready"
+      ],
+      "talkTitle": "3. Employee dialogue (Talk)",
+      "talkSteps": [
+        "Open the employee card → Talk",
+        "Start a text or voice session",
+        "Responses are formed using system prompt and knowledge base (RAG)",
+        "History — Conversations (/dashboard/conversations)"
+      ],
+      "missionsTitle": "4. Mission Control — assigning a mission",
+      "missionsSteps": [
+        "Sidebar → Missions → Assign mission (/dashboard/missions/new)",
+        "Select an employee (for example, Yuki Nakora)",
+        "Type: Prospecting or Custom",
+        "Brief — text assignment, for example: «Find 10 B2B companies in Europe that could benefit from NULLXES Digital Employees…»",
+        "Click Assign mission",
+        "On the mission page, track Timeline: research → leads → approval → outbound → handoff",
+        "Settings → Security → Approvals — approve proposals before outbound send"
+      ],
+      "missionsNote": "Mission processing runs in the background via Inngest. Refresh the mission page manually (F5) for the current status.",
+      "settingsTitle": "5. Organization settings",
+      "settingsGeneral": "Settings → General — language, timezone, retention",
+      "settingsTeam": "Settings → Team — members, invitations, roles",
+      "settingsAi": "Settings → AI — default brain provider, model, own API keys (OpenAI)",
+      "settingsSecurity": "Settings → Security — 2FA, API keys, IP allowlist, approvals",
+      "settingsAdvanced": "Settings → Advanced — organization data export",
+      "apiTitle": "6. Public API",
+      "apiIntro": "REST API v1 — employees, Talk sessions, and tasks. Keys: Settings → Security. Full description of scopes, endpoints, and examples — in",
+      "apiIntroSuffix": "Machine-readable OpenAPI spec:",
+      "apiItems": [
+        "Base path: /api/v1",
+        "Auth: Authorization: Bearer nx_live_…",
+        "Plan: Evaluation/Starter/Studio — no API; Team — read; Scale+ — full access"
+      ],
+      "monitoringTitle": "7. Monitoring and support",
+      "monitoringItems": [
+        "Inngest Dashboard — Runs, Events, cron jobs",
+        "Settings → Audit — action log",
+        "Analytics — usage metrics",
+        "Trust Center — /trust (security, encryption, retention)"
+      ]
+    },
+    "personalData": {
+      "title": "Personal data (152-FZ)",
+      "intro1": "Documentation on personal data processing and protection is prepared in accordance with Federal Law No. 152-FZ of 27.07.2006 «On Personal Data», GOST R ISO/IEC 27001-2021 (information security management systems), and GOST R 7.0.8-2013 (records management / documentation).",
+      "intro2": "This section describes the personal data operator, categories processed, storage locations and conditions, protection measures, access audit, and data subject rights. Legally significant consent forms and local operator acts apply in addition to this public description.",
+      "operatorTitle": "Personal data operator",
+      "fullNameLabel": "Full legal name",
+      "ogrnInnKppLabel": "OGRN / INN / KPP",
+      "addressLabel": "Legal address",
+      "directorLabel": "Director",
+      "pdContactLabel": "Personal data contact",
+      "categoriesTitle": "Categories of processed data",
+      "categoriesItems": [
+        "Workspace user account data: name, email, role, authentication details (including 2FA when enabled)",
+        "Organizational data: organization profile, team members, invitations",
+        "Digital workforce operational data: digital employee profiles, Talk/Conversations sessions, tasks, missions, knowledge sources",
+        "Technical logs: audit events, IP (when recorded), API access metadata",
+        "Payment/plan data to the extent required for billing (via payment provider)"
+      ],
+      "categoriesNote": "Special categories of personal data and biometric data are not requested by default. Avatar portrait uploads are organization content and are processed within digital employee operation purposes.",
+      "documentsTitle": "Core document set",
+      "documentsItems": [
+        "Order appointing the person responsible for personal data processing and protection",
+        "Order approving the list of storage locations for personal data documents and media",
+        "Personal data processing and protection policy (published on the website)",
+        "Personal data protection regulations",
+        "Personal data destruction procedure",
+        "Removable media handling instruction",
+        "Information security incident response plan",
+        "Personal data processing consent forms",
+        "Personal data subject request log",
+        "Personal data disclosure to third parties log"
+      ],
+      "storageTitle": "Data storage: locations and conditions",
+      "storageElectronicLabel": "Electronic media:",
+      "storageElectronicText": "User personal and operational data is stored in PostgreSQL (Neon) with organization-scoped access. Deployment region is determined by configuration; enterprise options account for localization requirements.",
+      "storageAccessLabel": "Access control:",
+      "storageAccessText": "Access only through individual Better Auth accounts, workspace RBAC roles (owner / admin / operator / viewer), optional 2FA for administrators, and API keys with scoped access.",
+      "storageEncryptionLabel": "Encryption:",
+      "storageEncryptionText": "Sensitive fields (webhook secrets, integration tokens, export tokens, organization API keys) are encrypted at rest (AES-256-GCM). Details —",
+      "trustCenterLink": "Trust Center",
+      "storageRetentionLabel": "Retention and destruction:",
+      "storageRetentionText": "Processing and storage cease when processing purposes are achieved, consent expires, or consent is withdrawn. Organization retention policy governs session retention; destruction is commission-based with a personal data destruction act. Workspace owners may initiate organization data export and deletion in Settings → Advanced.",
+      "auditTitle": "Audit and access control",
+      "auditIntro": "In accordance with requirements for logging actions during personal data processing, the platform maintains an audit log of security-relevant organization events: security setting changes, API key operations, data export, API access denial, administrative actions.",
+      "auditItems": [
+        "View and filter: Settings → Security / Audit (for authorized roles with organization management rights)",
+        "Record contents: action, actor (user/role), resource type, resource identifier, metadata, IP (if recorded), timestamp",
+        "The log is for internal operator control and incident investigation; it is not public live monitoring of Trust Center",
+        "Digital workforce work events (tasks, approvals, handoff) are also recorded in the organization operational contour"
+      ],
+      "auditIncident": "In an information security incident, the operator follows the response plan from the 152-FZ document set and notifies data subjects / the authorized body when required by law.",
+      "rightsTitle": "Data subject rights",
+      "rightsTextPrefix": "A data subject may request access, clarification, blocking, or destruction of their data, and withdraw consent (Articles 14, 21 of 152-FZ and related norms). Requests are accepted at",
+      "rightsTextSuffix": "Review period — within limits established by Russian Federation law.",
+      "relatedPrefix": "Related materials:",
+      "termsLink": "terms of use",
+      "assistantLink": "documentation assistant",
+      "referencePrefix": "Reference materials on the 152-FZ document set:"
+    },
+    "plans": {
+      "title": "Plans and limits",
+      "introPrefix": "Reference from",
+      "introSuffix": "Self-serve: Evaluation → Starter → Studio → Team → Scale. Sales: Enterprise, Holding.",
+      "namesTitle": "1. Plan names",
+      "matrixTitle": "2. Plan matrix",
+      "planHeader": "Plan",
+      "priceHeader": "Price",
+      "employeesHeader": "Employees",
+      "talkSessionHeader": "Talk / session",
+      "talkMonthHeader": "Talk / month",
+      "chunksHeader": "Chunks",
+      "apiHeader": "API",
+      "unlimited": "Unlimited",
+      "minutesUnit": "min",
+      "apiNone": "None",
+      "apiRead": "Read",
+      "apiFull": "Full",
+      "evaluationNote": "* Evaluation: creating your own employees is disabled — curated NULLXES catalog (Talk allowed). Catalog is not counted in maxEmployees.",
+      "apiAccessTitle": "3. Public API access",
+      "apiAccessItems": [
+        "Evaluation / Starter / Studio — keys are not created",
+        "Team — read scopes (employees:read, sessions:read)",
+        "Scale / Enterprise / Holding — full access"
+      ],
+      "apiMorePrefix": "Details:",
+      "limitsMorePrefix": "Enforcement limits:"
+    },
+    "terms": {
+      "title": "Terms of service",
+      "intro": "This agreement governs access to the NULLXES Digital Employees platform and use of its functionality. By registering an account, you confirm that you have read and fully accept these terms.",
+      "operatorTitle": "Service rights holder",
+      "nameLabel": "Name",
+      "ogrnInnLabel": "OGRN / INN",
+      "addressLabel": "Legal address",
+      "contactLabel": "Contact",
+      "scopeTitle": "Subject and access",
+      "scopeItems": [
+        "The platform provides tools for creating, configuring, and operating digital employees in organization workspaces.",
+        "Access is granted to registered users within the scope of their role and workspace plan limits."
+      ],
+      "scopePersonalDataPrefix": "Personal data processing is governed separately — see the",
+      "obligationsTitle": "User obligations",
+      "obligationsItems": [
+        "Do not share account credentials with third parties and maintain password confidentiality.",
+        "Do not use the service for unlawful activities, spam, malicious code, or bypassing technical restrictions.",
+        "Respect third-party rights when uploading materials to the knowledge base and dialogue scenarios."
+      ],
+      "liabilityTitle": "Limitation of liability",
+      "liabilityText": "The service is provided «as is». The operator is not liable for decisions made by the user based on AI agent responses, or for interruptions of third-party providers (LLM, avatars, email), subject to reasonable efforts to restore operability."
+    },
+    "assistant": {
+      "title": "Documentation assistant",
+      "intro": "Yuki Nakora answers from the /docs corpus. No model advertising.",
+      "contactsTitle": "Rights holder contacts",
+      "directorLabel": "Director:",
+      "directorName": "Maxim Onyushko (Onyushko Maxim Olegovich)",
+      "emailLabel": "Email:",
+      "telegramLabel": "Telegram:"
+    },
+    "nav": {
+      "groups": {
+        "start": "Getting started",
+        "workforce": "Working with digital employees",
+        "platform": "Platform",
+        "admin": "Administration",
+        "security": "Security",
+        "legal": "Legal",
+        "developers": "For developers",
+        "enterprise": "Enterprise"
+      },
+      "items": {
+        "overview": {
+          "label": "Overview",
+          "breadcrumb": "Overview",
+          "toc": {
+            "overview": "Overview",
+            "domain": "Domain",
+            "sections": "Sections"
+          }
+        },
+        "installation": {
+          "label": "Quick start",
+          "breadcrumb": "Quick start",
+          "toc": {
+            "requirements": "Requirements",
+            "source": "Source code",
+            "env": "Environment",
+            "verify": "Verify"
+          }
+        },
+        "architecture": {
+          "label": "Platform architecture",
+          "breadcrumb": "Architecture",
+          "toc": {
+            "stack": "Stack",
+            "c4": "C4 Containers",
+            "flow": "Talk sequence",
+            "missions": "Missions",
+            "erd": "ERD"
+          }
+        },
+        "assistant": {
+          "label": "Docs assistant",
+          "breadcrumb": "Yuki Nakora",
+          "toc": {
+            "assistant": "Yuki Nakora"
+          }
+        },
+        "employees": {
+          "label": "Digital employees",
+          "breadcrumb": "Digital employees",
+          "toc": {
+            "model": "Model",
+            "catalog": "NULLXES catalog",
+            "lifecycle": "Lifecycle"
+          }
+        },
+        "talk": {
+          "label": "Talk",
+          "breadcrumb": "Talk",
+          "toc": {
+            "overview": "Overview",
+            "start": "Session",
+            "limits": "Limits",
+            "ready": "Talk Ready"
+          }
+        },
+        "knowledge": {
+          "label": "Knowledge base",
+          "breadcrumb": "Knowledge base",
+          "toc": {
+            "overview": "Overview",
+            "upload": "Upload",
+            "limits": "Limits"
+          }
+        },
+        "missions": {
+          "label": "Missions",
+          "breadcrumb": "Missions",
+          "toc": {
+            "overview": "Overview",
+            "runtime": "Run"
+          }
+        },
+        "workspaces": {
+          "label": "Workspaces",
+          "breadcrumb": "Workspaces",
+          "toc": {
+            "overview": "Overview"
+          }
+        },
+        "organizations": {
+          "label": "Organizations",
+          "breadcrumb": "Organizations",
+          "toc": {
+            "model": "Model",
+            "isolation": "Isolation"
+          }
+        },
+        "roles": {
+          "label": "Users and roles",
+          "breadcrumb": "Roles",
+          "toc": {
+            "roles": "Roles",
+            "matrix": "Permission matrix"
+          }
+        },
+        "api": {
+          "label": "API",
+          "breadcrumb": "API",
+          "toc": {
+            "overview": "Overview",
+            "auth": "Authentication",
+            "endpoints": "Endpoints",
+            "responses": "Responses"
+          }
+        },
+        "apiKeys": {
+          "label": "API Keys",
+          "breadcrumb": "API Keys",
+          "toc": {
+            "create": "Create",
+            "scopes": "Scopes",
+            "revoke": "Revoke"
+          }
+        },
+        "webhooks": {
+          "label": "Webhooks",
+          "breadcrumb": "Webhooks",
+          "toc": {
+            "events": "Events",
+            "signing": "Signing",
+            "setup": "Setup"
+          }
+        },
+        "integrations": {
+          "label": "Integrations",
+          "breadcrumb": "Integrations",
+          "toc": {
+            "overview": "Overview"
+          }
+        },
+        "plans": {
+          "label": "Plans",
+          "breadcrumb": "Plans",
+          "toc": {
+            "matrix": "Matrix",
+            "api": "API by plan"
+          }
+        },
+        "limits": {
+          "label": "Platform limits",
+          "breadcrumb": "Limits",
+          "toc": {
+            "workforce": "Workforce",
+            "talk": "Talk",
+            "knowledge": "Knowledge",
+            "api": "API"
+          }
+        },
+        "analytics": {
+          "label": "Analytics",
+          "breadcrumb": "Analytics",
+          "toc": {
+            "overview": "Overview"
+          }
+        },
+        "audit": {
+          "label": "Audit log",
+          "breadcrumb": "Audit",
+          "toc": {
+            "overview": "Overview"
+          }
+        },
+        "security": {
+          "label": "Platform security",
+          "breadcrumb": "Security",
+          "toc": {
+            "transport": "Transport",
+            "access": "Access",
+            "controls": "Controls"
+          }
+        },
+        "personalData": {
+          "label": "Personal data",
+          "breadcrumb": "Personal data",
+          "toc": {
+            "operator": "Operator",
+            "categories": "Categories",
+            "rights": "Subject rights"
+          }
+        },
+        "dataStorage": {
+          "label": "Data storage",
+          "breadcrumb": "Data storage",
+          "toc": {
+            "where": "Where data lives",
+            "retention": "Deletion and export"
+          }
+        },
+        "apiSecurity": {
+          "label": "API Security",
+          "breadcrumb": "API Security",
+          "toc": {
+            "keys": "Keys",
+            "webhooks": "Webhooks"
+          }
+        },
+        "accessControl": {
+          "label": "Access control",
+          "breadcrumb": "Access control",
+          "toc": {
+            "rbac": "RBAC",
+            "isolation": "Org isolation"
+          }
+        },
+        "terms": {
+          "label": "Terms of use",
+          "breadcrumb": "Terms of use",
+          "toc": {
+            "scope": "Scope"
+          }
+        },
+        "offer": {
+          "label": "Public offer",
+          "breadcrumb": "Public offer",
+          "toc": {
+            "subject": "Subject"
+          }
+        },
+        "personalDataPolicy": {
+          "label": "Personal data policy",
+          "breadcrumb": "Personal data policy",
+          "toc": {
+            "documents": "Documents"
+          }
+        },
+        "privacy": {
+          "label": "Privacy policy",
+          "breadcrumb": "Privacy",
+          "toc": {
+            "overview": "Overview"
+          }
+        },
+        "cookies": {
+          "label": "Cookies",
+          "breadcrumb": "Cookies",
+          "toc": {
+            "overview": "Overview"
+          }
+        },
+        "company": {
+          "label": "Company details",
+          "breadcrumb": "Company details",
+          "toc": {
+            "requisites": "Details"
+          }
+        },
+        "publicApi": {
+          "label": "Public API",
+          "breadcrumb": "Public API",
+          "toc": {
+            "overview": "Overview",
+            "auth": "Authentication",
+            "endpoints": "Endpoints",
+            "responses": "Errors & format"
+          }
+        },
+        "webhooksDev": {
+          "label": "Webhooks",
+          "breadcrumb": "Webhooks",
+          "toc": {
+            "events": "Events",
+            "signing": "Signing"
+          }
+        },
+        "changelog": {
+          "label": "Changelog",
+          "breadcrumb": "Changelog",
+          "toc": {
+            "recent": "Recent"
+          }
+        },
+        "enterprise": {
+          "label": "Enterprise",
+          "breadcrumb": "Enterprise",
+          "toc": {
+            "deployment": "Deployment",
+            "identity": "Identity",
+            "compliance": "Compliance"
+          }
+        }
+      }
+    },
+    "shell": {
+      "backToPlatform": "Back to platform",
+      "platformOnline": "Platform · online",
+      "documentation": "Documentation",
+      "closeMenu": "Close menu",
+      "openMenu": "Open menu",
+      "searchPlaceholder": "Search docs…",
+      "home": "Home",
+      "onThisPage": "On this page",
+      "needHelp": "Need help?",
+      "helpBody": "Docs assistant — Yuki Nakora.",
+      "limitsLink": "Limits",
+      "docsVersion": "Docs version:",
+      "lastUpdated": "Last updated:",
+      "updatedAt": "Jul 10, 2026",
+      "nothingFound": "Nothing found.",
+      "assistantSubtitle": "Documentation · Yuki Nakora",
+      "assistantThinking": "Yuki is preparing an answer…",
+      "assistantPlaceholder": "Ask about the docs…"
+    },
+    "meta": {
+      "fallbackTitle": "Documentation",
+      "descriptionSuffix": "— NULLXES Digital Employees documentation (Digital Workforce Operating System)."
+    },
+    "overviewMeta": {
+      "title": "NULLXES Documentation",
+      "description": "NULLXES Digital Employees platform overview: domain, architecture, Talk, organizations, API, and documentation sections."
+    }
   }
 }

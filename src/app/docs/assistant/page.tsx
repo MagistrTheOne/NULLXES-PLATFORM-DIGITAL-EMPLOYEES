@@ -1,22 +1,26 @@
+import { getTranslations } from "next-intl/server";
 import { DocsAssistantChat } from "../_components/docs-assistant-chat";
 import { getDocsAssistantProfile } from "../_lib/get-docs-assistant";
 import { docsPageMetadata } from "../_lib/docs-page-metadata";
 
-export const metadata = docsPageMetadata("/docs/assistant");
+export async function generateMetadata() {
+  return docsPageMetadata("/docs/assistant");
+}
 
 export const revalidate = 300;
 
 export default async function DocsAssistantPage() {
+  const t = await getTranslations("docs.assistant");
   const assistant = await getDocsAssistantProfile();
 
   return (
     <article className="flex flex-col gap-8">
       <header id="assistant" className="scroll-mt-24">
         <h2 className="text-2xl font-medium tracking-tight text-white">
-          Помощник по документации
+          {t("title")}
         </h2>
         <p className="mt-4 text-sm leading-relaxed text-white/60">
-          Yuki Nakora отвечает по корпусу /docs. Без рекламы моделей.
+          {t("intro")}
         </p>
       </header>
 
@@ -26,21 +30,20 @@ export default async function DocsAssistantPage() {
         id="contacts"
         className="scroll-mt-24 rounded-2xl border border-white/10 bg-[#111111] p-6 text-sm text-white/60"
       >
-        <h3 className="font-medium text-white">Контакты правообладателя</h3>
+        <h3 className="font-medium text-white">{t("contactsTitle")}</h3>
         <ul className="mt-4 space-y-2">
           <li>
-            Руководитель:{" "}
-            <span className="text-white">Онюшко Максим Олегович</span> (Maxim
-            Onyushko)
+            {t("directorLabel")}{" "}
+            <span className="text-white">{t("directorName")}</span>
           </li>
           <li>
-            Email:{" "}
+            {t("emailLabel")}{" "}
             <a href="mailto:ceo@nullxes.com" className="text-white underline">
               ceo@nullxes.com
             </a>
           </li>
           <li>
-            Telegram:{" "}
+            {t("telegramLabel")}{" "}
             <a
               href="https://t.me/MagistrTheOne"
               className="text-white underline"
@@ -53,4 +56,5 @@ export default async function DocsAssistantPage() {
         </ul>
       </section>
     </article>
-  );}
+  );
+}

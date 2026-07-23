@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { Send } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -22,7 +23,7 @@ type ChatMessage = {
 };
 
 const WELCOME =
-  "Привет! Я Yuki Nakora — ассистент документации NULLXES. Спросите, если есть вопросы по документации.";
+  "Привет! Я Yuki Nakora — цифровой помощник по документации NULLXES. Есть вопросы? Я вам помогу.";
 
 function createMessage(
   role: ChatMessage["role"],
@@ -44,6 +45,7 @@ export function DocsAssistantChat({
   assistant: DocsAssistantProfile;
   compact?: boolean;
 }) {
+  const tShell = useTranslations("docs.shell");
   const [messages, setMessages] = useState<ChatMessage[]>([
     createMessage("assistant", WELCOME),
   ]);
@@ -99,7 +101,7 @@ export function DocsAssistantChat({
         </Avatar>
         <div>
           <p className="text-sm font-medium text-white">{assistant.name}</p>
-          <p className="text-xs text-white/45">Документация · Yuki Nakora</p>
+          <p className="text-xs text-white/45">{tShell("assistantSubtitle")}</p>
         </div>
       </div>
 
@@ -138,7 +140,7 @@ export function DocsAssistantChat({
         ))}
         {isPending ? (
           <div className="self-start rounded-xl bg-white/5 px-3 py-2 text-sm text-white/45">
-            Yuki готовит ответ…
+            {tShell("assistantThinking")}
           </div>
         ) : null}
       </div>
@@ -167,7 +169,7 @@ export function DocsAssistantChat({
         <Input
           value={input}
           onChange={(event) => setInput(event.target.value)}
-          placeholder="Спросите по документации…"
+          placeholder={tShell("assistantPlaceholder")}
           disabled={isPending}
           className="border-white/10 bg-black/40 text-white placeholder:text-white/35"
         />

@@ -1,27 +1,34 @@
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import { docsPageMetadata } from "../_lib/docs-page-metadata";
 
-export const metadata = docsPageMetadata("/docs/security");
+export async function generateMetadata() {
+  return docsPageMetadata("/docs/security");
+}
 
-export default function DocsSecurityPage() {
+export default async function DocsSecurityPage() {
+  const t = await getTranslations("docs.security");
+  const transportItems = t.raw("transportItems") as string[];
+  const accessItems = t.raw("accessItems") as string[];
+
   return (
     <article className="flex flex-col gap-8 text-sm leading-relaxed text-white/60">
       <header>
         <h2 className="text-2xl font-medium tracking-tight text-white">
-          Безопасность платформы
+          {t("title")}
         </h2>
-        <p className="mt-4">Контроли без воды. То, что реально есть в продукте.</p>
+        <p className="mt-4">{t("intro")}</p>
       </header>
 
       <section
         id="transport"
         className="scroll-mt-24 rounded-2xl border border-white/10 bg-[#111111] p-6"
       >
-        <h3 className="font-medium text-white">Транспорт и сессии</h3>
+        <h3 className="font-medium text-white">{t("transportTitle")}</h3>
         <ul className="mt-4 list-disc space-y-2 pl-5">
-          <li>TLS на edge / hosting</li>
-          <li>Better Auth session cookies</li>
-          <li>CSP и security headers приложения</li>
+          {transportItems.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
         </ul>
       </section>
 
@@ -29,11 +36,11 @@ export default function DocsSecurityPage() {
         id="access"
         className="scroll-mt-24 rounded-2xl border border-white/10 bg-[#111111] p-6"
       >
-        <h3 className="font-medium text-white">Доступ</h3>
+        <h3 className="font-medium text-white">{t("accessTitle")}</h3>
         <ul className="mt-4 list-disc space-y-2 pl-5">
-          <li>RBAC: owner / admin / operator / viewer</li>
-          <li>Organization isolation (+ RLS defense-in-depth)</li>
-          <li>2FA — в настройках безопасности аккаунта (если включено)</li>
+          {accessItems.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
         </ul>
       </section>
 
@@ -41,27 +48,28 @@ export default function DocsSecurityPage() {
         id="controls"
         className="scroll-mt-24 rounded-2xl border border-white/10 bg-[#111111] p-6"
       >
-        <h3 className="font-medium text-white">Контроли</h3>
+        <h3 className="font-medium text-white">{t("controlsTitle")}</h3>
         <ul className="mt-4 list-disc space-y-2 pl-5">
           <li>
             <Link href="/docs/api-keys" className="text-white underline">
-              API Keys
+              {t("controlsApiKeysLink")}
             </Link>{" "}
-            + scopes
+            {t("controlsApiKeysSuffix")}
           </li>
           <li>
-            Подписанные{" "}
+            {t("controlsWebhooksPrefix")}{" "}
             <Link href="/docs/webhooks" className="text-white underline">
-              Webhooks
+              {t("controlsWebhooksLink")}
             </Link>
           </li>
           <li>
             <Link href="/docs/audit" className="text-white underline">
-              Audit
+              {t("controlsAuditLink")}
             </Link>
           </li>
-          <li>Catalog employees — immutable definition</li>
+          <li>{t("controlsCatalogItem")}</li>
         </ul>
       </section>
     </article>
-  );}
+  );
+}

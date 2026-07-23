@@ -1,346 +1,313 @@
-export type DocsTocItem = { id: string; label: string };
+export type DocsTocItem = { id: string; labelKey: string };
 
 export type DocsNavItem = {
   href: string;
-  label: string;
-  breadcrumb: string;
+  /** Key under docs.nav.items.<key> */
+  key: string;
   toc: DocsTocItem[];
 };
 
 export type DocsNavGroup = {
-  label: string;
+  /** Key under docs.nav.groups.<key> */
+  key: string;
   items: DocsNavItem[];
 };
 
 /** Stripe / GitHub Enterprise style: one topic per page, platform not FAQ. */
 export const DOCS_NAV: DocsNavGroup[] = [
   {
-    label: "Начало",
+    key: "start",
     items: [
       {
         href: "/docs",
-        label: "Обзор",
-        breadcrumb: "Обзор",
+        key: "overview",
         toc: [
-          { id: "overview", label: "Обзор" },
-          { id: "domain", label: "Домен" },
-          { id: "sections", label: "Разделы" },
+          { id: "overview", labelKey: "overview" },
+          { id: "domain", labelKey: "domain" },
+          { id: "sections", labelKey: "sections" },
         ],
       },
       {
         href: "/docs/installation",
-        label: "Быстрый старт",
-        breadcrumb: "Быстрый старт",
+        key: "installation",
         toc: [
-          { id: "requirements", label: "Требования" },
-          { id: "source", label: "Исходный код" },
-          { id: "env", label: "Окружение" },
-          { id: "verify", label: "Проверка" },
+          { id: "requirements", labelKey: "requirements" },
+          { id: "source", labelKey: "source" },
+          { id: "env", labelKey: "env" },
+          { id: "verify", labelKey: "verify" },
         ],
       },
       {
         href: "/docs/architecture",
-        label: "Архитектура платформы",
-        breadcrumb: "Архитектура",
+        key: "architecture",
         toc: [
-          { id: "stack", label: "Стек" },
-          { id: "c4", label: "C4 Containers" },
-          { id: "flow", label: "Talk sequence" },
-          { id: "missions", label: "Missions" },
-          { id: "erd", label: "ERD" },
+          { id: "stack", labelKey: "stack" },
+          { id: "c4", labelKey: "c4" },
+          { id: "flow", labelKey: "flow" },
+          { id: "missions", labelKey: "missions" },
+          { id: "erd", labelKey: "erd" },
         ],
       },
       {
         href: "/docs/assistant",
-        label: "Помощник по документации",
-        breadcrumb: "Yuki Nakora",
-        toc: [{ id: "assistant", label: "Yuki Nakora" }],
+        key: "assistant",
+        toc: [{ id: "assistant", labelKey: "assistant" }],
       },
     ],
   },
   {
-    label: "Работа с цифровыми сотрудниками",
+    key: "workforce",
     items: [
       {
         href: "/docs/employees",
-        label: "Цифровые сотрудники",
-        breadcrumb: "Цифровые сотрудники",
+        key: "employees",
         toc: [
-          { id: "model", label: "Модель" },
-          { id: "catalog", label: "Каталог NULLXES" },
-          { id: "lifecycle", label: "Жизненный цикл" },
+          { id: "model", labelKey: "model" },
+          { id: "catalog", labelKey: "catalog" },
+          { id: "lifecycle", labelKey: "lifecycle" },
         ],
       },
       {
         href: "/docs/talk",
-        label: "Разговоры (Talk)",
-        breadcrumb: "Talk",
+        key: "talk",
         toc: [
-          { id: "overview", label: "Обзор" },
-          { id: "start", label: "Сессия" },
-          { id: "limits", label: "Лимиты" },
-          { id: "ready", label: "Talk Ready" },
+          { id: "overview", labelKey: "overview" },
+          { id: "start", labelKey: "start" },
+          { id: "limits", labelKey: "limits" },
+          { id: "ready", labelKey: "ready" },
         ],
       },
       {
         href: "/docs/knowledge",
-        label: "База знаний",
-        breadcrumb: "База знаний",
+        key: "knowledge",
         toc: [
-          { id: "overview", label: "Обзор" },
-          { id: "upload", label: "Загрузка" },
-          { id: "limits", label: "Лимиты" },
+          { id: "overview", labelKey: "overview" },
+          { id: "upload", labelKey: "upload" },
+          { id: "limits", labelKey: "limits" },
         ],
       },
       {
         href: "/docs/missions",
-        label: "Миссии",
-        breadcrumb: "Миссии",
+        key: "missions",
         toc: [
-          { id: "overview", label: "Обзор" },
-          { id: "runtime", label: "Запуск" },
+          { id: "overview", labelKey: "overview" },
+          { id: "runtime", labelKey: "runtime" },
         ],
       },
     ],
   },
   {
-    label: "Платформа",
+    key: "platform",
     items: [
       {
         href: "/docs/workspaces",
-        label: "Рабочие пространства",
-        breadcrumb: "Рабочие пространства",
-        toc: [{ id: "overview", label: "Обзор" }],
+        key: "workspaces",
+        toc: [{ id: "overview", labelKey: "overview" }],
       },
       {
         href: "/docs/organizations",
-        label: "Организации",
-        breadcrumb: "Организации",
+        key: "organizations",
         toc: [
-          { id: "model", label: "Модель" },
-          { id: "isolation", label: "Изоляция" },
+          { id: "model", labelKey: "model" },
+          { id: "isolation", labelKey: "isolation" },
         ],
       },
       {
         href: "/docs/roles",
-        label: "Пользователи и роли",
-        breadcrumb: "Роли",
+        key: "roles",
         toc: [
-          { id: "roles", label: "Роли" },
-          { id: "matrix", label: "Матрица прав" },
+          { id: "roles", labelKey: "roles" },
+          { id: "matrix", labelKey: "matrix" },
         ],
       },
       {
         href: "/docs/api",
-        label: "API",
-        breadcrumb: "API",
+        key: "api",
         toc: [
-          { id: "overview", label: "Обзор" },
-          { id: "auth", label: "Аутентификация" },
-          { id: "endpoints", label: "Эндпоинты" },
-          { id: "responses", label: "Ответы" },
+          { id: "overview", labelKey: "overview" },
+          { id: "auth", labelKey: "auth" },
+          { id: "endpoints", labelKey: "endpoints" },
+          { id: "responses", labelKey: "responses" },
         ],
       },
       {
         href: "/docs/api-keys",
-        label: "API Keys",
-        breadcrumb: "API Keys",
+        key: "apiKeys",
         toc: [
-          { id: "create", label: "Создание" },
-          { id: "scopes", label: "Scopes" },
-          { id: "revoke", label: "Отзыв" },
+          { id: "create", labelKey: "create" },
+          { id: "scopes", labelKey: "scopes" },
+          { id: "revoke", labelKey: "revoke" },
         ],
       },
       {
         href: "/docs/webhooks",
-        label: "Webhooks",
-        breadcrumb: "Webhooks",
+        key: "webhooks",
         toc: [
-          { id: "events", label: "События" },
-          { id: "signing", label: "Подпись" },
-          { id: "setup", label: "Настройка" },
+          { id: "events", labelKey: "events" },
+          { id: "signing", labelKey: "signing" },
+          { id: "setup", labelKey: "setup" },
         ],
       },
       {
         href: "/docs/integrations",
-        label: "Интеграции",
-        breadcrumb: "Интеграции",
-        toc: [{ id: "overview", label: "Обзор" }],
+        key: "integrations",
+        toc: [{ id: "overview", labelKey: "overview" }],
       },
     ],
   },
   {
-    label: "Администрирование",
+    key: "admin",
     items: [
       {
         href: "/docs/plans",
-        label: "Тарифы",
-        breadcrumb: "Тарифы",
+        key: "plans",
         toc: [
-          { id: "matrix", label: "Матрица" },
-          { id: "api", label: "API по тарифам" },
+          { id: "matrix", labelKey: "matrix" },
+          { id: "api", labelKey: "api" },
         ],
       },
       {
         href: "/docs/limits",
-        label: "Лимиты платформы",
-        breadcrumb: "Лимиты",
+        key: "limits",
         toc: [
-          { id: "workforce", label: "Workforce" },
-          { id: "talk", label: "Talk" },
-          { id: "knowledge", label: "Knowledge" },
-          { id: "api", label: "API" },
+          { id: "workforce", labelKey: "workforce" },
+          { id: "talk", labelKey: "talk" },
+          { id: "knowledge", labelKey: "knowledge" },
+          { id: "api", labelKey: "api" },
         ],
       },
       {
         href: "/docs/analytics",
-        label: "Аналитика",
-        breadcrumb: "Аналитика",
-        toc: [{ id: "overview", label: "Обзор" }],
+        key: "analytics",
+        toc: [{ id: "overview", labelKey: "overview" }],
       },
       {
         href: "/docs/audit",
-        label: "Аудит действий",
-        breadcrumb: "Аудит",
-        toc: [{ id: "overview", label: "Обзор" }],
+        key: "audit",
+        toc: [{ id: "overview", labelKey: "overview" }],
       },
     ],
   },
   {
-    label: "Безопасность",
+    key: "security",
     items: [
       {
         href: "/docs/security",
-        label: "Безопасность платформы",
-        breadcrumb: "Безопасность",
+        key: "security",
         toc: [
-          { id: "transport", label: "Транспорт" },
-          { id: "access", label: "Доступ" },
-          { id: "controls", label: "Контроли" },
+          { id: "transport", labelKey: "transport" },
+          { id: "access", labelKey: "access" },
+          { id: "controls", labelKey: "controls" },
         ],
       },
       {
         href: "/docs/personal-data",
-        label: "Персональные данные",
-        breadcrumb: "Персональные данные",
+        key: "personalData",
         toc: [
-          { id: "operator", label: "Оператор" },
-          { id: "categories", label: "Категории" },
-          { id: "rights", label: "Права субъектов" },
+          { id: "operator", labelKey: "operator" },
+          { id: "categories", labelKey: "categories" },
+          { id: "rights", labelKey: "rights" },
         ],
       },
       {
         href: "/docs/data-storage",
-        label: "Хранение данных",
-        breadcrumb: "Хранение данных",
+        key: "dataStorage",
         toc: [
-          { id: "where", label: "Где хранятся" },
-          { id: "retention", label: "Удаление и экспорт" },
+          { id: "where", labelKey: "where" },
+          { id: "retention", labelKey: "retention" },
         ],
       },
       {
         href: "/docs/api-security",
-        label: "API Security",
-        breadcrumb: "API Security",
+        key: "apiSecurity",
         toc: [
-          { id: "keys", label: "Ключи" },
-          { id: "webhooks", label: "Webhooks" },
+          { id: "keys", labelKey: "keys" },
+          { id: "webhooks", labelKey: "webhooks" },
         ],
       },
       {
         href: "/docs/access-control",
-        label: "Управление доступом",
-        breadcrumb: "Управление доступом",
+        key: "accessControl",
         toc: [
-          { id: "rbac", label: "RBAC" },
-          { id: "isolation", label: "Изоляция org" },
+          { id: "rbac", labelKey: "rbac" },
+          { id: "isolation", labelKey: "isolation" },
         ],
       },
     ],
   },
   {
-    label: "Правовые документы",
+    key: "legal",
     items: [
       {
         href: "/docs/terms",
-        label: "Пользовательское соглашение",
-        breadcrumb: "Пользовательское соглашение",
-        toc: [{ id: "scope", label: "Предмет" }],
+        key: "terms",
+        toc: [{ id: "scope", labelKey: "scope" }],
       },
       {
         href: "/docs/offer",
-        label: "Публичная оферта",
-        breadcrumb: "Публичная оферта",
-        toc: [{ id: "subject", label: "Предмет" }],
+        key: "offer",
+        toc: [{ id: "subject", labelKey: "subject" }],
       },
       {
         href: "/docs/personal-data",
-        label: "Политика обработки ПДн",
-        breadcrumb: "Политика обработки ПДн",
-        toc: [{ id: "documents", label: "Документы" }],
+        key: "personalDataPolicy",
+        toc: [{ id: "documents", labelKey: "documents" }],
       },
       {
         href: "/docs/privacy",
-        label: "Политика конфиденциальности",
-        breadcrumb: "Конфиденциальность",
-        toc: [{ id: "overview", label: "Обзор" }],
+        key: "privacy",
+        toc: [{ id: "overview", labelKey: "overview" }],
       },
       {
         href: "/docs/cookies",
-        label: "Cookie",
-        breadcrumb: "Cookie",
-        toc: [{ id: "overview", label: "Обзор" }],
+        key: "cookies",
+        toc: [{ id: "overview", labelKey: "overview" }],
       },
       {
         href: "/docs/company",
-        label: "Реквизиты",
-        breadcrumb: "Реквизиты",
-        toc: [{ id: "requisites", label: "Реквизиты" }],
+        key: "company",
+        toc: [{ id: "requisites", labelKey: "requisites" }],
       },
     ],
   },
   {
-    label: "Для разработчиков",
+    key: "developers",
     items: [
       {
         href: "/docs/api",
-        label: "Public API",
-        breadcrumb: "Public API",
+        key: "publicApi",
         toc: [
-          { id: "overview", label: "Обзор" },
-          { id: "auth", label: "Authentication" },
-          { id: "endpoints", label: "Endpoints" },
-          { id: "responses", label: "Errors & format" },
+          { id: "overview", labelKey: "overview" },
+          { id: "auth", labelKey: "auth" },
+          { id: "endpoints", labelKey: "endpoints" },
+          { id: "responses", labelKey: "responses" },
         ],
       },
       {
         href: "/docs/webhooks",
-        label: "Webhooks",
-        breadcrumb: "Webhooks",
+        key: "webhooksDev",
         toc: [
-          { id: "events", label: "Events" },
-          { id: "signing", label: "Signing" },
+          { id: "events", labelKey: "events" },
+          { id: "signing", labelKey: "signing" },
         ],
       },
       {
         href: "/docs/changelog",
-        label: "Changelog",
-        breadcrumb: "Changelog",
-        toc: [{ id: "recent", label: "Недавние" }],
+        key: "changelog",
+        toc: [{ id: "recent", labelKey: "recent" }],
       },
     ],
   },
   {
-    label: "Enterprise",
+    key: "enterprise",
     items: [
       {
         href: "/docs/enterprise",
-        label: "Enterprise",
-        breadcrumb: "Enterprise",
+        key: "enterprise",
         toc: [
-          { id: "deployment", label: "Deployment" },
-          { id: "identity", label: "Identity" },
-          { id: "compliance", label: "Compliance" },
+          { id: "deployment", labelKey: "deployment" },
+          { id: "identity", labelKey: "identity" },
+          { id: "compliance", labelKey: "compliance" },
         ],
       },
     ],

@@ -2147,5 +2147,1185 @@
         "flagship": "Цифровая корпорация"
       }
     }
+  },
+  "docs": {
+    "organizations": {
+      "title": "Организации",
+      "intro": "Данные и лимиты считаются на организацию.",
+      "modelTitle": "Модель",
+      "isolationTitle": "Изоляция",
+      "isolationItems": [
+        "Запросы UI и API scoped по organizationId",
+        "RLS (defense-in-depth) на org-таблицах",
+        "Каталог NULLXES — read для Talk, definition immutable"
+      ],
+      "seeAccessControl": "См.",
+      "accessControlLink": "управление доступом",
+      "modelTree": "Organization\n├ Owner (membership)\n├ Members (admin / operator / viewer)\n├ Digital employees\n├ Knowledge / Missions / Sessions\n├ API keys\n└ Billing plan + limits"
+    },
+    "workspaces": {
+      "title": "Рабочие пространства",
+      "intro": "Workspace — контекст сессии пользователя: активная организация, права, биллинг.",
+      "overviewTitle": "Обзор",
+      "overviewTree": "User\n  ↓ membership\nOrganization\n  ↓ workspace context\nDashboard / Talk / API",
+      "overviewDetail": "Один пользователь может состоять в нескольких организациях. Активный workspace выбирается при входе. Подробнее:",
+      "organizationsLink": "организации",
+      "rolesLink": "роли"
+    },
+    "accessControl": {
+      "title": "Управление доступом",
+      "intro": "Owner · Roles · Permissions · Organization isolation.",
+      "rbacTitle": "RBAC",
+      "rbacText": "Права вычисляются из membership role. Матрица:",
+      "rolesLink": "/docs/roles",
+      "isolationTitle": "Изоляция org",
+      "isolationItems": [
+        "Все бизнес-сущности привязаны к organizationId",
+        "Public API ключ всегда принадлежит одной org",
+        "Кросс-tenant доступ запрещён"
+      ]
+    },
+    "analytics": {
+      "title": "Аналитика",
+      "intro": "Вторичный слой относительно workforce. Дашборд показывает активность сотрудников, сессии и использование лимитов.",
+      "overviewTitle": "Обзор",
+      "overviewItems": [
+        "UI: Analytics в dashboard",
+        "Метрики scoped по организации",
+        "Не заменяет audit log — см. Аудит действий"
+      ]
+    },
+    "audit": {
+      "title": "Аудит действий",
+      "intro": "Запись значимых действий в организации: ключи, участники, экспорт, настройки.",
+      "overviewTitle": "Обзор",
+      "overviewItems": [
+        "Таблица audit_event, scoped по organizationId",
+        "Примеры: api_key.created / revoked, member.*, data.exported"
+      ],
+      "relatedPrefix": "Связано с",
+      "securityLink": "безопасностью",
+      "and": "и",
+      "personalDataLink": "ПДн"
+    },
+    "integrations": {
+      "title": "Интеграции",
+      "intro": "Точки расширения платформы для внешних систем.",
+      "overviewTitle": "Обзор",
+      "publicApiLink": "Public API",
+      "publicApiSuffix": "— CRUD workforce, tasks, sessions",
+      "webhooksLink": "Webhooks",
+      "webhooksSuffix": "— push событий",
+      "avatarItem": "Avatar / voice providers — provisioning через платформу (не клиентские lab keys)",
+      "billingItem": "Billing webhooks (Polar / T-Bank) — внутренние платформенные"
+    },
+    "missions": {
+      "title": "Миссии",
+      "intro": "Плановые и ручные задания для digital employee вне живого Talk.",
+      "overviewTitle": "Обзор",
+      "overviewItems": [
+        "Привязка к сотруднику и организации",
+        "Skill IDs / schedule — по конфигурации миссии",
+        "UI: Mission Control в dashboard"
+      ],
+      "runtimeTitle": "Запуск",
+      "runtimeText": "Выполнение идёт через фоновые воркеры платформы. Результаты и статусы доступны в UI миссий. Для автоматизации извне —",
+      "apiTasksLink": "Public API tasks"
+    },
+    "knowledge": {
+      "title": "Knowledge",
+      "intro": "База знаний digital employee: источники индексируются и используются в Talk (RAG).",
+      "overviewTitle": "1. Обзор",
+      "overviewText": "Knowledge sources привязаны к сотруднику. Индексация выполняется фоновыми задачами Inngest. В диалоге retrieval подмешивает релевантные фрагменты в контекст brain-stream.",
+      "uploadTitle": "2. Загрузка",
+      "uploadSteps": [
+        "Откройте сотрудника → Knowledge / Studio",
+        "Добавьте URL или файл",
+        "Дождитесь статуса indexing → ready"
+      ],
+      "limitsTitle": "3. Лимиты chunks",
+      "limitsText": "Максимум knowledge chunks задаётся тарифом. Матрица:",
+      "plansLink": "/docs/plans"
+    },
+    "apiSecurity": {
+      "title": "API Security",
+      "intro": "Контроли для интеграторов Public API.",
+      "keysTitle": "Ключи",
+      "keysItems": [
+        "Bearer / header auth с nx_live_ ключом",
+        "Least-privilege scopes",
+        "Отзыв немедленный"
+      ],
+      "keysMore": "Подробнее:",
+      "apiKeysLink": "/docs/api-keys",
+      "webhooksTitle": "Webhooks",
+      "webhooksItems": [
+        "Только HTTPS endpoints",
+        "HMAC signature verification обязательна"
+      ],
+      "webhooksSpec": "Спека:",
+      "webhooksLink": "/docs/webhooks"
+    },
+    "changelog": {
+      "title": "Changelog документации",
+      "intro": "Изменения портала /docs и Public API. Версия портала: 2.1.0.",
+      "v210Title": "13 июля 2026 — 2.1.0",
+      "v210Items": [
+        "IA developer portal: Начало · Workforce · Платформа · Админ · Безопасность · Правовые · Developers · Enterprise",
+        "Новые страницы: architecture, organizations, roles, API keys, webhooks, limits, security, enterprise",
+        "Помощник: Yuki Nakora (без брендинга модели в UI)"
+      ],
+      "v200Title": "10 июля 2026 — 2.0.0",
+      "v200Items": [
+        "Первый portal /docs + Public API human docs"
+      ],
+      "agentReadable": "Agent-readable:"
+    },
+    "privacy": {
+      "title": "Политика конфиденциальности",
+      "intro": "Краткий указатель. Полный комплект по ПДн — в разделе персональных данных и оферте.",
+      "overviewTitle": "Обзор",
+      "personalDataLink": "Политика обработки персональных данных",
+      "termsLink": "Пользовательское соглашение",
+      "cookiesLink": "Cookie",
+      "companyLink": "Реквизиты оператора"
+    },
+    "apiKeys": {
+      "title": "API Keys",
+      "introPrefix": "Ключи организации для Public API. Префикс",
+      "introSuffix": ". Полное значение показывается один раз при создании.",
+      "createTitle": "Создание",
+      "createItems": [
+        "Settings → Security → API keys",
+        "Только Owner",
+        "Доступ зависит от тарифа (none / read / full)"
+      ],
+      "scopesTitle": "Scopes",
+      "scopeItems": [
+        "employees:read / employees:write",
+        "sessions:read",
+        "tasks:write"
+      ],
+      "scopesBundles": "Bundles: Read-only · Workforce Operator · Admin Integration. См.",
+      "apiLink": "API",
+      "revokeTitle": "Отзыв и rotation",
+      "revokeBody": "Отзыв — немедленная инвалидация. Rotation: создать новый ключ → переключить интеграции → отозвать старый. Храните секреты вне репозитория."
+    },
+    "company": {
+      "label": "Реквизиты",
+      "requisitesTitle": "Юридические реквизиты",
+      "ogrnLabel": "ОГРН",
+      "innKppLabel": "ИНН / КПП",
+      "okpoLabel": "ОКПО",
+      "registeredAtLabel": "Дата регистрации",
+      "addressLabel": "Юридический адрес",
+      "activityLabel": "Основной ОКВЭД",
+      "contactsTitle": "Контакты",
+      "emailLabel": "Email",
+      "telegramLabel": "Telegram",
+      "siteLabel": "Сайт",
+      "egrulLabel": "ЕГРЮЛ",
+      "egrulLink": "Rusprofile",
+      "offerLink": "Публичная оферта",
+      "personalDataLink": "Персональные данные",
+      "termsLink": "Соглашение"
+    },
+    "cookies": {
+      "title": "Политика cookies",
+      "intro": "NULLXES Digital Employees использует cookies и сходные технологии для работы платформы, сохранения настроек и (при согласии) обезличенной аналитики посещений.",
+      "overviewTitle": "Категории",
+      "categoryNecessaryLabel": "Необходимые",
+      "categoryNecessaryBody": "— сессия Better Auth, язык интерфейса (NEXT_LOCALE), фиксация согласия (nx_cookie_consent). Без них вход и базовая работа сайта невозможны или сильно ограничены.",
+      "categoryAnalyticsLabel": "Аналитика",
+      "categoryAnalyticsBody": "— Vercel Analytics только после выбора «Принять» в баннере согласия. Рекламный трекинг и сторонние cookies профилирования не используются.",
+      "consentTitle": "Согласие",
+      "consentBody1": "При первом визите показывается баннер. Выбор сохраняется в first-party cookie",
+      "consentBody2": "на 12 месяцев:",
+      "consentOr": "или",
+      "consentBody3": "Чтобы изменить решение, удалите cookie в браузере и обновите страницу — баннер появится снова.",
+      "registryTitle": "Реестр (основные)",
+      "registryItems": [
+        "Session cookie Better Auth — аутентификация",
+        "NEXT_LOCALE — язык UI",
+        "nx_cookie_consent — выбор по cookies"
+      ]
+    },
+    "dataStorage": {
+      "title": "Хранение данных",
+      "intro": "Для Enterprise и 152-ФЗ path — где и как живут данные.",
+      "whereTitle": "Где хранятся",
+      "whereItems": [
+        "PostgreSQL (Neon) — первичный контур Global",
+        "Object storage — аватары / файлы knowledge (по конфигурации)",
+        "dataRegion на org — продуктовый флаг; RU contour — отдельный деплой"
+      ],
+      "whereNote": "Не заявляем residency в РФ, пока не подключён отдельный RU DB contour.",
+      "retentionTitle": "Удаление и экспорт",
+      "retentionExport": "Экспорт данных организации — Settings / security flows",
+      "retentionPurge": "Удаление / purge — по запросу и политикам retention",
+      "retentionPersonalDataPrefix": "ПДн:",
+      "personalDataLink": "Персональные данные"
+    },
+    "employees": {
+      "title": "Цифровые сотрудники",
+      "intro": "Основная сущность платформы. Всё остальное — сервисы вокруг workforce.",
+      "modelTitle": "Модель",
+      "modelItems": [
+        "Принадлежит организации (tenant boundary)",
+        "Character / Skills / Tools — blueprint",
+        "Knowledge — корпоративный контекст",
+        "Talk — runtime-сессия с пользователем",
+        "Missions — фоновые и плановые задания"
+      ],
+      "catalogTitle": "Каталог NULLXES",
+      "catalogBody": "Опубликованные сотрудники платформы (например Adeline, Yuki) доступны для Talk. Их определение immutable: изменение definition через Public API и UI запрещено. Кастомные сотрудники создаются в рамках лимита тарифа.",
+      "lifecycleTitle": "Жизненный цикл",
+      "lifecycleStatus": "draft → active → paused → archived",
+      "lifecycleTalkPrefix": "Talk:",
+      "talkLink": "Talk",
+      "lifecycleLimitsPrefix": "Лимиты:",
+      "limitsLink": "Лимиты"
+    },
+    "enterprise": {
+      "title": "Enterprise",
+      "intro": "Контур для банков, холдингов и регуляторных внедрений. Часть пунктов — доступна сейчас, часть — roadmap (явно помечено).",
+      "deploymentTitle": "Deployment",
+      "deploymentItems": [
+        "Enterprise Deployment (managed)",
+        "Private Cloud / VPC",
+        "On-Premise — по договору",
+        "RU data contour — отдельная БД + object storage (cutover)"
+      ],
+      "identityTitle": "Identity",
+      "identityItems": [
+        "SSO — Enterprise",
+        "SAML — roadmap",
+        "SCIM — roadmap"
+      ],
+      "complianceTitle": "Compliance",
+      "complianceAuditLink": "Audit",
+      "compliancePersonalDataLink": "152-ФЗ / ПДн",
+      "complianceSecurityLink": "Security controls",
+      "complianceDataStorageLink": "Data storage",
+      "contactPrefix": "Контакт:"
+    },
+    "roles": {
+      "title": "Пользователи и роли",
+      "intro": "Membership role в организации. Реализовано: owner, admin, operator, viewer.",
+      "rolesTitle": "Роли",
+      "roleOwner": "Owner — организация, биллинг, API keys, webhooks, удаление org",
+      "roleAdmin": "Administrator — участники и сотрудники",
+      "roleOperator": "Operator — эксплуатация сотрудников (Talk, миссии)",
+      "roleViewer": "Viewer — только просмотр",
+      "matrixTitle": "Матрица прав",
+      "matrixHeaderRight": "Право",
+      "matrixHeaderOwner": "Owner",
+      "matrixHeaderAdmin": "Admin",
+      "matrixHeaderOperator": "Operator",
+      "matrixHeaderViewer": "Viewer",
+      "matrixRows": [
+        [
+          "Управление организацией",
+          "✓",
+          "—",
+          "—",
+          "—"
+        ],
+        [
+          "Управление участниками",
+          "✓",
+          "✓",
+          "—",
+          "—"
+        ],
+        [
+          "Управление сотрудниками",
+          "✓",
+          "✓",
+          "—",
+          "—"
+        ],
+        [
+          "Эксплуатация сотрудников",
+          "✓",
+          "✓",
+          "✓",
+          "—"
+        ],
+        [
+          "Просмотр сотрудников",
+          "✓",
+          "✓",
+          "✓",
+          "✓"
+        ]
+      ]
+    },
+    "security": {
+      "title": "Безопасность платформы",
+      "intro": "Контроли без воды. То, что реально есть в продукте.",
+      "transportTitle": "Транспорт и сессии",
+      "transportItems": [
+        "TLS на edge / hosting",
+        "Better Auth session cookies",
+        "CSP и security headers приложения"
+      ],
+      "accessTitle": "Доступ",
+      "accessItems": [
+        "RBAC: owner / admin / operator / viewer",
+        "Organization isolation (+ RLS defense-in-depth)",
+        "2FA — в настройках безопасности аккаунта (если включено)"
+      ],
+      "controlsTitle": "Контроли",
+      "controlsApiKeysLink": "API Keys",
+      "controlsApiKeysSuffix": "+ scopes",
+      "controlsWebhooksPrefix": "Подписанные",
+      "controlsWebhooksLink": "Webhooks",
+      "controlsAuditLink": "Audit",
+      "controlsCatalogItem": "Catalog employees — immutable definition"
+    },
+    "talk": {
+      "title": "Talk",
+      "intro": "Премиальный диалог с digital employee: текст и голос. Когниция принадлежит платформе; аватар Anam — визуальный слой.",
+      "overviewTitle": "1. Обзор",
+      "overviewBrain": "Brain:",
+      "overviewAnam": "Anam — avatar-only (без встроенного LLM persona)",
+      "overviewHistoryPrefix": "История:",
+      "overviewHistoryLink": "Conversations",
+      "startTitle": "2. Как начать",
+      "startSteps": [
+        "Откройте карточку сотрудника",
+        "Убедитесь, что статус Talk Ready",
+        "Нажмите Talk и начните сессию",
+        "Завершите сессию кнопкой End session"
+      ],
+      "limitsTitle": "3. Лимиты",
+      "limitsBody": "Длительность сессии и месячный бюджет минут зависят от тарифа. См.",
+      "plansLink": "Тарифы",
+      "readyTitle": "4. Talk Ready",
+      "readyBody": "Готовность = avatar provisioning ready + session provisioning ready. Если Talk недоступен — см.",
+      "troubleshootingLink": "устранение неполадок"
+    },
+    "troubleshooting": {
+      "title": "Устранение неполадок",
+      "introPrefix": "Типовые сбои и что проверить. Если не помогло —",
+      "introMiddle": "или",
+      "assistantLink": "помощник Yuki Nakora",
+      "talkTitle": "Talk",
+      "talkNotReady": "Нет Talk Ready — дождитесь avatar/session provisioning",
+      "talkLimitsPrefix": "Лимит минут — проверьте тариф на",
+      "plansLink": "Тарифы",
+      "talkRateLimit": "429 на brain-stream — подождите и повторите",
+      "apiTitle": "Public API",
+      "apiItems": [
+        "401 — неверный или отозванный ключ",
+        "403 — не хватает scopes или тариф без API (Evaluation/Starter/Studio)"
+      ],
+      "apiSpecPrefix": "Спека:",
+      "apiLink": "API",
+      "missionsTitle": "Миссии",
+      "missionsItems": [
+        "Статус не обновляется — обновите страницу (Inngest async)",
+        "Нужно согласование — Settings → Security → Approvals",
+        "Evaluation: create/missions для catalog ограничены"
+      ],
+      "billingTitle": "Тарифы",
+      "billingItems": [
+        "Нет кнопки Create на Evaluation — ожидаемо (catalog only)",
+        "Checkout — Starter / Studio / Team / Scale; Enterprise — Contact sales"
+      ]
+    },
+    "webhooks": {
+      "title": "Webhooks",
+      "intro": "Исходящие события организации на ваш HTTPS endpoint. Подпись HMAC-SHA256.",
+      "eventsTitle": "События",
+      "events": [
+        "employee.created",
+        "employee.deleted",
+        "session.completed",
+        "session.summarized",
+        "task.completed",
+        "handoff.accepted"
+      ],
+      "signingTitle": "Подпись",
+      "signingItems": [
+        "Headers: X-NULLXES-Event, X-NULLXES-Timestamp, X-NULLXES-Signature",
+        "Подпись: HMAC-SHA256 от ${timestamp}.${body}",
+        "Проверяйте timestamp (replay window) и signature (timing-safe)"
+      ],
+      "setupTitle": "Настройка",
+      "setupPrefix": "Settings → Security → Outbound webhook (Owner). См.",
+      "apiSecurityLink": "API Security"
+    },
+    "overview": {
+      "title": "Обзор",
+      "intro": "Документация <strong>NULLXES Digital Employees</strong> — для клиента, интегратора, ИБ и разработчика. Одна тема на страницу. Без обучения «как пользоваться компьютером».",
+      "domainTitle": "Домен",
+      "domainDocsLabel": "Документация",
+      "domainRightsHolderLabel": "Правообладатель",
+      "domainContactLabel": "Контакт",
+      "sectionsTitle": "Разделы",
+      "sections": [
+        {
+          "title": "Архитектура",
+          "description": "Пользователь → Workspace → Employees → Knowledge → Talk → LLM → Logs."
+        },
+        {
+          "title": "Цифровые сотрудники",
+          "description": "Модель workforce, каталог NULLXES, жизненный цикл."
+        },
+        {
+          "title": "Talk",
+          "description": "Сессии, лимиты, Talk Ready."
+        },
+        {
+          "title": "Организации",
+          "description": "Tenant boundary, Owner, Members."
+        },
+        {
+          "title": "Роли",
+          "description": "Owner · Admin · Operator · Viewer."
+        },
+        {
+          "title": "Public API",
+          "description": "Authentication, endpoints, errors."
+        },
+        {
+          "title": "API Keys",
+          "description": "Создание, scopes, отзыв, rotation."
+        },
+        {
+          "title": "Webhooks",
+          "description": "События и HMAC-подпись."
+        },
+        {
+          "title": "Лимиты",
+          "description": "Employees, Talk, Knowledge, API — enforcement."
+        },
+        {
+          "title": "Безопасность",
+          "description": "TLS, RBAC, audit, keys, signed webhooks."
+        },
+        {
+          "title": "Enterprise",
+          "description": "Deployment, VPC, SSO, compliance."
+        },
+        {
+          "title": "Yuki Nakora",
+          "description": "Помощник по документации."
+        }
+      ]
+    },
+    "api": {
+      "title": "Public API v1",
+      "intro": "REST API для внешних интеграций: сотрудники, сессии Talk и постановка задач. Контракт — OpenAPI; ключи создаются в Settings → Security.",
+      "operationLink": "Эксплуатация → API",
+      "overviewTitle": "1. Обзор",
+      "baseUrlLabel": "Base URL",
+      "productionLabel": "Production",
+      "authLabel": "Аутентификация",
+      "specLabel": "Спецификация",
+      "specSuffix": "(OpenAPI YAML)",
+      "overviewNote": "Публичная поверхность — только /api/v1/*. Внутренние маршруты Talk, Anam, Inngest, биллинга и auth в Public API не входят.",
+      "authTitle": "2. Ключи и scopes",
+      "authSteps": [
+        "Откройте Settings → Security",
+        "Создайте API key (нужны права владельца организации)",
+        "Выберите bundle: Read-only, Workforce Operator или Admin Integration",
+        "Передайте ключ только в заголовке Authorization"
+      ],
+      "scopeHeader": "Scope",
+      "accessHeader": "Доступ",
+      "scopeEmployeesRead": "Список и карточка сотрудника",
+      "scopeEmployeesWrite": "Создание, изменение, удаление",
+      "scopeSessionsRead": "Сессии Talk",
+      "scopeTasksWrite": "Задачи сотруднику и workforce assign",
+      "planNote": "Доступ к API зависит от тарифа: Evaluation / Starter / Studio — без ключей; Team — чтение; Scale / Enterprise / Holding — полный доступ.",
+      "endpointsTitle": "3. Эндпоинты",
+      "methodHeader": "Method",
+      "pathHeader": "Path",
+      "responsesTitle": "4. Формат ответа",
+      "successLabel": "Успех:",
+      "errorLabel": "Ошибка:",
+      "requestIdNote": "Заголовок X-Request-Id дублирует requestId.",
+      "examplesTitle": "5. Примеры",
+      "exampleListEmployees": "Список сотрудников",
+      "exampleCreateEmployee": "Создание сотрудника (draft)",
+      "exampleWorkforceAssign": "Маршрутизация задачи (workforce assign)",
+      "sdkTitle": "6. Typed SDK (Orval)",
+      "sdkIntro": "При доступе к исходникам (по запросу) клиент генерируется из public/openapi.yaml:",
+      "sdkImport": "Импорт: @/features/public-api/sdk. Спека OpenAPI также доступна публично: GET /api/docs.",
+      "securityTitle": "7. Безопасность",
+      "securityItems": [
+        "Не передавайте ключ в query string или клиентский бандл без необходимости",
+        "Ограничьте scopes минимально необходимым bundle",
+        "При необходимости включите IP allowlist в Settings → Security",
+        "Отказы доступа пишутся в Audit (api.access.denied)"
+      ]
+    },
+    "architecture": {
+      "title": "Архитектура платформы",
+      "intro": "NULLXES Digital Employees — операционная система цифровой рабочей силы. Схемы в Mermaid (source of truth для агентов и ревью).",
+      "stackTitle": "Стек",
+      "stackItems": [
+        "App — Next.js 16 App Router, React 19, TypeScript",
+        "Data — Neon PostgreSQL, Drizzle ORM",
+        "Auth — Better Auth, org RBAC, 2FA",
+        "Jobs — Inngest (missions, tasks, outbound)",
+        "Runtime — Talk brain-stream + avatar/voice providers"
+      ],
+      "c4Title": "C4 — Containers",
+      "c4Text": "Оператор работает с веб-приложением; API и workers разделяют синхронный и фоновый контуры над одной БД.",
+      "talkTitle": "Talk — sequence",
+      "talkText": "Каждый turn получает live snapshot миссий/задач; read-tools всегда доступны модели.",
+      "missionsTitle": "Missions — flow",
+      "erdTitle": "ERD — ядро",
+      "erdText": "Catalog employees публикуются через platform_employee_catalog и не дублируются в org-списке home-org.",
+      "erdSeeAlso": "См. также",
+      "organizationsLink": "организации",
+      "securityLink": "безопасность",
+      "talkLink": "Talk"
+    },
+    "functional": {
+      "title": "Описание функциональных характеристик",
+      "intro": "Программное обеспечение <strong>NULLXES Digital Employees</strong> — корпоративная платформа для создания, управления и эксплуатации цифровых сотрудников в бизнес-процессах организации.",
+      "purposeTitle": "1. Назначение платформы",
+      "purposeText": "NULLXES позволяет организациям внедрять цифровых сотрудников для работы с клиентскими обращениями, внутренними знаниями, задачами, коммуникациями и операционными сценариями. Платформа объединяет настройку ролей, контроль действий, аналитику и интеграции в едином рабочем контуре.",
+      "capabilitiesTitle": "2. Функциональные возможности",
+      "capabilitiesItems": [
+        "Управление цифровыми сотрудниками — создание профилей, определение должности, зоны ответственности, правил работы, делового тона и сценариев взаимодействия.",
+        "Диалоги и обработка обращений — ведение текстовых и голосовых сессий, сохранение истории взаимодействий и контроль качества коммуникации.",
+        "Корпоративные знания — подключение документов и материалов организации для использования сотрудником в рамках разрешённого рабочего контекста.",
+        "Задачи и рабочие процессы — постановка задач цифровым сотрудникам, отслеживание статусов, маршрутизация результатов и передача задач ответственным специалистам.",
+        "Контроль и согласование — проверка действий, требующих участия человека, а также управление исходящими коммуникациями и правилами исполнения.",
+        "Операционный центр — единое пространство для мониторинга активности цифровой рабочей силы, текущих задач и ключевых событий.",
+        "Аналитика — показатели использования, активности, диалогов, задач и базы знаний для оценки эффективности внедрения.",
+        "Интеграции — подключение к корпоративным системам и внешним сервисам через API в соответствии с политиками организации."
+      ],
+      "governanceTitle": "3. Управление и контроль",
+      "governanceText1": "Платформа предоставляет инструменты для управления организациями, рабочими пространствами, участниками и правами доступа. Настройки цифровых сотрудников, правила обработки данных и сценарии взаимодействия контролируются на уровне организации.",
+      "governanceText2": "Для критичных операций может применяться механизм участия человека: согласование результата, подтверждение действия или передача задачи профильному сотруднику.",
+      "securityTitle": "4. Безопасность",
+      "securityItems": [
+        "Разграничение доступа пользователей в рамках организации.",
+        "Управление ключами доступа и интеграционными подключениями.",
+        "Контроль событий и активности в рабочем пространстве.",
+        "Настройка политик доступа и ограничений сетевого взаимодействия.",
+        "Экспорт данных и управление их хранением в рамках доступной конфигурации."
+      ],
+      "deploymentTitle": "5. Варианты внедрения",
+      "deploymentText1": "NULLXES поддерживает поэтапное внедрение: от оценки одного сценария до масштабирования цифровых сотрудников на функции клиентского сервиса, продаж, HR, поддержки и внутренних операций.",
+      "deploymentText2": "Состав интеграций, требования к безопасности, порядок доступа и параметры сопровождения определяются в рамках выбранного корпоративного контура. Для генерации и анализа текстов организация может подключать различных LLM-провайдеров (в том числе OpenAI, Anthropic, Google и платформенный NULLXES brain) через Settings → AI.",
+      "rolesTitle": "6. Роли пользователей",
+      "roleAdmin": "Администратор — управляет организацией, участниками, политиками доступа, настройками и интеграциями.",
+      "roleUser": "Пользователь — работает с цифровыми сотрудниками, диалогами, задачами и доступными рабочими материалами в рамках выданных прав."
+    },
+    "installation": {
+      "title": "Быстрый старт",
+      "intro": "Программное обеспечение развёртывается как веб-приложение (SaaS). Установка на стороне конечного пользователя не требуется — достаточно современного браузера. Ниже — требования и порядок развёртывания для администратора инфраструктуры.",
+      "requirementsTitle": "Требования",
+      "requirementsItems": [
+        "Node.js 20+ (сборка и локальная разработка)",
+        "PostgreSQL 15+ (рекомендуется Neon serverless)",
+        "Хостинг с поддержкой Next.js (Vercel или аналог)",
+        "Доступ к Inngest Cloud для фоновых задач",
+        "Ключ OpenAI API для LLM-функций"
+      ],
+      "sourceTitle": "Исходный код",
+      "sourcePolicy": "Исходный код платформы не публикуется. Доступ предоставляется только по запросу правообладателю.",
+      "sourceRequest": "Запрос:",
+      "envTitle": "Окружение",
+      "envVarHeader": "Переменная",
+      "envPurposeHeader": "Назначение",
+      "envDatabaseUrl": "PostgreSQL connection string",
+      "envBetterAuthSecret": "Секрет сессий",
+      "envBetterAuthUrl": "https://www.nullxesdai.online",
+      "envNextPublicBetterAuthUrl": "Публичный URL auth",
+      "envDataEncryptionKey": "AES-256-GCM, base64",
+      "envOpenAiApiKey": "OpenAI GPT API",
+      "envInngestEventKey": "Отправка событий Inngest",
+      "envInngestSigningKey": "Верификация Inngest webhook",
+      "envResendApiKey": "Email (auth, outbound)",
+      "envNote": "Полный перечень переменных передаётся вместе с доступом к исходникам (по запросу).",
+      "verifyTitle": "Проверка",
+      "verifySteps": [
+        "GET /api/health/db → {\"ok\":true}",
+        "Вход на /login, создание организации",
+        "Создание цифрового сотрудника",
+        "Тестовая миссия (Mission Control)"
+      ]
+    },
+    "limits": {
+      "title": "Лимиты платформы",
+      "introPrefix": "Enforcement-числа из",
+      "introSuffix": "Полная матрица:",
+      "plansLink": "/docs/plans",
+      "workforceTitle": "Workforce",
+      "planHeader": "План",
+      "employeesHeader": "Employees",
+      "seatsHeader": "Seats",
+      "createHeader": "Create",
+      "yes": "да",
+      "no": "нет",
+      "talkTitle": "Talk",
+      "sessionHeader": "Сессия",
+      "monthHeader": "Месяц",
+      "minutesUnit": "мин",
+      "knowledgeTitle": "Knowledge",
+      "knowledgeItems": [
+        "maxKnowledgeChunks — индекс по организации (см. матрицу тарифов)",
+        "Starter: 2 500 · Studio: 15 000 · Team: 50 000 · Scale: 150 000"
+      ],
+      "apiTitle": "API",
+      "apiItems": [
+        "none — Evaluation / Starter / Studio",
+        "read — Team",
+        "full — Scale / Enterprise / Holding"
+      ]
+    },
+    "offer": {
+      "label": "Публичная оферта",
+      "title": "Договор‑оферта на предоставление доступа к платформе {brand}",
+      "intro": "Настоящий документ является официальным предложением заключить договор на условиях ниже. Оплата тарифа или регистрация с принятием условий означает акцепт оферты (ст. 435, 438 ГК РФ).",
+      "sellerTitle": "Исполнитель",
+      "fullNameLabel": "Полное наименование",
+      "ogrnLabel": "ОГРН",
+      "innKppLabel": "ИНН / КПП",
+      "addressLabel": "Юридический адрес",
+      "contactLabel": "Контакт",
+      "subjectTitle": "Предмет",
+      "subjectText": "Исполнитель предоставляет Заказчику доступ к облачной платформе {brand} Digital Employees (создание и эксплуатация цифровых сотрудников) по выбранному тарифу. Услуга оказывается дистанционно, через сайт",
+      "pricesTitle": "Цены и срок предоставления",
+      "pricesItem1Prefix": "Актуальные цены self-serve тарифов (Evaluation / Studio / Team / Scale) публикуются в разделе",
+      "pricesItem1Suffix": "и в настройках Billing платформы (в рублях).",
+      "pricesItem2": "Enterprise‑тарифы (Discovery, Pilot, Department, Holding, Flagship) — по индивидуальному согласованию.",
+      "pricesItem3": "Доступ по оплаченному периоду (месяц или год) открывается после подтверждения оплаты. Цифровая услуга оказывается немедленно после активации тарифа.",
+      "plansLink": "Тарифы и лимиты",
+      "orderTitle": "Порядок оформления и оплаты",
+      "orderSteps": [
+        "Зарегистрируйте аккаунт или войдите в workspace.",
+        "В Settings → Billing выберите тариф и период (месяц / год).",
+        "Оплатите через платёжную форму банка (карта, СБП и иные способы, доступные терминалу).",
+        "После успешной оплаты тариф активируется; электронный кассовый чек формируется при подключенной онлайн‑кассе (54‑ФЗ)."
+      ],
+      "noPhysicalDelivery": "Доставка материального товара не осуществляется — услуга цифровая.",
+      "refundTitle": "Возврат и претензии",
+      "refundItem1Prefix": "Запрос на возврат направляйте на",
+      "refundItem1Suffix": "с указанием email аккаунта, OrderId / PaymentId и причины.",
+      "refundItems": [
+        "Рассмотрение претензии — до 10 рабочих дней. При полном или частичном возврате средства возвращаются тем же способом оплаты через банк.",
+        "Если доступ по тарифу уже использован существенно (создание сотрудников, Talk, API), возврат может быть пропорциональным или отклонён — с мотивированным ответом.",
+        "Споры стороны стремятся урегулировать переговорами; при недостижении согласия — по месту нахождения Исполнителя."
+      ],
+      "personalDataTitle": "Персональные данные",
+      "personalDataText": "Обработка ПДн — по",
+      "personalDataLink": "политике персональных данных (152‑ФЗ)",
+      "personalDataSuffix": "Согласие фиксируется при регистрации.",
+      "footerRequisites": "Реквизиты:",
+      "rusprofileLink": "Rusprofile",
+      "footerAlso": "Также:",
+      "termsLink": "пользовательское соглашение"
+    },
+    "operation": {
+      "title": "Информация для эксплуатации",
+      "intro": "Руководство пользователя и администратора по эксплуатации NULLXES Digital Employees в production-среде nullxesdai.online.",
+      "loginTitle": "1. Вход в систему",
+      "loginSteps": [
+        "Откройте /login",
+        "Введите email и пароль или зарегистрируйтесь на /register",
+        "При включённой 2FA подтвердите код (Settings → Security)",
+        "После входа откроется Dashboard — /dashboard"
+      ],
+      "createTitle": "2. Создание цифрового сотрудника",
+      "createSteps": [
+        "Sidebar → Digital Employees → New Digital Employee",
+        "Укажите имя, роль, department, system prompt",
+        "В Studio настройте Brain provider (рекомендуется OpenAI GPT для production), модель, avatar, voice",
+        "Загрузите knowledge sources при необходимости",
+        "Дождитесь статуса provisioning → Ready"
+      ],
+      "talkTitle": "3. Диалог с сотрудником (Talk)",
+      "talkSteps": [
+        "Откройте карточку сотрудника → Talk",
+        "Начните текстовую или голосовую сессию",
+        "Ответы формируются с учётом system prompt и базы знаний (RAG)",
+        "История — Conversations (/dashboard/conversations)"
+      ],
+      "missionsTitle": "4. Mission Control — постановка миссии",
+      "missionsSteps": [
+        "Sidebar → Missions → Assign mission (/dashboard/missions/new)",
+        "Выберите сотрудника (например, Yuki Nakora)",
+        "Тип: Prospecting или Custom",
+        "Brief — текстовое задание, например: «Find 10 B2B companies in Europe that could benefit from NULLXES Digital Employees…»",
+        "Нажмите Assign mission",
+        "На странице миссии отслеживайте Timeline: research → leads → approval → outbound → handoff",
+        "Settings → Security → Approvals — согласуйте proposals перед исходящей отправкой"
+      ],
+      "missionsNote": "Обработка миссии выполняется фоново через Inngest. Страницу миссии обновляйте вручную (F5) для актуального статуса.",
+      "settingsTitle": "5. Настройки организации",
+      "settingsGeneral": "Settings → General — язык, timezone, retention",
+      "settingsTeam": "Settings → Team — участники, приглашения, роли",
+      "settingsAi": "Settings → AI — brain provider по умолчанию, модель, собственные API keys (OpenAI)",
+      "settingsSecurity": "Settings → Security — 2FA, API keys, IP allowlist, approvals",
+      "settingsAdvanced": "Settings → Advanced — экспорт данных организации",
+      "apiTitle": "6. Public API",
+      "apiIntro": "REST API v1 — сотрудники, сессии Talk и задачи. Ключи: Settings → Security. Полное описание scopes, эндпоинтов и примеров — в разделе",
+      "apiIntroSuffix": "Машинная спецификация OpenAPI:",
+      "apiItems": [
+        "Base path: /api/v1",
+        "Auth: Authorization: Bearer nx_live_…",
+        "Тариф: Evaluation/Starter/Studio — без API; Team — чтение; Scale+ — полный доступ"
+      ],
+      "monitoringTitle": "7. Мониторинг и поддержка",
+      "monitoringItems": [
+        "Inngest Dashboard — Runs, Events, cron-задачи",
+        "Settings → Audit — журнал действий",
+        "Analytics — метрики использования",
+        "Trust Center — /trust (безопасность, шифрование, retention)"
+      ]
+    },
+    "personalData": {
+      "title": "Персональные данные (152-ФЗ)",
+      "intro1": "Документация по обработке и защите персональных данных формируется в соответствии с Федеральным законом от 27.07.2006 №152-ФЗ «О персональных данных», ГОСТ Р ИСО/МЭК 27001-2021 (системы менеджмента информационной безопасности) и ГОСТ Р 7.0.8-2013 (делопроизводство / документирование).",
+      "intro2": "Настоящий раздел описывает оператора ПДн, состав обрабатываемых данных, места и условия хранения, меры защиты, аудит доступа и права субъектов. Юридически значимые формы согласий и локальные акты оператора применяются дополнительно к публичному описанию.",
+      "operatorTitle": "Оператор персональных данных",
+      "fullNameLabel": "Полное наименование",
+      "ogrnInnKppLabel": "ОГРН / ИНН / КПП",
+      "addressLabel": "Юридический адрес",
+      "directorLabel": "Руководитель",
+      "pdContactLabel": "Контакт по вопросам ПДн",
+      "categoriesTitle": "Категории обрабатываемых данных",
+      "categoriesItems": [
+        "Учётные данные пользователей workspace: имя, email, роль, сведения аутентификации (в т.ч. 2FA при включении)",
+        "Организационные данные: профиль организации, участники команды, приглашения",
+        "Операционные данные цифровой рабочей силы: профили digital employees, сессии Talk/Conversations, задачи, миссии, knowledge sources",
+        "Технические журналы: audit events, IP (при фиксации), метаданные API-доступа",
+        "Платёжные/тарифные сведения в объёме, необходимом для биллинга (через провайдера оплаты)"
+      ],
+      "categoriesNote": "Специальные категории ПДн и биометрические данные платформой по умолчанию не запрашиваются. Загрузка портретов аватаров относится к контенту организации и обрабатывается в рамках целей эксплуатации digital employees.",
+      "documentsTitle": "Базовый комплект документов",
+      "documentsItems": [
+        "Приказ о назначении ответственного за обработку и защиту ПДн",
+        "Приказ об утверждении перечня мест хранения документов и носителей ПДн",
+        "Политика в отношении обработки и защиты ПДн (публикуется на сайте)",
+        "Положение о защите персональных данных",
+        "Регламент уничтожения ПДн",
+        "Инструкция по работе со съёмными носителями",
+        "План действий при инцидентах информационной безопасности",
+        "Формы согласий на обработку ПДн",
+        "Журнал учёта обращений субъектов ПДн",
+        "Журнал учёта выдачи ПДн третьим лицам"
+      ],
+      "storageTitle": "Персональное хранение данных: места и условия",
+      "storageElectronicLabel": "Электронные носители:",
+      "storageElectronicText": "Персональные и операционные данные пользователей платформы хранятся в PostgreSQL (Neon) с изоляцией по организации (organization-scoped access). Регион размещения определяется конфигурацией развёртывания; для enterprise доступны варианты с учётом требований к локализации.",
+      "storageAccessLabel": "Разграничение доступа:",
+      "storageAccessText": "Доступ только через индивидуальные учётные записи Better Auth, RBAC ролей workspace (owner / admin / operator / viewer), опциональную 2FA для администраторов и API-ключи с областями доступа.",
+      "storageEncryptionLabel": "Шифрование:",
+      "storageEncryptionText": "Чувствительные поля (webhook secrets, integration tokens, export tokens, API keys организации) шифруются at rest (AES-256-GCM). Подробнее —",
+      "trustCenterLink": "Trust Center",
+      "storageRetentionLabel": "Сроки хранения и уничтожение:",
+      "storageRetentionText": "Обработка и хранение прекращаются при достижении целей обработки, истечении срока согласия или отзыве согласия субъектом. Политика retention организации управляет сроком хранения сессий; уничтожение — комиссионно, с актом об уничтожении персональных данных. Владелец workspace может инициировать экспорт и удаление данных организации в Settings → Advanced.",
+      "auditTitle": "Аудит и контроль доступа",
+      "auditIntro": "В соответствии с требованиями к учёту действий при обработке ПДн платформа ведёт журнал аудита (audit log) по security-relevant событиям организации: изменения настроек безопасности, операции с API-ключами, экспорт данных, отказ в доступе по API, административные действия.",
+      "auditItems": [
+        "Просмотр и фильтрация: Settings → Security / Audit (для авторизованных ролей с правом управления организацией)",
+        "Состав записи: действие, актор (пользователь/роль), тип ресурса, идентификатор ресурса, метаданные, IP (если зафиксирован), время",
+        "Журнал предназначен для внутреннего контроля оператора и расследования инцидентов; это не публичный live-мониторинг Trust Center",
+        "Дополнительно фиксируются work events цифровой рабочей силы (задачи, approvals, handoff) в операционном контуре организации"
+      ],
+      "auditIncident": "При инциденте информационной безопасности оператор действует по плану реагирования из комплекта документов 152-ФЗ и уведомляет субъектов / уполномоченный орган в случаях, предусмотренных законом.",
+      "rightsTitle": "Права субъектов ПДн",
+      "rightsTextPrefix": "Субъект персональных данных вправе запросить доступ, уточнение, блокирование или уничтожение своих данных, а также отозвать согласие на обработку (ст. 14, 21 152-ФЗ и связанные нормы). Обращения принимаются на",
+      "rightsTextSuffix": "Срок рассмотрения — в пределах, установленных законодательством РФ.",
+      "relatedPrefix": "Связанные материалы:",
+      "termsLink": "условия использования",
+      "assistantLink": "ассистент документации",
+      "referencePrefix": "Справочные материалы по комплекту документов 152-ФЗ:"
+    },
+    "plans": {
+      "title": "Тарифы и лимиты",
+      "introPrefix": "Справочник из",
+      "introSuffix": "Self-serve: Evaluation → Starter → Studio → Team → Scale. Sales: Enterprise, Holding.",
+      "namesTitle": "1. Имена планов",
+      "matrixTitle": "2. Матрица тарифов",
+      "planHeader": "План",
+      "priceHeader": "Цена",
+      "employeesHeader": "Employees",
+      "talkSessionHeader": "Talk / сессия",
+      "talkMonthHeader": "Talk / мес",
+      "chunksHeader": "Chunks",
+      "apiHeader": "API",
+      "unlimited": "Без лимита",
+      "minutesUnit": "мин",
+      "apiNone": "Нет",
+      "apiRead": "Read",
+      "apiFull": "Full",
+      "evaluationNote": "* Evaluation: создание своих сотрудников отключено — curated catalog NULLXES (Talk разрешён). Каталог не считается в maxEmployees.",
+      "apiAccessTitle": "3. Доступ к Public API",
+      "apiAccessItems": [
+        "Evaluation / Starter / Studio — ключи не создаются",
+        "Team — scopes чтения (employees:read, sessions:read)",
+        "Scale / Enterprise / Holding — полный доступ"
+      ],
+      "apiMorePrefix": "Подробнее:",
+      "limitsMorePrefix": "Лимиты enforcement:"
+    },
+    "terms": {
+      "title": "Пользовательское соглашение",
+      "intro": "Настоящее соглашение регулирует доступ к платформе NULLXES Digital Employees и использование её функциональности. Регистрируя аккаунт, вы подтверждаете, что ознакомились с условиями и принимаете их в полном объёме.",
+      "operatorTitle": "Правообладатель сервиса",
+      "nameLabel": "Наименование",
+      "ogrnInnLabel": "ОГРН / ИНН",
+      "addressLabel": "Юридический адрес",
+      "contactLabel": "Контакт",
+      "scopeTitle": "Предмет и доступ",
+      "scopeItems": [
+        "Платформа предоставляет инструменты для создания, настройки и эксплуатации цифровых сотрудников в рабочих пространствах организаций.",
+        "Доступ предоставляется зарегистрированным пользователям в объёме роли и тарифных ограничений рабочего пространства."
+      ],
+      "scopePersonalDataPrefix": "Обработка персональных данных осуществляется отдельно — см.",
+      "personalDataLink": "политику персональных данных",
+      "obligationsTitle": "Обязанности пользователя",
+      "obligationsItems": [
+        "Не передавать учётные данные третьим лицам и обеспечивать конфиденциальность пароля.",
+        "Не использовать сервис для противоправных действий, спама, вредоносного кода и обхода технических ограничений.",
+        "Соблюдать права третьих лиц при загрузке материалов в базу знаний и сценарии диалогов."
+      ],
+      "liabilityTitle": "Ограничение ответственности",
+      "liabilityText": "Сервис предоставляется «как есть». Оператор не несёт ответственности за решения, принятые пользователем на основе ответов ИИ-агентов, и за перебои сторонних провайдеров (LLM, аватары, почта), при условии разумных мер по восстановлению работоспособности."
+    },
+    "assistant": {
+      "title": "Помощник по документации",
+      "intro": "Yuki Nakora отвечает по корпусу /docs. Без рекламы моделей.",
+      "contactsTitle": "Контакты правообладателя",
+      "directorLabel": "Руководитель:",
+      "directorName": "Онюшко Максим Олегович (Maxim Onyushko)",
+      "emailLabel": "Email:",
+      "telegramLabel": "Telegram:"
+    },
+    "nav": {
+      "groups": {
+        "start": "Начало",
+        "workforce": "Работа с цифровыми сотрудниками",
+        "platform": "Платформа",
+        "admin": "Администрирование",
+        "security": "Безопасность",
+        "legal": "Правовые документы",
+        "developers": "Для разработчиков",
+        "enterprise": "Enterprise"
+      },
+      "items": {
+        "overview": {
+          "label": "Обзор",
+          "breadcrumb": "Обзор",
+          "toc": {
+            "overview": "Обзор",
+            "domain": "Домен",
+            "sections": "Разделы"
+          }
+        },
+        "installation": {
+          "label": "Быстрый старт",
+          "breadcrumb": "Быстрый старт",
+          "toc": {
+            "requirements": "Требования",
+            "source": "Исходный код",
+            "env": "Окружение",
+            "verify": "Проверка"
+          }
+        },
+        "architecture": {
+          "label": "Архитектура платформы",
+          "breadcrumb": "Архитектура",
+          "toc": {
+            "stack": "Стек",
+            "c4": "C4 Containers",
+            "flow": "Talk sequence",
+            "missions": "Missions",
+            "erd": "ERD"
+          }
+        },
+        "assistant": {
+          "label": "Помощник по документации",
+          "breadcrumb": "Yuki Nakora",
+          "toc": {
+            "assistant": "Yuki Nakora"
+          }
+        },
+        "employees": {
+          "label": "Цифровые сотрудники",
+          "breadcrumb": "Цифровые сотрудники",
+          "toc": {
+            "model": "Модель",
+            "catalog": "Каталог NULLXES",
+            "lifecycle": "Жизненный цикл"
+          }
+        },
+        "talk": {
+          "label": "Разговоры (Talk)",
+          "breadcrumb": "Talk",
+          "toc": {
+            "overview": "Обзор",
+            "start": "Сессия",
+            "limits": "Лимиты",
+            "ready": "Talk Ready"
+          }
+        },
+        "knowledge": {
+          "label": "База знаний",
+          "breadcrumb": "База знаний",
+          "toc": {
+            "overview": "Обзор",
+            "upload": "Загрузка",
+            "limits": "Лимиты"
+          }
+        },
+        "missions": {
+          "label": "Миссии",
+          "breadcrumb": "Миссии",
+          "toc": {
+            "overview": "Обзор",
+            "runtime": "Запуск"
+          }
+        },
+        "workspaces": {
+          "label": "Рабочие пространства",
+          "breadcrumb": "Рабочие пространства",
+          "toc": {
+            "overview": "Обзор"
+          }
+        },
+        "organizations": {
+          "label": "Организации",
+          "breadcrumb": "Организации",
+          "toc": {
+            "model": "Модель",
+            "isolation": "Изоляция"
+          }
+        },
+        "roles": {
+          "label": "Пользователи и роли",
+          "breadcrumb": "Роли",
+          "toc": {
+            "roles": "Роли",
+            "matrix": "Матрица прав"
+          }
+        },
+        "api": {
+          "label": "API",
+          "breadcrumb": "API",
+          "toc": {
+            "overview": "Обзор",
+            "auth": "Аутентификация",
+            "endpoints": "Эндпоинты",
+            "responses": "Ответы"
+          }
+        },
+        "apiKeys": {
+          "label": "API Keys",
+          "breadcrumb": "API Keys",
+          "toc": {
+            "create": "Создание",
+            "scopes": "Scopes",
+            "revoke": "Отзыв"
+          }
+        },
+        "webhooks": {
+          "label": "Webhooks",
+          "breadcrumb": "Webhooks",
+          "toc": {
+            "events": "События",
+            "signing": "Подпись",
+            "setup": "Настройка"
+          }
+        },
+        "integrations": {
+          "label": "Интеграции",
+          "breadcrumb": "Интеграции",
+          "toc": {
+            "overview": "Обзор"
+          }
+        },
+        "plans": {
+          "label": "Тарифы",
+          "breadcrumb": "Тарифы",
+          "toc": {
+            "matrix": "Матрица",
+            "api": "API по тарифам"
+          }
+        },
+        "limits": {
+          "label": "Лимиты платформы",
+          "breadcrumb": "Лимиты",
+          "toc": {
+            "workforce": "Workforce",
+            "talk": "Talk",
+            "knowledge": "Knowledge",
+            "api": "API"
+          }
+        },
+        "analytics": {
+          "label": "Аналитика",
+          "breadcrumb": "Аналитика",
+          "toc": {
+            "overview": "Обзор"
+          }
+        },
+        "audit": {
+          "label": "Аудит действий",
+          "breadcrumb": "Аудит",
+          "toc": {
+            "overview": "Обзор"
+          }
+        },
+        "security": {
+          "label": "Безопасность платформы",
+          "breadcrumb": "Безопасность",
+          "toc": {
+            "transport": "Транспорт",
+            "access": "Доступ",
+            "controls": "Контроли"
+          }
+        },
+        "personalData": {
+          "label": "Персональные данные",
+          "breadcrumb": "Персональные данные",
+          "toc": {
+            "operator": "Оператор",
+            "categories": "Категории",
+            "rights": "Права субъектов"
+          }
+        },
+        "dataStorage": {
+          "label": "Хранение данных",
+          "breadcrumb": "Хранение данных",
+          "toc": {
+            "where": "Где хранятся",
+            "retention": "Удаление и экспорт"
+          }
+        },
+        "apiSecurity": {
+          "label": "API Security",
+          "breadcrumb": "API Security",
+          "toc": {
+            "keys": "Ключи",
+            "webhooks": "Webhooks"
+          }
+        },
+        "accessControl": {
+          "label": "Управление доступом",
+          "breadcrumb": "Управление доступом",
+          "toc": {
+            "rbac": "RBAC",
+            "isolation": "Изоляция org"
+          }
+        },
+        "terms": {
+          "label": "Пользовательское соглашение",
+          "breadcrumb": "Пользовательское соглашение",
+          "toc": {
+            "scope": "Предмет"
+          }
+        },
+        "offer": {
+          "label": "Публичная оферта",
+          "breadcrumb": "Публичная оферта",
+          "toc": {
+            "subject": "Предмет"
+          }
+        },
+        "personalDataPolicy": {
+          "label": "Политика обработки ПДн",
+          "breadcrumb": "Политика обработки ПДн",
+          "toc": {
+            "documents": "Документы"
+          }
+        },
+        "privacy": {
+          "label": "Политика конфиденциальности",
+          "breadcrumb": "Конфиденциальность",
+          "toc": {
+            "overview": "Обзор"
+          }
+        },
+        "cookies": {
+          "label": "Cookie",
+          "breadcrumb": "Cookie",
+          "toc": {
+            "overview": "Обзор"
+          }
+        },
+        "company": {
+          "label": "Реквизиты",
+          "breadcrumb": "Реквизиты",
+          "toc": {
+            "requisites": "Реквизиты"
+          }
+        },
+        "publicApi": {
+          "label": "Public API",
+          "breadcrumb": "Public API",
+          "toc": {
+            "overview": "Обзор",
+            "auth": "Authentication",
+            "endpoints": "Endpoints",
+            "responses": "Errors & format"
+          }
+        },
+        "webhooksDev": {
+          "label": "Webhooks",
+          "breadcrumb": "Webhooks",
+          "toc": {
+            "events": "Events",
+            "signing": "Signing"
+          }
+        },
+        "changelog": {
+          "label": "Changelog",
+          "breadcrumb": "Changelog",
+          "toc": {
+            "recent": "Недавние"
+          }
+        },
+        "enterprise": {
+          "label": "Enterprise",
+          "breadcrumb": "Enterprise",
+          "toc": {
+            "deployment": "Deployment",
+            "identity": "Identity",
+            "compliance": "Compliance"
+          }
+        }
+      }
+    },
+    "shell": {
+      "backToPlatform": "На платформу",
+      "platformOnline": "Платформа · онлайн",
+      "documentation": "Документация",
+      "closeMenu": "Закрыть меню",
+      "openMenu": "Открыть меню",
+      "searchPlaceholder": "Поиск в документации...",
+      "home": "Домой",
+      "onThisPage": "На этой странице",
+      "needHelp": "Нужна помощь?",
+      "helpBody": "Помощник по документации — Yuki Nakora.",
+      "limitsLink": "Лимиты",
+      "docsVersion": "Версия документации:",
+      "lastUpdated": "Последнее обновление:",
+      "updatedAt": "10 июл. 2026 г.",
+      "nothingFound": "Ничего не найдено.",
+      "assistantSubtitle": "Документация · Yuki Nakora",
+      "assistantThinking": "Yuki готовит ответ…",
+      "assistantPlaceholder": "Спросите по документации…"
+    },
+    "meta": {
+      "fallbackTitle": "Документация",
+      "descriptionSuffix": "— документация NULLXES Digital Employees (Digital Workforce Operating System)."
+    },
+    "overviewMeta": {
+      "title": "Документация NULLXES",
+      "description": "Обзор платформы NULLXES Digital Employees: домен, архитектура, Talk, организации, API и разделы документации."
+    }
   }
 }

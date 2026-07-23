@@ -3,6 +3,7 @@
 import { useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import {
   ArrowLeft,
   ChevronRight,
@@ -16,7 +17,6 @@ import { DOCS_NAV, DOCS_NAV_FLAT, findDocsNavItem } from "../_lib/docs-nav";
 import { DOCS_CORPUS } from "../_lib/docs-corpus";
 
 const DOCS_VERSION = "2.1.0";
-const DOCS_UPDATED = "10 июл. 2026 г.";
 
 function NavList({
   query,
@@ -26,6 +26,8 @@ function NavList({
   onNavigate?: () => void;
 }) {
   const pathname = usePathname();
+  const tNav = useTranslations("docs.nav");
+  const tShell = useTranslations("docs.shell");
   const normalized = query.trim().toLowerCase();
 
   const groups = useMemo(() => {
@@ -35,28 +37,28 @@ function NavList({
 
     const corpusHits = new Set(
       DOCS_CORPUS.filter((chunk) => {
-        const hay = `${chunk.title} ${chunk.keywords.join(" ")} ${chunk.body}`.toLowerCase();
+        const hay =
+          `${chunk.title} ${chunk.keywords.join(" ")} ${chunk.body}`.toLowerCase();
         return hay.includes(normalized);
       }).map((chunk) => chunk.href.split("#")[0]),
     );
 
     return DOCS_NAV.map((group) => ({
       ...group,
-      items: group.items.filter(
-        (item) =>
-          item.label.toLowerCase().includes(normalized) ||
-          corpusHits.has(item.href),
-      ),
+      items: group.items.filter((item) => {
+        const label = tNav(`items.${item.key}.label`).toLowerCase();
+        return label.includes(normalized) || corpusHits.has(item.href);
+      }),
     })).filter((group) => group.items.length > 0);
-  }, [normalized]);
+  }, [normalized, tNav]);
 
   if (groups.length === 0) {
     const flatHits = DOCS_NAV_FLAT.filter((item) =>
-      item.label.toLowerCase().includes(normalized),
+      tNav(`items.${item.key}.label`).toLowerCase().includes(normalized),
     );
     if (flatHits.length === 0) {
       return (
-        <p className="px-3 py-4 text-sm text-white/40">Ничего не найдено.</p>
+        <p className="px-3 py-4 text-sm text-white/40">{tShell("nothingFound")}</p>
       );
     }
   }
@@ -64,15 +66,15 @@ function NavList({
   return (
     <nav className="flex flex-col gap-4">
       {groups.map((group) => (
-        <div key={group.label}>
+        <div key={group.key}>
           <p className="px-3 text-[10px] font-medium uppercase tracking-[0.12em] text-white/30">
-            {group.label}
+            {tNav(`groups.${group.key}`)}
           </p>
           <ul className="mt-1 flex flex-col">
             {group.items.map((item) => {
               const isActive = pathname === item.href;
               return (
-                <li key={item.href}>
+                <li key={`${group.key}-${item.key}`}>
                   <Link
                     href={item.href}
                     onClick={onNavigate}
@@ -82,7 +84,7 @@ function NavList({
                         : "text-white/55 hover:bg-white/5 hover:text-white"
                     }`}
                   >
-                    {item.label}
+                    {tNav(`items.${item.key}.label`)}
                   </Link>
                 </li>
               );
@@ -96,6 +98,8 @@ function NavList({
 
 export function DocsShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const tNav = useTranslations("docs.nav");
+  const tShell = useTranslations("docs.shell");
   const [query, setQuery] = useState("");
   const [mobileOpen, setMobileOpen] = useState(false);
   const activeItem = findDocsNavItem(pathname);
@@ -118,7 +122,7 @@ export function DocsShell({ children }: { children: ReactNode }) {
               className="mt-2 inline-flex items-center gap-1.5 text-[11px] text-white/40 transition-colors hover:text-white"
             >
               <ArrowLeft className="size-3" />
-              На платформу
+              {tShell("backToPlatform")}
             </Link>
           </div>
           <div className="flex-1 overflow-y-auto px-2 py-4">
@@ -130,7 +134,7 @@ export function DocsShell({ children }: { children: ReactNode }) {
               className="flex items-center gap-2 text-[11px] text-white/45 transition-colors hover:text-white"
             >
               <span className="size-1.5 rounded-full bg-white/60" />
-              Платформа · онлайн
+              {tShell("platformOnline")}
             </Link>
           </div>
         </aside>
@@ -140,12 +144,14 @@ export function DocsShell({ children }: { children: ReactNode }) {
             <button
               type="button"
               className="absolute inset-0 bg-black/70"
-              aria-label="Закрыть меню"
+              aria-label={tShell("closeMenu")}
               onClick={() => setMobileOpen(false)}
             />
             <div className="absolute inset-y-0 left-0 flex w-[min(100%,18rem)] flex-col border-r border-white/10 bg-black">
               <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
-                <span className="text-sm font-medium">Документация</span>
+                <span className="text-sm font-medium">
+                  {tShell("documentation")}
+                </span>
                 <button
                   type="button"
                   onClick={() => setMobileOpen(false)}
@@ -171,7 +177,7 @@ export function DocsShell({ children }: { children: ReactNode }) {
                 type="button"
                 className="rounded-md border border-white/10 p-1.5 text-white/70 lg:hidden"
                 onClick={() => setMobileOpen(true)}
-                aria-label="Открыть меню"
+                aria-label={tShell("openMenu")}
               >
                 <Menu className="size-4" />
               </button>
@@ -180,7 +186,7 @@ export function DocsShell({ children }: { children: ReactNode }) {
                 <input
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
-                  placeholder="Поиск в документации..."
+                  placeholder={tShell("searchPlaceholder")}
                   className="w-full rounded-md border border-white/10 bg-[#111111] py-1.5 pl-8 pr-3 text-[13px] text-white placeholder:text-white/35 focus:border-white/20 focus:outline-none"
                 />
               </div>
@@ -202,7 +208,7 @@ export function DocsShell({ children }: { children: ReactNode }) {
                 className="inline-flex items-center gap-1.5 rounded-md border border-white/10 px-2.5 py-1 text-[13px] text-white/70 transition-colors hover:bg-white/5 hover:text-white"
               >
                 <ArrowLeft className="size-3.5" />
-                Домой
+                {tShell("home")}
               </Link>
             </div>
           </header>
@@ -212,10 +218,12 @@ export function DocsShell({ children }: { children: ReactNode }) {
               {activeItem ? (
                 <nav className="mb-5 flex items-center gap-1.5 text-xs text-white/40">
                   <Link href="/docs" className="hover:text-white">
-                    Документация
+                    {tShell("documentation")}
                   </Link>
                   <ChevronRight className="size-3.5" />
-                  <span className="text-white/70">{activeItem.breadcrumb}</span>
+                  <span className="text-white/70">
+                    {tNav(`items.${activeItem.key}.breadcrumb`)}
+                  </span>
                 </nav>
               ) : null}
               <div className="max-w-3xl">{children}</div>
@@ -225,7 +233,7 @@ export function DocsShell({ children }: { children: ReactNode }) {
               {activeItem && activeItem.toc.length > 0 ? (
                 <div>
                   <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-white/30">
-                    На этой странице
+                    {tShell("onThisPage")}
                   </p>
                   <ul className="mt-2.5 flex flex-col gap-1.5">
                     {activeItem.toc.map((entry) => (
@@ -234,7 +242,9 @@ export function DocsShell({ children }: { children: ReactNode }) {
                           href={`#${entry.id}`}
                           className="block text-[13px] text-white/55 transition-colors hover:text-white"
                         >
-                          {entry.label}
+                          {tNav(
+                            `items.${activeItem.key}.toc.${entry.labelKey}`,
+                          )}
                         </a>
                       </li>
                     ))}
@@ -245,10 +255,10 @@ export function DocsShell({ children }: { children: ReactNode }) {
               <div className="rounded-xl border border-white/10 bg-[#111111] p-4">
                 <LifeBuoy className="size-4 text-white/50" />
                 <p className="mt-2.5 text-[13px] font-medium text-white">
-                  Нужна помощь?
+                  {tShell("needHelp")}
                 </p>
                 <p className="mt-1 text-xs leading-relaxed text-white/50">
-                  Помощник по документации — Yuki Nakora.
+                  {tShell("helpBody")}
                 </p>
                 <div className="mt-3 flex flex-col gap-2 text-xs">
                   <Link
@@ -267,7 +277,7 @@ export function DocsShell({ children }: { children: ReactNode }) {
                     href="/docs/limits"
                     className="text-white underline underline-offset-4"
                   >
-                    Лимиты
+                    {tShell("limitsLink")}
                   </Link>
                   <a
                     href="mailto:ceo@nullxes.com"
@@ -280,12 +290,12 @@ export function DocsShell({ children }: { children: ReactNode }) {
 
               <div className="text-xs text-white/40">
                 <p>
-                  Версия документации:{" "}
+                  {tShell("docsVersion")}{" "}
                   <span className="text-white/70">{DOCS_VERSION}</span>
                 </p>
                 <p className="mt-1">
-                  Последнее обновление:{" "}
-                  <span className="text-white/70">{DOCS_UPDATED}</span>
+                  {tShell("lastUpdated")}{" "}
+                  <span className="text-white/70">{tShell("updatedAt")}</span>
                 </p>
                 <p className="mt-2">
                   <Link href="/llms.txt" className="text-white/55 hover:text-white">

@@ -1,29 +1,32 @@
+import { getTranslations } from "next-intl/server";
 import { docsPageMetadata } from "../_lib/docs-page-metadata";
 
-export const metadata = docsPageMetadata("/docs/analytics");
+export async function generateMetadata() {
+  return docsPageMetadata("/docs/analytics");
+}
 
-export default function DocsAnalyticsPage() {
+export default async function DocsAnalyticsPage() {
+  const t = await getTranslations("docs.analytics");
+  const overviewItems = t.raw("overviewItems") as string[];
+
   return (
     <article className="flex flex-col gap-8 text-sm leading-relaxed text-white/60">
       <header>
         <h2 className="text-2xl font-medium tracking-tight text-white">
-          Аналитика
+          {t("title")}
         </h2>
-        <p className="mt-4">
-          Вторичный слой относительно workforce. Дашборд показывает активность
-          сотрудников, сессии и использование лимитов.
-        </p>
+        <p className="mt-4">{t("intro")}</p>
       </header>
 
       <section
         id="overview"
         className="scroll-mt-24 rounded-2xl border border-white/10 bg-[#111111] p-6"
       >
-        <h3 className="font-medium text-white">Обзор</h3>
+        <h3 className="font-medium text-white">{t("overviewTitle")}</h3>
         <ul className="mt-4 list-disc space-y-2 pl-5">
-          <li>UI: Analytics в dashboard</li>
-          <li>Метрики scoped по организации</li>
-          <li>Не заменяет audit log — см. Аудит действий</li>
+          {overviewItems.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
         </ul>
       </section>
     </article>

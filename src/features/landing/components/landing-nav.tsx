@@ -64,7 +64,7 @@ export function LandingNav({ signedIn }: { signedIn: boolean }) {
             className="font-(family-name:--font-landing-serif) text-sm tracking-[0.35em] text-white uppercase"
             onClick={() => setMenuOpen(false)}
           >
-            NULLXES
+            NULLXES ENTERPRISE
           </Link>
         </div>
 

@@ -1,40 +1,45 @@
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import { docsPageMetadata } from "../_lib/docs-page-metadata";
 
-export const metadata = docsPageMetadata("/docs/audit");
+export async function generateMetadata() {
+  return docsPageMetadata("/docs/audit");
+}
 
-export default function DocsAuditPage() {
+export default async function DocsAuditPage() {
+  const t = await getTranslations("docs.audit");
+  const overviewItems = t.raw("overviewItems") as string[];
+
   return (
     <article className="flex flex-col gap-8 text-sm leading-relaxed text-white/60">
       <header>
         <h2 className="text-2xl font-medium tracking-tight text-white">
-          Аудит действий
+          {t("title")}
         </h2>
-        <p className="mt-4">
-          Запись значимых действий в организации: ключи, участники, экспорт,
-          настройки.
-        </p>
+        <p className="mt-4">{t("intro")}</p>
       </header>
 
       <section
         id="overview"
         className="scroll-mt-24 rounded-2xl border border-white/10 bg-[#111111] p-6"
       >
-        <h3 className="font-medium text-white">Обзор</h3>
+        <h3 className="font-medium text-white">{t("overviewTitle")}</h3>
         <ul className="mt-4 list-disc space-y-2 pl-5">
-          <li>Таблица audit_event, scoped по organizationId</li>
-          <li>Примеры: api_key.created / revoked, member.*, data.exported</li>
+          {overviewItems.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
           <li>
-            Связано с{" "}
+            {t("relatedPrefix")}{" "}
             <Link href="/docs/security" className="text-white underline">
-              безопасностью
+              {t("securityLink")}
             </Link>{" "}
-            и{" "}
+            {t("and")}{" "}
             <Link href="/docs/personal-data" className="text-white underline">
-              ПДн
+              {t("personalDataLink")}
             </Link>
           </li>
         </ul>
       </section>
     </article>
-  );}
+  );
+}

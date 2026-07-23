@@ -1,48 +1,53 @@
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import { docsPageMetadata } from "../_lib/docs-page-metadata";
 
-export const metadata = docsPageMetadata("/docs/data-storage");
+export async function generateMetadata() {
+  return docsPageMetadata("/docs/data-storage");
+}
 
-export default function DocsDataStoragePage() {
+export default async function DocsDataStoragePage() {
+  const t = await getTranslations("docs.dataStorage");
+  const whereItems = t.raw("whereItems") as string[];
+
   return (
     <article className="flex flex-col gap-8 text-sm leading-relaxed text-white/60">
       <header>
         <h2 className="text-2xl font-medium tracking-tight text-white">
-          Хранение данных
+          {t("title")}
         </h2>
-        <p className="mt-4">Для Enterprise и 152-ФЗ path — где и как живут данные.</p>
+        <p className="mt-4">{t("intro")}</p>
       </header>
 
       <section
         id="where"
         className="scroll-mt-24 rounded-2xl border border-white/10 bg-[#111111] p-6"
       >
-        <h3 className="font-medium text-white">Где хранятся</h3>
+        <h3 className="font-medium text-white">{t("whereTitle")}</h3>
         <ul className="mt-4 list-disc space-y-2 pl-5">
-          <li>PostgreSQL (Neon) — первичный контур Global</li>
-          <li>Object storage — аватары / файлы knowledge (по конфигурации)</li>
-          <li>dataRegion на org — продуктовый флаг; RU contour — отдельный деплой</li>
+          {whereItems.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
         </ul>
-        <p className="mt-3 text-white/45">
-          Не заявляем residency в РФ, пока не подключён отдельный RU DB contour.
-        </p>
+        <p className="mt-3 text-white/45">{t("whereNote")}</p>
       </section>
 
       <section
         id="retention"
         className="scroll-mt-24 rounded-2xl border border-white/10 bg-[#111111] p-6"
       >
-        <h3 className="font-medium text-white">Удаление и экспорт</h3>
+        <h3 className="font-medium text-white">{t("retentionTitle")}</h3>
         <ul className="mt-4 list-disc space-y-2 pl-5">
-          <li>Экспорт данных организации — Settings / security flows</li>
-          <li>Удаление / purge — по запросу и политикам retention</li>
+          <li>{t("retentionExport")}</li>
+          <li>{t("retentionPurge")}</li>
           <li>
-            ПДн:{" "}
+            {t("retentionPersonalDataPrefix")}{" "}
             <Link href="/docs/personal-data" className="text-white underline">
-              /docs/personal-data
+              {t("personalDataLink")}
             </Link>
           </li>
         </ul>
       </section>
     </article>
-  );}
+  );
+}

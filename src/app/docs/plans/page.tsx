@@ -1,14 +1,15 @@
 import Link from "next/link";
+import { getLocale, getTranslations } from "next-intl/server";
 import { docsPageMetadata } from "../_lib/docs-page-metadata";
-
-export const metadata = docsPageMetadata("/docs/plans");
-
 import {
   BILLING_PLANS,
   type BillingPlanId,
 } from "@/features/billing/config/plans";
 
-/** Product-facing names (id → label). Source of truth for limits: BILLING_PLANS. */
+export async function generateMetadata() {
+  return docsPageMetadata("/docs/plans");
+}
+
 const DISPLAY_NAME: Record<BillingPlanId, string> = {
   free: "Evaluation",
   starter: "Starter",
@@ -29,33 +30,48 @@ const PLAN_ORDER: BillingPlanId[] = [
   "government",
 ];
 
-function formatLimit(value: number | null, unit?: string): string {
-  if (value === null) {
-    return "Без лимита";
-  }
-  return unit ? `${value.toLocaleString("ru-RU")} ${unit}` : String(value);
-}
+const PLAN_NAME_IDS = [
+  "free",
+  "starter",
+  "studio",
+  "operator",
+  "scale",
+  "enterprise",
+  "government",
+] as const;
 
-function formatApi(level: "none" | "read" | "full"): string {
-  if (level === "none") return "Нет";
-  if (level === "read") return "Read";
-  return "Full";
-}
+export default async function DocsPlansPage() {
+  const t = await getTranslations("docs.plans");
+  const locale = await getLocale();
+  const apiAccessItems = t.raw("apiAccessItems") as string[];
 
-export default function DocsPlansPage() {
+  const formatLimit = (value: number | null, unit?: string): string => {
+    if (value === null) {
+      return t("unlimited");
+    }
+    return unit
+      ? `${value.toLocaleString(locale)} ${unit}`
+      : String(value);
+  };
+
+  const formatApi = (level: "none" | "read" | "full"): string => {
+    if (level === "none") return t("apiNone");
+    if (level === "read") return t("apiRead");
+    return t("apiFull");
+  };
+
   return (
     <article className="flex flex-col gap-8 text-sm leading-relaxed text-white/60">
       <header>
         <h2 className="text-2xl font-medium tracking-tight text-white">
-          Тарифы и лимиты
+          {t("title")}
         </h2>
         <p className="mt-4">
-          Справочник из{" "}
+          {t("introPrefix")}{" "}
           <span className="font-mono text-white">
             src/features/billing/config/plans.ts
           </span>
-          . Self-serve: Evaluation → Starter → Studio → Team → Scale. Sales:
-          Enterprise, Holding.
+          . {t("introSuffix")}
         </p>
       </header>
 
@@ -63,22 +79,12 @@ export default function DocsPlansPage() {
         id="names"
         className="scroll-mt-24 rounded-2xl border border-white/10 bg-[#111111] p-6"
       >
-        <h3 className="font-medium text-white">1. Имена планов</h3>
+        <h3 className="font-medium text-white">{t("namesTitle")}</h3>
         <ul className="mt-4 list-disc space-y-2 pl-5">
-          {(
-            [
-              ["free", "Evaluation"],
-              ["starter", "Starter"],
-              ["studio", "Studio"],
-              ["operator", "Team"],
-              ["scale", "Scale"],
-              ["enterprise", "Enterprise"],
-              ["government", "Holding"],
-            ] as const
-          ).map(([id, label]) => (
+          {PLAN_NAME_IDS.map((id) => (
             <li key={id}>
               <span className="font-mono text-white">{id}</span> →{" "}
-              <strong className="text-white">{label}</strong>
+              <strong className="text-white">{DISPLAY_NAME[id]}</strong>
             </li>
           ))}
         </ul>
@@ -88,18 +94,18 @@ export default function DocsPlansPage() {
         id="matrix"
         className="scroll-mt-24 rounded-2xl border border-white/10 bg-[#111111] p-6"
       >
-        <h3 className="font-medium text-white">2. Матрица тарифов</h3>
+        <h3 className="font-medium text-white">{t("matrixTitle")}</h3>
         <div className="mt-4 overflow-x-auto">
           <table className="w-full min-w-160 text-left text-[12px]">
             <thead>
               <tr className="border-b border-white/10 text-white/40">
-                <th className="py-2 pr-3 font-medium">План</th>
-                <th className="py-2 pr-3 font-medium">Цена</th>
-                <th className="py-2 pr-3 font-medium">Employees</th>
-                <th className="py-2 pr-3 font-medium">Talk / сессия</th>
-                <th className="py-2 pr-3 font-medium">Talk / мес</th>
-                <th className="py-2 pr-3 font-medium">Chunks</th>
-                <th className="py-2 font-medium">API</th>
+                <th className="py-2 pr-3 font-medium">{t("planHeader")}</th>
+                <th className="py-2 pr-3 font-medium">{t("priceHeader")}</th>
+                <th className="py-2 pr-3 font-medium">{t("employeesHeader")}</th>
+                <th className="py-2 pr-3 font-medium">{t("talkSessionHeader")}</th>
+                <th className="py-2 pr-3 font-medium">{t("talkMonthHeader")}</th>
+                <th className="py-2 pr-3 font-medium">{t("chunksHeader")}</th>
+                <th className="py-2 font-medium">{t("apiHeader")}</th>
               </tr>
             </thead>
             <tbody className="text-white/70">
@@ -115,44 +121,46 @@ export default function DocsPlansPage() {
                     </td>
                     <td className="py-2 pr-3">
                       {plan.limits.maxSessionSeconds === null
-                        ? "Без лимита"
-                        : `${Math.round(plan.limits.maxSessionSeconds / 60)} мин`}
+                        ? t("unlimited")
+                        : `${Math.round(plan.limits.maxSessionSeconds / 60)} ${t("minutesUnit")}`}
                     </td>
                     <td className="py-2 pr-3">
-                      {formatLimit(plan.limits.maxTalkMinutesPerMonth, "мин")}
+                      {formatLimit(
+                        plan.limits.maxTalkMinutesPerMonth,
+                        t("minutesUnit"),
+                      )}
                     </td>
                     <td className="py-2 pr-3">
                       {formatLimit(plan.limits.maxKnowledgeChunks)}
                     </td>
-                    <td className="py-2">{formatApi(plan.limits.apiAccess)}</td>
+                    <td className="py-2">
+                      {formatApi(plan.limits.apiAccess)}
+                    </td>
                   </tr>
                 );
               })}
             </tbody>
           </table>
         </div>
-        <p className="mt-3 text-xs text-white/40">
-          * Evaluation: создание своих сотрудников отключено — curated catalog
-          NULLXES (Talk разрешён). Каталог не считается в maxEmployees.
-        </p>
+        <p className="mt-3 text-xs text-white/40">{t("evaluationNote")}</p>
       </section>
 
       <section
         id="api"
         className="scroll-mt-24 rounded-2xl border border-white/10 bg-[#111111] p-6"
       >
-        <h3 className="font-medium text-white">3. Доступ к Public API</h3>
+        <h3 className="font-medium text-white">{t("apiAccessTitle")}</h3>
         <ul className="mt-4 list-disc space-y-2 pl-5">
-          <li>Evaluation / Starter / Studio — ключи не создаются</li>
-          <li>Team — scopes чтения (employees:read, sessions:read)</li>
-          <li>Scale / Enterprise / Holding — полный доступ</li>
+          {apiAccessItems.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
         </ul>
         <p className="mt-4">
-          Подробнее:{" "}
+          {t("apiMorePrefix")}{" "}
           <Link href="/docs/api" className="text-white underline">
             /docs/api
           </Link>
-          . Лимиты enforcement:{" "}
+          . {t("limitsMorePrefix")}{" "}
           <Link href="/docs/limits" className="text-white underline">
             /docs/limits
           </Link>
@@ -160,4 +168,5 @@ export default function DocsPlansPage() {
         </p>
       </section>
     </article>
-  );}
+  );
+}

@@ -102,7 +102,7 @@ export function LandingFooter() {
                   rel="noreferrer"
                   className="transition hover:text-white"
                 >
-                  ЕГРЮЛ / Rusprofile
+                  ЕГРЮЛ
                 </a>
               </li>
             </ul>

@@ -68,7 +68,7 @@ export default function TrustPage() {
           <Link href="/docs" className="text-white hover:underline">
             /docs
           </Link>
-          . Соответствие законодательству Российской Федерации 152-ФЗ:{" "}
+          . Соответствие законодательству Российской Федерации:{" "}
           <Link href="/docs/personal-data" className="text-white hover:underline">
             /docs/personal-data
           </Link>
