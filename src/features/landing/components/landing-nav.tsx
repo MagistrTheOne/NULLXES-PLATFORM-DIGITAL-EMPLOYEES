@@ -84,14 +84,14 @@ export function LandingNav({ signedIn }: { signedIn: boolean }) {
           {signedIn ? (
             <Link
               href="/dashboard"
-              className="hidden rounded-full border border-(--landing-gold)/70 bg-black/30 px-3 py-2 text-[11px] tracking-wide text-(--landing-gold) transition-colors hover:bg-(--landing-gold)/10 sm:inline-flex sm:px-4 sm:text-xs"
+              className="inline-flex rounded-full border border-(--landing-gold)/70 bg-black/30 px-3 py-2 text-[11px] tracking-wide text-(--landing-gold) transition-colors hover:bg-(--landing-gold)/10 sm:px-4 sm:text-xs"
             >
               {t("goDashboard")}
             </Link>
           ) : (
             <Link
               href="/register"
-              className="hidden rounded-full border border-(--landing-gold)/70 bg-black/30 px-3 py-2 text-[11px] tracking-wide text-(--landing-gold) transition-colors hover:bg-(--landing-gold)/10 sm:inline-flex sm:px-4 sm:text-xs"
+              className="inline-flex rounded-full border border-(--landing-gold)/70 bg-black/30 px-3 py-2 text-[11px] tracking-wide text-(--landing-gold) transition-colors hover:bg-(--landing-gold)/10 sm:px-4 sm:text-xs"
             >
               {t("requestAccess")}
             </Link>
