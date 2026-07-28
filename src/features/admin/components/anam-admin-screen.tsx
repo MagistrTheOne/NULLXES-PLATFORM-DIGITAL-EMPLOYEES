@@ -87,6 +87,11 @@ function SlotStatusChips({
           key ok
         </span>
       ) : null}
+      {slot.availableForCreate ? (
+        <span className="rounded-full border border-white/20 px-2 py-0.5 text-white/80">
+          free for create
+        </span>
+      ) : null}
       {slot.atCapacity ? (
         <span className="rounded-full border border-white/20 px-2 py-0.5 text-white/80">
           at capacity
@@ -110,6 +115,7 @@ export function AnamAdminScreen({ status }: { status: AnamPoolStatus }) {
   );
 
   const defaultFocus =
+    status.freeForCreateSlots[0] ??
     status.slots.find((slot) => slot.configured)?.slot ??
     status.slots[0]?.slot ??
     "ANAM_API_KEY";
@@ -136,6 +142,10 @@ export function AnamAdminScreen({ status }: { status: AnamPoolStatus }) {
           value={`${status.configuredSlotCount} / ${status.totalSlots}`}
         />
         <PlatformMetricCell label="Anam employees" value={status.totalEmployees} />
+        <PlatformMetricCell
+          label="Free for create"
+          value={status.freeForCreateCount}
+        />
         <PlatformMetricCell
           label="Max personas / key"
           value={status.maxPersonasPerKey}
@@ -276,8 +286,9 @@ export function AnamAdminScreen({ status }: { status: AnamPoolStatus }) {
 
       <p className="text-xs leading-relaxed text-white/40">
         Slots reflect runtime env (e.g. Vercel project env). Redeploy / env
-        change required to add keys. There is no live Vercel Management API
-        sync — configured means{" "}
+        change required to add keys. Create routing auto-picks the first empty
+        or under-capacity key in pool order — same logic as employee create.
+        There is no live Vercel Management API sync — configured means{" "}
         <span className="font-mono text-white/50">process.env[ANAM_API_KEY*]</span>{" "}
         is present on this deployment.
       </p>

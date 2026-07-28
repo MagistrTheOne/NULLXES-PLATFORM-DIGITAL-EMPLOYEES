@@ -1,11 +1,11 @@
-import { eq } from "drizzle-orm";
-import { employeeProviderConfig } from "@/entities/provider-config/schema";
 import {
   getAnamApiKeyPool,
   type AnamApiKeySlot,
 } from "@/shared/config/anam-api-pool";
 import { anamFetchWithSlot } from "@/shared/config/provider-env";
 import { db } from "@/shared/db/client";
+import { eq } from "drizzle-orm";
+import { employeeProviderConfig } from "@/entities/provider-config/schema";
 
 async function detectPersonaSlot(
   personaId: string,
@@ -127,11 +127,22 @@ export async function listAnamSlotsWithPersonaCapacity(input?: {
 }
 
 /**
+ * Empty configured slots (0 pinned personas in DB) — preferred for new creates
+ * when keys are added/rotated in env.
+ */
+export async function listAnamEmptyPersonaSlots(input?: {
+  excludeEmployeeId?: string;
+}): Promise<AnamApiKeySlot[]> {
+  const { configuredSlots, counts } = await buildPersonaCountsBySlot(input);
+  return configuredSlots.filter((slot) => (counts.get(slot) ?? 0) === 0);
+}
+
+/**
  * Picks the Anam key slot a new persona should be created on:
- * - prefers the first configured slot still under the per-key cap;
- * - if every slot is at capacity, falls back to the least-loaded slot so
- *   provisioning still proceeds (and quota fallback in the fetch pool kicks in).
- * Returns null when no Anam keys are configured.
+ * 1. empty slots (0 DB personas) — first free key in pool order
+ * 2. any under-capacity slot
+ * 3. least-loaded fallback
+ * No fixed default slot — free capacity is detected at runtime from env + DB.
  */
 export async function resolveAnamPersonaSlot(input?: {
   excludeEmployeeId?: string;
@@ -143,8 +154,13 @@ export async function resolveAnamPersonaSlot(input?: {
 
   const { configuredSlots, counts, firstSlot } =
     await buildPersonaCountsBySlot(input);
-
   const max = getMaxPersonasPerKey();
+
+  for (const slot of configuredSlots) {
+    if ((counts.get(slot) ?? 0) === 0) {
+      return slot;
+    }
+  }
 
   for (const slot of configuredSlots) {
     if ((counts.get(slot) ?? 0) < max) {

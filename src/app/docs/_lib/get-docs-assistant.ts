@@ -13,7 +13,7 @@ export type DocsAssistantProfile = {
 
 const FALLBACK: DocsAssistantProfile = {
   name: "Yuki Nakora",
-  role: "Документация · LLM",
+  role: "Документация · Yuki Nakora",
   avatarUrl: null,
   initials: "YN",
 };

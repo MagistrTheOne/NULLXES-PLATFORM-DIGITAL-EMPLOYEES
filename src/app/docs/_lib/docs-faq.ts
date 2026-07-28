@@ -1,3 +1,5 @@
+import { DOCS_ASSISTANT_INTERNAL_REDIRECT } from "./docs-assistant-system-prompt";
+
 export type DocsFaqEntry = {
   id: string;
   question: string;
@@ -31,7 +33,7 @@ export const DOCS_FAQ: DocsFaqEntry[] = [
     id: "install",
     question: "Какие требования для установки?",
     answer:
-      "Node.js 20+, PostgreSQL 15+ (Neon), хостинг Next.js, Inngest, OPENAI_API_KEY, BETTER_AUTH_SECRET, DATABASE_URL. Подробности — /docs/installation.",
+      "Node.js 20+, PostgreSQL 15+ (Neon), хостинг Next.js, Inngest, секреты аутентификации и DATABASE_URL. Подробности — /docs/installation.",
     keywords: ["установка", "требования", "node", "postgres", "env"],
   },
   {
@@ -44,9 +46,27 @@ export const DOCS_FAQ: DocsFaqEntry[] = [
   {
     id: "llm",
     question: "Какой LLM используется?",
-    answer:
-      "Когниция Talk и миссий идёт через настроенный LLM provider организации (Settings → AI). Помощник документации: Yuki Nakora (/docs/assistant) по корпусу /docs.",
-    keywords: ["gpt", "openai", "llm", "ассистент", "yuki"],
+    answer: DOCS_ASSISTANT_INTERNAL_REDIRECT,
+    keywords: [
+      "gpt",
+      "openai",
+      "llm",
+      "модель",
+      "провайдер",
+      "claude",
+      "anthropic",
+      "gemini",
+      "пилот",
+      "pilot",
+      "ассистент",
+      "yuki",
+    ],
+  },
+  {
+    id: "pilot",
+    question: "Как устроен пилот / внутренняя архитектура?",
+    answer: DOCS_ASSISTANT_INTERNAL_REDIRECT,
+    keywords: ["пилот", "pilot", "внутренн", "архитектура стека", "провайдер"],
   },
   {
     id: "missions",

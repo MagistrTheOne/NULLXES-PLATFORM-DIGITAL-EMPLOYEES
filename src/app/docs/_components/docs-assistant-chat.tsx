@@ -19,7 +19,6 @@ type ChatMessage = {
   role: "assistant" | "user";
   content: string;
   citations?: string[];
-  model?: string;
 };
 
 const WELCOME =
@@ -28,7 +27,7 @@ const WELCOME =
 function createMessage(
   role: ChatMessage["role"],
   content: string,
-  extra?: Pick<ChatMessage, "citations" | "model">,
+  extra?: Pick<ChatMessage, "citations">,
 ): ChatMessage {
   return {
     id: `${role}-${Date.now()}-${Math.random()}`,
@@ -78,7 +77,6 @@ export function DocsAssistantChat({
         ...current,
         createMessage("assistant", result.answer, {
           citations: result.ok ? result.citations : undefined,
-          model: result.ok ? result.model : undefined,
         }),
       ]);
     });
@@ -132,9 +130,6 @@ export function DocsAssistantChat({
                   </Link>
                 ))}
               </div>
-            ) : null}
-            {message.model ? (
-              <p className="mt-1 text-[10px] text-white/35">{message.model}</p>
             ) : null}
           </div>
         ))}

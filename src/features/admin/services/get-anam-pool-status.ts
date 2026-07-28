@@ -7,6 +7,7 @@ import {
   probeAnamApiKeyHealth,
   type AnamApiKeySlot,
 } from "@/shared/config/anam-api-pool";
+import { listAnamSlotsFreeForCreate } from "@/features/provider-provisioning/services/list-anam-one-shot-slots";
 import { db } from "@/shared/db/client";
 
 function getMaxPersonasPerKey(): number {
@@ -44,6 +45,7 @@ export type AnamAdminSlotStatus = {
   credentialDetail: string | null;
   personaCount: number;
   atCapacity: boolean;
+  availableForCreate: boolean;
   employees: AnamAdminEmployeeRow[];
 };
 
@@ -51,6 +53,8 @@ export type AnamPoolStatus = {
   configuredSlotCount: number;
   totalSlots: number;
   maxPersonasPerKey: number;
+  freeForCreateSlots: AnamApiKeySlot[];
+  freeForCreateCount: number;
   slots: AnamAdminSlotStatus[];
   unassignedEmployees: AnamAdminEmployeeRow[];
   failedEmployees: AnamAdminEmployeeRow[];
@@ -62,6 +66,8 @@ export async function getAnamPoolStatus(): Promise<AnamPoolStatus> {
   const configuredSlots = new Set(pool.map((entry) => entry.slot));
   const firstSlot = pool[0]?.slot ?? "ANAM_API_KEY";
   const maxPersonasPerKey = getMaxPersonasPerKey();
+  const freeForCreateSlots = await listAnamSlotsFreeForCreate();
+  const freeForCreateSet = new Set(freeForCreateSlots);
 
   const employees = await db
     .select({
@@ -159,6 +165,7 @@ export async function getAnamPoolStatus(): Promise<AnamPoolStatus> {
         credentialDetail,
         personaCount,
         atCapacity: configured && personaCount >= maxPersonasPerKey,
+        availableForCreate: freeForCreateSet.has(slot),
         employees: employeesOnSlot,
       };
     }),
@@ -168,6 +175,8 @@ export async function getAnamPoolStatus(): Promise<AnamPoolStatus> {
     configuredSlotCount: pool.length,
     totalSlots: ANAM_API_KEY_SLOTS.length,
     maxPersonasPerKey,
+    freeForCreateSlots,
+    freeForCreateCount: freeForCreateSlots.length,
     slots,
     unassignedEmployees,
     failedEmployees,

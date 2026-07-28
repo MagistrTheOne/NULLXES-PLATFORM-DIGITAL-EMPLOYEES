@@ -8,7 +8,11 @@ import { hasOpenAiCredentials } from "@/shared/config/provider-env";
 import { hasNullxesApiCredentials } from "@/shared/nullxes-sdk";
 import { checkRateLimit } from "@/shared/security/rate-limit";
 import { findFaqAnswer } from "./docs-faq";
-import { buildDocsAssistantSystemPrompt } from "./docs-assistant-system-prompt";
+import {
+  buildDocsAssistantSystemPrompt,
+  DOCS_ASSISTANT_INTERNAL_REDIRECT,
+  isDocsInternalInfoQuestion,
+} from "./docs-assistant-system-prompt";
 import { retrieveDocsContext } from "./docs-corpus";
 
 type DocsAnswerResult =
@@ -16,7 +20,6 @@ type DocsAnswerResult =
       ok: true;
       answer: string;
       source: "llm" | "faq";
-      model?: string;
       citations: string[];
     }
   | { ok: false; answer: string };
@@ -130,6 +133,15 @@ export async function answerDocsQuestionAction(input: {
     };
   }
 
+  if (isDocsInternalInfoQuestion(question)) {
+    return {
+      ok: true,
+      answer: DOCS_ASSISTANT_INTERNAL_REDIRECT,
+      source: "faq",
+      citations: ["/docs", "/docs/assistant"],
+    };
+  }
+
   const retrieved = retrieveDocsContext(question, 5);
   const systemPrompt = buildDocsAssistantSystemPrompt(retrieved);
   const citationFallback = retrieved.map((chunk) => chunk.href);
@@ -157,7 +169,6 @@ export async function answerDocsQuestionAction(input: {
           ok: true,
           answer,
           source: "llm",
-          model: attempt.model,
           citations: extractCitations(answer, citationFallback),
         };
       }

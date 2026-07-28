@@ -20,7 +20,7 @@ export const DOCS_CORPUS: DocsCorpusChunk[] = [
     body: `NULLXES Digital Employees — Digital Workforce Operating System на nullxesdai.online.
 Правообладатель: ООО «НУЛЛЕКСЕС» (ОГРН 1262300017209, ИНН 2311391270).
 Документация: https://www.nullxesdai.online/docs
-Для миссий и парсинга используется OpenAI GPT через официальный API.`,
+Для миссий и парсинга используется платформенный brain (настройки организации).`,
   },
   {
     id: "architecture",
