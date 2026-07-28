@@ -29,6 +29,7 @@ type Props = {
   library: SkillRow[];
   assignments: Assignment[];
   canManage: boolean;
+  isPlatformAdmin?: boolean;
 };
 
 const PROFICIENCY_CLASS: Record<Assignment["proficiency"], string> = {
@@ -42,11 +43,12 @@ export function EmployeeSkillsTab({
   library,
   assignments,
   canManage,
+  isPlatformAdmin = false,
 }: Props) {
   const t = useTranslations("agentBlueprint.employeeSkills");
   const [pending, startTransition] = useTransition();
   const assignedIds = new Set(assignments.map((item) => item.skillId));
-  const available = library.filter((skill) => !assignedIds.has(skill.id));
+  const available = library.filter((row) => !assignedIds.has(row.id));
 
   return (
     <div className="space-y-6 text-white">
@@ -71,7 +73,11 @@ export function EmployeeSkillsTab({
               >
                 <div className="min-h-0 flex-1">
                   <p className="font-medium">{assignment.skillName}</p>
-                  <p className="mt-1 text-sm text-white/45">{assignment.skillSlug}</p>
+                  {isPlatformAdmin ? (
+                    <p className="mt-1 font-mono text-xs text-white/35">
+                      {assignment.skillSlug}
+                    </p>
+                  ) : null}
                   <div className="mt-3 flex flex-wrap gap-1.5">
                     <Badge
                       variant="outline"
@@ -142,14 +148,18 @@ export function EmployeeSkillsTab({
             <p className="mt-1 text-sm text-white/45">{t("libraryHint")}</p>
           </div>
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-            {available.map((skill) => (
+            {available.map((row) => (
               <article
-                key={skill.id}
+                key={row.id}
                 className="flex flex-col justify-between rounded-xl border border-white/10 bg-[#111111] p-4"
               >
                 <div>
-                  <p className="font-medium">{skill.name}</p>
-                  <p className="mt-1 text-sm text-white/45">{skill.slug}</p>
+                  <p className="font-medium">{row.name}</p>
+                  {isPlatformAdmin ? (
+                    <p className="mt-1 font-mono text-xs text-white/35">
+                      {row.slug}
+                    </p>
+                  ) : null}
                 </div>
                 <Button
                   type="button"
@@ -162,7 +172,7 @@ export function EmployeeSkillsTab({
                         employeeId,
                         skillIds: [
                           ...assignments.map((item) => item.skillId),
-                          skill.id,
+                          row.id,
                         ],
                       });
                     })

@@ -20,6 +20,7 @@ import { EmployeeCustomizationPanel } from "./employee-customization-panel";
 import { EmployeeDetailActions } from "./employee-detail-actions";
 import { EmployeeOverviewTab } from "./employee-overview-tab";
 import { EmployeePreviewRail } from "./employee-preview-rail";
+import { EmployeeSystemInternals } from "./employee-system-internals";
 import type { RewardItem } from "@/features/rewards/lib/catalog";
 import type { EmployeeLoadout } from "@/features/rewards/lib/loadout";
 import { emptyLoadout } from "@/features/rewards/lib/loadout";
@@ -28,7 +29,9 @@ function DetailRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-start justify-between gap-4 border-b border-white/10 py-3 last:border-b-0">
       <span className="text-sm text-white/50">{label}</span>
-      <span className="max-w-[60%] text-end text-sm text-white">{value}</span>
+      <span className="max-w-[60%] break-all text-end text-sm text-white">
+        {value}
+      </span>
     </div>
   );
 }
@@ -98,7 +101,6 @@ export async function EmployeeDetailScreen({
   const talkBlockers = resolveTalkReadinessBlockers({
     avatarProvisioningStatus: employee.avatarProvisioningStatus,
     sessionProvisioningStatus: employee.sessionProvisioningStatus,
-    // Operators receive redacted avatar/persona IDs — readiness uses status + preview.
     avatarReady: isPlatformAdmin
       ? isAnamAvatarTalkReady({
           provisioningStatus: employee.avatarProvisioningStatus,
@@ -216,7 +218,7 @@ export async function EmployeeDetailScreen({
                 value={readinessLabel(employee.avatarProvisioningStatus, t)}
               />
               {isPlatformAdmin ? (
-                <>
+                <EmployeeSystemInternals>
                   <DetailRow
                     label={t("avatarId")}
                     value={employee.avatarId ?? empty}
@@ -231,7 +233,7 @@ export async function EmployeeDetailScreen({
                       employee.anamApiKeySlot ?? t("anamKeySlotDefault")
                     }
                   />
-                </>
+                </EmployeeSystemInternals>
               ) : null}
             </SectionCard>
             <SectionCard title={t("voice")}>
@@ -240,7 +242,7 @@ export async function EmployeeDetailScreen({
                 value={readinessLabel(employee.sessionProvisioningStatus, t)}
               />
               {isPlatformAdmin ? (
-                <>
+                <EmployeeSystemInternals>
                   <DetailRow
                     label={t("voiceBinding")}
                     value={employee.voiceBinding ?? empty}
@@ -257,7 +259,7 @@ export async function EmployeeDetailScreen({
                     label={t("anamPersonaVoiceId")}
                     value={employee.anamVoiceId ?? empty}
                   />
-                </>
+                </EmployeeSystemInternals>
               ) : null}
             </SectionCard>
           </TabsContent>
@@ -268,6 +270,7 @@ export async function EmployeeDetailScreen({
                 organizationId={organizationId}
                 employeeId={employee.id}
                 tab="character"
+                isPlatformAdmin={isPlatformAdmin}
               />
             </Suspense>
             <EmployeeCustomizationPanel
@@ -281,12 +284,6 @@ export async function EmployeeDetailScreen({
                 label={t("readiness.label")}
                 value={readinessLabel(employee.brainProvisioningStatus, t)}
               />
-              {isPlatformAdmin ? (
-                <DetailRow
-                  label={t("model")}
-                  value={employee.brainModel ?? empty}
-                />
-              ) : null}
               <DetailRow
                 label={t("systemPrompt")}
                 value={
@@ -295,6 +292,14 @@ export async function EmployeeDetailScreen({
                     : employee.systemPrompt
                 }
               />
+              {isPlatformAdmin ? (
+                <EmployeeSystemInternals>
+                  <DetailRow
+                    label={t("model")}
+                    value={employee.brainModel ?? empty}
+                  />
+                </EmployeeSystemInternals>
+              ) : null}
             </SectionCard>
           </TabsContent>
 
@@ -304,6 +309,7 @@ export async function EmployeeDetailScreen({
                 organizationId={organizationId}
                 employeeId={employee.id}
                 tab="skills"
+                isPlatformAdmin={isPlatformAdmin}
               />
             </Suspense>
             <Suspense fallback={<TabPanelSkeleton />}>
@@ -311,6 +317,7 @@ export async function EmployeeDetailScreen({
                 organizationId={organizationId}
                 employeeId={employee.id}
                 tab="tools"
+                isPlatformAdmin={isPlatformAdmin}
               />
             </Suspense>
             <Suspense fallback={<TabPanelSkeleton />}>
@@ -318,6 +325,7 @@ export async function EmployeeDetailScreen({
                 organizationId={organizationId}
                 employeeId={employee.id}
                 displayPreferences={displayPreferences}
+                isPlatformAdmin={isPlatformAdmin}
               />
             </Suspense>
           </TabsContent>

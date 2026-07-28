@@ -1,5 +1,7 @@
 import { and, eq } from "drizzle-orm";
 import { employeeCharacter } from "@/entities/employee-character/schema";
+import { isPlatformAdminEmail } from "@/features/admin";
+import { getCurrentSession } from "@/features/auth/services/get-current-session";
 import { requireWorkspacePermission } from "@/features/workspace";
 import { listEmployeeSkillAssignments } from "../services/assign-employee-skills";
 import { listEmployeeToolAssignments } from "../queries/list-organization-tools";
@@ -14,15 +16,23 @@ export async function EmployeeBlueprintTabs({
   organizationId,
   employeeId,
   tab,
+  isPlatformAdmin: isPlatformAdminProp,
 }: {
   organizationId: string;
   employeeId: string;
   tab: "character" | "skills" | "tools";
+  isPlatformAdmin?: boolean;
 }) {
   const workspace = await requireWorkspacePermission("canManageEmployees").catch(
     () => null,
   );
   const canManage = Boolean(workspace);
+
+  let isPlatformAdmin = isPlatformAdminProp;
+  if (isPlatformAdmin === undefined) {
+    const session = await getCurrentSession();
+    isPlatformAdmin = isPlatformAdminEmail(session?.user.email);
+  }
 
   const [presets, library, assignments, toolRows, character] = await Promise.all([
     listOrganizationCharacterPresets(organizationId),
@@ -50,6 +60,7 @@ export async function EmployeeBlueprintTabs({
         presets={presets}
         character={character}
         canManage={canManage}
+        isPlatformAdmin={isPlatformAdmin}
       />
     );
   }
@@ -68,6 +79,7 @@ export async function EmployeeBlueprintTabs({
           isActive: row.assignment.isActive,
         }))}
         canManage={canManage}
+        isPlatformAdmin={isPlatformAdmin}
       />
     );
   }
@@ -76,6 +88,7 @@ export async function EmployeeBlueprintTabs({
     <EmployeeToolsTab
       employeeId={employeeId}
       canManage={canManage}
+      isPlatformAdmin={isPlatformAdmin}
       tools={toolRows.map((row) => ({
         toolDefinitionId: row.tool.id,
         slug: row.tool.slug,

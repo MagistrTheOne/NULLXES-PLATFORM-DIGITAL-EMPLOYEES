@@ -7,10 +7,12 @@ export async function EmployeeDetailKnowledgeTab({
   organizationId,
   employeeId,
   displayPreferences,
+  isPlatformAdmin = false,
 }: {
   organizationId: string;
   employeeId: string;
   displayPreferences: OrganizationDisplayPreferences;
+  isPlatformAdmin?: boolean;
 }) {
   const [items, workspace] = await Promise.all([
     getEmployeeDetailKnowledge(organizationId, employeeId),
@@ -23,6 +25,7 @@ export async function EmployeeDetailKnowledgeTab({
       employeeId={employeeId}
       canManage={Boolean(workspace)}
       displayPreferences={displayPreferences}
+      isPlatformAdmin={isPlatformAdmin}
     />
   );
 }

@@ -23,6 +23,7 @@ type Props = {
   presets: CharacterPresetRow[];
   character: EmployeeCharacterRow | null;
   canManage: boolean;
+  isPlatformAdmin?: boolean;
 };
 
 export function EmployeeCharacterTab({
@@ -30,6 +31,7 @@ export function EmployeeCharacterTab({
   presets,
   character,
   canManage,
+  isPlatformAdmin = false,
 }: Props) {
   const t = useTranslations("agentBlueprint.employeeCharacter");
   const [pending, startTransition] = useTransition();
@@ -103,9 +105,14 @@ export function EmployeeCharacterTab({
                     </p>
                   ) : null}
                   <div className="mt-3 flex flex-wrap gap-1.5">
-                    <Badge variant="outline" className="border-white/10 text-white/60">
-                      {preset.slug}
-                    </Badge>
+                    {isPlatformAdmin ? (
+                      <Badge
+                        variant="outline"
+                        className="border-white/10 font-mono text-[10px] text-white/45"
+                      >
+                        {preset.slug}
+                      </Badge>
+                    ) : null}
                     {preset.isSystemTemplate ? (
                       <Badge variant="secondary">{t("systemTemplate")}</Badge>
                     ) : null}

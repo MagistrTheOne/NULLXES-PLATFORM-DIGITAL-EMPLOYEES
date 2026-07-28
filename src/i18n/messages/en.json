@@ -393,6 +393,8 @@
         "needsAttention": "Needs attention",
         "portraitPending": "Portrait pending"
       },
+      "systemInternals": "System",
+      "systemInternalsHint": "Internal IDs for support — hidden from operators.",
       "status": "Status",
       "created": "Created",
       "knowledgeSources": "Knowledge sources",
@@ -840,12 +842,20 @@
     "knowledge": {
       "empty": "No knowledge sources attached to this employee yet.",
       "title": "Knowledge sources ({count})",
-      "chunks": "{count} chunks",
+      "collapsibleTitle": "Knowledge ({count})",
+      "collapsibleHint": "Reference materials this employee can use.",
+      "chunks": "{count} passages",
       "status": {
-        "pending": "pending",
-        "processing": "processing",
+        "pending": "queued",
+        "processing": "indexing",
         "ready": "ready",
         "failed": "failed"
+      },
+      "type": {
+        "url": "URL",
+        "file": "File",
+        "text": "Text",
+        "session_summary": "Session summary"
       },
       "add": {
         "title": "Add knowledge",
@@ -2013,7 +2023,12 @@
       "priority": "Priority {value}"
     },
     "employeeTools": {
-      "requiresApproval": "Requires approval"
+      "requiresApproval": "Requires approval",
+      "risk": {
+        "read": "Read",
+        "write": "Write",
+        "destructive": "Destructive"
+      }
     }
   },
   "landing": {

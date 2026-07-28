@@ -393,6 +393,8 @@
         "needsAttention": "Нужно внимание",
         "portraitPending": "Портрет готовится"
       },
+      "systemInternals": "Система",
+      "systemInternalsHint": "Внутренние ID для поддержки — операторам не показываются.",
       "status": "Статус",
       "created": "Создан",
       "knowledgeSources": "Источники знаний",
@@ -840,12 +842,20 @@
     "knowledge": {
       "empty": "У этого сотрудника пока нет источников знаний.",
       "title": "Источники знаний ({count})",
-      "chunks": "{count} фрагментов",
+      "collapsibleTitle": "Знания ({count})",
+      "collapsibleHint": "Справочные материалы, которыми пользуется сотрудник.",
+      "chunks": "{count} отрывков",
       "status": {
-        "pending": "ожидание",
-        "processing": "обработка",
+        "pending": "в очереди",
+        "processing": "индексация",
         "ready": "готово",
         "failed": "ошибка"
+      },
+      "type": {
+        "url": "URL",
+        "file": "Файл",
+        "text": "Текст",
+        "session_summary": "Итог сессии"
       },
       "add": {
         "title": "Добавить знания",
@@ -2013,7 +2023,12 @@
       "priority": "Приоритет {value}"
     },
     "employeeTools": {
-      "requiresApproval": "Требует подтверждения"
+      "requiresApproval": "Требует подтверждения",
+      "risk": {
+        "read": "Чтение",
+        "write": "Запись",
+        "destructive": "Опасное"
+      }
     }
   },
   "landing": {
