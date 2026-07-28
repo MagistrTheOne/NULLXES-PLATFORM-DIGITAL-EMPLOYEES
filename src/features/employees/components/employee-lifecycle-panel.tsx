@@ -36,7 +36,7 @@ export async function EmployeeLifecyclePanel({
             <li key={item.id} className={index > 0 ? "mt-6" : ""}>
               <span className="absolute -start-1.5 mt-1.5 size-3 rounded-full border border-white/20 bg-[#111111]" />
               <div className="flex flex-col gap-1">
-                <p className="text-sm font-medium text-white capitalize">
+                <p className="text-sm font-medium text-white">
                   {t(`events.${item.eventType}`)}
                 </p>
                 <p className="text-xs text-white/50">
