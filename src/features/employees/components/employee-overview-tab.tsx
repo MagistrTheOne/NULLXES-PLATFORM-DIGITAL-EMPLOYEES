@@ -44,7 +44,7 @@ export async function EmployeeOverviewTab({
   const tMissions = await getTranslations("employees.detail.overviewPanel");
   const tCommon = await getTranslations("common.actions");
   const snapshot = await getEmployeeOverviewSnapshot(organizationId, employee.id);
-  const scenarioHref = `/dashboard/employees/${employee.id}/scenarios`;
+  const talkHref = `/dashboard/employees/${employee.id}/talk`;
 
   return (
     <div className="mt-4 space-y-4">
@@ -106,7 +106,7 @@ export async function EmployeeOverviewTab({
                   className="bg-white text-black hover:bg-white/90"
                   asChild
                 >
-                  <Link href={scenarioHref}>{tCommon("runScenario")}</Link>
+                  <Link href={talkHref}>{tCommon("talk")}</Link>
                 </Button>
               </div>
             ) : (

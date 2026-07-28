@@ -188,21 +188,6 @@ export function EmployeeCard({
                 <span>{tActions("talk")}</span>
               )}
             </Button>
-            <Button
-              type="button"
-              disabled={!canTalk}
-              variant="outline"
-              className="border-white/10 bg-transparent text-white hover:bg-white/5 disabled:opacity-40"
-              asChild={canTalk}
-            >
-              {canTalk ? (
-                <Link href={`/dashboard/employees/${employee.id}/scenarios`}>
-                  {tActions("runScenario")}
-                </Link>
-              ) : (
-                <span>{tActions("runScenario")}</span>
-              )}
-            </Button>
           </div>
           <span className="text-xs text-white/50">{createdLabel}</span>
         </div>

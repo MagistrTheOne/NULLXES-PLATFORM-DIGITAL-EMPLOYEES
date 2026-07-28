@@ -41,6 +41,7 @@
       "delete": "Delete",
       "talk": "Talk",
       "voice": "Voice",
+      "quickCall": "Quick call",
       "runScenario": "Run scenario",
       "logout": "Logout",
       "saveChanges": "Save changes",
@@ -395,6 +396,7 @@
       },
       "systemInternals": "System",
       "systemInternalsHint": "Internal IDs for support — hidden from operators.",
+      "quickCallNeedsAgent": "Bind an xAI voice agent in Edit before Quick call.",
       "status": "Status",
       "created": "Created",
       "knowledgeSources": "Knowledge sources",
@@ -426,7 +428,7 @@
         "missionsTotal": "{count} total",
         "missionsCompleted": "{count} completed",
         "missionsEmptyTitle": "No missions yet",
-        "missionsEmpty": "Assign the first scenario to put this employee to work."
+        "missionsEmpty": "Assign the first Talk session to put this employee to work."
       },
       "actions": {
         "edit": "Edit",

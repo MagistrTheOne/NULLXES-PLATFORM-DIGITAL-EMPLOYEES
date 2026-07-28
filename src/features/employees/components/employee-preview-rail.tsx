@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Loader2, UserRound } from "lucide-react";
+import { Loader2, Phone, UserRound } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -10,6 +10,7 @@ import type { EmployeeDetailShell } from "../types";
 import { AvatarIdlePreview } from "./avatar-idle-preview";
 import { EmployeeLoadoutSummary } from "./employee-loadout-summary";
 import { EmployeeStatusBadge } from "./employee-status-badge";
+import { EmployeeGrokVoiceButton } from "./employee-grok-voice-button";
 import type { RewardItem } from "@/features/rewards/lib/catalog";
 import type { EmployeeLoadout } from "@/features/rewards/lib/loadout";
 import { emptyLoadout } from "@/features/rewards/lib/loadout";
@@ -50,6 +51,23 @@ function resolveReadinessKey(employee: EmployeeDetailShell): {
   };
 }
 
+/** Quick call requires platform xAI + enabled voice + bound console agent id. */
+function resolveQuickCallState(employee: EmployeeDetailShell): {
+  show: boolean;
+  canCall: boolean;
+} {
+  if (!employee.xaiVoiceConfigured && !employee.xaiVoiceAvailable) {
+    return { show: false, canCall: false };
+  }
+
+  const agentBound =
+    employee.xaiVoiceEnabled &&
+    employee.xaiVoiceBindConsoleAgent &&
+    Boolean(employee.xaiVoiceAgentId?.trim());
+
+  return { show: true, canCall: agentBound };
+}
+
 export async function EmployeePreviewRail({
   employee,
   displayPreferences: _displayPreferences,
@@ -62,7 +80,7 @@ export async function EmployeePreviewRail({
   employee: EmployeeDetailShell;
   displayPreferences: OrganizationDisplayPreferences;
   talkBlockers: string[];
-  /** When set (e.g. `/login`), Talk / Scenario route through auth first. */
+  /** When set (e.g. `/login`), Talk / Quick call route through auth first. */
   authGateHref?: string;
   sticky?: boolean;
   loadout?: EmployeeLoadout;
@@ -77,13 +95,12 @@ export async function EmployeePreviewRail({
   const showPreview =
     employee.avatarPreviewUrl && employee.avatarProvisioningStatus === "ready";
   const talkHref = authGateHref ?? `/dashboard/employees/${employee.id}/talk`;
-  const scenarioHref =
-    authGateHref ?? `/dashboard/employees/${employee.id}/scenarios`;
   const canActivateTalk = Boolean(authGateHref) || employee.canTalk;
   const backgroundSrc = resolveCosmeticBackgroundSrc(loadout.backgroundId);
   const frameSrc = resolveCosmeticFrameSrc(loadout.frameId);
   const showEquipBadge = hasAnyLoadoutEquipped(loadout);
   const readiness = resolveReadinessKey(employee);
+  const quickCall = resolveQuickCallState(employee);
 
   return (
     <Card
@@ -119,7 +136,9 @@ export async function EmployeePreviewRail({
               <UserRound className="size-8" />
             )}
             <span className="text-xs tracking-wide">
-              {isProvisioning ? t("readiness.settingUp") : t("readiness.portraitPending")}
+              {isProvisioning
+                ? t("readiness.settingUp")
+                : t("readiness.portraitPending")}
             </span>
           </div>
         )}
@@ -175,19 +194,35 @@ export async function EmployeePreviewRail({
             <span>{tCommon("talk")}</span>
           )}
         </Button>
-        <Button
-          type="button"
-          disabled={!canActivateTalk}
-          variant="outline"
-          className="border-white/12 bg-transparent text-white hover:bg-white/5 disabled:opacity-40"
-          asChild={canActivateTalk}
-        >
-          {canActivateTalk ? (
-            <Link href={scenarioHref}>{tCommon("runScenario")}</Link>
+
+        {quickCall.show ? (
+          authGateHref ? (
+            <Button
+              type="button"
+              variant="outline"
+              className="border-white/12 bg-transparent text-white hover:bg-white/5"
+              asChild
+            >
+              <Link href={authGateHref}>
+                <Phone className="mr-2 size-4" />
+                {tCommon("quickCall")}
+              </Link>
+            </Button>
           ) : (
-            <span>{tCommon("runScenario")}</span>
-          )}
-        </Button>
+            <>
+              <EmployeeGrokVoiceButton
+                employeeId={employee.id}
+                employeeName={employee.name}
+                avatarPreviewUrl={employee.avatarPreviewUrl}
+                disabled={!quickCall.canCall}
+              />
+              {!quickCall.canCall ? (
+                <p className="text-xs text-white/45">{t("quickCallNeedsAgent")}</p>
+              ) : null}
+            </>
+          )
+        ) : null}
+
         {!employee.canTalk && !authGateHref ? (
           <div className="space-y-1 text-xs text-white/45">
             <p>{t("talkLocked")}</p>

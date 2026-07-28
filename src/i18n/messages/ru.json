@@ -41,6 +41,7 @@
       "delete": "Удалить",
       "talk": "Разговор",
       "voice": "Голос",
+      "quickCall": "Быстрый звонок",
       "runScenario": "Запустить сценарий",
       "logout": "Выйти",
       "saveChanges": "Сохранить",
@@ -395,6 +396,7 @@
       },
       "systemInternals": "Система",
       "systemInternalsHint": "Внутренние ID для поддержки — операторам не показываются.",
+      "quickCallNeedsAgent": "Сначала привяжите xAI-агента в «Изменить».",
       "status": "Статус",
       "created": "Создан",
       "knowledgeSources": "Источники знаний",
@@ -426,7 +428,7 @@
         "missionsTotal": "{count} всего",
         "missionsCompleted": "{count} завершено",
         "missionsEmptyTitle": "Миссий пока нет",
-        "missionsEmpty": "Назначьте первый сценарий — и сотрудник выйдет на работу."
+        "missionsEmpty": "Откройте разговор — и сотрудник выйдет на работу."
       },
       "actions": {
         "edit": "Изменить",
