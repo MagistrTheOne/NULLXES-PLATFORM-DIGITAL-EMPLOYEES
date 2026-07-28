@@ -23,10 +23,19 @@ export function matchesStudioVoiceGenderFilter(
   }
 
   const normalized = gender.trim().toLowerCase();
+  const isFemale =
+    normalized === "f" ||
+    normalized === "female" ||
+    normalized.includes("female");
+  const isMale =
+    !isFemale &&
+    (normalized === "m" ||
+      normalized === "male" ||
+      normalized.includes("male"));
 
   if (filter === "female") {
-    return normalized.includes("female");
+    return isFemale;
   }
 
-  return normalized.includes("male");
+  return isMale;
 }

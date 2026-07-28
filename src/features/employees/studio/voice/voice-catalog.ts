@@ -75,6 +75,7 @@ export const STUDIO_VOICES: StudioVoiceOption[] = [
 
 export const CUSTOM_ELEVENLABS_STUDIO_VOICE_ID = "custom-elevenlabs";
 export const ELEVENLABS_API_VOICE_ID_PREFIX = "elevenlabs-api-";
+export const ANAM_API_VOICE_ID_PREFIX = "anam-api-";
 
 export function getAnamStudioVoices(): StudioVoiceOption[] {
   return STUDIO_VOICES.filter((voice) => voice.provider === "Anam");
@@ -82,6 +83,23 @@ export function getAnamStudioVoices(): StudioVoiceOption[] {
 
 export function getStaticElevenLabsStudioVoices(): StudioVoiceOption[] {
   return STUDIO_VOICES.filter((voice) => voice.provider === "ElevenLabs");
+}
+
+export function mergeAnamStudioVoices(
+  apiVoices: StudioVoiceOption[],
+): StudioVoiceOption[] {
+  const staticIds = new Set(
+    getAnamStudioVoices()
+      .map((voice) => voice.anamVoiceId)
+      .filter(Boolean),
+  );
+
+  const merged = [
+    ...getAnamStudioVoices(),
+    ...apiVoices.filter((voice) => !staticIds.has(voice.anamVoiceId)),
+  ];
+
+  return merged.sort((left, right) => left.name.localeCompare(right.name));
 }
 
 export function mergeElevenLabsStudioVoices(
@@ -105,18 +123,17 @@ export function mergeElevenLabsStudioVoices(
 
 export function buildStudioVoiceCatalog(
   apiElevenLabsVoices: StudioVoiceOption[] = [],
+  apiAnamVoices: StudioVoiceOption[] = [],
 ): StudioVoiceOption[] {
-  return [...getAnamStudioVoices(), ...mergeElevenLabsStudioVoices(apiElevenLabsVoices)];
+  return [
+    ...mergeAnamStudioVoices(apiAnamVoices),
+    ...mergeElevenLabsStudioVoices(apiElevenLabsVoices),
+  ];
 }
 
 export function createCustomElevenLabsVoiceOption(
   elevenLabsVoiceId: string,
 ): StudioVoiceOption {
-  const shortId =
-    elevenLabsVoiceId.length > 12
-      ? `${elevenLabsVoiceId.slice(0, 8)}…`
-      : elevenLabsVoiceId;
-
   return {
     id: CUSTOM_ELEVENLABS_STUDIO_VOICE_ID,
     name: "Custom ElevenLabs voice",
@@ -132,6 +149,25 @@ export function resolveStudioVoiceSelection(
   customElevenLabsVoiceId?: string,
   catalog: StudioVoiceOption[] = STUDIO_VOICES,
 ): StudioVoiceOption | undefined {
+  if (studioVoiceId.startsWith(ANAM_API_VOICE_ID_PREFIX)) {
+    const anamVoiceId = studioVoiceId.slice(ANAM_API_VOICE_ID_PREFIX.length);
+
+    if (!anamVoiceId) {
+      return undefined;
+    }
+
+    return (
+      catalog.find((voice) => voice.id === studioVoiceId) ?? {
+        id: studioVoiceId,
+        name: anamVoiceId,
+        gender: "Neutral",
+        language: "English",
+        provider: "Anam",
+        anamVoiceId,
+      }
+    );
+  }
+
   if (studioVoiceId.startsWith(ELEVENLABS_API_VOICE_ID_PREFIX)) {
     const elevenLabsVoiceId = studioVoiceId.slice(
       ELEVENLABS_API_VOICE_ID_PREFIX.length,
@@ -157,7 +193,10 @@ export function resolveStudioVoiceSelection(
     return getStudioVoiceById(studioVoiceId, customElevenLabsVoiceId);
   }
 
-  return catalog.find((voice) => voice.id === studioVoiceId);
+  return (
+    catalog.find((voice) => voice.id === studioVoiceId) ??
+    STUDIO_VOICES.find((voice) => voice.id === studioVoiceId)
+  );
 }
 
 export function getStudioVoiceById(
@@ -167,6 +206,13 @@ export function getStudioVoiceById(
   if (voiceId === CUSTOM_ELEVENLABS_STUDIO_VOICE_ID) {
     const trimmed = customElevenLabsVoiceId?.trim();
     return trimmed ? createCustomElevenLabsVoiceOption(trimmed) : undefined;
+  }
+
+  if (
+    voiceId.startsWith(ANAM_API_VOICE_ID_PREFIX) ||
+    voiceId.startsWith(ELEVENLABS_API_VOICE_ID_PREFIX)
+  ) {
+    return resolveStudioVoiceSelection(voiceId, customElevenLabsVoiceId);
   }
 
   return STUDIO_VOICES.find((voice) => voice.id === voiceId);
@@ -204,6 +250,7 @@ export function filterStudioVoices(input: {
       voice.provider,
       voice.id,
       voice.elevenLabsVoiceId,
+      voice.anamVoiceId,
     ]
       .filter(Boolean)
       .join(" ")

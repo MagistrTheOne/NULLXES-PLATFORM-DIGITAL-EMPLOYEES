@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Loader2, Play, Search, Sparkles } from "lucide-react";
 import { listElevenLabsStudioVoices } from "@/features/employees/actions/list-elevenlabs-studio-voices";
+import { listAnamStudioVoices } from "@/features/employees/actions/list-anam-studio-voices";
 import {
   createElevenLabsVoiceFromPreview,
   designElevenLabsVoiceFromDescription,
@@ -359,6 +360,7 @@ export function VoiceStudioPicker({
   const [apiElevenLabsVoices, setApiElevenLabsVoices] = useState<
     StudioVoiceOption[]
   >([]);
+  const [apiAnamVoices, setApiAnamVoices] = useState<StudioVoiceOption[]>([]);
   const [voicesLoadError, setVoicesLoadError] = useState<string | null>(null);
   const [isLoadingVoices, setIsLoadingVoices] = useState(true);
   const [customDraftId, setCustomDraftId] = useState(customElevenLabsVoiceId);
@@ -381,19 +383,27 @@ export function VoiceStudioPicker({
   useEffect(() => {
     let cancelled = false;
 
-    void listElevenLabsStudioVoices()
-      .then((result) => {
+    void Promise.all([listAnamStudioVoices(), listElevenLabsStudioVoices()])
+      .then(([anamResult, elevenResult]) => {
         if (cancelled) {
           return;
         }
 
-        if (result.ok) {
-          setApiElevenLabsVoices(result.voices);
-          setVoicesLoadError(null);
-          return;
+        const errors: string[] = [];
+
+        if (anamResult.ok) {
+          setApiAnamVoices(anamResult.voices);
+        } else {
+          errors.push(anamResult.message);
         }
 
-        setVoicesLoadError(result.message);
+        if (elevenResult.ok) {
+          setApiElevenLabsVoices(elevenResult.voices);
+        } else {
+          errors.push(elevenResult.message);
+        }
+
+        setVoicesLoadError(errors.length > 0 ? errors.join(" · ") : null);
       })
       .finally(() => {
         if (!cancelled) {
@@ -407,8 +417,8 @@ export function VoiceStudioPicker({
   }, []);
 
   const catalogVoices = useMemo(
-    () => buildStudioVoiceCatalog(apiElevenLabsVoices),
-    [apiElevenLabsVoices],
+    () => buildStudioVoiceCatalog(apiElevenLabsVoices, apiAnamVoices),
+    [apiAnamVoices, apiElevenLabsVoices],
   );
 
   const filteredVoices = useMemo(
