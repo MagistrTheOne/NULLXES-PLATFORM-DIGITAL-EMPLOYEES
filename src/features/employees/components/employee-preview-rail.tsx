@@ -1,20 +1,14 @@
 import Link from "next/link";
-import { AudioLines, Loader2, UserRound } from "lucide-react";
+import { Loader2, UserRound } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import type { ProviderProvisioningStatus } from "@/entities/provider-config";
-import {
-  formatOrganizationDate,
-} from "@/shared/i18n/format-organization-date";
 import type { OrganizationDisplayPreferences } from "@/features/workspace/types/display-preferences";
 import type { EmployeeDetailShell } from "../types";
-import { EmployeeGrokVoiceButton } from "./employee-grok-voice-button";
 import { AvatarIdlePreview } from "./avatar-idle-preview";
 import { EmployeeLoadoutSummary } from "./employee-loadout-summary";
-import { EmployeeProviderBadge } from "./employee-provider-badge";
 import { EmployeeStatusBadge } from "./employee-status-badge";
 import type { RewardItem } from "@/features/rewards/lib/catalog";
 import type { EmployeeLoadout } from "@/features/rewards/lib/loadout";
@@ -27,41 +21,38 @@ import {
 } from "@/features/rewards/lib/cosmetic-assets";
 import Image from "next/image";
 
-function ProvisioningChip({
-  label,
-  status,
-}: {
-  label: string;
-  status: ProviderProvisioningStatus;
-}) {
-  const tone =
-    status === "ready"
-      ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-200"
-      : status === "failed"
-        ? "border-red-500/30 bg-red-500/10 text-red-200"
-        : status === "provisioning" || status === "pending"
-          ? "border-amber-500/30 bg-amber-500/10 text-amber-200"
-          : "border-white/10 bg-white/3 text-white/50";
+function resolveReadinessKey(employee: EmployeeDetailShell): {
+  key: "talkReady" | "settingUp" | "needsAttention";
+  tone: string;
+} {
+  const failed =
+    employee.avatarProvisioningStatus === "failed" ||
+    employee.sessionProvisioningStatus === "failed" ||
+    employee.brainProvisioningStatus === "failed";
 
-  return (
-    <Badge variant="outline" className={cn("rounded-md font-normal", tone)}>
-      {label}: {status}
-    </Badge>
-  );
-}
+  if (failed) {
+    return {
+      key: "needsAttention",
+      tone: "border-white/20 bg-white/5 text-white/75",
+    };
+  }
 
-function MetaRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-center justify-between gap-3 text-sm">
-      <span className="text-white/45">{label}</span>
-      <span className="text-end text-white/85">{value}</span>
-    </div>
-  );
+  if (employee.canTalk) {
+    return {
+      key: "talkReady",
+      tone: "border-white/20 bg-white/8 text-white",
+    };
+  }
+
+  return {
+    key: "settingUp",
+    tone: "border-white/12 bg-white/4 text-white/65",
+  };
 }
 
 export async function EmployeePreviewRail({
   employee,
-  displayPreferences,
+  displayPreferences: _displayPreferences,
   talkBlockers,
   authGateHref,
   sticky = true,
@@ -71,7 +62,7 @@ export async function EmployeePreviewRail({
   employee: EmployeeDetailShell;
   displayPreferences: OrganizationDisplayPreferences;
   talkBlockers: string[];
-  /** When set (e.g. `/login`), Talk / Voice / Scenario route through auth first. */
+  /** When set (e.g. `/login`), Talk / Scenario route through auth first. */
   authGateHref?: string;
   sticky?: boolean;
   loadout?: EmployeeLoadout;
@@ -79,7 +70,6 @@ export async function EmployeePreviewRail({
 }) {
   const t = await getTranslations("employees.detail");
   const tCommon = await getTranslations("common.actions");
-  const tStatus = await getTranslations("employees.status");
 
   const isProvisioning =
     employee.avatarProvisioningStatus === "pending" ||
@@ -93,6 +83,7 @@ export async function EmployeePreviewRail({
   const backgroundSrc = resolveCosmeticBackgroundSrc(loadout.backgroundId);
   const frameSrc = resolveCosmeticFrameSrc(loadout.frameId);
   const showEquipBadge = hasAnyLoadoutEquipped(loadout);
+  const readiness = resolveReadinessKey(employee);
 
   return (
     <Card
@@ -127,8 +118,8 @@ export async function EmployeePreviewRail({
             ) : (
               <UserRound className="size-8" />
             )}
-            <span className="text-xs tracking-wide uppercase">
-              {employee.avatarProvisioningStatus}
+            <span className="text-xs tracking-wide">
+              {isProvisioning ? t("readiness.settingUp") : t("readiness.portraitPending")}
             </span>
           </div>
         )}
@@ -162,38 +153,14 @@ export async function EmployeePreviewRail({
           </div>
         </div>
 
-        <EmployeeStatusBadge status={employee.status} />
-
-        <div className="space-y-2 rounded-lg border border-white/8 bg-black/20 px-3 py-3">
-          <MetaRow label={t("status")} value={tStatus(employee.status)} />
-          <MetaRow
-            label={t("created")}
-            value={formatOrganizationDate(employee.createdAt, {
-              dateFormat: displayPreferences.dateFormat,
-              locale: displayPreferences.language,
-            })}
-          />
-          <MetaRow
-            label={t("knowledgeSources")}
-            value={String(employee.knowledgeSourcesCount)}
-          />
-        </div>
-
-        <div className="flex flex-wrap gap-1.5">
-          <ProvisioningChip label={t("avatar")} status={employee.avatarProvisioningStatus} />
-          <ProvisioningChip label={t("voice")} status={employee.sessionProvisioningStatus} />
-          <ProvisioningChip label={t("brain")} status={employee.brainProvisioningStatus} />
-        </div>
-
-        <div className="flex flex-wrap gap-2">
-          <EmployeeProviderBadge kind="Avatar" provider={employee.avatarProvider} />
-          <EmployeeProviderBadge kind="Brain" provider={employee.brainProvider} />
-          {employee.sessionVoiceProvider ? (
-            <EmployeeProviderBadge
-              kind="Voice"
-              provider={employee.sessionVoiceProvider}
-            />
-          ) : null}
+        <div className="flex flex-wrap items-center gap-2">
+          <EmployeeStatusBadge status={employee.status} />
+          <Badge
+            variant="outline"
+            className={cn("rounded-md font-normal", readiness.tone)}
+          >
+            {t(`readiness.${readiness.key}`)}
+          </Badge>
         </div>
 
         <Button
@@ -208,27 +175,6 @@ export async function EmployeePreviewRail({
             <span>{tCommon("talk")}</span>
           )}
         </Button>
-        {employee.xaiVoiceAvailable ? (
-          authGateHref ? (
-            <Button
-              type="button"
-              variant="outline"
-              className="border-white/12 bg-transparent text-white hover:bg-white/5"
-              asChild
-            >
-              <Link href={authGateHref}>
-                <AudioLines className="mr-2 size-4" />
-                {tCommon("voice")}
-              </Link>
-            </Button>
-          ) : (
-            <EmployeeGrokVoiceButton
-              employeeId={employee.id}
-              employeeName={employee.name}
-              avatarPreviewUrl={employee.avatarPreviewUrl}
-            />
-          )
-        ) : null}
         <Button
           type="button"
           disabled={!canActivateTalk}

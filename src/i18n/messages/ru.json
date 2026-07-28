@@ -357,37 +357,47 @@
       }
     },
     "detail": {
-      "talkLocked": "Разговор доступен после готовности аватара и провайдеров.",
-      "provisioningFailedBanner": "Один или несколько провайдеров не удалось подготовить.",
+      "talkLocked": "Разговор откроется, когда сотрудник закончит подготовку.",
+      "provisioningFailedBanner": "Нужно внимание к настройке — разговор пока недоступен.",
       "avatarFailure": "Аватар: {reason}",
       "sessionFailure": "Сессия: {reason}",
       "brainFailure": "Интеллект: {reason}",
       "talkBlocker": {
-        "avatar_pending": "Создание аватара в очереди.",
-        "avatar_provisioning": "Аватар ещё создаётся.",
-        "avatar_failed": "Не удалось создать аватар.",
-        "avatar_not_ready": "Аватар не готов к разговору.",
-        "session_pending": "Провайдер сессии в очереди.",
-        "session_provisioning": "Провайдер сессии ещё настраивается.",
-        "session_failed": "Не удалось настроить провайдер сессии.",
-        "session_not_ready": "Провайдер сессии не готов."
+        "avatar_pending": "Портрет в очереди.",
+        "avatar_provisioning": "Портрет ещё готовится.",
+        "avatar_failed": "Не удалось подготовить портрет.",
+        "avatar_not_ready": "Портрет не готов к разговору.",
+        "session_pending": "Голосовая сессия в очереди.",
+        "session_provisioning": "Голосовая сессия ещё готовится.",
+        "session_failed": "Не удалось подготовить голосовую сессию.",
+        "session_not_ready": "Голосовая сессия не готова."
       },
       "overview": "Обзор",
+      "appearance": "Образ и голос",
+      "character": "Характер",
+      "capabilities": "Умения",
+      "work": "Работа",
       "customization": "Кастомизация",
       "avatar": "Аватар",
       "voice": "Голос",
       "brain": "Интеллект",
       "knowledge": "Знания",
       "tasks": "Задачи",
-      "lifecycle": "Жизненный цикл",
-      "character": "Персонаж",
+      "lifecycle": "История",
       "skills": "Навыки",
       "tools": "Инструменты",
+      "readiness": {
+        "label": "Готовность",
+        "talkReady": "Готов к разговору",
+        "settingUp": "Настраивается",
+        "needsAttention": "Нужно внимание",
+        "portraitPending": "Портрет готовится"
+      },
       "status": "Статус",
       "created": "Создан",
       "knowledgeSources": "Источники знаний",
       "description": "Описание",
-      "provisioning": "Развёртывание",
+      "provisioning": "Подготовка",
       "avatarId": "ID аватара",
       "personaId": "ID персоны",
       "anamKeySlot": "Слот Anam API key",
@@ -413,7 +423,8 @@
         "missionsTitle": "Недавние миссии",
         "missionsTotal": "{count} всего",
         "missionsCompleted": "{count} завершено",
-        "missionsEmpty": "Миссий пока нет."
+        "missionsEmptyTitle": "Миссий пока нет",
+        "missionsEmpty": "Назначьте первый сценарий — и сотрудник выйдет на работу."
       },
       "actions": {
         "edit": "Изменить",
@@ -875,15 +886,15 @@
       }
     },
     "lifecycle": {
-      "empty": "События жизненного цикла пока не записаны.",
-      "title": "События жизненного цикла",
+      "empty": "История сотрудника пока пуста.",
+      "title": "История",
       "events": {
-        "created": "создан",
-        "activated": "активирован",
-        "paused": "приостановлен",
-        "archived": "в архиве",
-        "runtime_updated": "обновлён runtime",
-        "knowledge_updated": "обновлены знания"
+        "created": "Вышел на работу",
+        "activated": "Активирован",
+        "paused": "Приостановлен",
+        "archived": "В архиве",
+        "runtime_updated": "Профиль обновлён",
+        "knowledge_updated": "Знания обновлены"
       }
     },
     "studio": {

@@ -56,6 +56,19 @@ function TabPanelSkeleton() {
   );
 }
 
+function readinessLabel(
+  status: EmployeeDetailShell["avatarProvisioningStatus"],
+  t: Awaited<ReturnType<typeof getTranslations>>,
+): string {
+  if (status === "ready") {
+    return t("readiness.talkReady");
+  }
+  if (status === "failed") {
+    return t("readiness.needsAttention");
+  }
+  return t("readiness.settingUp");
+}
+
 export async function EmployeeDetailScreen({
   employee,
   organizationId,
@@ -196,20 +209,11 @@ export async function EmployeeDetailScreen({
             </Suspense>
           </TabsContent>
 
-          <TabsContent value="customization" className="mt-0">
-            <EmployeeCustomizationPanel
-              employeeId={employee.id}
-              employeeName={employee.name}
-              rewards={customizationRewards}
-              initialLoadout={customizationLoadout}
-            />
-          </TabsContent>
-
-          <TabsContent value="avatar" className="mt-4">
+          <TabsContent value="appearance" className="mt-4 space-y-4">
             <SectionCard title={t("avatar")}>
               <DetailRow
-                label={t("provisioning")}
-                value={employee.avatarProvisioningStatus}
+                label={t("readiness.label")}
+                value={readinessLabel(employee.avatarProvisioningStatus, t)}
               />
               {isPlatformAdmin ? (
                 <>
@@ -230,13 +234,10 @@ export async function EmployeeDetailScreen({
                 </>
               ) : null}
             </SectionCard>
-          </TabsContent>
-
-          <TabsContent value="voice" className="mt-4">
             <SectionCard title={t("voice")}>
               <DetailRow
-                label={t("provisioning")}
-                value={employee.sessionProvisioningStatus}
+                label={t("readiness.label")}
+                value={readinessLabel(employee.sessionProvisioningStatus, t)}
               />
               {isPlatformAdmin ? (
                 <>
@@ -261,16 +262,31 @@ export async function EmployeeDetailScreen({
             </SectionCard>
           </TabsContent>
 
-          <TabsContent value="brain" className="mt-4">
+          <TabsContent value="character" className="mt-4 space-y-4">
+            <Suspense fallback={<TabPanelSkeleton />}>
+              <EmployeeBlueprintTabs
+                organizationId={organizationId}
+                employeeId={employee.id}
+                tab="character"
+              />
+            </Suspense>
+            <EmployeeCustomizationPanel
+              employeeId={employee.id}
+              employeeName={employee.name}
+              rewards={customizationRewards}
+              initialLoadout={customizationLoadout}
+            />
             <SectionCard title={t("brain")}>
               <DetailRow
-                label={t("provisioning")}
-                value={employee.brainProvisioningStatus}
+                label={t("readiness.label")}
+                value={readinessLabel(employee.brainProvisioningStatus, t)}
               />
-              <DetailRow
-                label={t("model")}
-                value={employee.brainModel ?? empty}
-              />
+              {isPlatformAdmin ? (
+                <DetailRow
+                  label={t("model")}
+                  value={employee.brainModel ?? empty}
+                />
+              ) : null}
               <DetailRow
                 label={t("systemPrompt")}
                 value={
@@ -282,7 +298,21 @@ export async function EmployeeDetailScreen({
             </SectionCard>
           </TabsContent>
 
-          <TabsContent value="knowledge" className="mt-4">
+          <TabsContent value="capabilities" className="mt-4 space-y-4">
+            <Suspense fallback={<TabPanelSkeleton />}>
+              <EmployeeBlueprintTabs
+                organizationId={organizationId}
+                employeeId={employee.id}
+                tab="skills"
+              />
+            </Suspense>
+            <Suspense fallback={<TabPanelSkeleton />}>
+              <EmployeeBlueprintTabs
+                organizationId={organizationId}
+                employeeId={employee.id}
+                tab="tools"
+              />
+            </Suspense>
             <Suspense fallback={<TabPanelSkeleton />}>
               <EmployeeDetailKnowledgeTab
                 organizationId={organizationId}
@@ -292,7 +322,7 @@ export async function EmployeeDetailScreen({
             </Suspense>
           </TabsContent>
 
-          <TabsContent value="tasks" className="mt-4">
+          <TabsContent value="work" className="mt-4 space-y-4">
             <Suspense fallback={<TabPanelSkeleton />}>
               <EmployeeDetailTasksTab
                 organizationId={organizationId}
@@ -300,44 +330,11 @@ export async function EmployeeDetailScreen({
                 displayPreferences={displayPreferences}
               />
             </Suspense>
-          </TabsContent>
-
-          <TabsContent value="lifecycle" className="mt-4">
             <Suspense fallback={<TabPanelSkeleton />}>
               <EmployeeDetailLifecycleTab
                 organizationId={organizationId}
                 employeeId={employee.id}
                 displayPreferences={displayPreferences}
-              />
-            </Suspense>
-          </TabsContent>
-
-          <TabsContent value="character" className="mt-4">
-            <Suspense fallback={<TabPanelSkeleton />}>
-              <EmployeeBlueprintTabs
-                organizationId={organizationId}
-                employeeId={employee.id}
-                tab="character"
-              />
-            </Suspense>
-          </TabsContent>
-
-          <TabsContent value="skills" className="mt-4">
-            <Suspense fallback={<TabPanelSkeleton />}>
-              <EmployeeBlueprintTabs
-                organizationId={organizationId}
-                employeeId={employee.id}
-                tab="skills"
-              />
-            </Suspense>
-          </TabsContent>
-
-          <TabsContent value="tools" className="mt-4">
-            <Suspense fallback={<TabPanelSkeleton />}>
-              <EmployeeBlueprintTabs
-                organizationId={organizationId}
-                employeeId={employee.id}
-                tab="tools"
               />
             </Suspense>
           </TabsContent>

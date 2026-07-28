@@ -357,37 +357,47 @@
       }
     },
     "detail": {
-      "talkLocked": "Talk unlocks when avatar and session providers are ready.",
-      "provisioningFailedBanner": "One or more providers failed to provision.",
+      "talkLocked": "Talk unlocks when this employee finishes setup.",
+      "provisioningFailedBanner": "Setup needs attention before Talk is available.",
       "avatarFailure": "Avatar: {reason}",
       "sessionFailure": "Session: {reason}",
-      "brainFailure": "Brain: {reason}",
+      "brainFailure": "Intelligence: {reason}",
       "talkBlocker": {
-        "avatar_pending": "Avatar provisioning is queued.",
-        "avatar_provisioning": "Avatar is still provisioning.",
-        "avatar_failed": "Avatar provisioning failed.",
-        "avatar_not_ready": "Avatar is not ready for Talk.",
-        "session_pending": "Session provider is queued.",
-        "session_provisioning": "Session provider is still provisioning.",
-        "session_failed": "Session provider provisioning failed.",
-        "session_not_ready": "Session provider is not ready."
+        "avatar_pending": "Portrait is queued.",
+        "avatar_provisioning": "Portrait is still being prepared.",
+        "avatar_failed": "Portrait setup failed.",
+        "avatar_not_ready": "Portrait is not ready for Talk.",
+        "session_pending": "Voice session is queued.",
+        "session_provisioning": "Voice session is still being prepared.",
+        "session_failed": "Voice session setup failed.",
+        "session_not_ready": "Voice session is not ready."
       },
       "overview": "Overview",
+      "appearance": "Look & voice",
+      "character": "Character",
+      "capabilities": "Capabilities",
+      "work": "Work",
       "customization": "Customization",
       "avatar": "Avatar",
       "voice": "Voice",
-      "brain": "Brain",
+      "brain": "Intelligence",
       "knowledge": "Knowledge",
       "tasks": "Tasks",
-      "lifecycle": "Lifecycle",
-      "character": "Character",
+      "lifecycle": "History",
       "skills": "Skills",
       "tools": "Tools",
+      "readiness": {
+        "label": "Readiness",
+        "talkReady": "Talk ready",
+        "settingUp": "Setting up",
+        "needsAttention": "Needs attention",
+        "portraitPending": "Portrait pending"
+      },
       "status": "Status",
       "created": "Created",
       "knowledgeSources": "Knowledge sources",
       "description": "Description",
-      "provisioning": "Provisioning",
+      "provisioning": "Setup",
       "avatarId": "Avatar ID",
       "personaId": "Persona ID",
       "anamKeySlot": "Anam API key slot",
@@ -413,7 +423,8 @@
         "missionsTitle": "Recent missions",
         "missionsTotal": "{count} total",
         "missionsCompleted": "{count} completed",
-        "missionsEmpty": "No missions yet."
+        "missionsEmptyTitle": "No missions yet",
+        "missionsEmpty": "Assign the first scenario to put this employee to work."
       },
       "actions": {
         "edit": "Edit",
@@ -875,15 +886,15 @@
       }
     },
     "lifecycle": {
-      "empty": "No lifecycle events recorded yet.",
-      "title": "Lifecycle events",
+      "empty": "История сотрудника пока пуста.",
+      "title": "History",
       "events": {
-        "created": "created",
-        "activated": "activated",
-        "paused": "paused",
-        "archived": "archived",
-        "runtime_updated": "runtime updated",
-        "knowledge_updated": "knowledge updated"
+        "created": "Joined the workforce",
+        "activated": "Started work",
+        "paused": "Paused",
+        "archived": "Archived",
+        "runtime_updated": "Profile updated",
+        "knowledge_updated": "Knowledge updated"
       }
     },
     "studio": {
