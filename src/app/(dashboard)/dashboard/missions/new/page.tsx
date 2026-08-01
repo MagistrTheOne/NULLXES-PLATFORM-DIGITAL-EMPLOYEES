@@ -1,15 +1,17 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { Button } from "@/components/ui/button";
 import { ensureWorkspace } from "@/features/auth/services/ensure-workspace";
 import { requireAuth } from "@/features/auth/services/require-auth";
 import { listOrganizationEmployees } from "@/features/employees";
-import { CreateMissionForm } from "@/features/missions/components/create-mission-form";
+import { CreateMissionWizard } from "@/features/missions/components/create-mission-wizard";
 import { listOrganizationSkills } from "@/features/agent-blueprint/queries/list-organization-skills";
 
 export default async function NewMissionPage() {
   const session = await requireAuth();
   const workspace = await ensureWorkspace(session.user.id, session.user.name);
+  const t = await getTranslations("missions.wizard");
 
   if (!workspace.permissions.canOperateEmployees) {
     redirect("/dashboard/missions");
@@ -28,12 +30,10 @@ export default async function NewMissionPage() {
           variant="ghost"
           className="w-fit px-0 text-white/60 hover:bg-transparent hover:text-white"
         >
-          <Link href="/dashboard/missions">Back to missions</Link>
+          <Link href="/dashboard/missions">{t("back")}</Link>
         </Button>
         <div className="rounded-2xl border border-white/8 bg-[#111111] p-6">
-          <p className="text-sm text-white/70">
-            Create a digital employee before assigning a mission.
-          </p>
+          <p className="text-sm text-white/70">{t("needEmployee")}</p>
         </div>
       </div>
     );
@@ -46,18 +46,15 @@ export default async function NewMissionPage() {
         variant="ghost"
         className="w-fit px-0 text-white/60 hover:bg-transparent hover:text-white"
       >
-        <Link href="/dashboard/missions">Back to missions</Link>
+        <Link href="/dashboard/missions">{t("back")}</Link>
       </Button>
       <div>
         <h1 className="text-2xl font-medium tracking-tight text-white">
-          Assign mission
+          {t("pageTitle")}
         </h1>
-        <p className="mt-2 text-sm text-white/60">
-          Give a digital employee a concrete mission with evidence and approval
-          before outbound actions.
-        </p>
+        <p className="mt-2 text-sm text-white/60">{t("pageSubtitle")}</p>
       </div>
-      <CreateMissionForm
+      <CreateMissionWizard
         employees={employeesPage.items.map((employee) => ({
           id: employee.id,
           name: employee.name,

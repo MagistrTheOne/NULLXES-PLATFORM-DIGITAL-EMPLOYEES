@@ -305,14 +305,21 @@ function CreateMissionFormInitialValues(
 export function CreateMissionForm({
   employees,
   skillLibrary,
+  initialValues,
+  submitLabel = "Assign mission",
+  submittingLabel = "Assigning...",
 }: {
   employees: EmployeeOption[];
   skillLibrary: MissionSkillOption[];
+  initialValues?: Partial<MissionFormValues>;
+  submitLabel?: string;
+  submittingLabel?: string;
 }) {
   const router = useRouter();
-  const [values, setValues] = useState<MissionFormValues>(() =>
-    CreateMissionFormInitialValues(employees, skillLibrary),
-  );
+  const [values, setValues] = useState<MissionFormValues>(() => ({
+    ...CreateMissionFormInitialValues(employees, skillLibrary),
+    ...initialValues,
+  }));
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -362,7 +369,7 @@ export function CreateMissionForm({
           disabled={isSubmitting || !values.employeeId || !values.brief.trim()}
           className="bg-white text-black hover:bg-white/90"
         >
-          {isSubmitting ? "Assigning..." : "Assign mission"}
+          {isSubmitting ? submittingLabel : submitLabel}
         </Button>
       </div>
     </form>

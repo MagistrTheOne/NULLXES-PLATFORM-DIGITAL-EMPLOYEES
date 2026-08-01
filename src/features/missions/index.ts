@@ -1,4 +1,5 @@
 export { createMissionAction } from "./actions/create-mission";
+export { composeMissionAction } from "./actions/compose-mission";
 export { MissionsScreen } from "./components/missions-screen";
 export { MissionDetailScreen } from "./components/mission-detail-screen";
 export { getMissionDetail } from "./queries/get-mission-detail";
