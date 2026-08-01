@@ -62,11 +62,11 @@ export function EmployeeToolsTab({
   const enabledCount = rows.filter((item) => item.tool.isEnabled).length;
 
   return (
-    <div className="space-y-4 text-white">
-      <div className="flex flex-wrap items-end justify-between gap-3">
+    <div className="space-y-3 text-white">
+      <div className="sticky top-0 z-10 flex flex-wrap items-end justify-between gap-3 bg-[#0a0a0a]/95 pb-1 backdrop-blur-sm">
         <div>
           <h3 className="text-sm font-medium text-white/85">{t("title")}</h3>
-          <p className="mt-1 max-w-2xl text-sm text-white/45">{t("hint")}</p>
+          <p className="mt-1 text-sm text-white/45">{t("hint")}</p>
         </div>
         <p className="tabular-nums text-sm text-white/50">
           {t("enabledCount", { count: enabledCount })}
@@ -74,58 +74,59 @@ export function EmployeeToolsTab({
       </div>
 
       {rows.length === 0 ? (
-        <p className="rounded-xl border border-dashed border-white/15 bg-[#111111] px-5 py-8 text-center text-sm text-white/50">
+        <p className="rounded-xl border border-dashed border-white/15 bg-[#111111] px-4 py-6 text-center text-sm text-white/50">
           {t("empty")}
         </p>
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-          {rows.map(({ tool, title, blurb }) => (
-            <article
+        <div className="max-h-[min(28rem,55vh)] overflow-y-auto rounded-xl border border-white/10 bg-[#111111]">
+          {rows.map(({ tool, title, blurb }, index) => (
+            <div
               key={tool.toolDefinitionId}
               className={cn(
-                "flex min-h-37 flex-col rounded-xl border border-white/10 bg-[#111111] p-4 transition-opacity",
+                "flex items-center gap-3 px-4 py-3 transition-opacity",
+                index > 0 && "border-t border-white/8",
                 !tool.isEnabled && "opacity-55",
               )}
             >
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
                   <p className="font-medium leading-snug">{title}</p>
                   {isPlatformAdmin ? (
-                    <p className="mt-1 font-mono text-[10px] text-white/35">
+                    <p className="font-mono text-[10px] text-white/30">
                       {tool.slug}
                     </p>
                   ) : null}
                   {tool.requiresApproval ? (
-                    <p className="mt-2 text-xs text-white/45">
+                    <p className="text-xs text-white/40">
                       {t("requiresApproval")}
                     </p>
                   ) : null}
                 </div>
-                <Switch
-                  disabled={!canManage || pending}
-                  checked={tool.isEnabled}
-                  aria-label={title}
-                  onCheckedChange={(checked) =>
-                    startTransition(async () => {
-                      setOptimistic({
-                        toolDefinitionId: tool.toolDefinitionId,
-                        isEnabled: checked,
-                      });
-                      await syncEmployeeToolAction({
-                        employeeId,
-                        toolDefinitionId: tool.toolDefinitionId,
-                        isEnabled: checked,
-                      });
-                    })
-                  }
-                />
+                {blurb ? (
+                  <p className="mt-0.5 line-clamp-1 text-sm text-white/45">
+                    {blurb}
+                  </p>
+                ) : null}
               </div>
-              {blurb ? (
-                <p className="mt-3 text-sm leading-relaxed text-white/50">
-                  {blurb}
-                </p>
-              ) : null}
-            </article>
+              <Switch
+                disabled={!canManage || pending}
+                checked={tool.isEnabled}
+                aria-label={title}
+                onCheckedChange={(checked) =>
+                  startTransition(async () => {
+                    setOptimistic({
+                      toolDefinitionId: tool.toolDefinitionId,
+                      isEnabled: checked,
+                    });
+                    await syncEmployeeToolAction({
+                      employeeId,
+                      toolDefinitionId: tool.toolDefinitionId,
+                      isEnabled: checked,
+                    });
+                  })
+                }
+              />
+            </div>
           ))}
         </div>
       )}

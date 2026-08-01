@@ -114,100 +114,103 @@ export function EmployeeSkillsTab({
   const enabledCount = rows.filter((item) => item.enabled).length;
 
   return (
-    <div className="space-y-4 text-white">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h3 className="text-sm font-medium text-white/85">{t("title")}</h3>
-          <p className="mt-1 max-w-2xl text-sm text-white/45">{t("hint")}</p>
+    <div className="space-y-3 text-white">
+      <div className="sticky top-0 z-10 space-y-3 bg-[#0a0a0a]/95 pb-1 backdrop-blur-sm">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h3 className="text-sm font-medium text-white/85">{t("title")}</h3>
+            <p className="mt-1 text-sm text-white/45">{t("hint")}</p>
+          </div>
+          <p className="tabular-nums text-sm text-white/50">
+            {t("enabledCount", { count: enabledCount })}
+          </p>
         </div>
-        <p className="tabular-nums text-sm text-white/50">
-          {t("enabledCount", { count: enabledCount })}
-        </p>
-      </div>
 
-      <div className="flex flex-wrap gap-1">
-        {(
-          [
-            ["all", t("filterAll")],
-            ["on", t("filterOn")],
-            ["off", t("filterOff")],
-          ] as const
-        ).map(([id, label]) => (
-          <button
-            key={id}
-            type="button"
-            onClick={() => setFilter(id)}
-            className={cn(
-              "rounded-md px-3 py-1.5 text-sm transition-colors",
-              filter === id
-                ? "bg-white/10 text-white"
-                : "text-white/50 hover:bg-white/5 hover:text-white/80",
-            )}
-          >
-            {label}
-          </button>
-        ))}
+        <div className="flex flex-wrap gap-1">
+          {(
+            [
+              ["all", t("filterAll")],
+              ["on", t("filterOn")],
+              ["off", t("filterOff")],
+            ] as const
+          ).map(([id, label]) => (
+            <button
+              key={id}
+              type="button"
+              onClick={() => setFilter(id)}
+              className={cn(
+                "rounded-md px-3 py-1.5 text-sm transition-colors",
+                filter === id
+                  ? "bg-white/10 text-white"
+                  : "text-white/50 hover:bg-white/5 hover:text-white/80",
+              )}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {visible.length === 0 ? (
-        <p className="rounded-xl border border-dashed border-white/15 bg-[#111111] px-5 py-8 text-center text-sm text-white/50">
+        <p className="rounded-xl border border-dashed border-white/15 bg-[#111111] px-4 py-6 text-center text-sm text-white/50">
           {rows.length === 0 ? t("emptyLibrary") : t("emptyFilter")}
         </p>
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-          {visible.map(({ row, title, blurb, enabled, toolLabels }) => (
-            <article
+        <div className="max-h-[min(28rem,55vh)] overflow-y-auto rounded-xl border border-white/10 bg-[#111111]">
+          {visible.map(({ row, title, blurb, enabled, toolLabels }, index) => (
+            <div
               key={row.id}
               className={cn(
-                "flex min-h-37 flex-col rounded-xl border border-white/10 bg-[#111111] p-4 transition-opacity",
+                "flex items-center gap-3 px-4 py-3 transition-opacity",
+                index > 0 && "border-t border-white/8",
                 !enabled && "opacity-55",
               )}
             >
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
                   <p className="font-medium leading-snug">{title}</p>
                   {isPlatformAdmin ? (
-                    <p className="mt-1 font-mono text-[10px] text-white/35">
+                    <p className="font-mono text-[10px] text-white/30">
                       {row.slug}
                     </p>
                   ) : null}
                 </div>
-                <Switch
-                  disabled={!canManage || pending}
-                  checked={enabled}
-                  aria-label={title}
-                  onCheckedChange={(checked) =>
-                    startTransition(async () => {
-                      setOptimisticAssignments({
-                        skillId: row.id,
-                        enabled: checked,
-                      });
-                      if (checked) {
-                        await assignEmployeeSkillsAction({
-                          employeeId,
-                          skillIds: [row.id],
-                        });
-                        return;
-                      }
-                      await removeEmployeeSkillAction({
-                        employeeId,
-                        skillId: row.id,
-                      });
-                    })
-                  }
-                />
+                {blurb ? (
+                  <p className="mt-0.5 line-clamp-1 text-sm text-white/45">
+                    {blurb}
+                  </p>
+                ) : null}
+                {toolLabels.length > 0 ? (
+                  <p className="mt-0.5 text-xs text-white/30">
+                    {t("usesTools", { tools: toolLabels.join(" · ") })}
+                  </p>
+                ) : null}
               </div>
-              {blurb ? (
-                <p className="mt-3 text-sm leading-relaxed text-white/50">
-                  {blurb}
-                </p>
-              ) : null}
-              {toolLabels.length > 0 ? (
-                <p className="mt-auto pt-3 text-xs text-white/35">
-                  {t("usesTools", { tools: toolLabels.join(" · ") })}
-                </p>
-              ) : null}
-            </article>
+              <Switch
+                disabled={!canManage || pending}
+                checked={enabled}
+                aria-label={title}
+                onCheckedChange={(checked) =>
+                  startTransition(async () => {
+                    setOptimisticAssignments({
+                      skillId: row.id,
+                      enabled: checked,
+                    });
+                    if (checked) {
+                      await assignEmployeeSkillsAction({
+                        employeeId,
+                        skillIds: [row.id],
+                      });
+                      return;
+                    }
+                    await removeEmployeeSkillAction({
+                      employeeId,
+                      skillId: row.id,
+                    });
+                  })
+                }
+              />
+            </div>
           ))}
         </div>
       )}

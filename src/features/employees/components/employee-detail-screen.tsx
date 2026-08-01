@@ -16,6 +16,7 @@ import { EmployeeDetailKnowledgeTab } from "./employee-detail-knowledge-tab";
 import { EmployeeDetailLifecycleTab } from "./employee-detail-lifecycle-tab";
 import { EmployeeDetailTasksTab } from "./employee-detail-tasks-tab";
 import { EmployeeBlueprintTabs } from "@/features/agent-blueprint/components/employee-blueprint-tabs";
+import { EmployeeCapabilitiesPanel } from "./employee-capabilities-panel";
 import { EmployeeCustomizationPanel } from "./employee-customization-panel";
 import { EmployeeDetailActions } from "./employee-detail-actions";
 import { EmployeeOverviewTab } from "./employee-overview-tab";
@@ -262,17 +263,6 @@ export async function EmployeeDetailScreen({
                 </EmployeeSystemInternals>
               ) : null}
             </SectionCard>
-          </TabsContent>
-
-          <TabsContent value="character" className="mt-4 space-y-4">
-            <Suspense fallback={<TabPanelSkeleton />}>
-              <EmployeeBlueprintTabs
-                organizationId={organizationId}
-                employeeId={employee.id}
-                tab="character"
-                isPlatformAdmin={isPlatformAdmin}
-              />
-            </Suspense>
             <EmployeeCustomizationPanel
               employeeId={employee.id}
               employeeName={employee.name}
@@ -303,31 +293,50 @@ export async function EmployeeDetailScreen({
             </SectionCard>
           </TabsContent>
 
-          <TabsContent value="capabilities" className="mt-4 space-y-4">
+          <TabsContent value="character" className="mt-4 space-y-4">
             <Suspense fallback={<TabPanelSkeleton />}>
               <EmployeeBlueprintTabs
                 organizationId={organizationId}
                 employeeId={employee.id}
-                tab="skills"
+                tab="character"
                 isPlatformAdmin={isPlatformAdmin}
               />
             </Suspense>
-            <Suspense fallback={<TabPanelSkeleton />}>
-              <EmployeeBlueprintTabs
-                organizationId={organizationId}
-                employeeId={employee.id}
-                tab="tools"
-                isPlatformAdmin={isPlatformAdmin}
-              />
-            </Suspense>
-            <Suspense fallback={<TabPanelSkeleton />}>
-              <EmployeeDetailKnowledgeTab
-                organizationId={organizationId}
-                employeeId={employee.id}
-                displayPreferences={displayPreferences}
-                isPlatformAdmin={isPlatformAdmin}
-              />
-            </Suspense>
+          </TabsContent>
+
+          <TabsContent value="capabilities" className="mt-4">
+            <EmployeeCapabilitiesPanel
+              skills={
+                <Suspense fallback={<TabPanelSkeleton />}>
+                  <EmployeeBlueprintTabs
+                    organizationId={organizationId}
+                    employeeId={employee.id}
+                    tab="skills"
+                    isPlatformAdmin={isPlatformAdmin}
+                  />
+                </Suspense>
+              }
+              tools={
+                <Suspense fallback={<TabPanelSkeleton />}>
+                  <EmployeeBlueprintTabs
+                    organizationId={organizationId}
+                    employeeId={employee.id}
+                    tab="tools"
+                    isPlatformAdmin={isPlatformAdmin}
+                  />
+                </Suspense>
+              }
+              knowledge={
+                <Suspense fallback={<TabPanelSkeleton />}>
+                  <EmployeeDetailKnowledgeTab
+                    organizationId={organizationId}
+                    employeeId={employee.id}
+                    displayPreferences={displayPreferences}
+                    isPlatformAdmin={isPlatformAdmin}
+                  />
+                </Suspense>
+              }
+            />
           </TabsContent>
 
           <TabsContent value="work" className="mt-4 space-y-4">
