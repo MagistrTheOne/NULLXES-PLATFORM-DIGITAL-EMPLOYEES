@@ -45,15 +45,22 @@ export function SettingsSkillsTab({ skills, canManage }: Props) {
               key={skill.id}
               className="flex flex-col gap-2 py-4 sm:flex-row sm:items-start sm:justify-between"
             >
-              <div>
+              <div className="min-w-0">
                 <p className="font-medium text-foreground">{skill.name}</p>
-                <p className="text-sm text-muted-foreground">
-                  {skill.slug} · {skill.category}
-                  {skill.isSystemTemplate ? ` · ${t("systemTemplate")}` : ""}
-                </p>
-                <p className="mt-2 whitespace-pre-wrap text-sm text-muted-foreground">
-                  {skill.instructions}
-                </p>
+                {skill.isSystemTemplate ? (
+                  <p className="text-sm text-muted-foreground">
+                    {t("systemTemplate")}
+                  </p>
+                ) : null}
+                {skill.description ? (
+                  <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
+                    {skill.description}
+                  </p>
+                ) : (
+                  <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
+                    {skill.instructions}
+                  </p>
+                )}
               </div>
               {canManage && !skill.isSystemTemplate ? (
                 <Button

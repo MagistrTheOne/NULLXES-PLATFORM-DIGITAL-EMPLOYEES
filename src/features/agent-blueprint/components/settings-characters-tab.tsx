@@ -64,12 +64,13 @@ export function SettingsCharactersTab({ presets, canManage }: Props) {
             >
               <div>
                 <p className="font-medium text-foreground">{preset.name}</p>
-                <p className="text-sm text-muted-foreground">
-                  {preset.slug}
-                  {preset.isSystemTemplate ? ` · ${t("systemTemplate")}` : ""}
-                </p>
+                {preset.isSystemTemplate ? (
+                  <p className="text-sm text-muted-foreground">
+                    {t("systemTemplate")}
+                  </p>
+                ) : null}
                 {preset.description ? (
-                  <p className="mt-1 text-sm text-muted-foreground">
+                  <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
                     {preset.description}
                   </p>
                 ) : null}

@@ -1989,39 +1989,79 @@
       "create": "Create skill"
     },
     "tools": {
-      "title": "Tool catalog",
-      "description": "Built-in tools available to digital employees.",
-      "requiresApproval": "Requires approval"
+      "title": "Employee tools",
+      "description": "Capabilities employees use in conversations and tasks.",
+      "requiresApproval": "Needs approval",
+      "groupRead": "Information",
+      "groupWrite": "Actions",
+      "groupApproval": "Human approval required"
     },
     "employeeCharacter": {
-      "preset": "Character preset",
-      "presetPlaceholder": "Select a preset",
-      "presetHint": "Choose a personality template for this employee.",
-      "noPresets": "No character presets in your workspace yet.",
-      "systemTemplate": "System",
-      "traitsTitle": "Trait profile",
-      "traitsHint": "Effective values after employee overrides.",
+      "preset": "Behavior style",
+      "presetPlaceholder": "Select a style",
+      "presetHint": "How this employee runs a conversation: tone, pace, and stance.",
+      "noPresets": "No behavior styles yet.",
+      "systemTemplate": "NULLXES template",
+      "traitsTitle": "Communication profile",
+      "traitsHint": "How this employee sounds to clients and the team.",
       "traits": {
-        "formality": "Formality",
+        "formality": "Tone",
         "empathy": "Empathy",
-        "assertiveness": "Assertiveness",
-        "verbosity": "Verbosity"
+        "assertiveness": "Drive",
+        "verbosity": "Brevity"
       },
-      "principlesTitle": "Operating principles",
-      "opening": "Opening behavior",
-      "closing": "Closing behavior",
-      "catchphrases": "Signature phrases",
+      "traitPoles": {
+        "formalityLow": "Casual",
+        "formalityHigh": "Formal",
+        "empathyLow": "Reserved",
+        "empathyHigh": "Attentive",
+        "assertivenessLow": "Soft",
+        "assertivenessHigh": "Assertive",
+        "verbosityLow": "Brief",
+        "verbosityHigh": "Detailed"
+      },
+      "principlesTitle": "How they converse",
+      "opening": "How they open",
+      "closing": "How they close",
+      "catchphrases": "Signature lines",
       "boundaries": "Boundaries",
       "languagePolicy": "Language policy",
-      "compiledPrompt": "Compiled character prompt",
-      "empty": "No character configured yet.",
-      "refresh": "Recompile"
+      "compiledPrompt": "Internal prompt",
+      "empty": "No behavior style selected yet.",
+      "refresh": "Recompile",
+      "catalog": {
+        "enterprise_closer": {
+          "title": "Deal closer",
+          "blurb": "Confident B2B tone: value, next step, no empty promises."
+        },
+        "support_empath": {
+          "title": "Calm support",
+          "blurb": "Lowers tension, clarifies the issue, and walks to a fix."
+        },
+        "legal_cautious": {
+          "title": "Cautious legal",
+          "blurb": "Facts vs opinion, risks visible, no unauthorized commitments."
+        },
+        "executive_brief": {
+          "title": "Executive brief",
+          "blurb": "Headline first, detail on request. Protects leader time."
+        },
+        "analyst_structured": {
+          "title": "Structured analyst",
+          "blurb": "Context → finding → recommendation. No invented metrics."
+        }
+      }
     },
     "employeeSkills": {
       "title": "Skills",
       "hint": "Enable this employee’s capabilities like roles on a team. Cards stay put — on/off only.",
       "enabledCount": "On: {count}",
       "emptyLibrary": "Skill catalog is empty.",
+      "filterAll": "All",
+      "filterOn": "On",
+      "filterOff": "Off",
+      "emptyFilter": "No skills in this filter.",
+      "usesTools": "Uses: {tools}",
       "assigned": "Assigned skills",
       "assignedHint": "Skills active in missions and Talk runtime.",
       "library": "Available skills",
@@ -2081,11 +2121,69 @@
       }
     },
     "employeeTools": {
-      "requiresApproval": "Requires approval",
+      "title": "Tools",
+      "hint": "What this employee can do in talk and tasks. On/off in place.",
+      "enabledCount": "On: {count}",
+      "empty": "No tools connected yet.",
+      "requiresApproval": "Needs human approval",
       "risk": {
-        "read": "Read",
-        "write": "Write",
-        "destructive": "Destructive"
+        "read": "Information",
+        "write": "Action",
+        "destructive": "Critical"
+      },
+      "catalog": {
+        "search_knowledge": {
+          "title": "Company knowledge",
+          "blurb": "Answers from your documents and internal rules."
+        },
+        "search_web": {
+          "title": "Web search",
+          "blurb": "Checks live facts, news, and public data."
+        },
+        "generate_image": {
+          "title": "Image generation",
+          "blurb": "Creates visuals for decks and scenarios."
+        },
+        "analyze_image": {
+          "title": "Image analysis",
+          "blurb": "Reads and explains screenshots or pictures."
+        },
+        "create_follow_up_task": {
+          "title": "Create task",
+          "blurb": "Queues a follow-up for later — with approval."
+        },
+        "list_missions": {
+          "title": "List processes",
+          "blurb": "Shows active processes and their status."
+        },
+        "list_tasks": {
+          "title": "List tasks",
+          "blurb": "Shows the employee’s task queue."
+        },
+        "cancel_mission": {
+          "title": "Stop process",
+          "blurb": "Stops a process — only after approval."
+        },
+        "restart_mission": {
+          "title": "Restart process",
+          "blurb": "Restarts a process — only after approval."
+        },
+        "list_workforce_peers": {
+          "title": "Workforce peers",
+          "blurb": "Shows who can take a handoff."
+        },
+        "request_handoff": {
+          "title": "Task handoff",
+          "blurb": "Routes work to a peer with context — with approval."
+        },
+        "draft_email": {
+          "title": "Email draft",
+          "blurb": "Prepares email for review; does not send alone."
+        },
+        "create_and_assign_skill": {
+          "title": "New skill",
+          "blurb": "Proposes a new skill — only after approval."
+        }
       }
     }
   },

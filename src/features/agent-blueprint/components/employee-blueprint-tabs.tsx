@@ -34,25 +34,22 @@ export async function EmployeeBlueprintTabs({
     isPlatformAdmin = isPlatformAdminEmail(session?.user.email);
   }
 
-  const [presets, library, assignments, toolRows, character] = await Promise.all([
-    listOrganizationCharacterPresets(organizationId),
-    listOrganizationSkills(organizationId),
-    listEmployeeSkillAssignments({ organizationId, employeeId }),
-    listEmployeeToolAssignments({ organizationId, employeeId }),
-    db
-      .select()
-      .from(employeeCharacter)
-      .where(
-        and(
-          eq(employeeCharacter.organizationId, organizationId),
-          eq(employeeCharacter.employeeId, employeeId),
-        ),
-      )
-      .limit(1)
-      .then((rows) => rows[0] ?? null),
-  ]);
-
   if (tab === "character") {
+    const [presets, character] = await Promise.all([
+      listOrganizationCharacterPresets(organizationId),
+      db
+        .select()
+        .from(employeeCharacter)
+        .where(
+          and(
+            eq(employeeCharacter.organizationId, organizationId),
+            eq(employeeCharacter.employeeId, employeeId),
+          ),
+        )
+        .limit(1)
+        .then((rows) => rows[0] ?? null),
+    ]);
+
     return (
       <EmployeeCharacterTab
         organizationId={organizationId}
@@ -66,6 +63,11 @@ export async function EmployeeBlueprintTabs({
   }
 
   if (tab === "skills") {
+    const [library, assignments] = await Promise.all([
+      listOrganizationSkills(organizationId),
+      listEmployeeSkillAssignments({ organizationId, employeeId }),
+    ]);
+
     return (
       <EmployeeSkillsTab
         employeeId={employeeId}
@@ -83,6 +85,11 @@ export async function EmployeeBlueprintTabs({
       />
     );
   }
+
+  const toolRows = await listEmployeeToolAssignments({
+    organizationId,
+    employeeId,
+  });
 
   return (
     <EmployeeToolsTab

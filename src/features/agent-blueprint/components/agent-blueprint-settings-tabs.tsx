@@ -14,17 +14,14 @@ export async function AgentBlueprintSettingsTabs({
   canManage: boolean;
   tab: "characters" | "skills" | "tools";
 }) {
-  const [presets, skills, tools] = await Promise.all([
-    listOrganizationCharacterPresets(organizationId),
-    listOrganizationSkills(organizationId),
-    listOrganizationTools(organizationId),
-  ]);
-
   if (tab === "characters") {
+    const presets = await listOrganizationCharacterPresets(organizationId);
     return <SettingsCharactersTab presets={presets} canManage={canManage} />;
   }
   if (tab === "skills") {
+    const skills = await listOrganizationSkills(organizationId);
     return <SettingsSkillsTab skills={skills} canManage={canManage} />;
   }
+  const tools = await listOrganizationTools(organizationId);
   return <SettingsToolsTab tools={tools} />;
 }

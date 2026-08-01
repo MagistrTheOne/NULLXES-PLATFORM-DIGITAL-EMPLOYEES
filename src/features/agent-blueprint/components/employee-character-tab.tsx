@@ -51,12 +51,39 @@ export function EmployeeCharacterTab({
     );
   }, [activePreset, character?.traitOverrides]);
 
-  const traitLabels = {
-    formality: t("traits.formality"),
-    empathy: t("traits.empathy"),
-    assertiveness: t("traits.assertiveness"),
-    verbosity: t("traits.verbosity"),
+  const poles = {
+    formality: {
+      label: t("traits.formality"),
+      low: t("traitPoles.formalityLow"),
+      high: t("traitPoles.formalityHigh"),
+    },
+    empathy: {
+      label: t("traits.empathy"),
+      low: t("traitPoles.empathyLow"),
+      high: t("traitPoles.empathyHigh"),
+    },
+    assertiveness: {
+      label: t("traits.assertiveness"),
+      low: t("traitPoles.assertivenessLow"),
+      high: t("traitPoles.assertivenessHigh"),
+    },
+    verbosity: {
+      label: t("traits.verbosity"),
+      low: t("traitPoles.verbosityLow"),
+      high: t("traitPoles.verbosityHigh"),
+    },
   };
+
+  function presetCopy(preset: CharacterPresetRow) {
+    const titleKey = `catalog.${preset.slug}.title` as const;
+    const blurbKey = `catalog.${preset.slug}.blurb` as const;
+    return {
+      title: t.has(titleKey) ? t(titleKey) : preset.name,
+      blurb: t.has(blurbKey)
+        ? t(blurbKey)
+        : (preset.description?.trim() ?? ""),
+    };
+  }
 
   return (
     <div className="space-y-6 text-white">
@@ -73,6 +100,7 @@ export function EmployeeCharacterTab({
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
             {presets.map((preset) => {
               const selected = character?.presetId === preset.id;
+              const { title, blurb } = presetCopy(preset);
               return (
                 <button
                   key={preset.id}
@@ -87,7 +115,7 @@ export function EmployeeCharacterTab({
                     })
                   }
                   className={cn(
-                    "group relative rounded-xl border p-4 text-start transition-colors",
+                    "group relative min-h-37 rounded-xl border p-4 text-start transition-colors",
                     "border-white/10 bg-[#111111] hover:border-white/20",
                     selected && "border-white/35 ring-1 ring-white/20",
                     (!canManage || pending) && "cursor-default opacity-90",
@@ -98,10 +126,10 @@ export function EmployeeCharacterTab({
                       <Check className="size-3.5" />
                     </span>
                   ) : null}
-                  <p className="pe-8 font-medium">{preset.name}</p>
-                  {preset.description ? (
-                    <p className="mt-1 line-clamp-2 text-sm text-white/50">
-                      {preset.description}
+                  <p className="pe-8 font-medium">{title}</p>
+                  {blurb ? (
+                    <p className="mt-2 text-sm leading-relaxed text-white/50">
+                      {blurb}
                     </p>
                   ) : null}
                   <div className="mt-3 flex flex-wrap gap-1.5">
@@ -130,7 +158,7 @@ export function EmployeeCharacterTab({
             <h3 className="text-sm font-medium text-white/85">{t("traitsTitle")}</h3>
             <p className="mt-1 text-sm text-white/45">{t("traitsHint")}</p>
             <div className="mt-4">
-              <CharacterTraitBars traits={mergedTraits} labels={traitLabels} />
+              <CharacterTraitBars traits={mergedTraits} poles={poles} />
             </div>
           </section>
 
@@ -171,12 +199,6 @@ export function EmployeeCharacterTab({
                   <p className="mt-1 text-white/80">{activePreset.boundaries}</p>
                 </div>
               ) : null}
-              <div>
-                <p className="text-white/45">{t("languagePolicy")}</p>
-                <p className="mt-1 capitalize text-white/80">
-                  {activePreset.languagePolicy}
-                </p>
-              </div>
             </div>
           </section>
         </>
@@ -186,34 +208,36 @@ export function EmployeeCharacterTab({
         </p>
       )}
 
-      <section className="rounded-xl border border-white/10 bg-[#111111] p-5">
-        <h3 className="text-sm font-medium text-white/85">{t("compiledPrompt")}</h3>
-        <Textarea
-          readOnly
-          value={character?.compiledPromptBlock ?? t("empty")}
-          rows={8}
-          className="mt-3 border-white/10 bg-black text-white/80"
-        />
-        {canManage ? (
-          <Button
-            type="button"
-            variant="outline"
-            className="mt-3"
-            disabled={pending}
-            onClick={() =>
-              startTransition(async () => {
-                await upsertEmployeeCharacterAction({
-                  employeeId,
-                  presetId: character?.presetId ?? null,
-                  customPromptBlock: character?.customPromptBlock ?? null,
-                });
-              })
-            }
-          >
-            {t("refresh")}
-          </Button>
-        ) : null}
-      </section>
+      {isPlatformAdmin ? (
+        <section className="rounded-xl border border-white/10 bg-[#111111] p-5">
+          <h3 className="text-sm font-medium text-white/85">{t("compiledPrompt")}</h3>
+          <Textarea
+            readOnly
+            value={character?.compiledPromptBlock ?? t("empty")}
+            rows={8}
+            className="mt-3 border-white/10 bg-black text-white/80"
+          />
+          {canManage ? (
+            <Button
+              type="button"
+              variant="outline"
+              className="mt-3"
+              disabled={pending}
+              onClick={() =>
+                startTransition(async () => {
+                  await upsertEmployeeCharacterAction({
+                    employeeId,
+                    presetId: character?.presetId ?? null,
+                    customPromptBlock: character?.customPromptBlock ?? null,
+                  });
+                })
+              }
+            >
+              {t("refresh")}
+            </Button>
+          ) : null}
+        </section>
+      ) : null}
     </div>
   );
 }
