@@ -88,7 +88,7 @@ export function EmployeeSkillsTab({
             <article
               key={row.id}
               className={cn(
-                "flex min-h-[148px] flex-col rounded-xl border border-white/10 bg-[#111111] p-4 transition-opacity",
+                "flex min-h-37 flex-col rounded-xl border border-white/10 bg-[#111111] p-4 transition-opacity",
                 !enabled && "opacity-55",
               )}
             >
