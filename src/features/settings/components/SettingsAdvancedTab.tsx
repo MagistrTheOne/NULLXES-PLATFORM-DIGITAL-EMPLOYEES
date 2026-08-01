@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import {
@@ -19,9 +19,12 @@ import { Input } from "@/components/ui/input";
 import { deleteOrganizationDataAction } from "@/features/security/actions/delete-organization-data";
 import { closeOpenSessionsAction } from "../actions/close-open-sessions";
 import { exportWorkspaceDataAction } from "../actions/export-workspace-data";
+import { getExportJobStatusAction } from "../actions/get-export-job-status";
 import { requestExportJobAction } from "../actions/request-export-job";
 import type { OrganizationSettingsDto } from "../types";
 import { SettingsCard } from "./settings-card";
+
+type ExportPhase = "idle" | "queued" | "processing" | "ready" | "failed";
 
 export function SettingsAdvancedTab({
   settings,
@@ -41,17 +44,82 @@ export function SettingsAdvancedTab({
   const [message, setMessage] = useState<string | null>(null);
   const [orgMessage, setOrgMessage] = useState<string | null>(null);
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
+  const [exportPhase, setExportPhase] = useState<ExportPhase>("idle");
+  const [pollingJobId, setPollingJobId] = useState<string | null>(null);
   const [deleteOrgConfirm, setDeleteOrgConfirm] = useState("");
   const [isPending, startTransition] = useTransition();
+  const pollTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    if (!pollingJobId) {
+      return;
+    }
+
+    let cancelled = false;
+
+    async function poll(): Promise<void> {
+      const result = await getExportJobStatusAction(pollingJobId!);
+      if (cancelled) {
+        return;
+      }
+
+      if (!result.ok) {
+        setExportPhase("failed");
+        setMessage(result.message);
+        setPollingJobId(null);
+        return;
+      }
+
+      if (result.status === "pending") {
+        setExportPhase("queued");
+        setMessage(t("exportPending"));
+        return;
+      }
+
+      if (result.status === "processing") {
+        setExportPhase("processing");
+        setMessage(t("exportProcessing"));
+        return;
+      }
+
+      if (result.status === "ready" && result.downloadUrl) {
+        setExportPhase("ready");
+        setDownloadUrl(result.downloadUrl);
+        setMessage(t("exportReady"));
+        setPollingJobId(null);
+        return;
+      }
+
+      setExportPhase("failed");
+      setDownloadUrl(null);
+      setMessage(result.errorMessage ?? t("exportFailed"));
+      setPollingJobId(null);
+    }
+
+    void poll();
+    pollTimerRef.current = setInterval(() => {
+      void poll();
+    }, 2500);
+
+    return () => {
+      cancelled = true;
+      if (pollTimerRef.current) {
+        clearInterval(pollTimerRef.current);
+        pollTimerRef.current = null;
+      }
+    };
+  }, [pollingJobId, t]);
 
   function handleAsyncExport(): void {
     setDownloadUrl(null);
+    setExportPhase("queued");
     startTransition(async () => {
       const result = await requestExportJobAction();
       if (result.ok) {
         setMessage(t("queued", { jobId: result.jobId.slice(0, 8) }));
-        setDownloadUrl(`/api/settings/export/${result.jobId}`);
+        setPollingJobId(result.jobId);
       } else {
+        setExportPhase("failed");
         setMessage(result.message);
       }
     });
@@ -59,6 +127,8 @@ export function SettingsAdvancedTab({
 
   function handleExport(): void {
     setDownloadUrl(null);
+    setExportPhase("idle");
+    setPollingJobId(null);
     startTransition(async () => {
       const result = await exportWorkspaceDataAction();
 
@@ -108,6 +178,7 @@ export function SettingsAdvancedTab({
   return (
     <div className="grid gap-6">
       <SettingsCard title={t("title")} description={t("description")}>
+        <p className="mb-3 text-sm text-muted-foreground">{t("exportSizeNote")}</p>
         <div className="flex flex-wrap gap-3">
           <Button
             type="button"
@@ -120,29 +191,21 @@ export function SettingsAdvancedTab({
           <Button
             type="button"
             variant="outline"
-            disabled={!canManageOrganization || isPending}
+            disabled={!canManageOrganization || isPending || Boolean(pollingJobId)}
             onClick={handleAsyncExport}
           >
             {t("queueExport")}
           </Button>
+          {exportPhase === "ready" && downloadUrl ? (
+            <Button type="button" asChild>
+              <a href={downloadUrl} rel="noreferrer">
+                {t("download")}
+              </a>
+            </Button>
+          ) : null}
         </div>
         {message ? (
-          <p className="mt-3 text-sm text-muted-foreground">
-            {message}
-            {downloadUrl ? (
-              <>
-                {" "}
-                <a
-                  href={downloadUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-white underline underline-offset-4"
-                >
-                  {t("download")}
-                </a>
-              </>
-            ) : null}
-          </p>
+          <p className="mt-3 text-sm text-muted-foreground">{message}</p>
         ) : null}
       </SettingsCard>
 

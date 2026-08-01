@@ -124,6 +124,7 @@ export async function answerDocsQuestionAction(input: {
     key: await resolveDocsRateLimitKey(),
     limit: DOCS_ASSISTANT_RATE_LIMIT,
     windowMs: DOCS_ASSISTANT_WINDOW_MS,
+    failOpen: true,
   });
 
   if (!rateLimit.ok) {

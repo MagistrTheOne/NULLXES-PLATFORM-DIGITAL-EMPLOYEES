@@ -4,6 +4,7 @@ import { organizationSettings } from "@/entities/organization-settings/schema";
 import { employeeSession } from "@/entities/session/schema";
 import { purgeStreamChannelsForRetention } from "@/features/privacy/services/purge-stream-channels";
 import { scrubExpiredOAuthTokens } from "@/features/privacy/services/scrub-expired-oauth-tokens";
+import { purgeExpiredExportJobs } from "@/features/settings/services/purge-expired-export-jobs";
 import { db } from "@/shared/db/client";
 import { recordAuditEvent } from "./record-audit-event";
 
@@ -96,6 +97,7 @@ export async function runRetentionPurgeForAllOrganizations(): Promise<{
   totalSessionsPurged: number;
   totalStreamChannelsPurged: number;
   oauthTokensScrubbed: number;
+  exportJobsPurged: number;
 }> {
   const organizations = await db
     .select({ organizationId: organizationSettings.organizationId })
@@ -111,11 +113,13 @@ export async function runRetentionPurgeForAllOrganizations(): Promise<{
   }
 
   const oauthTokensScrubbed = await scrubExpiredOAuthTokens();
+  const { purged: exportJobsPurged } = await purgeExpiredExportJobs();
 
   return {
     organizationsProcessed: organizations.length,
     totalSessionsPurged,
     totalStreamChannelsPurged,
     oauthTokensScrubbed,
+    exportJobsPurged,
   };
 }

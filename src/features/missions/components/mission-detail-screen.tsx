@@ -97,11 +97,13 @@ export function MissionDetailScreen({
         </section>
       ) : null}
 
-      {mission.skills.length > 0 ? (
+      {mission.skills.length > 0 || mission.skillIds.length > 0 ? (
         <section className="rounded-2xl border border-white/8 bg-[#111111] p-5">
           <h2 className="text-sm font-medium text-white">Skills</h2>
           <p className="mt-3 text-sm leading-6 text-white/70">
-            {mission.skills.join(" · ")}
+            {mission.skills.length > 0
+              ? mission.skills.join(" · ")
+              : `${mission.skillIds.length} blueprint skill(s)`}
           </p>
         </section>
       ) : null}

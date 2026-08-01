@@ -8,8 +8,8 @@ import { organization } from "@/entities/organization/schema";
 import { employeeProviderConfig } from "@/entities/provider-config/schema";
 import { knowledgeSource } from "@/entities/knowledge/schema";
 import { resolveBillingPlanId } from "@/features/billing/lib/resolve-billing-plan";
-import { db } from "@/shared/db/client";
 import { withDatabaseRetry } from "@/shared/db/with-database-retry";
+import { withTenantContext } from "@/shared/db/with-tenant-context";
 import { isAnamAvatarTalkReady } from "../lib/resolve-anam-avatar-talk-readiness";
 import { readProviderFailureReason } from "../lib/resolve-talk-readiness";
 import type { EmployeeListItem } from "../types";
@@ -24,6 +24,10 @@ export type EmployeeListPage = {
   items: EmployeeListItem[];
   nextCursor: string | null;
 };
+
+type TenantTx = Parameters<
+  Parameters<typeof withTenantContext>[1]
+>[0];
 
 function readProvisioningStatus(
   value: unknown,
@@ -66,6 +70,7 @@ function encodeCursor(createdAt: Date, id: string): string {
 }
 
 async function hydrateEmployeeListItems(
+  tx: TenantTx,
   pageRows: Array<typeof digitalEmployee.$inferSelect>,
   source: "organization" | "platform",
 ): Promise<EmployeeListItem[]> {
@@ -86,24 +91,22 @@ async function hydrateEmployeeListItems(
   }> = [];
 
   try {
-    [knowledgeCounts, providerConfigs] = await withDatabaseRetry(() =>
-      Promise.all([
-        db
-          .select({
-            employeeId: knowledgeSource.employeeId,
-            knowledgeSourcesCount: sql<number>`cast(count(*) as int)`.mapWith(
-              Number,
-            ),
-          })
-          .from(knowledgeSource)
-          .where(inArray(knowledgeSource.employeeId, employeeIds))
-          .groupBy(knowledgeSource.employeeId),
-        db
-          .select()
-          .from(employeeProviderConfig)
-          .where(inArray(employeeProviderConfig.employeeId, employeeIds)),
-      ]),
-    );
+    [knowledgeCounts, providerConfigs] = await Promise.all([
+      tx
+        .select({
+          employeeId: knowledgeSource.employeeId,
+          knowledgeSourcesCount: sql<number>`cast(count(*) as int)`.mapWith(
+            Number,
+          ),
+        })
+        .from(knowledgeSource)
+        .where(inArray(knowledgeSource.employeeId, employeeIds))
+        .groupBy(knowledgeSource.employeeId),
+      tx
+        .select()
+        .from(employeeProviderConfig)
+        .where(inArray(employeeProviderConfig.employeeId, employeeIds)),
+    ]);
   } catch {
     // Ignore transient failures for augmentation data.
   }
@@ -177,11 +180,14 @@ export async function listOrganizationEmployees(
   options?: { cursor?: string; limit?: number },
 ): Promise<EmployeeListPage> {
   return withDatabaseRetry(() =>
-    loadOrganizationEmployeesPage(organizationId, options),
+    withTenantContext(organizationId, (tx) =>
+      loadOrganizationEmployeesPage(tx, organizationId, options),
+    ),
   );
 }
 
 async function loadPublishedCatalogItemsForPlan(
+  tx: TenantTx,
   planId: ReturnType<typeof resolveBillingPlanId>,
 ): Promise<EmployeeListItem[]> {
   const catalog = await listPublishedPlatformCatalogForPlan(planId);
@@ -189,7 +195,7 @@ async function loadPublishedCatalogItemsForPlan(
     return [];
   }
 
-  const catalogEmployees = await db
+  const catalogEmployees = await tx
     .select()
     .from(digitalEmployee)
     .where(
@@ -208,17 +214,18 @@ async function loadPublishedCatalogItemsForPlan(
       Boolean(employee),
     );
 
-  return hydrateEmployeeListItems(ordered, "platform");
+  return hydrateEmployeeListItems(tx, ordered, "platform");
 }
 
 async function loadOrganizationEmployeesPage(
+  tx: TenantTx,
   organizationId: string,
   options?: { cursor?: string; limit?: number },
 ): Promise<EmployeeListPage> {
   const limit = Math.min(Math.max(options?.limit ?? DEFAULT_PAGE_SIZE, 1), 100);
   const cursor = options?.cursor ? decodeCursor(options.cursor) : null;
 
-  const [org] = await db
+  const [org] = await tx
     .select({ billingPlan: organization.billingPlan })
     .from(organization)
     .where(eq(organization.id, organizationId))
@@ -230,13 +237,13 @@ async function loadOrganizationEmployeesPage(
   // Home-org of catalog rows (NULLXES / ceo) must not list those IDs twice.
   let catalogItems: EmployeeListItem[] = [];
   if (!cursor) {
-    catalogItems = await loadPublishedCatalogItemsForPlan(planId);
+    catalogItems = await loadPublishedCatalogItemsForPlan(tx, planId);
   }
 
   const publishedCatalog = await listPublishedPlatformCatalog();
   const publishedCatalogIds = publishedCatalog.map((entry) => entry.employeeId);
 
-  const employees = await db
+  const employees = await tx
     .select()
     .from(digitalEmployee)
     .where(
@@ -261,7 +268,11 @@ async function loadOrganizationEmployeesPage(
 
   const pageRows = employees.slice(0, limit);
   const hasMore = employees.length > limit;
-  const orgItems = await hydrateEmployeeListItems(pageRows, "organization");
+  const orgItems = await hydrateEmployeeListItems(
+    tx,
+    pageRows,
+    "organization",
+  );
 
   // Belt-and-suspenders: never emit the same employee id twice (catalog + home-org).
   const seenIds = new Set<string>();

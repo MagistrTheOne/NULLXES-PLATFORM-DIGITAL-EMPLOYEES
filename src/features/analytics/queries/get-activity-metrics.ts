@@ -1,7 +1,7 @@
 import { and, eq, gte, sql } from "drizzle-orm";
 import { digitalEmployee } from "@/entities/digital-employee/schema";
 import { employeeLifecycleEvent } from "@/entities/employee-lifecycle/schema";
-import { db } from "@/shared/db/client";
+import { withTenantContext } from "@/shared/db/with-tenant-context";
 import type { ActivityMetrics } from "../types";
 
 function sevenDaysAgo(): Date {
@@ -15,36 +15,40 @@ export async function getActivityMetrics(
 ): Promise<ActivityMetrics> {
   const since = sevenDaysAgo();
 
-  const [row] = await db
-    .select({
-      createdEmployeesLast7Days:
-        sql<number>`count(*) filter (where ${employeeLifecycleEvent.eventType} = 'created')`.mapWith(
-          Number,
+  return withTenantContext(organizationId, async (tx) => {
+    const [row] = await tx
+      .select({
+        createdEmployeesLast7Days:
+          sql<number>`count(*) filter (where ${employeeLifecycleEvent.eventType} = 'created')`.mapWith(
+            Number,
+          ),
+        activatedEmployeesLast7Days:
+          sql<number>`count(*) filter (where ${employeeLifecycleEvent.eventType} = 'activated')`.mapWith(
+            Number,
+          ),
+        archivedEmployeesLast7Days:
+          sql<number>`count(*) filter (where ${employeeLifecycleEvent.eventType} = 'archived')`.mapWith(
+            Number,
+          ),
+      })
+      .from(employeeLifecycleEvent)
+      .innerJoin(
+        digitalEmployee,
+        eq(employeeLifecycleEvent.employeeId, digitalEmployee.id),
+      )
+      .where(
+        and(
+          eq(digitalEmployee.organizationId, organizationId),
+          gte(employeeLifecycleEvent.createdAt, since),
         ),
-      activatedEmployeesLast7Days:
-        sql<number>`count(*) filter (where ${employeeLifecycleEvent.eventType} = 'activated')`.mapWith(
-          Number,
-        ),
-      archivedEmployeesLast7Days:
-        sql<number>`count(*) filter (where ${employeeLifecycleEvent.eventType} = 'archived')`.mapWith(
-          Number,
-        ),
-    })
-    .from(employeeLifecycleEvent)
-    .innerJoin(
-      digitalEmployee,
-      eq(employeeLifecycleEvent.employeeId, digitalEmployee.id),
-    )
-    .where(
-      and(
-        eq(digitalEmployee.organizationId, organizationId),
-        gte(employeeLifecycleEvent.createdAt, since),
-      ),
-    );
+      );
 
-  return {
-    createdEmployeesLast7Days: Number(row?.createdEmployeesLast7Days ?? 0),
-    activatedEmployeesLast7Days: Number(row?.activatedEmployeesLast7Days ?? 0),
-    archivedEmployeesLast7Days: Number(row?.archivedEmployeesLast7Days ?? 0),
-  };
+    return {
+      createdEmployeesLast7Days: Number(row?.createdEmployeesLast7Days ?? 0),
+      activatedEmployeesLast7Days: Number(
+        row?.activatedEmployeesLast7Days ?? 0,
+      ),
+      archivedEmployeesLast7Days: Number(row?.archivedEmployeesLast7Days ?? 0),
+    };
+  });
 }

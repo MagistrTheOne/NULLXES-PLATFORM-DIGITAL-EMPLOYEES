@@ -1,6 +1,6 @@
 import { and, count, eq, gte, inArray, lte } from "drizzle-orm";
 import { digitalEmployee } from "@/entities/digital-employee/schema";
-import { db } from "@/shared/db/client";
+import { withTenantContext } from "@/shared/db/with-tenant-context";
 import { computeTrend } from "../lib/compute-trend";
 import {
   endOfUtcDay,
@@ -16,19 +16,21 @@ async function countEmployeesCreatedInRange(
   range: AnalyticsDateRange,
   employeeIds?: string[],
 ): Promise<number> {
-  const [row] = await db
-    .select({ total: count() })
-    .from(digitalEmployee)
-    .where(
-      and(
-        eq(digitalEmployee.organizationId, organizationId),
-        gte(digitalEmployee.createdAt, startOfUtcDay(range.from)),
-        lte(digitalEmployee.createdAt, endOfUtcDay(range.to)),
-        employeeIds ? inArray(digitalEmployee.id, employeeIds) : undefined,
-      ),
-    );
+  return withTenantContext(organizationId, async (tx) => {
+    const [row] = await tx
+      .select({ total: count() })
+      .from(digitalEmployee)
+      .where(
+        and(
+          eq(digitalEmployee.organizationId, organizationId),
+          gte(digitalEmployee.createdAt, startOfUtcDay(range.from)),
+          lte(digitalEmployee.createdAt, endOfUtcDay(range.to)),
+          employeeIds ? inArray(digitalEmployee.id, employeeIds) : undefined,
+        ),
+      );
 
-  return Number(row?.total ?? 0);
+    return Number(row?.total ?? 0);
+  });
 }
 
 export async function getAnalyticsTrends(

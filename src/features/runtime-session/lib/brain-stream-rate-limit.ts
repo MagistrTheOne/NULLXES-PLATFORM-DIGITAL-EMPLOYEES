@@ -18,6 +18,7 @@ export async function assertBrainStreamRateLimit(input: {
     key: `${orgKey}:${input.userId}:${input.employeeId}`,
     limit: MAX_REQUESTS_PER_WINDOW,
     windowMs: WINDOW_MS,
+    failOpen: true,
   });
 
   // Shared org bucket so one workspace cannot monopolize brain capacity.
@@ -27,6 +28,7 @@ export async function assertBrainStreamRateLimit(input: {
       key: input.organizationId.trim(),
       limit: 120,
       windowMs: WINDOW_MS,
+      failOpen: true,
     });
     if (!orgBucket.ok) {
       return {

@@ -24,7 +24,7 @@
 **Agent index:** `/llms.txt` · `/llms-full.txt`  
 **Typed client:** `npm run api:generate` (Orval)
 
-**Database:** 40 migrations through `0040_platform_employee_catalog`. Apply with `npm run db:migrate` (Neon HTTP — not `drizzle-kit migrate` CLI).
+**Database:** 55 migrations through `0054_organization_provider_xai`. Apply with `npm run db:migrate` (Neon HTTP — not `drizzle-kit migrate` CLI). `npm run build` does not migrate.
 
 **Billing plans:** `free` · `studio` · `operator` · `scale` · `enterprise` · `government` (`src/features/billing/config/plans.ts`).
 

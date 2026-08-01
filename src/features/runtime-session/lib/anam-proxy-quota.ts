@@ -1,7 +1,8 @@
 /**
- * Soft Anam proxy buckets (optional, in-memory).
+ * Soft Anam proxy buckets (optional).
  *
  * Off by default — re-enable with ANAM_PROXY_QUOTA_ENABLED=1.
+ * When enabled, uses Upstash (fail-closed) for multi-instance hard quotas.
  */
 
 import { checkRateLimit } from "@/shared/security/rate-limit";
@@ -26,7 +27,7 @@ export async function consumeAnamProxyQuota(input: {
     key: input.subject,
     limit: input.perMinute ?? 120,
     windowMs: 60_000,
-    failOpen: input.failOpen ?? true,
+    failOpen: input.failOpen ?? false,
   });
 }
 
@@ -42,6 +43,6 @@ export async function consumePlatformAnamQuota(): Promise<
     key: "global",
     limit: 12_000,
     windowMs: 60_000,
-    failOpen: true,
+    failOpen: false,
   });
 }

@@ -230,6 +230,7 @@ export async function authenticateApiKeyRequest(
     key: verified.keyId,
     limit: API_V1_RATE_LIMIT,
     windowMs: API_V1_WINDOW_MS,
+    failOpen: false,
   });
 
   if (!rateLimit.ok) {

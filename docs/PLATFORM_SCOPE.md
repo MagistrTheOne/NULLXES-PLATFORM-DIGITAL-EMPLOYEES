@@ -2,7 +2,7 @@
 
 Legend: **✅** done (backend + frontend where applicable) · **🟡** partial / placeholder · **⬜** not started
 
-Last updated: **2026-07-14** (Capsules/Inventory rewards domain `0043`, billing plans, Neon HTTP migrate).
+Last updated: **2026-08-01** (RLS analytics leaf wrap, Upstash rate limits, migrate≠build, S.8 export poll, talk:smoke).
 
 ---
 
@@ -67,8 +67,8 @@ Locale switching: **Settings → General → Language** (persisted to `organizat
 
 | Module | Backend | Frontend | Verify |
 |--------|---------|----------|--------|
-| Next.js 16 App Router + proxy | ✅ | ✅ | `npm run build` (= `db:migrate` + `next build`) |
-| Neon + Drizzle (46 migrations through `0046`) | ✅ | — | `db:migrate` (Neon HTTP), `db:verify` |
+| Next.js 16 App Router + proxy | ✅ | ✅ | `npm run build` (= `next build`; migrate separately) |
+| Neon + Drizzle (55 migrations through `0054`) | ✅ | — | `db:migrate` (Neon HTTP), `db:verify` |
 | Inngest (dev + prod handlers) | ✅ | — | `inngest:dev` |
 | Provider env getters | ✅ | — | `providers:status` |
 
@@ -224,14 +224,14 @@ Brief: [`AGENT_MISSIONS_2026-07-05.md`](./AGENT_MISSIONS_2026-07-05.md)
 | Security | ✅ | ✅ | 2FA, API keys, IP allowlist, webhooks |
 | AI | ✅ | ✅ | Default LLM pointer |
 | Characters / Skills / Tools | ✅ | ✅ | Agent Blueprint CRUD |
-| Advanced | 🟡 | ✅ | Export download + job queue |
+| Advanced | ✅ | ✅ | Export poll → tokenized download; expired payload purge |
 
 ---
 
 ## Next priorities
 
-1. **S.8 Advanced** — harden async export jobs + download UX
+1. **RLS soak → `bypass_rls=off`** — after analytics/employee-list wraps prove clean
 2. **Blueprint Phase B** — webhook tools / MCP / Public API blueprint scopes
 3. **RU Acquiring** — regional payment provider
-4. **Mission skill UI** — finish skill_ids picker parity with Talk blueprint
-5. **Auth page i18n** — login/register if needed
+4. **Auth page i18n** — login/register if needed
+5. **Alerts-as-code** — Sentry / health / Inngest paging rules

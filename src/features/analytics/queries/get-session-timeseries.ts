@@ -1,11 +1,10 @@
 import { and, count, eq, gte, inArray, lte, sql } from "drizzle-orm";
 import { digitalEmployee } from "@/entities/digital-employee/schema";
 import { employeeSession } from "@/entities/session/schema";
-import { db } from "@/shared/db/client";
+import { withTenantContext } from "@/shared/db/with-tenant-context";
 import {
   buildDateRange,
   endOfUtcDay,
-  formatUtcDate,
   getPreviousAnalyticsRange,
   startOfUtcDay,
 } from "../lib/date-range";
@@ -16,40 +15,46 @@ async function querySessionCountsByDate(
   range: AnalyticsDateRange,
   employeeIds?: string[],
 ): Promise<Map<string, { sessions: number; durationSeconds: number }>> {
-  const rows = await db
-    .select({
-      date: sql<string>`to_char(date_trunc('day', ${employeeSession.startedAt} at time zone 'UTC'), 'YYYY-MM-DD')`,
-      sessions: count(employeeSession.id),
-      durationSeconds:
-        sql<number>`coalesce(sum(${employeeSession.durationSeconds}), 0)`.mapWith(
-          Number,
+  return withTenantContext(organizationId, async (tx) => {
+    const rows = await tx
+      .select({
+        date: sql<string>`to_char(date_trunc('day', ${employeeSession.startedAt} at time zone 'UTC'), 'YYYY-MM-DD')`,
+        sessions: count(employeeSession.id),
+        durationSeconds:
+          sql<number>`coalesce(sum(${employeeSession.durationSeconds}), 0)`.mapWith(
+            Number,
+          ),
+      })
+      .from(employeeSession)
+      .innerJoin(
+        digitalEmployee,
+        eq(employeeSession.employeeId, digitalEmployee.id),
+      )
+      .where(
+        and(
+          eq(employeeSession.organizationId, organizationId),
+          gte(employeeSession.startedAt, startOfUtcDay(range.from)),
+          lte(employeeSession.startedAt, endOfUtcDay(range.to)),
+          employeeIds ? inArray(digitalEmployee.id, employeeIds) : undefined,
         ),
-    })
-    .from(employeeSession)
-    .innerJoin(
-      digitalEmployee,
-      eq(employeeSession.employeeId, digitalEmployee.id),
-    )
-    .where(
-      and(
-        eq(employeeSession.organizationId, organizationId),
-        gte(employeeSession.startedAt, startOfUtcDay(range.from)),
-        lte(employeeSession.startedAt, endOfUtcDay(range.to)),
-        employeeIds ? inArray(digitalEmployee.id, employeeIds) : undefined,
-      ),
-    )
-    .groupBy(sql`date_trunc('day', ${employeeSession.startedAt} at time zone 'UTC')`)
-    .orderBy(sql`date_trunc('day', ${employeeSession.startedAt} at time zone 'UTC')`);
+      )
+      .groupBy(
+        sql`date_trunc('day', ${employeeSession.startedAt} at time zone 'UTC')`,
+      )
+      .orderBy(
+        sql`date_trunc('day', ${employeeSession.startedAt} at time zone 'UTC')`,
+      );
 
-  return new Map(
-    rows.map((row) => [
-      row.date,
-      {
-        sessions: Number(row.sessions),
-        durationSeconds: Number(row.durationSeconds),
-      },
-    ]),
-  );
+    return new Map(
+      rows.map((row) => [
+        row.date,
+        {
+          sessions: Number(row.sessions),
+          durationSeconds: Number(row.durationSeconds),
+        },
+      ]),
+    );
+  });
 }
 
 export async function getSessionTimeseries(
@@ -68,8 +73,11 @@ export async function getSessionTimeseries(
 
   return dates.map((date, index) => {
     const point = currentRows.get(date);
-    const previousDate = previousDates[index] ?? previousDates[previousDates.length - 1];
-    const previousPoint = previousDate ? previousRows.get(previousDate) : undefined;
+    const previousDate =
+      previousDates[index] ?? previousDates[previousDates.length - 1];
+    const previousPoint = previousDate
+      ? previousRows.get(previousDate)
+      : undefined;
 
     return {
       date,

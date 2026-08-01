@@ -39,7 +39,9 @@ Hot paths (`0048`): `employee_session`, `employee_session_message`, `knowledge_s
 - Live sessions, active session count, recent sessions
 - Public API session list, append session message
 - Employee update/delete
+- Employee list (`listOrganizationEmployees`)
 - Analytics: session / conversation / performance metrics
+- Analytics leaves: activity, employee metrics, department ids, knowledge metrics, timeseries (session / message / satisfaction), trends (employee create count), top employees / topics, recent lifecycle events
 - Overview: employee session summaries, overnight work events
 - Security: list API keys, create/count/revoke API keys, list audit events
 
@@ -51,6 +53,9 @@ Hot paths (`0048`): `employee_session`, `employee_session_message`, `knowledge_s
 npm run db:migrate
 ```
 
-## Next
+## Soak checklist (before `bypass_rls=off` default)
 
-Wire remaining analytics leaf queries (timeseries, knowledge metrics, top employees). Plan default `bypass_rls=off` for the app DB role once coverage is complete.
+1. Deploy leaf wraps; watch Sentry / server logs for RLS / permission errors on analytics + employees list.
+2. Smoke: dashboard overview, analytics date ranges, department filter, employee pagination + catalog rows.
+3. Confirm Inngest workers still use `withRlsBypass` where org is unknown.
+4. Separate follow-up: plan default `bypass_rls=off` for the app DB role once soak is clean.

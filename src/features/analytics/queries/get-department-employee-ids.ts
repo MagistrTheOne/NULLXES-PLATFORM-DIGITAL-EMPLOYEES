@@ -1,8 +1,8 @@
 import { eq } from "drizzle-orm";
 import { digitalEmployee } from "@/entities/digital-employee/schema";
-import { db } from "@/shared/db/client";
 import { resolveEmployeeDepartment } from "@/features/hq/lib/map-employee-department";
 import type { HqDepartment } from "@/features/hq/types";
+import { withTenantContext } from "@/shared/db/with-tenant-context";
 
 /**
  * Employee ids that belong to a department, using the same resolution as the
@@ -13,16 +13,21 @@ export async function getDepartmentEmployeeIds(
   organizationId: string,
   department: HqDepartment,
 ): Promise<string[]> {
-  const rows = await db
-    .select({
-      id: digitalEmployee.id,
-      department: digitalEmployee.department,
-      role: digitalEmployee.role,
-    })
-    .from(digitalEmployee)
-    .where(eq(digitalEmployee.organizationId, organizationId));
+  return withTenantContext(organizationId, async (tx) => {
+    const rows = await tx
+      .select({
+        id: digitalEmployee.id,
+        department: digitalEmployee.department,
+        role: digitalEmployee.role,
+      })
+      .from(digitalEmployee)
+      .where(eq(digitalEmployee.organizationId, organizationId));
 
-  return rows
-    .filter((row) => resolveEmployeeDepartment(row.department, row.role) === department)
-    .map((row) => row.id);
+    return rows
+      .filter(
+        (row) =>
+          resolveEmployeeDepartment(row.department, row.role) === department,
+      )
+      .map((row) => row.id);
+  });
 }

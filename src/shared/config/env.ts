@@ -280,6 +280,18 @@ export function assertProductionSecretsConfigured(): void {
   if (readOptionalEnv("EMAIL_OTP_BYPASS_EMAILS")) {
     throw new Error("EMAIL_OTP_BYPASS_EMAILS must be unset in production.");
   }
+
+  if (!readOptionalEnv("UPSTASH_REDIS_REST_URL")) {
+    throw new Error(
+      "UPSTASH_REDIS_REST_URL is required in production for multi-instance rate limits.",
+    );
+  }
+
+  if (!readOptionalEnv("UPSTASH_REDIS_REST_TOKEN")) {
+    throw new Error(
+      "UPSTASH_REDIS_REST_TOKEN is required in production for multi-instance rate limits.",
+    );
+  }
 }
 
 export type DataEncryptionKeyRing = {

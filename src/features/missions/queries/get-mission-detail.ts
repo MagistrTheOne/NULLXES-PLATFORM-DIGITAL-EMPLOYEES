@@ -1,6 +1,7 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { employeeMission } from "@/entities/employee-mission";
 import { digitalEmployee } from "@/entities/digital-employee/schema";
+import { skill } from "@/entities/skill/schema";
 import { db } from "@/shared/db/client";
 
 import type { MissionType } from "../lib/mission-type";
@@ -82,11 +83,28 @@ export async function getMissionDetail(
     return null;
   }
 
+  const skillIds = row.skillIds ?? [];
+  let skills = row.skills ?? [];
+
+  if (skillIds.length > 0) {
+    const skillRows = await db
+      .select({ id: skill.id, name: skill.name })
+      .from(skill)
+      .where(inArray(skill.id, skillIds));
+    const nameById = new Map(skillRows.map((s) => [s.id, s.name]));
+    const resolved = skillIds
+      .map((id) => nameById.get(id))
+      .filter((name): name is string => Boolean(name));
+    if (resolved.length > 0) {
+      skills = resolved;
+    }
+  }
+
   return {
     ...row,
     goal: row.goal ?? null,
-    skills: row.skills ?? [],
-    skillIds: row.skillIds ?? [],
+    skills,
+    skillIds,
     evidence: row.evidence ?? [],
     leads: row.leads ?? [],
     handoffs: row.handoffs ?? [],

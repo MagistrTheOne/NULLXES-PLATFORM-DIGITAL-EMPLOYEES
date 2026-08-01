@@ -5,6 +5,9 @@ import { encryptField } from "@/shared/crypto/field-encryption";
 import { db } from "@/shared/db/client";
 import { inngest } from "../client";
 
+/** Encrypted JSON stored in Postgres — keep exports bounded. */
+const MAX_EXPORT_PAYLOAD_BYTES = 4 * 1024 * 1024;
+
 export const processExportJob = inngest.createFunction(
   {
     id: "export-job-process",
@@ -31,6 +34,13 @@ export const processExportJob = inngest.createFunction(
       );
 
       await step.run("store-export", async () => {
+        const byteLength = Buffer.byteLength(payload, "utf8");
+        if (byteLength > MAX_EXPORT_PAYLOAD_BYTES) {
+          throw new Error(
+            `Export payload exceeds ${MAX_EXPORT_PAYLOAD_BYTES} bytes. Use Export now for smaller workspaces or contact support.`,
+          );
+        }
+
         const downloadToken = crypto.randomUUID();
         await db
           .update(exportJob)

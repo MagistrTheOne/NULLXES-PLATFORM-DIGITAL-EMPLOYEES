@@ -101,7 +101,7 @@ Toggle apex + `www` to **DNS only** (gray cloud) in Cloudflare DNS — traffic g
 | Item | Requirement |
 |------|-------------|
 | Database | Neon PostgreSQL in RF-approved region |
-| Migrations | Applied automatically on `npm run build` via `npm run db:migrate` (Neon HTTP → `scripts/db-migrate.mjs`). Uses `--env-file-if-exists=.env` so Vercel/CI can rely on platform env vars without a checked-in `.env`. 39 migrations through `0038`. |
+| Migrations | **Not** part of `npm run build`. Apply explicitly: `npm run db:migrate` (Neon HTTP → `scripts/db-migrate.mjs`) **before** deploying an immutable build. Preview DBs migrate separately. Uses `--env-file-if-exists=.env` so Vercel/CI can rely on platform env vars. |
 | `DATA_ENCRYPTION_KEY` | **Required** in production (no BETTER_AUTH_SECRET fallback at runtime) |
 | `API_KEY_PEPPER` | **Required** in production (Public API key HMAC hashing) |
 | `HEALTH_CHECK_TOKEN` | Required in production — `GET /api/health/db` fails closed without it |
@@ -115,7 +115,7 @@ Toggle apex + `www` to **DNS only** (gray cloud) in Cloudflare DNS — traffic g
 | `REQUIRE_EMAIL_VERIFICATION` | **Required `true` in production** (boot assert) |
 | Bypass email lists | `TWO_FACTOR_GATE_BYPASS_EMAILS` / `EMAIL_OTP_BYPASS_EMAILS` **must be unset** in production |
 | Inngest | `INNGEST_EVENT_KEY` + `INNGEST_SIGNING_KEY`; register app URL `https://<domain>/api/inngest` in Inngest Cloud |
-| Rate limiting | In-memory per instance (`src/shared/security/rate-limit.ts`) — Redis/Upstash removed |
+| Rate limiting | Upstash Redis REST (`UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN`) — **required in production** (boot assert). Public API / Anam: fail-closed. Talk brain-stream: fail-open → memory on Redis blip. |
 | Talk SLA | `TALK_SLA_MODE=observe` (default prod), then `enforce` after calibration — see [SCALING_2026-07-04.md](./SCALING_2026-07-04.md) |
 | Anam pool | `ANAM_API_KEY` … `ANAM_API_KEY_11` — verify with `npm run providers:status` |
 | xAI Voice | `XAI_API_KEY` (+ optional `XAI_VOICE_AGENT_*`) |
@@ -130,7 +130,7 @@ Toggle apex + `www` to **DNS only** (gray cloud) in Cloudflare DNS — traffic g
 | `NGROK_URL` | Yes — breaks Polar webhooks and invite links if set in prod |
 | `BETTER_AUTH_URL=http://localhost:3000` | Yes — login will fail (CSP blocks localhost fetch) |
 
-Provider keys to copy as-is: `OPENAI_API_KEY`, `ANAM_API_KEY` (+ pool), `XAI_API_KEY`, `ELEVENLABS_API_KEY`, `STREAM_API_KEY`, `STREAM_SECRET_KEY`, `NEXT_PUBLIC_STREAM_API_KEY`, `POLAR_*`, `DATABASE_URL`, `API_KEY_PEPPER`, `HEALTH_CHECK_TOKEN`.
+Provider keys to copy as-is: `OPENAI_API_KEY`, `ANAM_API_KEY` (+ pool), `XAI_API_KEY`, `ELEVENLABS_API_KEY`, `STREAM_API_KEY`, `STREAM_SECRET_KEY`, `NEXT_PUBLIC_STREAM_API_KEY`, `POLAR_*`, `DATABASE_URL`, `API_KEY_PEPPER`, `HEALTH_CHECK_TOKEN`, `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`.
 
 Paste values **without** surrounding quotes. After changing env vars, trigger a **Redeploy** in Vercel.
 
@@ -146,7 +146,7 @@ Expect `{"ok":true}`.
 
 ## Post-deploy verification
 
-1. Confirm build applied pending migrations (`db:migrate` runs before `next build`). Do **not** manually apply single old SQL files (`0016`/`0017` instructions are obsolete).
+1. Apply pending migrations on the target DB: `npm run db:migrate`. Then deploy `npm run build` artifact (build does not migrate). Do **not** manually apply single old SQL files (`0016`/`0017` instructions are obsolete).
 2. Run secret encryption migration script on existing data if upgrading: `npm run secrets:migrate`.
 3. Confirm Inngest functions registered, including mission workers: `process-employee-mission-started`, `run-mission-schedules-daily`, `process-mission-handoff-start`, `send-mission-outbound-on-approve`, plus knowledge / export / retention / notifications.
 4. Run `npm run talk-context:verify` and `npm run anam:backfill-external-brain` on production-like data when upgrading existing employees.
