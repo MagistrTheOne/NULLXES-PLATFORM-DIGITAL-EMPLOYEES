@@ -1,16 +1,14 @@
 "use client";
 
-import { useTransition } from "react";
+import { useMemo, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
 import type { InferSelectModel } from "drizzle-orm";
 import { skill } from "@/entities/skill/schema";
+import { Switch } from "@/components/ui/switch";
+import { cn } from "@/lib/utils";
 import {
   assignEmployeeSkillsAction,
   removeEmployeeSkillAction,
-  updateEmployeeSkillMetaAction,
 } from "../actions/manage-blueprint";
 
 type Assignment = {
@@ -32,12 +30,6 @@ type Props = {
   isPlatformAdmin?: boolean;
 };
 
-const PROFICIENCY_CLASS: Record<Assignment["proficiency"], string> = {
-  basic: "border-white/15 bg-white/4 text-white/65",
-  standard: "border-sky-500/25 bg-sky-500/10 text-sky-100",
-  expert: "border-emerald-500/30 bg-emerald-500/10 text-emerald-100",
-};
-
 export function EmployeeSkillsTab({
   employeeId,
   library,
@@ -47,144 +39,98 @@ export function EmployeeSkillsTab({
 }: Props) {
   const t = useTranslations("agentBlueprint.employeeSkills");
   const [pending, startTransition] = useTransition();
-  const assignedIds = new Set(assignments.map((item) => item.skillId));
-  const available = library.filter((row) => !assignedIds.has(row.id));
+
+  const assignmentBySkillId = useMemo(() => {
+    const map = new Map<string, Assignment>();
+    for (const row of assignments) {
+      map.set(row.skillId, row);
+    }
+    return map;
+  }, [assignments]);
+
+  const rows = useMemo(() => {
+    return [...library]
+      .map((row) => {
+        const titleKey = `catalog.${row.slug}.title` as const;
+        const blurbKey = `catalog.${row.slug}.blurb` as const;
+        const title = t.has(titleKey) ? t(titleKey) : row.name;
+        const blurb = t.has(blurbKey)
+          ? t(blurbKey)
+          : (row.description?.trim() ?? "");
+        const assignment = assignmentBySkillId.get(row.id);
+        const enabled = Boolean(assignment?.isActive);
+        return { row, title, blurb, enabled };
+      })
+      .sort((a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: "base" }));
+  }, [library, assignmentBySkillId, t]);
+
+  const enabledCount = rows.filter((item) => item.enabled).length;
 
   return (
-    <div className="space-y-6 text-white">
-      <div className="space-y-3">
+    <div className="space-y-4 text-white">
+      <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h3 className="text-sm font-medium text-white/85">{t("assigned")}</h3>
-          <p className="mt-1 text-sm text-white/45">{t("assignedHint")}</p>
+          <h3 className="text-sm font-medium text-white/85">{t("title")}</h3>
+          <p className="mt-1 max-w-2xl text-sm text-white/45">{t("hint")}</p>
         </div>
-        {assignments.length === 0 ? (
-          <p className="rounded-xl border border-dashed border-white/15 bg-[#111111] px-5 py-8 text-center text-sm text-white/50">
-            {t("empty")}
-          </p>
-        ) : (
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-            {assignments.map((assignment) => (
-              <article
-                key={assignment.skillId}
-                className={cn(
-                  "flex flex-col rounded-xl border border-white/10 bg-[#111111] p-4",
-                  !assignment.isActive && "opacity-60",
-                )}
-              >
-                <div className="min-h-0 flex-1">
-                  <p className="font-medium">{assignment.skillName}</p>
-                  {isPlatformAdmin ? (
-                    <p className="mt-1 font-mono text-xs text-white/35">
-                      {assignment.skillSlug}
-                    </p>
-                  ) : null}
-                  <div className="mt-3 flex flex-wrap gap-1.5">
-                    <Badge
-                      variant="outline"
-                      className={cn(
-                        "rounded-md font-normal capitalize",
-                        PROFICIENCY_CLASS[assignment.proficiency],
-                      )}
-                    >
-                      {assignment.proficiency}
-                    </Badge>
-                    <Badge variant="outline" className="border-white/10 text-white/55">
-                      {t("priority", { value: assignment.priority })}
-                    </Badge>
-                    {!assignment.isActive ? (
-                      <Badge variant="destructive">{t("inactive")}</Badge>
-                    ) : null}
-                  </div>
-                </div>
-                {canManage ? (
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="outline"
-                      disabled={pending}
-                      onClick={() =>
-                        startTransition(async () => {
-                          await updateEmployeeSkillMetaAction({
-                            employeeId,
-                            skillId: assignment.skillId,
-                            proficiency: assignment.proficiency,
-                            priority: assignment.priority,
-                            isActive: !assignment.isActive,
-                          });
-                        })
-                      }
-                    >
-                      {assignment.isActive ? t("deactivate") : t("activate")}
-                    </Button>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="destructive"
-                      disabled={pending}
-                      onClick={() =>
-                        startTransition(async () => {
-                          await removeEmployeeSkillAction({
-                            employeeId,
-                            skillId: assignment.skillId,
-                          });
-                        })
-                      }
-                    >
-                      {t("remove")}
-                    </Button>
-                  </div>
-                ) : null}
-              </article>
-            ))}
-          </div>
-        )}
+        <p className="tabular-nums text-sm text-white/50">
+          {t("enabledCount", { count: enabledCount })}
+        </p>
       </div>
 
-      {canManage && available.length > 0 ? (
-        <div className="space-y-3">
-          <div>
-            <h3 className="text-sm font-medium text-white/85">{t("library")}</h3>
-            <p className="mt-1 text-sm text-white/45">{t("libraryHint")}</p>
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-            {available.map((row) => (
-              <article
-                key={row.id}
-                className="flex flex-col justify-between rounded-xl border border-white/10 bg-[#111111] p-4"
-              >
-                <div>
-                  <p className="font-medium">{row.name}</p>
+      {rows.length === 0 ? (
+        <p className="rounded-xl border border-dashed border-white/15 bg-[#111111] px-5 py-8 text-center text-sm text-white/50">
+          {t("emptyLibrary")}
+        </p>
+      ) : (
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          {rows.map(({ row, title, blurb, enabled }) => (
+            <article
+              key={row.id}
+              className={cn(
+                "flex min-h-[148px] flex-col rounded-xl border border-white/10 bg-[#111111] p-4 transition-opacity",
+                !enabled && "opacity-55",
+              )}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="font-medium leading-snug">{title}</p>
                   {isPlatformAdmin ? (
-                    <p className="mt-1 font-mono text-xs text-white/35">
+                    <p className="mt-1 font-mono text-[10px] text-white/35">
                       {row.slug}
                     </p>
                   ) : null}
                 </div>
-                <Button
-                  type="button"
-                  size="sm"
-                  className="mt-4 w-full sm:w-auto"
-                  disabled={pending}
-                  onClick={() =>
+                <Switch
+                  disabled={!canManage || pending}
+                  checked={enabled}
+                  aria-label={title}
+                  onCheckedChange={(checked) =>
                     startTransition(async () => {
-                      await assignEmployeeSkillsAction({
+                      if (checked) {
+                        await assignEmployeeSkillsAction({
+                          employeeId,
+                          skillIds: [row.id],
+                        });
+                        return;
+                      }
+                      await removeEmployeeSkillAction({
                         employeeId,
-                        skillIds: [
-                          ...assignments.map((item) => item.skillId),
-                          row.id,
-                        ],
+                        skillId: row.id,
                       });
                     })
                   }
-                >
-                  {t("assign")}
-                </Button>
-              </article>
-            ))}
-          </div>
+                />
+              </div>
+              {blurb ? (
+                <p className="mt-3 text-sm leading-relaxed text-white/50">
+                  {blurb}
+                </p>
+              ) : null}
+            </article>
+          ))}
         </div>
-      ) : null}
+      )}
     </div>
   );
 }

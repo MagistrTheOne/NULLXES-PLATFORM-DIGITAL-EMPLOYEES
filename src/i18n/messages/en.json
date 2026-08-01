@@ -2017,6 +2017,10 @@
       "refresh": "Recompile"
     },
     "employeeSkills": {
+      "title": "Skills",
+      "hint": "Turn on what this employee uses to close work. Cards stay put — on/off only.",
+      "enabledCount": "On: {count}",
+      "emptyLibrary": "Skill catalog is empty.",
       "assigned": "Assigned skills",
       "assignedHint": "Skills active in missions and Talk runtime.",
       "library": "Available skills",
@@ -2027,7 +2031,53 @@
       "activate": "Activate",
       "deactivate": "Deactivate",
       "inactive": "Inactive",
-      "priority": "Priority {value}"
+      "priority": "Priority {value}",
+      "catalog": {
+        "b2b_discovery": {
+          "title": "B2B discovery",
+          "blurb": "Finds leads, reaches decision-makers, and drives the deal step by step."
+        },
+        "objection_handling": {
+          "title": "Objection handling",
+          "blurb": "Price, timing, “not now” — clears doubt and moves to the next step."
+        },
+        "support_escalation": {
+          "title": "Support escalation",
+          "blurb": "Calms the room, states status, and routes hard cases to a human or peer."
+        },
+        "contract_review_prep": {
+          "title": "Contract prep",
+          "blurb": "Flags contract risk before counsel: data, liability, SLA."
+        },
+        "mission_status_brief": {
+          "title": "Mission status",
+          "blurb": "Short brief: what’s running, what’s stuck, what’s done."
+        },
+        "workforce_handoff": {
+          "title": "Handoff to peer",
+          "blurb": "Won’t force the wrong job — routes work with full context."
+        },
+        "knowledge_first_answer": {
+          "title": "Company knowledge first",
+          "blurb": "Answers from your docs and rules — not generic guesswork."
+        },
+        "scenario_roleplay": {
+          "title": "Training scenario",
+          "blurb": "Rehearses talks and pushback before a live customer."
+        },
+        "ru_market_qualification": {
+          "title": "RU market qualify",
+          "blurb": "Picks Russian companies: sector, DM contacts, verified data only."
+        },
+        "en_market_qualification": {
+          "title": "US/EU market qualify",
+          "blurb": "Picks international companies: market, DMs, contacts — no invention."
+        },
+        "investor_base_qualification": {
+          "title": "Investor base",
+          "blurb": "Funds and partners with real contacts — ready for pitch and follow-up."
+        }
+      }
     },
     "employeeTools": {
       "requiresApproval": "Requires approval",
