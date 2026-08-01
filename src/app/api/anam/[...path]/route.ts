@@ -19,6 +19,19 @@ async function handleProxy(request: Request): Promise<Response> {
     return anamProxyPreflightResponse(request);
   }
 
+  const { isAgentRuntimeDisabled, agentRuntimeDisabledMessage } = await import(
+    "@/shared/security/agent-runtime-kill-switch"
+  );
+  if (isAgentRuntimeDisabled()) {
+    return Response.json(
+      {
+        error: "agent_runtime_disabled",
+        message: agentRuntimeDisabledMessage(),
+      },
+      { status: 503 },
+    );
+  }
+
   const session = await getCurrentSession();
   const demoToken = request.headers.get(LANDING_DEMO_TOKEN_HEADER);
   const demoOk = verifyLandingDemoToken(demoToken);

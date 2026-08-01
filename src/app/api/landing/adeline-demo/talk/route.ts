@@ -4,6 +4,7 @@ import { digitalEmployee } from "@/entities/digital-employee/schema";
 import { LANDING_DEMO_MARKETING_PORTRAIT } from "@/features/landing/lib/adeline-marketing";
 import { mintLandingDemoToken } from "@/features/landing/lib/landing-demo-token";
 import { loadLandingTalkBrainCache } from "@/features/landing/lib/landing-talk-brain-cache";
+import { assertLandingTalkRateLimit } from "@/features/landing/lib/landing-talk-rate-limit";
 import { ensureLandingDemoAnamAvatar } from "@/features/landing/services/ensure-landing-demo-anam-avatar";
 import { createAnamTalkSessionTokenForEmployee } from "@/features/runtime-session/services/create-anam-talk-session";
 import { getEmployeeTalkContext } from "@/features/runtime-session/services/get-employee-talk-context";
@@ -18,9 +19,14 @@ export const LANDING_ADELINE_TALK_TRIAL_SECONDS = 60;
 /**
  * Unauthenticated 60s Anam avatar Talk trial for the landing demo employee (Anna).
  * Uses the same employee + ElevenLabs voice as dashboard Talk.
- * Per-IP trial caps are off.
+ * Per-IP mint caps via Upstash/memory + LANDING_TALK_DISABLED kill switch.
  */
-export async function POST(_request: Request): Promise<Response> {
+export async function POST(request: Request): Promise<Response> {
+  const rate = await assertLandingTalkRateLimit(request);
+  if (!rate.ok) {
+    return NextResponse.json({ error: rate.error }, { status: rate.status });
+  }
+
   const [employee] = await db
     .select({
       id: digitalEmployee.id,

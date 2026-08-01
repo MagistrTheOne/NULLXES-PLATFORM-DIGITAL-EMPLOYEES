@@ -27,7 +27,7 @@ type RawSearchRow = {
 export async function searchKnowledge(
   input: SearchKnowledgeInput,
 ): Promise<KnowledgeSearchResult[]> {
-  const topK = input.topK ?? 6;
+  const topK = Math.min(Math.max(Math.trunc(input.topK ?? 6), 1), 12);
   const query = input.query.trim();
   if (!query) {
     return [];

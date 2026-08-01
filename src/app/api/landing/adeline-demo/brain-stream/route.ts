@@ -21,6 +21,16 @@ type BrainStreamRequest = {
  * No tools, no workspace auth. Brain surface is `landing` (persona only).
  */
 export async function POST(request: Request): Promise<Response> {
+  const { isLandingTalkDisabled, landingTalkDisabledMessage } = await import(
+    "@/shared/security/agent-runtime-kill-switch"
+  );
+  if (isLandingTalkDisabled()) {
+    return NextResponse.json(
+      { error: landingTalkDisabledMessage() },
+      { status: 503 },
+    );
+  }
+
   let body: BrainStreamRequest;
   try {
     body = (await request.json()) as BrainStreamRequest;

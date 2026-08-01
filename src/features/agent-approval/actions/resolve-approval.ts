@@ -233,6 +233,191 @@ export async function resolveApprovalAction(input: {
       });
     }
 
+    if (
+      input.decision === "approved" &&
+      approval.actionType === "create_follow_up_task"
+    ) {
+      const title =
+        typeof approval.payload.title === "string"
+          ? approval.payload.title.trim()
+          : "";
+      const description =
+        typeof approval.payload.description === "string"
+          ? approval.payload.description.trim()
+          : "";
+      const dueInHours =
+        typeof approval.payload.dueInHours === "number" &&
+        approval.payload.dueInHours > 0
+          ? approval.payload.dueInHours
+          : 24;
+      if (!title || !description) {
+        return { ok: false, message: "Follow-up task approval payload invalid." };
+      }
+      const { createEmployeeTask, enqueueEmployeeTask } = await import(
+        "@/features/agent-tasks"
+      );
+      const dueAt = new Date(Date.now() + dueInHours * 60 * 60 * 1000);
+      const sessionId =
+        typeof approval.payload.sessionId === "string"
+          ? approval.payload.sessionId
+          : undefined;
+      const taskId = await createEmployeeTask({
+        organizationId: workspace.organization.id,
+        employeeId: approval.employeeId,
+        title,
+        description,
+        source: "talk_tool",
+        sessionId,
+        dueAt,
+      });
+      await enqueueEmployeeTask({
+        taskId,
+        organizationId: workspace.organization.id,
+        dueAt,
+      });
+      await recordWorkEvent({
+        organizationId: workspace.organization.id,
+        employeeId: approval.employeeId,
+        eventType: "task_received",
+        title,
+        summary: description,
+        taskId,
+        sessionId,
+        metadata: {
+          source: "talk_tool_approved",
+          approvalId: approval.id,
+          dueAt: dueAt.toISOString(),
+        },
+      });
+    }
+
+    if (
+      input.decision === "approved" &&
+      approval.actionType === "request_handoff"
+    ) {
+      const toEmployeeId =
+        typeof approval.payload.toEmployeeId === "string"
+          ? approval.payload.toEmployeeId.trim()
+          : "";
+      const reason =
+        typeof approval.payload.reason === "string"
+          ? approval.payload.reason.trim()
+          : "";
+      const contextText =
+        typeof approval.payload.context === "string"
+          ? approval.payload.context.trim()
+          : "";
+      if (!toEmployeeId || !reason || !contextText) {
+        return { ok: false, message: "Handoff approval payload invalid." };
+      }
+      const { createEmployeeTask } = await import("@/features/agent-tasks");
+      const { employeeHandoff } = await import(
+        "@/entities/employee-handoff/schema"
+      );
+      const sessionId =
+        typeof approval.payload.sessionId === "string"
+          ? approval.payload.sessionId
+          : undefined;
+      const toEmployeeName =
+        typeof approval.payload.toEmployeeName === "string"
+          ? approval.payload.toEmployeeName
+          : toEmployeeId;
+      const taskId = await createEmployeeTask({
+        organizationId: workspace.organization.id,
+        employeeId: toEmployeeId,
+        title: `Handoff: ${reason}`,
+        description: contextText,
+        source: "handoff",
+        sessionId,
+      });
+      await db.insert(employeeHandoff).values({
+        fromEmployeeId: approval.employeeId,
+        toEmployeeId,
+        taskId,
+        context: { reason, context: contextText },
+        status: "pending",
+      });
+      await recordWorkEvent({
+        organizationId: workspace.organization.id,
+        employeeId: approval.employeeId,
+        eventType: "handoff_created",
+        title: `Handoff to ${toEmployeeName}`,
+        summary: reason,
+        taskId,
+        sessionId,
+        metadata: {
+          toEmployeeId,
+          context: contextText,
+          approvalId: approval.id,
+        },
+      });
+    }
+
+    if (
+      input.decision === "approved" &&
+      approval.actionType === "create_and_assign_skill"
+    ) {
+      const name =
+        typeof approval.payload.name === "string"
+          ? approval.payload.name.trim()
+          : "";
+      const instructions =
+        typeof approval.payload.instructions === "string"
+          ? approval.payload.instructions.trim()
+          : "";
+      const description =
+        typeof approval.payload.description === "string"
+          ? approval.payload.description.trim()
+          : undefined;
+      const keywords = Array.isArray(approval.payload.keywords)
+        ? approval.payload.keywords
+            .filter((item): item is string => typeof item === "string")
+            .map((item) => item.trim())
+            .filter(Boolean)
+            .slice(0, 12)
+        : [];
+      if (!name || !instructions) {
+        return { ok: false, message: "Skill approval payload invalid." };
+      }
+      const { createSkill } = await import(
+        "@/features/agent-blueprint/services/create-skill"
+      );
+      const { assignEmployeeSkills } = await import(
+        "@/features/agent-blueprint/services/assign-employee-skills"
+      );
+      const skillId = await createSkill({
+        organizationId: workspace.organization.id,
+        name,
+        description,
+        instructions,
+        triggers: {
+          keywords,
+          intents: ["self_created_skill"],
+        },
+        requiredToolSlugs: [],
+        category: "custom",
+        slug: `${name
+          .trim()
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "_")
+          .replace(/^_|_$/g, "")
+          .slice(0, 48)}_${Date.now().toString(36)}`,
+      });
+      await assignEmployeeSkills({
+        organizationId: workspace.organization.id,
+        employeeId: approval.employeeId,
+        assignments: [{ skillId, proficiency: "standard", priority: 0 }],
+      });
+      await recordWorkEvent({
+        organizationId: workspace.organization.id,
+        employeeId: approval.employeeId,
+        eventType: "task_received",
+        title: `Skill approved · ${name}`,
+        summary: `Skill ${skillId} assigned after human approval`,
+        metadata: { skillId, approvalId: approval.id },
+      });
+    }
+
     revalidatePath("/settings");
     return { ok: true };
   } catch (error: unknown) {

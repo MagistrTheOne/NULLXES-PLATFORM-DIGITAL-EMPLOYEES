@@ -1,3 +1,7 @@
+import {
+  agentRuntimeDisabledMessage,
+  isAgentRuntimeDisabled,
+} from "@/shared/security/agent-runtime-kill-switch";
 import { checkRateLimit } from "@/shared/security/rate-limit";
 import type { TalkApiErrorCode } from "./talk-api-errors";
 
@@ -12,6 +16,14 @@ export async function assertBrainStreamRateLimit(input: {
   | { ok: true }
   | { ok: false; code: TalkApiErrorCode; error: string }
 > {
+  if (isAgentRuntimeDisabled()) {
+    return {
+      ok: false,
+      code: "PROVIDER_UNAVAILABLE",
+      error: agentRuntimeDisabledMessage(),
+    };
+  }
+
   const orgKey = input.organizationId?.trim() || "org";
   const result = await checkRateLimit({
     name: "brain-stream",

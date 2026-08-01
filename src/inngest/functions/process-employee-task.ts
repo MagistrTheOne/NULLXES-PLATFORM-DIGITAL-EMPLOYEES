@@ -12,7 +12,7 @@ import { serializeEmployeeTaskResult } from "@/features/employees/lib/format-emp
 import { completeMissionHandoffStep } from "@/features/missions/services/mission-handoff-chain";
 import { db } from "@/shared/db/client";
 import { decryptField } from "@/shared/crypto/field-encryption";
-import { assertSafeOutboundUrl } from "@/shared/security/assert-safe-outbound-url";
+import { assertSafeOutboundUrlResolved } from "@/shared/security/assert-safe-outbound-url";
 import { inngest } from "@/inngest/client";
 
 async function postTaskCallback(input: {
@@ -21,7 +21,7 @@ async function postTaskCallback(input: {
   taskId: string;
   result: string;
 }): Promise<void> {
-  const safeUrl = assertSafeOutboundUrl(input.callbackUrl);
+  const safeUrl = await assertSafeOutboundUrlResolved(input.callbackUrl);
 
   const [settings] = await db
     .select({ secret: organizationSettings.outboundWebhookSecret })
@@ -42,6 +42,7 @@ async function postTaskCallback(input: {
 
   await fetch(safeUrl.toString(), {
     method: "POST",
+    redirect: "error",
     headers: {
       "Content-Type": "application/json",
       ...(signature

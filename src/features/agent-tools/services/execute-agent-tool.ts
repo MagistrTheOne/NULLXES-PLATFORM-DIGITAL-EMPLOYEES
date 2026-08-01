@@ -1,15 +1,12 @@
-import { employeeHandoff } from "@/entities/employee-handoff/schema";
-import {
-  createEmployeeTask,
-  enqueueEmployeeTask,
-} from "@/features/agent-tasks";
 import {
   listWorkforcePeers,
   resolveWorkforceHandoffTarget,
 } from "@/features/employees/services/resolve-workforce-handoff-target";
 import { searchKnowledge } from "@/features/knowledge-retrieval";
-import { recordWorkEvent } from "@/features/work-event";
-import { db } from "@/shared/db/client";
+import {
+  agentRuntimeDisabledMessage,
+  isAgentRuntimeDisabled,
+} from "@/shared/security/agent-runtime-kill-switch";
 import type {
   AgentToolExecutionContext,
   AgentToolExecutionResult,
@@ -46,6 +43,10 @@ export async function executeAgentTool(input: {
   argumentsJson: string;
   context: AgentToolExecutionContext;
 }): Promise<AgentToolExecutionResult> {
+  if (isAgentRuntimeDisabled()) {
+    return { content: agentRuntimeDisabledMessage() };
+  }
+
   const enabledToolSlugs = await resolveEnabledToolSlugs(input.context);
   if (!enabledToolSlugs.includes(input.toolName)) {
     return {
@@ -253,39 +254,12 @@ export async function executeAgentTool(input: {
       return { content: "Follow-up task requires title and description." };
     }
 
-    const dueAt = new Date(Date.now() + dueInHours * 60 * 60 * 1000);
-    const taskId = await createEmployeeTask({
-      organizationId: input.context.organizationId,
-      employeeId: input.context.employeeId,
-      title,
-      description,
-      source: "talk_tool",
-      sessionId: input.context.sessionId,
-      dueAt,
+    return requestToolApproval({
+      toolName: "create_follow_up_task",
+      context: input.context,
+      payload: { title, description, dueInHours },
+      summary: `Create follow-up task · ${title}`,
     });
-
-    await enqueueEmployeeTask({
-      taskId,
-      organizationId: input.context.organizationId,
-      dueAt,
-    });
-
-    await recordWorkEvent({
-      organizationId: input.context.organizationId,
-      employeeId: input.context.employeeId,
-      eventType: "task_received",
-      title,
-      summary: description,
-      taskId,
-      sessionId: input.context.sessionId,
-      metadata: { source: "talk_tool", dueAt: dueAt.toISOString() },
-    });
-
-    return {
-      content: `Follow-up task created (ID: ${taskId}).`,
-      taskCreated: true,
-      taskId,
-    };
   }
 
   if (input.toolName === "request_handoff") {
@@ -318,38 +292,17 @@ export async function executeAgentTool(input: {
       };
     }
 
-    const taskId = await createEmployeeTask({
-      organizationId: input.context.organizationId,
-      employeeId: target.id,
-      title: `Handoff: ${reason}`,
-      description: contextText,
-      source: "handoff",
-      sessionId: input.context.sessionId,
+    return requestToolApproval({
+      toolName: "request_handoff",
+      context: input.context,
+      payload: {
+        toEmployeeId: target.id,
+        toEmployeeName: target.name,
+        reason,
+        context: contextText,
+      },
+      summary: `Handoff to ${target.name} · ${reason}`,
     });
-
-    await db.insert(employeeHandoff).values({
-      fromEmployeeId: input.context.employeeId,
-      toEmployeeId: target.id,
-      taskId,
-      context: { reason, context: contextText },
-      status: "pending",
-    });
-
-    await recordWorkEvent({
-      organizationId: input.context.organizationId,
-      employeeId: input.context.employeeId,
-      eventType: "handoff_created",
-      title: `Handoff to ${target.name}`,
-      summary: reason,
-      taskId,
-      sessionId: input.context.sessionId,
-      metadata: { toEmployeeId: target.id, context: contextText },
-    });
-
-    return {
-      content: `Handoff queued to ${target.name} (task ${taskId}).`,
-      taskId,
-    };
   }
 
   if (input.toolName === "draft_email") {
@@ -391,65 +344,12 @@ export async function executeAgentTool(input: {
       };
     }
 
-    try {
-      const { createSkill } = await import(
-        "@/features/agent-blueprint/services/create-skill"
-      );
-      const { assignEmployeeSkills } = await import(
-        "@/features/agent-blueprint/services/assign-employee-skills"
-      );
-
-      const skillId = await createSkill({
-        organizationId: input.context.organizationId,
-        name,
-        description,
-        instructions,
-        triggers: {
-          keywords,
-          intents: ["self_created_skill"],
-        },
-        requiredToolSlugs: [],
-        category: "custom",
-        slug: `${name
-          .trim()
-          .toLowerCase()
-          .replace(/[^a-z0-9]+/g, "_")
-          .replace(/^_|_$/g, "")
-          .slice(0, 48)}_${Date.now().toString(36)}`,
-      });
-
-      await assignEmployeeSkills({
-        organizationId: input.context.organizationId,
-        employeeId: input.context.employeeId,
-        assignments: [{ skillId, proficiency: "standard", priority: 0 }],
-      });
-
-      if (input.context.sessionId) {
-        const { buildTalkSessionBrainCache } = await import(
-          "@/features/runtime-session/services/build-talk-session-brain-cache"
-        );
-        const { saveTalkSessionBrainCache } = await import(
-          "@/features/runtime-session/services/talk-session-brain-cache"
-        );
-        const cache = await buildTalkSessionBrainCache({
-          organizationId: input.context.organizationId,
-          employeeId: input.context.employeeId,
-        });
-        if (cache) {
-          await saveTalkSessionBrainCache(input.context.sessionId, cache);
-        }
-      }
-
-      return {
-        content: `Skill created and assigned: "${name}" (id=${skillId}). It is active for this employee on the next turn.`,
-      };
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Unknown skill create error";
-      return {
-        content: `Failed to create and assign skill: ${message}`,
-      };
-    }
+    return requestToolApproval({
+      toolName: "create_and_assign_skill",
+      context: input.context,
+      payload: { name, instructions, description, keywords },
+      summary: `Create and assign skill · ${name}`,
+    });
   }
 
   return { content: `Unknown tool: ${input.toolName}` };

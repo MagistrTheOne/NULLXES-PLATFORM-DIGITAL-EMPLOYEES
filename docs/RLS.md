@@ -59,3 +59,8 @@ npm run db:migrate
 2. Smoke: dashboard overview, analytics date ranges, department filter, employee pagination + catalog rows.
 3. Confirm Inngest workers still use `withRlsBypass` where org is unknown.
 4. Separate follow-up: plan default `bypass_rls=off` for the app DB role once soak is clean.
+
+## Ops gate (do not flip yet)
+
+`bypass_rls` stays default-on until soak above is green in production for ≥1 quiet week.
+Flip is a dedicated change (DB role / session default) — not bundled with agent kill switches.

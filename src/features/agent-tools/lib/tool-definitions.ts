@@ -299,6 +299,9 @@ export const APPROVAL_REQUIRED_TOOL_NAMES = [
   "cancel_mission",
   "restart_mission",
   "draft_email",
+  "create_and_assign_skill",
+  "create_follow_up_task",
+  "request_handoff",
 ] as const;
 
 export type ApprovalRequiredToolName =

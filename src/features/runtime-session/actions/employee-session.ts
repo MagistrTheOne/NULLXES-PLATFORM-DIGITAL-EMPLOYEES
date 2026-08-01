@@ -173,6 +173,12 @@ export async function startTalkSessionAction(
   videoOptions?: AnamTalkSessionVideoOptions | null,
 ): Promise<StartTalkSessionResult> {
   try {
+    const { isAgentRuntimeDisabled, agentRuntimeDisabledMessage } =
+      await import("@/shared/security/agent-runtime-kill-switch");
+    if (isAgentRuntimeDisabled()) {
+      return { ok: false, message: agentRuntimeDisabledMessage() };
+    }
+
     const { organizationId, userId } = await resolveWorkspaceContext();
 
     const employee = await getEmployeeTalkContext(organizationId, employeeId);

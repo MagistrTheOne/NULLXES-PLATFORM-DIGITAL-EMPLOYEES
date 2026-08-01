@@ -144,6 +144,21 @@ Expect `{"ok":true}`.
 
 **Scaling (10 → 1000+ users):** full ops checklist and transition triggers — [SCALING_2026-07-04.md](./SCALING_2026-07-04.md).
 
+## Incident kill switches (abuse / spend / agent compromise)
+
+Set in Vercel → Environment Variables → Production, then **Redeploy** (or wait for next deploy).
+
+| Env | Effect |
+|-----|--------|
+| `LANDING_TALK_DISABLED=1` | Blocks public landing Anam mint + landing brain-stream (503) |
+| `AGENT_RUNTIME_DISABLED=1` | Freezes all Talk session starts, brain-stream, tool execution, Anam proxy (503 / tool deny). Implies landing freeze. |
+
+Landing mint rate limit: **8 / IP / hour**, fail-closed when Redis unavailable.
+
+Also available: Settings → Advanced → close open sessions (`PLATFORM_ADMIN_EMAILS`); `ANAM_PROXY_QUOTA_ENABLED=1` for hard Anam proxy quotas.
+
+RLS default `bypass_rls=off` is a separate soak gate — see [RLS.md](./RLS.md).
+
 ## Post-deploy verification
 
 1. Apply pending migrations on the target DB: `npm run db:migrate`. Then deploy `npm run build` artifact (build does not migrate). Do **not** manually apply single old SQL files (`0016`/`0017` instructions are obsolete).

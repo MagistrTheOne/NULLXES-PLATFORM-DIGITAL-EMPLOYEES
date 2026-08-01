@@ -80,8 +80,10 @@ export async function buildTalkSessionBrainCache(input: {
     maxTokens,
     employeeName: employee.name,
     employeeRole: employee.role,
-    // Always expose grounding + research tools in Talk/Conversations —
+    // Always expose read/research tools in Talk/Conversations —
     // legacy blueprints may omit list_tasks / search_web / multimodal tools.
+    // Persistent write tools (e.g. create_and_assign_skill) stay blueprint-only
+    // + execute-time allowlist (Least Agency / ASI02).
     enabledToolSlugs: [
       ...new Set([
         ...blueprint.enabledToolSlugs,
@@ -92,7 +94,6 @@ export async function buildTalkSessionBrainCache(input: {
         "search_web",
         "generate_image",
         "analyze_image",
-        "create_and_assign_skill",
       ]),
     ],
   };
@@ -121,7 +122,7 @@ export function talkBrainCacheToRequestConfig(
     maxTokens: cache.maxTokens,
     employeeName: cache.employeeName,
     employeeRole: cache.employeeRole,
-    // Re-merge every request so warm session caches pick up new tool slugs.
+    // Re-merge every request so warm session caches pick up new read tool slugs.
     enabledToolSlugs: [
       ...new Set([
         ...cache.enabledToolSlugs,
@@ -132,7 +133,6 @@ export function talkBrainCacheToRequestConfig(
         "search_web",
         "generate_image",
         "analyze_image",
-        "create_and_assign_skill",
       ]),
     ],
   };
