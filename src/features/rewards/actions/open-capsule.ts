@@ -33,6 +33,7 @@ export async function openCapsuleAction(
 
     revalidatePath("/dashboard/capsules");
     revalidatePath("/dashboard/inventory");
+    revalidatePath("/dashboard/collection");
     return { ok: true, reward: result.reward };
   } catch (error) {
     return {

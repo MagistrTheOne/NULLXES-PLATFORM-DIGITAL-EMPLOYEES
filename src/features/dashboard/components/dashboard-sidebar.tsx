@@ -11,10 +11,8 @@ import {
   KeyRound,
   LayoutDashboard,
   MessageSquare,
-  Package,
   Radar,
   Settings,
-  Sparkles,
   Library,
   Users,
 } from "lucide-react";
@@ -38,18 +36,31 @@ const NAV_ITEMS = [
   { labelKey: "dashboard", href: "/dashboard", icon: LayoutDashboard },
   { labelKey: "employees", href: "/dashboard/employees", icon: Users },
   { labelKey: "missions", href: "/dashboard/missions", icon: Radar },
-  { labelKey: "capsules", href: "/dashboard/capsules", icon: Sparkles },
   { labelKey: "collection", href: "/dashboard/collection", icon: Library },
-  { labelKey: "inventory", href: "/dashboard/inventory", icon: Package },
   { labelKey: "conversations", href: "/dashboard/conversations", icon: MessageSquare },
   { labelKey: "hq", href: "/dashboard/hq", icon: Building2 },
   { labelKey: "analytics", href: "/dashboard/analytics", icon: BarChart3 },
   { labelKey: "settings", href: "/settings", icon: Settings },
 ] as const;
 
+function isCollectionPackPath(pathname: string): boolean {
+  return (
+    pathname === "/dashboard/collection" ||
+    pathname.startsWith("/dashboard/collection/") ||
+    pathname === "/dashboard/capsules" ||
+    pathname.startsWith("/dashboard/capsules/") ||
+    pathname === "/dashboard/inventory" ||
+    pathname.startsWith("/dashboard/inventory/")
+  );
+}
+
 function isNavItemActive(pathname: string, href: string): boolean {
   if (href === "/dashboard") {
     return pathname === "/dashboard";
+  }
+
+  if (href === "/dashboard/collection") {
+    return isCollectionPackPath(pathname);
   }
 
   return pathname === href || pathname.startsWith(`${href}/`);

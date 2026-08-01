@@ -590,7 +590,7 @@ export function InventoryScreen({
                   Open
                 </Button>
                 <Button asChild className={rewardsSecondaryButtonClass}>
-                  <Link href="/dashboard/capsules">Capsules store</Link>
+                  <Link href="/dashboard/collection?tab=capsules">Capsules store</Link>
                 </Button>
               </SheetFooter>
             </>

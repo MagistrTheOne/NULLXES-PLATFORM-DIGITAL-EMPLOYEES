@@ -8,10 +8,8 @@ import {
   KeyRound,
   Menu,
   MessageSquare,
-  Package,
   Radar,
   Settings,
-  Sparkles,
   Library,
   Users,
 } from "lucide-react";
@@ -70,22 +68,10 @@ export const MOBILE_MORE_ITEMS: MobileMoreItem[] = [
     icon: Radar,
   },
   {
-    id: "capsules",
-    href: "/dashboard/capsules",
-    labelKey: "capsules",
-    icon: Sparkles,
-  },
-  {
     id: "collection",
     href: "/dashboard/collection",
     labelKey: "collection",
     icon: Library,
-  },
-  {
-    id: "inventory",
-    href: "/dashboard/inventory",
-    labelKey: "inventory",
-    icon: Package,
   },
   {
     id: "hq",
@@ -179,6 +165,16 @@ export function isMobileMoreItemActive(
   }
   if (item.href.includes("?")) {
     return pathname + (search ? `?${search.replace(/^\?/, "")}` : "") === item.href;
+  }
+  if (item.id === "collection") {
+    return (
+      pathname === "/dashboard/collection" ||
+      pathname.startsWith("/dashboard/collection/") ||
+      pathname === "/dashboard/capsules" ||
+      pathname.startsWith("/dashboard/capsules/") ||
+      pathname === "/dashboard/inventory" ||
+      pathname.startsWith("/dashboard/inventory/")
+    );
   }
   return pathname === item.href || pathname.startsWith(`${item.href}/`);
 }

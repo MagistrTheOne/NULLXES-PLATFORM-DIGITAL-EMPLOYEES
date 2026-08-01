@@ -339,7 +339,7 @@ export function CapsulesScreen({
               className={cn(rewardsSecondaryButtonClass, "w-auto px-4")}
               asChild
             >
-              <Link href="/dashboard/collection">
+              <Link href="/dashboard/collection?tab=catalog">
                 Collection
                 <ArrowRight className="size-3.5" />
               </Link>

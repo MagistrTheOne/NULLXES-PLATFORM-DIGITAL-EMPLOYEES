@@ -25,6 +25,7 @@ export async function claimDailyCapsuleAction(): Promise<ClaimDailyCapsuleAction
 
     revalidatePath("/dashboard/capsules");
     revalidatePath("/dashboard/inventory");
+    revalidatePath("/dashboard/collection");
 
     return {
       ok: true,

@@ -134,14 +134,14 @@ export function CollectionScreen({ rewards }: { rewards: RewardItem[] }) {
               className={cn(rewardsSecondaryButtonClass, "w-auto px-4")}
               asChild
             >
-              <Link href="/dashboard/capsules">Capsules</Link>
+              <Link href="/dashboard/collection?tab=capsules">Capsules</Link>
             </Button>
             <Button
               type="button"
               className={cn(rewardsSecondaryButtonClass, "w-auto px-4")}
               asChild
             >
-              <Link href="/dashboard/inventory">
+              <Link href="/dashboard/collection?tab=inventory">
                 Inventory
                 <ArrowRight className="size-3.5" />
               </Link>
@@ -245,7 +245,7 @@ export function CollectionScreen({ rewards }: { rewards: RewardItem[] }) {
                     return (
                       <li key={item.id}>
                         <Link
-                          href={`/dashboard/inventory?item=${item.id}`}
+                          href={`/dashboard/collection?tab=inventory&item=${item.id}`}
                           className={cn(
                             "relative flex h-full min-h-40 w-full flex-col overflow-hidden rounded-xl border bg-[#1a1a1a] p-4 text-left transition-colors hover:bg-[#1f1f1f]",
                             style.border,
@@ -310,7 +310,7 @@ export function CollectionScreen({ rewards }: { rewards: RewardItem[] }) {
                   return (
                     <li key={item.id}>
                       <Link
-                        href={`/dashboard/inventory?item=${item.id}`}
+                        href={`/dashboard/collection?tab=inventory&item=${item.id}`}
                         className={cn(
                           "relative flex h-full min-h-36 flex-col overflow-hidden rounded-xl border bg-[#1a1a1a] p-4 transition hover:bg-[#1f1f1f]",
                           style.border,
