@@ -1,10 +1,14 @@
 "use client";
 
-import { useMemo, useOptimistic, useTransition } from "react";
+import { useMemo, useOptimistic, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { Switch } from "@/components/ui/switch";
-import { cn } from "@/lib/utils";
 import { syncEmployeeToolAction } from "../actions/manage-blueprint";
+import {
+  CatalogTogglePanel,
+  CatalogToggleRow,
+  type CatalogFilterId,
+} from "./catalog-toggle-panel";
 
 type ToolRow = {
   toolDefinitionId: string;
@@ -33,6 +37,7 @@ export function EmployeeToolsTab({
 }: Props) {
   const t = useTranslations("agentBlueprint.employeeTools");
   const [pending, startTransition] = useTransition();
+  const [filter, setFilter] = useState<CatalogFilterId>("all");
   const [optimisticTools, setOptimistic] = useOptimistic(
     tools,
     (state, update: OptimisticToggle) =>
@@ -48,88 +53,96 @@ export function EmployeeToolsTab({
       .map((tool) => {
         const titleKey = `catalog.${tool.slug}.title` as const;
         const blurbKey = `catalog.${tool.slug}.blurb` as const;
-        const title = t.has(titleKey) ? t(titleKey) : tool.name.replace(/_/g, " ");
-        const blurb = t.has(blurbKey)
-          ? t(blurbKey)
-          : tool.description.trim();
+        const title = t.has(titleKey)
+          ? t(titleKey)
+          : tool.name.replace(/_/g, " ");
+        const blurb = t.has(blurbKey) ? t(blurbKey) : tool.description.trim();
         return { tool, title, blurb };
       })
-      .sort((a, b) =>
-        a.title.localeCompare(b.title, undefined, { sensitivity: "base" }),
-      );
+      .sort((a, b) => {
+        if (a.tool.isEnabled !== b.tool.isEnabled) {
+          return a.tool.isEnabled ? -1 : 1;
+        }
+        return a.title.localeCompare(b.title, undefined, {
+          sensitivity: "base",
+        });
+      });
   }, [optimisticTools, t]);
 
+  const visible = rows.filter((item) => {
+    if (filter === "on") return item.tool.isEnabled;
+    if (filter === "off") return !item.tool.isEnabled;
+    return true;
+  });
+
   const enabledCount = rows.filter((item) => item.tool.isEnabled).length;
+  const totalCount = rows.length;
+
+  function toggleTool(toolDefinitionId: string, isEnabled: boolean) {
+    if (!canManage || pending) return;
+    startTransition(async () => {
+      setOptimistic({ toolDefinitionId, isEnabled });
+      await syncEmployeeToolAction({
+        employeeId,
+        toolDefinitionId,
+        isEnabled,
+      });
+    });
+  }
 
   return (
-    <div className="space-y-3 text-white">
-      <div className="sticky top-0 z-10 flex flex-wrap items-end justify-between gap-3 bg-[#0a0a0a]/95 pb-1 backdrop-blur-sm">
-        <div>
-          <h3 className="text-sm font-medium text-white/85">{t("title")}</h3>
-          <p className="mt-1 text-sm text-white/45">{t("hint")}</p>
-        </div>
-        <p className="tabular-nums text-sm text-white/50">
-          {t("enabledCount", { count: enabledCount })}
-        </p>
-      </div>
-
-      {rows.length === 0 ? (
-        <p className="rounded-xl border border-dashed border-white/15 bg-[#111111] px-4 py-6 text-center text-sm text-white/50">
-          {t("empty")}
-        </p>
-      ) : (
-        <div className="max-h-[min(28rem,55vh)] overflow-y-auto rounded-xl border border-white/10 bg-[#111111]">
-          {rows.map(({ tool, title, blurb }, index) => (
-            <div
-              key={tool.toolDefinitionId}
-              className={cn(
-                "flex items-center gap-3 px-4 py-3 transition-opacity",
-                index > 0 && "border-t border-white/8",
-                !tool.isEnabled && "opacity-55",
-              )}
-            >
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-                  <p className="font-medium leading-snug">{title}</p>
-                  {isPlatformAdmin ? (
-                    <p className="font-mono text-[10px] text-white/30">
-                      {tool.slug}
-                    </p>
-                  ) : null}
-                  {tool.requiresApproval ? (
-                    <p className="text-xs text-white/40">
-                      {t("requiresApproval")}
-                    </p>
-                  ) : null}
-                </div>
-                {blurb ? (
-                  <p className="mt-0.5 line-clamp-1 text-sm text-white/45">
-                    {blurb}
-                  </p>
-                ) : null}
-              </div>
-              <Switch
-                disabled={!canManage || pending}
-                checked={tool.isEnabled}
-                aria-label={title}
-                onCheckedChange={(checked) =>
-                  startTransition(async () => {
-                    setOptimistic({
-                      toolDefinitionId: tool.toolDefinitionId,
-                      isEnabled: checked,
-                    });
-                    await syncEmployeeToolAction({
-                      employeeId,
-                      toolDefinitionId: tool.toolDefinitionId,
-                      isEnabled: checked,
-                    });
-                  })
-                }
-              />
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
+    <CatalogTogglePanel
+      filter={filter}
+      onFilterChange={setFilter}
+      filters={[
+        { id: "all", label: t("filterAll") },
+        { id: "on", label: t("filterOn") },
+        { id: "off", label: t("filterOff") },
+      ]}
+      countLabel={
+        <>
+          <span className="text-sm font-semibold text-white">{enabledCount}</span>
+          <span className="mx-1 text-white/20">/</span>
+          <span>{totalCount}</span>
+          <span className="ml-1.5 text-white/35">{t("activeLabel")}</span>
+        </>
+      }
+      empty={
+        visible.length === 0
+          ? totalCount === 0
+            ? t("empty")
+            : t("emptyFilter")
+          : null
+      }
+    >
+      {visible.map(({ tool, title, blurb }) => (
+        <CatalogToggleRow
+          key={tool.toolDefinitionId}
+          title={title}
+          blurb={blurb}
+          enabled={tool.isEnabled}
+          disabled={!canManage || pending}
+          tooltip={isPlatformAdmin ? tool.slug : blurb || undefined}
+          badge={
+            tool.requiresApproval ? (
+              <span className="shrink-0 rounded border border-white/12 px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-white/40">
+                {t("approvalShort")}
+              </span>
+            ) : undefined
+          }
+          onToggle={() => toggleTool(tool.toolDefinitionId, !tool.isEnabled)}
+          control={
+            <Switch
+              disabled={!canManage || pending}
+              checked={tool.isEnabled}
+              aria-label={title}
+              onCheckedChange={(checked) =>
+                toggleTool(tool.toolDefinitionId, checked)
+              }
+            />
+          }
+        />
+      ))}
+    </CatalogTogglePanel>
   );
 }

@@ -5,11 +5,15 @@ import { useTranslations } from "next-intl";
 import type { InferSelectModel } from "drizzle-orm";
 import { skill } from "@/entities/skill/schema";
 import { Switch } from "@/components/ui/switch";
-import { cn } from "@/lib/utils";
 import {
   assignEmployeeSkillsAction,
   removeEmployeeSkillAction,
 } from "../actions/manage-blueprint";
+import {
+  CatalogTogglePanel,
+  CatalogToggleRow,
+  type CatalogFilterId,
+} from "./catalog-toggle-panel";
 
 type Assignment = {
   skillId: string;
@@ -30,8 +34,6 @@ type Props = {
   isPlatformAdmin?: boolean;
 };
 
-type FilterId = "all" | "on" | "off";
-
 type OptimisticToggle = { skillId: string; enabled: boolean };
 
 export function EmployeeSkillsTab({
@@ -44,7 +46,7 @@ export function EmployeeSkillsTab({
   const t = useTranslations("agentBlueprint.employeeSkills");
   const tTools = useTranslations("agentBlueprint.employeeTools");
   const [pending, startTransition] = useTransition();
-  const [filter, setFilter] = useState<FilterId>("all");
+  const [filter, setFilter] = useState<CatalogFilterId>("all");
   const [optimisticAssignments, setOptimisticAssignments] = useOptimistic(
     assignments,
     (state, update: OptimisticToggle) => {
@@ -100,9 +102,12 @@ export function EmployeeSkillsTab({
           .filter((label): label is string => Boolean(label));
         return { row, title, blurb, enabled, toolLabels };
       })
-      .sort((a, b) =>
-        a.title.localeCompare(b.title, undefined, { sensitivity: "base" }),
-      );
+      .sort((a, b) => {
+        if (a.enabled !== b.enabled) return a.enabled ? -1 : 1;
+        return a.title.localeCompare(b.title, undefined, {
+          sensitivity: "base",
+        });
+      });
   }, [library, assignmentBySkillId, t, tTools]);
 
   const visible = rows.filter((item) => {
@@ -112,108 +117,76 @@ export function EmployeeSkillsTab({
   });
 
   const enabledCount = rows.filter((item) => item.enabled).length;
+  const totalCount = rows.length;
+
+  function toggleSkill(skillId: string, enabled: boolean) {
+    if (!canManage || pending) return;
+    startTransition(async () => {
+      setOptimisticAssignments({ skillId, enabled });
+      if (enabled) {
+        await assignEmployeeSkillsAction({
+          employeeId,
+          skillIds: [skillId],
+        });
+        return;
+      }
+      await removeEmployeeSkillAction({
+        employeeId,
+        skillId,
+      });
+    });
+  }
 
   return (
-    <div className="space-y-3 text-white">
-      <div className="sticky top-0 z-10 space-y-3 bg-[#0a0a0a]/95 pb-1 backdrop-blur-sm">
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <h3 className="text-sm font-medium text-white/85">{t("title")}</h3>
-            <p className="mt-1 text-sm text-white/45">{t("hint")}</p>
-          </div>
-          <p className="tabular-nums text-sm text-white/50">
-            {t("enabledCount", { count: enabledCount })}
-          </p>
-        </div>
-
-        <div className="flex flex-wrap gap-1">
-          {(
-            [
-              ["all", t("filterAll")],
-              ["on", t("filterOn")],
-              ["off", t("filterOff")],
-            ] as const
-          ).map(([id, label]) => (
-            <button
-              key={id}
-              type="button"
-              onClick={() => setFilter(id)}
-              className={cn(
-                "rounded-md px-3 py-1.5 text-sm transition-colors",
-                filter === id
-                  ? "bg-white/10 text-white"
-                  : "text-white/50 hover:bg-white/5 hover:text-white/80",
-              )}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {visible.length === 0 ? (
-        <p className="rounded-xl border border-dashed border-white/15 bg-[#111111] px-4 py-6 text-center text-sm text-white/50">
-          {rows.length === 0 ? t("emptyLibrary") : t("emptyFilter")}
-        </p>
-      ) : (
-        <div className="max-h-[min(28rem,55vh)] overflow-y-auto rounded-xl border border-white/10 bg-[#111111]">
-          {visible.map(({ row, title, blurb, enabled, toolLabels }, index) => (
-            <div
-              key={row.id}
-              className={cn(
-                "flex items-center gap-3 px-4 py-3 transition-opacity",
-                index > 0 && "border-t border-white/8",
-                !enabled && "opacity-55",
-              )}
-            >
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-                  <p className="font-medium leading-snug">{title}</p>
-                  {isPlatformAdmin ? (
-                    <p className="font-mono text-[10px] text-white/30">
-                      {row.slug}
-                    </p>
-                  ) : null}
-                </div>
-                {blurb ? (
-                  <p className="mt-0.5 line-clamp-1 text-sm text-white/45">
-                    {blurb}
-                  </p>
-                ) : null}
-                {toolLabels.length > 0 ? (
-                  <p className="mt-0.5 text-xs text-white/30">
-                    {t("usesTools", { tools: toolLabels.join(" · ") })}
-                  </p>
-                ) : null}
-              </div>
-              <Switch
-                disabled={!canManage || pending}
-                checked={enabled}
-                aria-label={title}
-                onCheckedChange={(checked) =>
-                  startTransition(async () => {
-                    setOptimisticAssignments({
-                      skillId: row.id,
-                      enabled: checked,
-                    });
-                    if (checked) {
-                      await assignEmployeeSkillsAction({
-                        employeeId,
-                        skillIds: [row.id],
-                      });
-                      return;
-                    }
-                    await removeEmployeeSkillAction({
-                      employeeId,
-                      skillId: row.id,
-                    });
-                  })
-                }
-              />
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
+    <CatalogTogglePanel
+      filter={filter}
+      onFilterChange={setFilter}
+      filters={[
+        { id: "all", label: t("filterAll") },
+        { id: "on", label: t("filterOn") },
+        { id: "off", label: t("filterOff") },
+      ]}
+      countLabel={
+        <>
+          <span className="text-sm font-semibold text-white">{enabledCount}</span>
+          <span className="mx-1 text-white/20">/</span>
+          <span>{totalCount}</span>
+          <span className="ml-1.5 text-white/35">{t("activeLabel")}</span>
+        </>
+      }
+      empty={
+        visible.length === 0
+          ? totalCount === 0
+            ? t("emptyLibrary")
+            : t("emptyFilter")
+          : null
+      }
+    >
+      {visible.map(({ row, title, blurb, enabled, toolLabels }) => (
+        <CatalogToggleRow
+          key={row.id}
+          title={title}
+          blurb={blurb}
+          enabled={enabled}
+          disabled={!canManage || pending}
+          tooltip={
+            isPlatformAdmin
+              ? `${row.slug}${toolLabels.length ? ` · ${toolLabels.join(", ")}` : ""}`
+              : toolLabels.length
+                ? t("usesTools", { tools: toolLabels.join(" · ") })
+                : blurb || undefined
+          }
+          onToggle={() => toggleSkill(row.id, !enabled)}
+          control={
+            <Switch
+              disabled={!canManage || pending}
+              checked={enabled}
+              aria-label={title}
+              onCheckedChange={(checked) => toggleSkill(row.id, checked)}
+            />
+          }
+        />
+      ))}
+    </CatalogTogglePanel>
   );
 }

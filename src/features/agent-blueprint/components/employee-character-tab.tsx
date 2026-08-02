@@ -119,21 +119,23 @@ export function EmployeeCharacterTab({
                     })
                   }
                   className={cn(
-                    "flex w-full items-start gap-3 px-4 py-3 text-start transition-colors",
-                    index > 0 && "border-t border-white/8",
-                    selected ? "bg-white/6" : "hover:bg-white/4",
+                    "flex w-full items-start gap-3 border-l-2 px-4 py-3 text-start transition-colors",
+                    index > 0 && "border-t border-t-white/8",
+                    selected
+                      ? "border-l-white/70 bg-white/4"
+                      : "border-l-transparent hover:bg-white/3",
                     (!canManage || pending) && "cursor-default",
                   )}
                 >
                   <span
                     className={cn(
-                      "mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full border",
+                      "mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full border",
                       selected
                         ? "border-white bg-white text-black"
                         : "border-white/25 text-transparent",
                     )}
                   >
-                    <Check className="size-3" />
+                    <Check className="size-2.5" />
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="block font-medium leading-snug">
